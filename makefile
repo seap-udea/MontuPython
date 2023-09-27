@@ -17,5 +17,10 @@ push:
 	git commit -am "New commit"
 	git push
 
+#Example: make release RELMODE=release VERSION=0.2.0.2 
+release:
+	@echo "Releasing a new version..."
+	@bash bin/release.sh $(RELMODE) $(VERSION)
+
 cleanall:cleancrap cleandist
 
