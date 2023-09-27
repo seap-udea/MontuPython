@@ -1,0 +1,66 @@
+# Montu Python
+## Astronomical ephemeris for the ancient world
+
+<!-- This are visual tags that you may add to your package at the beginning with useful information on your package --> 
+[![version](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/)
+[![downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/)
+
+`Montu Python` is a Python package intended to compute astronomical ephemeris in the ancient world, thousands of years before present.
+It was initially designed to compute ephemeris for the ancient Egypt, but it can also be used to study astronomical 
+phenomena in other sites of interest for cultural astronomical studies (archeoastronomy).
+
+This is an example:
+
+<p align="center"><img src="https://drive.google.com/uc?export=view&id=1XWnQLEt_oBJjVzMLFVGEAm_uh4zmiYvC" alt="Logo""/></p>
+
+## Download and install
+
+Describe here how the package can be downloaded and install it in
+different arquitectures.
+
+If you are using `PyPI` installation it's as simple as:
+
+```
+pip install montu
+```
+
+You can also test the unstable version of the package with:
+
+```
+pip install -i https://test.pypi.org/simple/ montu
+```
+
+## Quick start
+
+In this section you should provide the most simple instructions to use
+your package.
+
+For instance:
+
+```
+import montu
+print(montu.version())
+```
+
+## Code examples
+
+Provide some detailed examples for more advanced users.
+
+For instance:
+
+```
+import montu
+print(montu.version())
+```
+
+## What's new
+
+The new :
+
+Version 0.1:
+
+- The project is started!
+
+------------
+
+This package has been designed and written by Jorge I. Zuluaga with the historical advise of Francisco Vivas (C) 2023
