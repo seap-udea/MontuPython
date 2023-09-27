@@ -10,7 +10,7 @@ setuptools.setup(
     name='montu',
     author='Jorge Zuluaga, Tito Vivas',
     author_email='jorge.zuluaga@gmail.com',
-    description='Montu Python: astronomical ephemeris for the ancient world',
+    description='Montu Python: astronomical ephemerides for the ancient world',
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://pypi.org/project/montu',
@@ -25,7 +25,7 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         ],
-    version='0.1',
+    version='0.1.1',
 
     # ######################################################################
     # FILES

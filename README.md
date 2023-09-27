@@ -1,5 +1,5 @@
 # Montu Python
-## Astronomical ephemeris for the ancient world
+## Astronomical ephemerides for the ancient world
 
 <!-- This are visual tags that you may add to your package at the beginning with useful information on your package --> 
 [![version](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/)
@@ -7,8 +7,8 @@
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/montu/data/montu.png?raw=true" alt="Logo""/></p>
 
-`MontuPython` is a Python package intended to compute astronomical ephemeris in the ancient world, thousands of years before present.
-It was initially designed to compute ephemeris for the ancient Egypt, but it can also be used to study astronomical 
+`MontuPython` is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present.
+It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical 
 phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
 ## Download and install
@@ -55,7 +55,7 @@ print(montu.version())
 
 The new :
 
-Version 0.0.*:
+Version 0.1.*:
 
 - A proper identifying image of the project has been found.
 - The project is started!
