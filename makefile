@@ -13,5 +13,9 @@ cleandist:
 	@echo "Cleaning dist..."
 	@rm -rf dist/*.*
 
+push:
+	git commit -am "New commit"
+	git push
+
 cleanall:cleancrap cleandist
 

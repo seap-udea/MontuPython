@@ -11,7 +11,7 @@ phenomena in other sites of interest for cultural astronomical studies (archeoas
 
 This is an example:
 
-<p align="center"><img src="https://drive.google.com/uc?export=view&id=1XWnQLEt_oBJjVzMLFVGEAm_uh4zmiYvC" alt="Logo""/></p>
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/montu/data/montu.png?raw=true" alt="Logo""/></p>
 
 ## Download and install
 
