@@ -8,7 +8,7 @@ setuptools.setup(
     # BASIC DESCRIPTION
     # ######################################################################
     name='montu',
-    author='Jorge Zuluaga',
+    author='Jorge Zuluaga, Tito Vivas',
     author_email='jorge.zuluaga@gmail.com',
     description='Montu Python: astronomical ephemeris for the ancient world',
     long_description=long_description,
