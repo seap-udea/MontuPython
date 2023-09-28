@@ -1,4 +1,4 @@
-# Montu Python /mnṯw/
+# Montu Python /mnṯw ꜥꜣpp(y)/
 ## Astronomical ephemerides for the ancient world
 
 <!-- This are visual tags that you may add to your package at the beginning with useful information on your package --> 
