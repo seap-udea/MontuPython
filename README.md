@@ -5,10 +5,10 @@
 [![version](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/)
 [![downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/)
 
-<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/montu/data/montu.png?raw=true" alt="Logo""/></p>
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/montu/data/montu-python-logo-complete.png?raw=true" alt="Logo""/></p>
 <!-- Fuente: https://symbolikon.com/downloads/montu-egyptian-god/-->
 
-`MontuPython` is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present.
+`MontuPython` (transileterated is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present.
 It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical 
 phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
