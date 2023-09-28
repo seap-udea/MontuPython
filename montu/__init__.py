@@ -21,6 +21,7 @@ from montu.version import *
 KERNELS = {
     'latest_leapseconds.tls':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
     'de441_part-1.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-1.bsp',
+    'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
 }
 KERNELS_UP = dict()
 
@@ -237,13 +238,14 @@ class Planet(object):
 
     def calc_ephemerides(self,epochs=0,location='399'):
         # Calc state vector
-        X,lt = spy.spkezr('4',epochs,'J2000','LT+S','399')
-
+        X,lt = spy.spkezr('4',epochs,'J2000','LT+S',location)
+        
         # Compute RA and DEC (J2000)
         r,self.RAJ2000,self.DECJ2000 = spy.reclat(X[:3])
         self.RAJ2000 = np.mod(self.RAJ2000*RAD,360)/15
         self.DECJ2000 *= RAD 
 
+        return
         # Compute ecliptic coordinates (J2000)
         Mj2000_to_eclipJ2000 = spy.pxform('J2000','ECLIPJ2000',epochs) 
         poseclip = spy.mxv(Mj2000_to_eclipJ2000,X[:3])

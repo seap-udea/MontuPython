@@ -54,8 +54,6 @@ print(montu.version())
 
 ## What's new
 
-The new :
-
 Version 0.1.*:
 
 - A proper identifying image of the project has been found.
