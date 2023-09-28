@@ -56,6 +56,7 @@ print(montu.version())
 
 Version 0.1.*:
 
+- First classes created and tested with study case.
 - A proper identifying image of the project has been found.
 - The project is started!
 
