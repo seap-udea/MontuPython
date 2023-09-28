@@ -168,8 +168,13 @@ class Stars(object):
         )
         return stars
     
-    def plot_stars(self,pad=0):
-        fig,axs = plt.subplots(1,1,figsize=(5,5))
+    def plot_stars(self,pad=0,**kwargs):
+
+        # Default options
+        default = dict(figsize=(5,5))
+        default.update(kwargs)
+
+        fig,axs = plt.subplots(1,1,**default)
         axs.set_facecolor('black')
         axs.scatter(15*self.data.RA,self.data.Dec,marker='*',color='y',s=10)
 
@@ -180,10 +185,10 @@ class Stars(object):
         for axis in axs.xaxis,axs.yaxis:
             for t in axis.get_ticklabels():
                 t.set_color('w')
-                t.set_fontsize(6)
+                t.set_fontsize(10)
 
-        axs.set_xlabel('RA [deg]',labelpad=-20,color='w',fontsize=6)
-        axs.set_ylabel('Dec [deg]',labelpad=-30,color='w',fontsize=6)
+        axs.set_xlabel('RA [deg]',labelpad=-20,color='w',fontsize=10)
+        axs.set_ylabel('Dec [deg]',labelpad=-30,color='w',fontsize=10)
         axs.axis('equal')
 
         rang = max(15*((self.data.RA).max()-(self.data.RA).min()),
