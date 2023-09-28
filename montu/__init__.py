@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import copy
 from astropy.time import Time
+import warnings
+warnings.filterwarnings("ignore")
 
 # Constants
 RAD = 180/np.pi
@@ -119,6 +121,19 @@ class Montu(object):
         out = np.array([float(o) for o in out])
         out[0] = -out[0] if bce else out[0]
         return out
+    
+    def time_ticks(ax,nticks=None,**kwargs):
+        if nticks:
+            etmin, etmax = ax.get_xlim()
+            eticks = np.linspace(etmin,etmax,nticks)
+            ax.set_xticks(eticks)
+        else:
+            eticks = ax.get_xticks()
+        elabels = []
+        for etick in eticks:
+            mt = MonTime(etick,format='et')
+            elabels += [f"{int(abs(mt.cal[0])):d}-{int(mt.cal[1]):02d}-{int(mt.cal[2]):02d}"]
+        ax.set_xticklabels(elabels,**kwargs)
 
 class Stars(object):
 
@@ -179,8 +194,42 @@ class Stars(object):
 
 class MonTime(object):
     
-    def __init__(self,datestr,format='iso'):
-        self._parse_datestr(datestr,format)
+    def __init__(self,date,format='iso'):
+        if format == 'iso':
+            self._parse_datestr(date,format)
+        elif format == 'spice':
+            self._parse_datestr(date,format)
+        elif format == 'et':
+            self._convert_from_unitim(date,format)
+        elif format == 'jd':
+            self._convert_from_unitim(date,format)
+        else:
+            raise AssertionError(f"Format '{format}' not supported")
+    
+    def _convert_from_unitim(self,utime,format='et'):
+        if format == 'et':
+            # Ephemeris time
+            self.et = utime
+            self.deltat = spy.deltet(utime,"ET")
+            
+            # SPICE format
+            self.datespice = spy.et2utc(self.et+self.deltat,'C',3)
+
+            # Julian day
+            self.jd = spy.unitim(self.et,"ET","JDTDB")
+
+            # Astropy
+            self.astrotime = Time(self.jd,format='jd',scale='tdb')
+            self.datestr = self.astrotime.iso
+
+            # Is time before current era
+            self.bce = True if self.datestr[0] == '-' else False
+
+            # Convert to datetime64
+            self.datetime64 = np.datetime64(self.datestr)
+
+            # Extract calendar components
+            self.cal = Montu.dt2cal(np.datetime64(self.datestr.strip('-')),bce=self.bce)
     
     def _parse_datestr(self,datestr,format):
         """Create a time object with a date in string
@@ -202,7 +251,7 @@ class MonTime(object):
         # Strip blank spaces
         self.datestr = datestr.strip()
 
-        # Strip negative values in the year
+        # Is time before current era
         self.bce = True if self.datestr[0] == '-' else False
     
         # Convert to datetime64
@@ -238,19 +287,55 @@ class Planet(object):
 
     def calc_ephemerides(self,epochs=0,location='399'):
         # Calc state vector
-        X,lt = spy.spkezr('4',epochs,'J2000','LT+S',location)
+        self.X,lt = spy.spkezr(self.id, epochs,'J2000','LT+S',location)
         
         # Compute RA and DEC (J2000)
-        r,self.RAJ2000,self.DECJ2000 = spy.reclat(X[:3])
+        r,self.RAJ2000,self.DECJ2000 = spy.reclat(self.X[:3])
         self.RAJ2000 = np.mod(self.RAJ2000*RAD,360)/15
         self.DECJ2000 *= RAD 
 
-        return
         # Compute ecliptic coordinates (J2000)
         Mj2000_to_eclipJ2000 = spy.pxform('J2000','ECLIPJ2000',epochs) 
-        poseclip = spy.mxv(Mj2000_to_eclipJ2000,X[:3])
+        poseclip = spy.mxv(Mj2000_to_eclipJ2000,self.X[:3])
         r,self.lambJ2000,self.betaJ2000 = spy.reclat(poseclip)
         self.lambJ2000 = np.mod(self.lambJ2000*RAD,360)
         self.betaJ2000 *= RAD
 
         # Compute horizontal coordinates for the epochs
+
+    def angle_to_planet(self,planet):
+        # Get position vector
+        rself = self.X[:3]
+        rplan = planet.X[:3]
+
+        # Get cosine of angle
+        costeta = (rself@rplan)/((rself@rself)**0.5*(rplan@rplan)**0.5)
+        return np.arccos(costeta)*RAD
+    
+    def angle_to_star(self,star):
+        # Calculate the angular distance
+        angdist = Montu.haversine_distance(self.DECJ2000*DEG,15*self.RAJ2000*DEG,
+                                           float(star.data.Dec)*DEG,15*float(star.data.RA)*DEG)*RAD
+        return angdist
+
+    def calc_proper_motion(self,et,dt=1):
+
+        # Get consecutive positions
+        self.calc_ephemerides(et-dt)
+        ra_ini = 15*self.RAJ2000
+        dec_ini = self.DECJ2000
+        self.calc_ephemerides(et+dt)
+        ra_end = 15*self.RAJ2000
+        dec_end = self.DECJ2000
+
+        # Compute distance traversed 
+        angdist = Montu.haversine_distance(dec_ini*DEG,ra_ini*DEG,dec_end*DEG,ra_end*DEG)*RAD
+        
+        # Compute angular velocities
+        ra_speed = (ra_end - ra_ini)/(2*dt)
+        dec_speed = (dec_end - dec_ini)/(2*dt)
+        ang_speed = angdist/(2*dt)
+
+        return ra_speed,dec_speed,ang_speed
+
+
