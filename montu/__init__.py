@@ -6,6 +6,7 @@ from tqdm import tqdm
 import pandas as pd
 import matplotlib.pyplot as plt
 import copy
+from astropy import constants
 from astropy.time import Time
 import warnings
 warnings.filterwarnings("ignore")
@@ -14,7 +15,9 @@ warnings.filterwarnings("ignore")
 RAD = 180/np.pi
 DEG = 1/RAD
 
-DAY = 86400
+DAY = 86400 # s
+YEAR = 365.25*DAY # s
+KM = 1e3 # m
 
 # Version
 from montu.version import *
@@ -24,16 +27,30 @@ KERNELS = {
     'latest_leapseconds.tls':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
     'de441_part-1.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-1.bsp',
     'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
+    'frame.tk':'',
+    'pck00011.tpc':'',
+    'earth_assoc_itrf93.tf':''
 }
 KERNELS_UP = dict()
 
 class Montu(object):
+
+    # Print with verbosity
+    def vprint(verbose=True,*args):
+        if verbose:print(*args)
+
     # Load kernels
     def load_kernels(dir='/tmp/',kernels=KERNELS,verbose=True):
         # Check if dir exists
         if not os.path.exists(dir):
             os.system(f"mkdir -p {dir}")    
+
+        # Load kernel
         for kernel,item in kernels.items():
+            if len(item) == 0:
+                if verbose:print(f"Loading local kernel {kernel}")
+                spy.furnsh(Montu._data_path(kernel))
+                continue
             kernel_path = dir+"/"+kernel
             if not os.path.exists(kernel_path):
                 if verbose:print(f"Downloading '{kernel}'...")
@@ -199,44 +216,49 @@ class Stars(object):
 
 class MonTime(object):
     
-    def __init__(self,date,format='iso'):
+    def __init__(self,date,format='iso',scale='utc'):
         if format == 'iso':
-            self._parse_datestr(date,format)
+            self._parse_datestr(date,format,scale)
         elif format == 'spice':
-            self._parse_datestr(date,format)
+            self._parse_datestr(date,format,scale)
         elif format == 'et':
-            self._convert_from_unitim(date,format)
+            self._convert_from_unitim(date,format,scale)
         elif format == 'jd':
-            self._convert_from_unitim(date,format)
+            self._convert_from_unitim(date,format,scale)
         else:
             raise AssertionError(f"Format '{format}' not supported")
     
-    def _convert_from_unitim(self,utime,format='et'):
-        if format == 'et':
-            # Ephemeris time
-            self.et = utime
-            self.deltat = spy.deltet(utime,"ET")
-            
-            # SPICE format
-            self.datespice = spy.et2utc(self.et+self.deltat,'C',3)
-
+    def _convert_from_unitim(self,utime,format='et',scale='utc'):
+        if format == 'jd':
             # Julian day
-            self.jd = spy.unitim(self.et,"ET","JDTDB")
+            utime = spy.unitim(utime,"JDTDB","ET")
 
-            # Astropy
-            self.astrotime = Time(self.jd,format='jd',scale='tdb')
-            self.datestr = self.astrotime.iso
+        # Ephemeris time
+        self.et = utime
+        self.deltat = spy.deltet(utime,"ET")
+        if scale == 'utc':
+            self.et -= self.deltat
+        
+        # SPICE format
+        self.datespice = spy.et2utc(self.et+self.deltat,'C',3)
 
-            # Is time before current era
-            self.bce = True if self.datestr[0] == '-' else False
+        # Julian day
+        self.jd = spy.unitim(self.et,"ET","JDTDB")
 
-            # Convert to datetime64
-            self.datetime64 = np.datetime64(self.datestr)
+        # Astropy
+        self.astrotime = Time(self.jd,format='jd',scale='tdb')
+        self.datestr = self.astrotime.iso
 
-            # Extract calendar components
-            self.cal = Montu.dt2cal(np.datetime64(self.datestr.strip('-')),bce=self.bce)
+        # Is time before current era
+        self.bce = True if self.datestr[0] == '-' else False
+
+        # Convert to datetime64
+        self.datetime64 = np.datetime64(self.datestr)
+
+        # Extract calendar components
+        self.cal = Montu.dt2cal(np.datetime64(self.datestr.strip('-')),bce=self.bce)
     
-    def _parse_datestr(self,datestr,format):
+    def _parse_datestr(self,datestr,format='iso',scale='utc'):
         """Create a time object with a date in string
 
         Parameters
@@ -280,7 +302,9 @@ class MonTime(object):
         # Convert to et
         self.et = spy.utc2et(self.datespice)
         self.deltat = spy.deltet(self.et,"ET")
-        self.et -= self.deltat
+        if scale == 'tt':
+            self.et -= self.deltat
+        
         self.jd = spy.unitim(self.et,"ET","JDTDB")
 
         # Astropy
@@ -343,4 +367,7 @@ class Planet(object):
 
         return ra_speed,dec_speed,ang_speed
 
+class Consts(object):
+    pass
 
+Consts.au = constants.au.value
