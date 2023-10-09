@@ -50,7 +50,7 @@ setuptools.setup(
     # DEPENDENCIES
     # ######################################################################
     install_requires=['scipy','ipython','matplotlib','tqdm','numpy',
-                      'astroquery','plotly','numpy','spiceypy'],
+                      'astroquery','plotly','numpy','spiceypy','pyplanets','astropy','astroquery'],
 
     # ######################################################################
     # OPTIONS
