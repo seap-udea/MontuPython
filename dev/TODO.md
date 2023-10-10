@@ -30,6 +30,8 @@
 
 - Write routines to transform to local equatorial to local altazimutal and viceversa.
 
+- When computing coordinates of a planet create a DataFrame storing coordinates at different dates.
+
 - The package uses four different tools:
   * AstroPy
   * PyEphem
