@@ -21,15 +21,21 @@ from functools import lru_cache
 
 # Special packages
 from pyplanets.core.epoch import Epoch as pyplanets_Epoch
-from pyplanets.core.coordinates import mean_obliquity as pyplanets_obliquity
+from pyplanets.core.coordinates import true_obliquity as pyplanets_true_obliquity
+from pyplanets.core.coordinates import nutation_longitude as pyplanets_nutation_longitude
+
 from astropy import constants as astropy_constants
 from astropy import units as monu # Montu Units are astropy units
 from astropy.time import Time as astropy_Time
 from astroquery.jplhorizons import Horizons as astropy_Horizons
 
+import ephem as pyephem
+
 # Avoid warnings
 import warnings
+import logging
 warnings.filterwarnings("ignore")
+logging.getLogger('requests').setLevel(logging.CRITICAL)
 
 ###############################################################
 # Global settings of the package
@@ -66,6 +72,9 @@ TROPICAL_YEAR = 365.242190402*DAY # d, J2000
 M_J2000_ECLIPJ2000 = spy.pxform('J2000','ECLIPJ2000',0)
 
 # Historical
+PYEPHEM_JD_REF = 2415020.0
+PYEPHEM_MJD_2000 = 36525.0
+JED_2000 = 2451545.0
 
 # Required kernels
 """This dictionary describe the kernels the package require to compute planetary positions
@@ -190,11 +199,10 @@ class Montu(object):
                 if verbose:print(f"Downloading '{kernel}'...")
                 Montu._wget(item,kernel_path)
             
-            else:
-                # Once downloaded furnish kernel
-                if verbose:print(f"Loading kernel {kernel}")
-                spy.furnsh(kernel_path)
-                KERNELS_LOADED[kernel] = True
+            # Once downloaded furnish kernel
+            if verbose:print(f"Loading kernel {kernel}")
+            spy.furnsh(kernel_path)
+            KERNELS_LOADED[kernel] = True
 
     def print_df(df):
         """Print DataFrame.
@@ -353,6 +361,7 @@ class MonTime(object):
                 self._parse_datestr(date,verbose=self.verbose)
 
                 # Calculated deltat
+                # It doesn't work for the interval 600 - 1500
                 self.deltat = pyplanets_Epoch.tt2ut(self.calendar[0]*self.calendar[1],self.calendar[2])
 
                 # Convert to TT
@@ -482,11 +491,19 @@ class MonTime(object):
         # Create astrotime 
         self.astrotime = astropy_Time(self.jtd,format='jd',scale='tdb')
 
-        # Obliquity
-        self.epsilon = pyplanets_obliquity(self.mixed)
+        # True obliquity and nutation longitude 
+        self.epsilon = pyplanets_true_obliquity(self.mixed)
+        self.delta_psi = pyplanets_nutation_longitude(self.mixed)
+
+        # Greenwich True Sidereal Time (GTST)
+        self.gtst = 24*self.mixed.apparent_sidereal_time(self.epsilon,self.delta_psi)
+
+        # PyEphem Date
+        self.pyephem = pyephem.Date(self.jed - PYEPHEM_JD_REF)
 
         # Update matrices
         self.M_J2000_Epoch = spy.pxform('J2000','EARTHTRUEEPOCH',self.tt)
+        self.M_Epoch_J2000 = spy.invert(self.M_J2000_Epoch)
         
 ###############################################################
 # Stars Class
