@@ -40,6 +40,11 @@
   * Sky
   * PyMeeus
 
+- Create maps of the sky in different projections
+  * Especially maps of the circumpolar region.
+
+- Create maps of the sky inlcuding the Horizon.
+
 ## Useful documentation:
 
 - Reference frames: https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/23_lunar-earth_pck-fk.pdf
