@@ -549,6 +549,9 @@ class MonTime(object):
         self.extra_consistency = False
 
     def set_astro(self):
+        # Create pyplanet epoch
+        self.obj_pyplanet = pyplanets_Epoch(self.jtd)
+
         # Create astrotime 
         self.obj_astrotime = astropy_Time(self.jtd,format='jd',scale='tdb')
         
