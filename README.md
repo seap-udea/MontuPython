@@ -184,7 +184,7 @@ Method 'SPICE':
 	Local coordinates @ Epoch:  (6.0, 11, 24.27528943044642) (-41.0, 38, 31.093764289017827)
 ```
 
-### Create a map of the sky
+### Create a map of the sky
 
 Now we want to create a map of the sky surrounding Aldebaran. For that purpose we get first 
 the information about Aldebaran:
@@ -208,8 +208,6 @@ fig,ax = hyades.plot_stars(pad=0.0,labels=False,figargs=dict(figsize=(8,8)))
 The resulting figure will be:
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
-
-
 
 ## What's new
 
