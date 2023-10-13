@@ -1,11 +1,9 @@
 
 # ToDo
 
-Science:
-
-- Calculate Montunctions and draw trajectories of the planet for Tito's PhD thesis.
-
 Urgent: 
+
+- Remove DEBUGGING messages.
 
 - All classes include `verbose` option.
 
@@ -156,3 +154,5 @@ Method 'SPICE':
   * Dates between 500 and 1600 ((SOLVED))
 
 - Update date strings when changing the tt or jd variables ((SOLVED))
+
+- Calculate Montunctions and draw trajectories of the planet for Tito's PhD thesis ((SOLVED))
