@@ -57,7 +57,7 @@ allstars=Stars()
 
 It may take a long time to download the planetary kernels, so be patient! 
 
-### Position of mars at an historical date
+### Position of mars at an historical date
 
 First we need to prepare some basic objects, the Earth (where the observer is), the location on Earth, the time of 
 observation and the object to be observed:
