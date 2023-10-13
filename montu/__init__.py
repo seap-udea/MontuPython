@@ -53,7 +53,8 @@ import ephem as pyephem
 import warnings
 import logging
 warnings.filterwarnings("ignore")
-logging.getLogger('requests').setLevel(logging.CRITICAL)
+logger = logging.getLogger()
+logger.disabled = True
 
 ###############################################################
 # Global settings of the package
@@ -93,6 +94,16 @@ M_J2000_ECLIPJ2000 = spy.pxform('J2000','ECLIPJ2000',0)
 PYEPHEM_JD_REF = 2415020.0
 PYEPHEM_MJD_2000 = 36525.0
 JED_2000 = 2451545.0
+
+# Datum of the calendar in Julian year
+"""Note from wikipedia:
+'The Julian day number (JDN) is the integer assigned to a whole solar day 
+in the Julian day count starting from noon Universal Time, with Julian day 
+number 0 assigned to the day starting at noon on Monday, January 1, 4713 BC, 
+proleptic Julian calendar (November 24, 4714 BC, in the proleptic Gregorian calendar)'
+"""
+JULIAN_DATUM_PROLEPTIC = 4713
+JULIAN_DATUM_JULIAN = 4712
 
 # Required kernels
 """This dictionary describe the kernels the package require to compute planetary positions
@@ -252,6 +263,55 @@ class Montu(object):
         else:
             ret = sgn*h,m,s
         return ret
+    
+    def string_difference(string1, string2):
+        """Calculate the difference between two strings
+        """
+        A = set(string1.split()) 
+        B = set(string2.split()) 
+        str_diff = A.symmetric_difference(B)
+        isEmpty = (len(str_diff) == 0)
+        return str_diff
+    
+    def haversine_distance(lat1, lon1, lat2, lon2):
+        """Compute angular distance between two points
+        """
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = np.sin(dlat / 2)**2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2)**2
+        c = 2 * np.arctan2(np.sqrt(a), np.sqrt(1 - a))
+        return c
+    
+    def montu_mark(ax):
+        """Add a water mark to a 2d or 3d plot.
+        
+        Parameters:
+        
+            ax: Class axes: 
+                Axe where the watermark will be placed.
+        """
+        #Get the height of axe
+        axh=ax.get_window_extent().transformed(ax.get_figure().dpi_scale_trans.inverted()).height
+        fig_factor=axh/4
+        
+        #Options of the water mark
+        args=dict(
+            rotation=270,ha='left',va='top',
+            transform=ax.transAxes,color='pink',fontsize=6*fig_factor,zorder=100
+        )
+        
+        #Text of the water mark
+        mark=f"MontuPython {version}"
+        
+        #Choose the according to the fact it is a 2d or 3d plot
+        try:
+            ax.add_collection3d
+            plt_text=ax.text2D
+        except:
+            plt_text=ax.text
+            
+        text=plt_text(1,1,mark,**args);
+        return text
 
 # Aliases
 D2H = Montu.dec2hex
@@ -273,7 +333,10 @@ class MonTime(object):
 
     Initialization parameters:
         date: string | float
-            Date
+            Date. When iso, possible formats are (all the same date):
+                -1000-01-01 12:00:00.00
+                bce1001-01-01 12:00:00.00
+                1001 b.c.e. 01-01 12:00:00.00
 
         format: string, default = 'iso'
             Format of the input date. Possible values: 'iso', 'tt', 'jd'
@@ -294,9 +357,8 @@ class MonTime(object):
         Time as strings:
         
             datestr: string
-                Date in gregorian prolectic, with format '[bce]CCYY-MM-DD HH:MM:SS.fff'
+                Date in gregorian prolectic, with format '[-]CCYY-MM-DD HH:MM:SS.fff'
                 
-            
         Time in uniform scales:
             tt: float [seconds]
                 Ephemeris time in tt. 
@@ -304,15 +366,15 @@ class MonTime(object):
                 Ephemeris time in utc. 
             deltat: float [seconds]
                 Difference Dt = TT - UTC. 
-            jdt: float [days]
+            jtd: float [days]
                 Julian day in terrestrial time.
             jed: float [days]
                 Julian day in UTC.
 
         Time as special objects:
 
-        dateastro: string
-            Date in astropy format '[-]CCYY-MM-DD HH:MM:SS.fff'
+            dateastro: string
+                Date in astropy format '[-]CCYY-MM-DD HH:MM:SS.fff'
             
         datemix: string
             Date in a mixed style (non-prolectic), with format '[bce]CCYY-MM-DD HH:MM:SS.fff', 
@@ -328,12 +390,14 @@ class MonTime(object):
             
         delta_psi: float [deg]
             Nutation longitude for the date
+
         M_J2000_Epoch: float
             Matrix transforming from equinox J2000 to equinos at Epoch.
             
     Examples:
 
         Initialization using a string:
+
         
         Initialization using a float:
 
@@ -345,56 +409,47 @@ class MonTime(object):
                  calendar='proleptic',
                  verbose=False):
         
-        # Check input
         if type(date) != str and format == 'iso':
+            # If only a number is provided we assume is a terrestrial time
             format = 'tt'
             scale = 'tt'
-        
-        # Set properties
+
+        # Set calendar
         self.calendar = calendar
-        self.scale = scale
-
+        
         if format == 'iso':
-            # Date was provided as a string
 
-            Montu.vprint(verbose,f"Calendar {self.calendar}, format {format}, scale {scale}")
+            # Date was provided as a string
             if calendar=='proleptic':
-                # If the date was given in proleptic calendar
-                
                 # Parse string
-                self._parse_datestr(date,verbose=verbose)
+                self._parse_datestr(date)
 
                 # Calculated deltat
-                # It doesn't work for the interval 600 - 1500
-                self.deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],
+                deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],
                                                     self.components[2])
 
                 # Convert to TT
                 et = spy.str2et(self.datespice)
-                et -= spy.deltet(et,'ET')
+                et -= round(spy.deltet(et,'ET'),3)
                 et = round(et,3) # Precision in time is milliseconds
                 
                 if scale == 'tt':
-                    self.tt = et
-                    self.et = et - self.deltat
+                    tt = et
+                    et = et - deltat
                 else:
-                    self.tt = et + self.deltat
-                    self.et = et
+                    tt = et + deltat
+                    et = et
                 
                 # Get Julian day
-                self.jed = spy.unitim(self.et,'ET','JED')
-                self.jtd = spy.unitim(self.tt,'ET','JED')
+                jed = spy.unitim(et,'ET','JED')
+                jtd = spy.unitim(tt,'ET','JED')
 
-                # PyPlanets Epoch Object: useful to convert to Julian Calendar
-                self.obj_pyplanet = pyplanets_Epoch(self.jed)
-                
             elif calendar=='mixed':
-                # If not proleptic (mixed gregorian-julian) use PyPlanets
                 # Parse string
-                self._parse_datestr(date,verbose=False)
+                self._parse_datestr(date)
 
                 # Calculated deltat
-                self.deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],
+                deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],
                                                     self.components[2])
 
                 # Create pyplanet object since input format is non-prolectic
@@ -405,94 +460,90 @@ class MonTime(object):
                         self.components[5]/(24*60)+\
                         self.components[6]/(24*60*60)+\
                         self.components[7]/(24*60*60*1e6))
-                self.obj_pyplanet = pyplanets_Epoch(*args)
+                pyplanet = pyplanets_Epoch(*args)
                 
                 # According to scale
-                jd = self.obj_pyplanet.jde()
+                jd = pyplanet.jde()
                 et = spy.unitim(jd,'JED','ET')
                 
                 # Choose according to scale
                 if scale == 'tt':
-                    self.tt = et
-                    self.jtd = jd
-                    self.et = self.tt - self.deltat
-                    self.jed = self.jtd - self.deltat/DAY
+                    tt = et
+                    jtd = jd
+                    et = tt - deltat
+                    jed = jtd - deltat/DAY
                 else:
-                    self.et = et
-                    self.jed = jd
-                    self.tt = self.et + self.deltat
-                    self.jtd = self.jed + self.deltat/DAY
-                
-                self.set_strings()
+                    et = et
+                    jed = jd
+                    tt = et + deltat
+                    jtd = jed + deltat/DAY
             else:
                 raise ValueError("Calendar '{calendar}' not recognzed. Use 'proleptic', 'mixed'.")
 
-            # Set astro
-            self.set_astro()
-
-            Montu.vprint(verbose,"Mixed:",self.obj_pyplanet.get_full_date())
-            Montu.vprint(verbose,"et = ",self.et)
-            Montu.vprint(verbose,"JED = ",self.jed)
-            Montu.vprint(verbose,"Delta-t:",self.deltat)
-            Montu.vprint(verbose,"tt = ",self.tt)
-            Montu.vprint(verbose,"JTD = ",self.jtd)
+            # Initialize object according to tt
+            self.update_time(tt,format='tt',scale='tt')
 
         else:
-            # Initialize dates using terrestrial time
-            self.set_time(date,format,scale)
+            # Initialize object according to date and format and 
+            self.update_time(date,format,scale)
 
-            # Update string
-            self.set_strings(verbose=verbose)
-            
-            # Report messages
-            Montu.vprint(verbose,"Mixed:",self.obj_pyplanet.get_full_date())
-            Montu.vprint(verbose,"et = ",self.et)
-            Montu.vprint(verbose,"JED = ",self.jed)
-            Montu.vprint(verbose,"Delta-t:",self.deltat)
-            Montu.vprint(verbose,"tt = ",self.tt)
-            Montu.vprint(verbose,"JTD = ",self.jtd)
-
-        # Set extra properties
-        self.set_extra()
-
-    def _parse_datestr(self,date,verbose=False):
+    def _parse_datestr(self,date):
         """Parse string
         """
-        
         # Default format
-        self.style = 'astro' # Default style 
+        style = 'astro' # Default style of input string 
         self.datestr = date # Default date
 
         # Strip blank spaces
-        self.date = date.strip()
+        date = date.strip()
 
         # Is time before current era
         self.bce = False
-        if self.date[0] == '-':
+        if date[0] == '-':
             self.bce = True
-        elif 'b' in self.date.lower():
+        elif 'b' in date.lower():
             self.bce = True
-            self.style = 'calendar'
+            style = 'calendar'
 
         # Convert all formats to dateastro
-        if self.bce and (self.style == 'calendar'):
+        if self.bce and (style == 'calendar'):
             subs1 = lambda m:str(-(int(m.group(1))-1))
             subs2 = lambda m:str(-(int(m.group(1))-1))+'-'
-            self.datestr = re.sub('bc[a-z\s]*(\d+)',subs1,self.datestr.lower())
-            self.datestr = re.sub('(\d+)\s*b[\.]*c[\.]*\s*',subs2,self.datestr.lower())
-        Montu.vprint(verbose,"Date native:",self.datestr)
+            self.datestr = re.sub('bce[a-z\s]*(\d+)',subs1,self.datestr.lower())
+            self.datestr = re.sub('(\d+)\s*b[\.]*c[\.]*e[\.]*\s*',subs2,self.datestr.lower())
 
         # Create calendar and datetime object
         self.obj_datetime64 = np.datetime64(self.datestr)
-        Montu.vprint(verbose,"Datetime64:",self.obj_datetime64)
-
         self.components = Montu.dt2cal(np.datetime64(self.datestr.strip('-')),
                                        bce=self.bce)
-        Montu.vprint(verbose,"Components:",self.components)
+        # Pay attention to leap seconds
+        try:
+            self.obj_datetime = datetime(*self.components[1:])
+        except ValueError:
+            components = copy.deepcopy(self.components)
+            components[3] = components[3] - 1
+            self.obj_datetime = datetime(*components[1:])
+        
+        # Generate info
+        self.year = self.components[0]*self.components[1]
+        self.month = self.components[2]
+        self.day = self.components[3]
+        self.hour = self.components[4]
+        self.minute = self.components[5]
+        self.second = self.components[6]
+        self.usecond = self.components[7]
+        
+        # Datetime in Julian years
+        julian_year = (JULIAN_DATUM_PROLEPTIC - self.components[1]) + 1
+        if julian_year>0:
+            self.obj_datejulian = datetime(*((julian_year,)+tuple(self.components[2:])))
+        else:
+            julian_year -= 1 # To avoid year 0
+            self.obj_datejulian = datetime(*((-julian_year,)+tuple(self.components[2:])))
 
-        self.obj_datetime = datetime(*self.components[1:])
-        Montu.vprint(verbose,"Datetime:",self.obj_datetime)
-
+        # Date in julian years
+        self.datejulian = self.obj_datejulian.strftime('%Y-%m-%d %H:%M:%S.%f')
+        
         # Convert to SPICE format
         if self.bce:
             datelist = [int(f) for f in self.obj_datetime.strftime('%Y,%m,%d,%H,%M,%S,%f').split(',')]
@@ -509,11 +560,17 @@ class MonTime(object):
         else:
             self.datespice = self.datestr
 
-        Montu.vprint(verbose,"Date SPICE:",self.datespice)
+    def update_time(self,time=None,format='tt',scale='tt'):
+        """This is the most important method.
+        """
 
-        self.string_consistency = True
+        # Use if you set the attribute tt manually
+        if time is None:
+            time = self.tt
+            format = 'tt'
+            scale = 'tt'
 
-    def set_time(self,time,format='tt',scale='tt'):
+        self.scale = scale
         # Initialize dates using terrestrial time
         if format == 'jd':
             jd = time
@@ -524,9 +581,9 @@ class MonTime(object):
             raise AssertionError(f"Format '{format}' not recognized (valid 'iso', 'tt', 'jd')")
 
         # Initialize Epoch
-        self.obj_pyplanet = pyplanets_Epoch(jd)
-        year,month,day = self.obj_pyplanet.get_date()
-        self.deltat = pyplanets_Epoch.tt2ut(year,month)
+        pyplanet = pyplanets_Epoch(jd)
+        year,month,day = pyplanet.get_date()
+        self.deltat = pymeeus_Epoch.tt2ut(year,month)
         self.bce = True if year<=0 else False
         
         # Terrestrial time
@@ -542,40 +599,65 @@ class MonTime(object):
             self.jtd = self.jed + self.deltat/DAY
             self.tt = self.et + self.deltat
 
-        # Set atro
-        self.set_astro()
-        
-        self.string_consistency = False
-        self.extra_consistency = False
-
-    def set_astro(self):
-        # Create pyplanet epoch
-        self.obj_pyplanet = pyplanets_Epoch(self.jtd)
+        # Create pyplanet epoch: you need to provide jd with no deltat correction: is internal
+        self.obj_pyplanet = pyplanets_Epoch(self.jed)
 
         # Create astrotime 
         self.obj_astrotime = astropy_Time(self.jtd,format='jd',scale='tdb')
         
         # PyEphem Date
         self.obj_pyephem = pyephem.Date(self.jed - PYEPHEM_JD_REF)
-        self.datemixed = f'{self.obj_pyephem}'.replace('/','-')
-
-        self.astro_consistency = True
-
-    def set_strings(self,verbose=False):
-        # Use the original et without modification
-        c = spy.et2utc(self.et+spy.deltet(self.et,'ET'),'C',4)
-        if self.bce:
-            d = datetime.strptime(c,'%Y B.C. %b %d %H:%M:%S.%f')
-            datestr = f'{-(d.year-1)}-{d.month:02d}-{d.day:02d} {d.hour:02d}:{d.minute:02d}:{d.second:02d}.{d.microsecond}'
-    
-        else:
-            d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
-            datestr = f'{d.year}-{d.month:02d}-{d.day:02d} {d.hour:02d}:{d.minute:02d}:{d.second:02d}.{d.microsecond}'
-
-        self._parse_datestr(datestr,verbose=verbose)
-        self.string_consistency = True
         
-    def set_extra(self):
+        # Generate object and string for datemixed 
+        pyephem_str = f'{self.obj_pyephem}'.strip('-')
+        parts = pyephem_str.split(' ')
+        cals = [int(p) for p in parts[0].split('/')] +[int(p) for p in parts[1].split(':')]
+
+        # Mixed normal
+        if self.bce:
+            cals[0] = cals[0]-1
+        # Be careful with the leap months
+        try:
+            self.obj_datetimemix = datetime(*cals)
+        except ValueError:
+            cals[1] = cals[1]-1
+            self.obj_datetimemix = datetime(*cals)
+        if self.bce:
+            self.datemixed = self.obj_datetimemix.strftime('-%Y-%m-%d %H:%M:%S')
+        else:
+            self.datemixed = self.obj_datetimemix.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Mixed in Julian years
+        julian_year = (JULIAN_DATUM_JULIAN - cals[0] - 1) + 1
+        if julian_year>0:
+            self.obj_datejulianmix = datetime(*((julian_year,)+tuple(cals[1:])))
+        else:
+            julian_year -= 1 # To avoid year 0
+            self.obj_datejulianmix = datetime(*((-julian_year,)+tuple(cals[1:])))
+        self.datejulianmixed = self.obj_datejulianmix.strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Set string
+        c = spy.et2utc(self.et+spy.deltet(self.et,'ET'),'C',4)
+        sub = lambda m:f'{int(m.group(1)):04d} '
+        if self.bce:
+            c = re.sub('(\d+)\s*B.C.\s*',sub,c)
+            # Be careful with leap year
+            try:
+                d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
+            except ValueError:
+                d = self.obj_datetimemix
+            datestr = f'{-(d.year-1)}-{d.month:02d}-{d.day:02d} {d.hour:02d}:{d.minute:02d}:{d.second:02d}.{d.microsecond}'
+        else:
+            if 'A.D.' in c:
+                c = re.sub('(\d+)\s*A.D.\s*',sub,c)
+                d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
+            else:
+                d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
+                
+            datestr = f'{d.year}-{d.month:02d}-{d.day:02d} {d.hour:02d}:{d.minute:02d}:{d.second:02d}.{d.microsecond}'
+        
+        # Parse string
+        self._parse_datestr(datestr)
 
         # True obliquity and nutation longitude 
         self.epsilon = float(pyplanets_true_obliquity(self.obj_pyplanet))
@@ -583,7 +665,8 @@ class MonTime(object):
         self.M_equatorial_ecliptic = spy.rotate(self.epsilon*DEG,1)
 
         # Greenwich True Sidereal Time (GTST)
-        self.gtst = 24*self.obj_pyplanet.apparent_sidereal_time(self.epsilon,self.delta_psi)
+        self.gtst = 24*self.obj_pyplanet.apparent_sidereal_time(self.epsilon,
+                                                                self.delta_psi)
 
         # Update matrices
         self.M_J2000_Epoch = spy.pxform('J2000','EARTHTRUEEPOCH',self.tt)
@@ -591,35 +674,62 @@ class MonTime(object):
         self.M_EJ2000_Epoch = spy.pxform('ECLIPJ2000','EARTHTRUEEPOCH',self.tt)
         self.M_Epoch_EJ2000 = spy.invert(self.M_J2000_Epoch)
 
-        self.extra_consistency = True
+    def _get_signature(self):
+        signature = ''
+        keys = sorted(self.__dict__.keys())[::-1]
+        for key in keys:
+            item = self.__dict__[key]
+            signature += key+':'+str(item)+'__'
+        return signature
 
+    def _get_hash(self):
+        return str(hash(self._get_signature()))
+    
+    def is_different(self,mtime):
+        return Montu.string_difference(self._get_signature(),mtime._get_signature())
+
+    def __add__(self,dtt):
+        new = copy.deepcopy(self)
+        new.tt += dtt
+        new.update_time()
+        return new
+    
+    def __sub__(self,dtt):
+        new = copy.deepcopy(self)
+        new.tt -= dtt
+        new.update_time()
+        return new
+
+    def __sub__(self,mtime):
+        return self.jed-mtime.jed
+    
     def __str__(self):
         str = f"""Montu Time Object:
 --------------------------
 General:
     Calendar: {self.calendar}
     Is bce: {self.bce}
-    Components: {self.components}
-    Scale: {self.scale}
+    Components UTC: {self.components}
 Uniform scales:
-    Delta-t = TT - UTC = {self.deltat}
     Terrestrial time:
         tt: {self.tt}
         jtd: {self.jtd}
     UTC time:
         et: {self.et}
         jed: {self.jed}
-Are uniform consistent with strings:
-    Astro: {self.astro_consistency}
-    Strings: {self.string_consistency}
-    Extra: {self.extra_consistency}
+    Delta-t = TT - UTC = {self.deltat}
 Strings:
-    Date in native format: {self.datestr}
     Date in SPICE format: {self.datespice}
+    Date in proleptic calendar: {self.datestr}
+    Date in proleptic calendar (jul.year): {self.datejulian}
     Date in mixed calendar: {self.datemixed}
+    Date in mixed calendar (jul.year): {self.datejulianmixed}
 Objects:
     Date in datetime64 format: {self.obj_datetime64}
-    Date in datetime format: {self.obj_datetime}
+    Date in datetime format proleptic: {self.obj_datetime}
+    Date in datetime format proleptic (julian year): {self.obj_datejulian}
+    Date in datetime format mixed: {self.obj_datetimemix}
+    Date in datetime format mixed (julian year): {self.obj_datejulianmix}
     Date in PyPlanet Epoch: {self.obj_pyplanet}
     Date in PyEphem Epoch: {self.obj_pyephem}
     Date in AstroPy Time: {self.obj_astrotime}
@@ -627,9 +737,37 @@ Astronomical properties at Epoch:
     True obliquity of ecliptic: {D2H(self.epsilon,1)}
     True nutation longitude: {D2H(self.delta_psi,1)}
     Greenwhich Meridian Sidereal Time: {D2H(self.gtst,1)}
+Hash: {self._get_hash()}
 """
         return str
-
+    
+    def get_equinoxes_solstices_year(self):
+        firstday_jed = pymeeus_Epoch(self.year,1,1).jde()
+        firstdate = pyephem.Date(firstday_jed - PYEPHEM_JD_REF)
+        vernal_jed = pyephem.next_vernal_equinox(firstdate) + PYEPHEM_JD_REF
+        summer_jed = pyephem.next_summer_solstice(firstdate) + PYEPHEM_JD_REF
+        auttumnal_jed = pyephem.next_autumnal_equinox(firstdate) + PYEPHEM_JD_REF
+        winter_jed = pyephem.next_winter_solstice(firstdate) + PYEPHEM_JD_REF
+        return vernal_jed,summer_jed,auttumnal_jed,winter_jed
+    
+    @staticmethod
+    def next_equinoxes_solstices(mtime):
+        date = pyephem.Date(mtime.jed - PYEPHEM_JD_REF)
+        vernal_jed = pyephem.next_vernal_equinox(date) + PYEPHEM_JD_REF
+        summer_jed = pyephem.next_summer_solstice(date) + PYEPHEM_JD_REF
+        auttumnal_jed = pyephem.next_autumnal_equinox(date) + PYEPHEM_JD_REF
+        winter_jed = pyephem.next_winter_solstice(date) + PYEPHEM_JD_REF
+        return vernal_jed,summer_jed,auttumnal_jed,winter_jed
+    
+    @staticmethod
+    def previous_equinoxes_solstices(mtime):
+        date = pyephem.Date(mtime.jed - PYEPHEM_JD_REF)
+        vernal_jed = pyephem.previous_vernal_equinox(date) + PYEPHEM_JD_REF
+        summer_jed = pyephem.previous_summer_solstice(date) + PYEPHEM_JD_REF
+        auttumnal_jed = pyephem.previous_autumnal_equinox(date) + PYEPHEM_JD_REF
+        winter_jed = pyephem.previous_winter_solstice(date) + PYEPHEM_JD_REF
+        return vernal_jed,summer_jed,auttumnal_jed,winter_jed
+    
 ###############################################################
 # Stars Class
 ###############################################################
@@ -728,8 +866,8 @@ class Stars(object):
                         color='w',fontsize=8)
 
         # Decoration
-        axs.set_xlabel('RA [deg]',fontsize=10)
-        axs.set_ylabel('Dec [deg]',fontsize=10)
+        axs.set_xlabel('RAJ2000 [deg]',fontsize=10)
+        axs.set_ylabel('DecJ2000 [deg]',fontsize=10)
         
         # Range
         rang = max(15*((self.data.RA).max()-(self.data.RA).min()),
@@ -743,22 +881,8 @@ class Stars(object):
 
 
 ###############################################################
-# Planetary body
+# Observing site
 ###############################################################
-PLANETARY_IDS = dict(
-    SUN = 10,
-    MERCURY = 1,
-    VERNUS = 2,
-    EARTH = 399,
-    MOON = 301,
-    MARS = 4,
-    JUPITER = 5,
-    SATURN = 6,
-    URANUS = 7,
-    NEPTUNE = 8,
-)
-PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
-
 class ObservingSite(object):
     """Create an observing site
 
@@ -840,6 +964,23 @@ class ObservingSite(object):
         # Compute true sidereal time
         self.ltst = self.epoch.gtst + self.lon/15
         
+###############################################################
+# Planetary body
+###############################################################
+PLANETARY_IDS = dict(
+    SUN = 10,
+    MERCURY = 1,
+    VERNUS = 2,
+    EARTH = 399,
+    MOON = 301,
+    MARS = 4,
+    JUPITER = 5,
+    SATURN = 6,
+    URANUS = 7,
+    NEPTUNE = 8,
+)
+PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
+
 class PlanetaryBody(object):
     """Create a planetary body
 
@@ -893,7 +1034,8 @@ class PlanetaryBody(object):
         # No predicted yet
         self.predict = False
 
-    def calculate_sky_position(self,mtime=None,site=None,method='Horizons',verbose=True):
+    def calculate_sky_position(self,mtime=None,site=None,method='Horizons',
+                               store=None,verbose=True):
         """Calculate position of a planet 
 
         Parameters:
@@ -906,9 +1048,20 @@ class PlanetaryBody(object):
             method:
                 'Horizons': use astroquery.
                 'SPICE': use SPICE and kernels.
-                'vsop': use VSOP87 analytical theory.
+                'VSOP87': use VSOP87 analytical theory.
                 'all': all methods
         """
+        self.data = {
+            'datetime64':[mtime.obj_datejulian],
+            'tt':[mtime.tt],
+            'jtd':[mtime.jtd],
+            'jed':[mtime.jed],
+
+            }
+        if store:
+            if 'df' not in self.__dict__.keys():
+                self.df = pd.DataFrame()
+        
         if site is None:
             raise ValueError("No site selected")
 
@@ -969,67 +1122,8 @@ class PlanetaryBody(object):
             
             # Sidereal time
             self.tsa = np.mod(self.RAEpoch + self.HA,24)
-            
-            Montu.vprint(verbose,"\tCoordinates @ J2000: ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
-            Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAEpoch),Montu.dec2hex(self.DecEpoch))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonEpoch),Montu.dec2hex(self.LatEpoch))
-            Montu.vprint(verbose,f"\tLocal true sidereal time: ",Montu.dec2hex(self.tsa))
-            Montu.vprint(verbose,f"\tHour angle @ Epoch: ",Montu.dec2hex(self.HA))
-            Montu.vprint(verbose,f"\tLocal coordinates @ Epoch: ",Montu.dec2hex(self.az),Montu.dec2hex(self.el))
 
-            compute = True
-
-        if method == 'SPICE' or all_methods:
-
-            # Using SPICE+pyplanets tools
-            Montu.vprint(verbose,"Method 'SPICE':")
-
-            # Retrieve positions in space
-            site_planet_SSB_J2000,lt = spy.spkezr(site.planet.id,mtime.tt,'J2000','None','SSB')
-            planet_SSB_J2000,lt = spy.spkezr(self.id,mtime.tt,'J2000','None','SSB')
-            site_SSB_J2000 = site_planet_SSB_J2000[:3] + site.pos_J2000 
-
-            # Celestial Coordinates at J2000
-            planet_site_J2000 = planet_SSB_J2000[:3] - site_SSB_J2000
-            r,RAJ2000,DECJ2000 = spy.recrad(planet_site_J2000)
-            self.RAJ2000 = RAJ2000*RAD/15
-            self.DecJ2000 = DECJ2000*RAD
-
-            # Ecliptic coordinates J2000
-            planet_site_EJ2000 = spy.mxv(M_J2000_ECLIPJ2000,planet_site_J2000)
-            r,LonJ2000,LatJ2000 = spy.recrad(planet_site_EJ2000)
-            self.LonJ2000 = LonJ2000*RAD
-            self.LatJ2000 = LatJ2000*RAD
-
-            # Celestial Coordinates at Epoch
-            planet_site_Epoch = spy.mxv(self.epoch.M_J2000_Epoch,planet_site_J2000)
-            r,RAplanet,DECplanet = spy.recrad(planet_site_Epoch)
-            self.RAEpoch = RAplanet*RAD/15
-            self.DecEpoch = DECplanet*RAD
-
-            # Ecliptic coordinates at Epoch
-            uEpoch = np.array([np.cos(self.DecEpoch*DEG)*np.cos(15*self.RAEpoch*DEG),
-                               np.cos(self.DecEpoch*DEG)*np.sin(15*self.RAEpoch*DEG),
-                               np.sin(self.DecEpoch*DEG)])
-            ecEpoch = spy.mxv(site.epoch.M_equatorial_ecliptic,uEpoch)
-            r,LonEpoch,LatEpoch = spy.recrad(ecEpoch)
-            self.LonEpoch = LonEpoch*RAD
-            self.LatEpoch = LatEpoch*RAD
-
-            # Compute hour angle
-            self.HA = np.mod(site.ltst - self.RAEpoch*RAD/15,24)
-            
-            # Compute elevation and azimuth
-            self.el = np.arcsin(np.sin(self.DecEpoch*DEG)*np.sin(site.lat*DEG) + \
-                                np.cos(self.DecEpoch*DEG)*np.cos(site.lat*DEG)*np.cos(self.HA*15*DEG))*RAD
-            self.az = np.arctan2(-np.sin(self.HA*15*DEG)*np.cos(self.DecEpoch*DEG)/np.cos(self.el*DEG),
-                                 (np.sin(self.DecEpoch*DEG) - np.sin(site.lat*DEG)*np.sin(self.el*DEG))/\
-                                    (np.cos(site.lat*DEG)*np.cos(self.el*DEG)))*RAD
-            self.az = np.mod(self.az,360)
-
+            self._store_data('Horizons')
             Montu.vprint(verbose,"\tCoordinates @ J2000: ")
             Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
             Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
@@ -1099,6 +1193,7 @@ class PlanetaryBody(object):
                                         (np.cos(self.DecEpoch*DEG) * np.cos(site.lat*DEG)))*RAD/15,24)
             self.tsa = np.mod(self.RAEpoch + self.HA,24)
 
+            self._store_data('VSOP87')
             Montu.vprint(verbose,"\tCoordinates @ J2000: ")
             Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
             Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
@@ -1111,11 +1206,130 @@ class PlanetaryBody(object):
 
             compute = True
 
+        if method == 'SPICE' or all_methods:
+
+            # Using SPICE+pyplanets tools
+            Montu.vprint(verbose,"Method 'SPICE':")
+
+            # Retrieve positions in space
+            site_planet_SSB_J2000,lt = spy.spkezr(site.planet.id,mtime.tt,'J2000','None','SSB')
+            planet_SSB_J2000,lt = spy.spkezr(self.id,mtime.tt,'J2000','None','SSB')
+            site_SSB_J2000 = site_planet_SSB_J2000[:3] + site.pos_J2000 
+
+            # Celestial Coordinates at J2000
+            planet_site_J2000 = planet_SSB_J2000[:3] - site_SSB_J2000
+            r,RAJ2000,DECJ2000 = spy.recrad(planet_site_J2000)
+            self.RAJ2000 = RAJ2000*RAD/15
+            self.DecJ2000 = DECJ2000*RAD
+
+            # Ecliptic coordinates J2000
+            planet_site_EJ2000 = spy.mxv(M_J2000_ECLIPJ2000,planet_site_J2000)
+            r,LonJ2000,LatJ2000 = spy.recrad(planet_site_EJ2000)
+            self.LonJ2000 = LonJ2000*RAD
+            self.LatJ2000 = LatJ2000*RAD
+
+            # Celestial Coordinates at Epoch
+            planet_site_Epoch = spy.mxv(self.epoch.M_J2000_Epoch,planet_site_J2000)
+            r,RAplanet,DECplanet = spy.recrad(planet_site_Epoch)
+            self.RAEpoch = RAplanet*RAD/15
+            self.DecEpoch = DECplanet*RAD
+
+            # Ecliptic coordinates at Epoch
+            uEpoch = np.array([np.cos(self.DecEpoch*DEG)*np.cos(15*self.RAEpoch*DEG),
+                               np.cos(self.DecEpoch*DEG)*np.sin(15*self.RAEpoch*DEG),
+                               np.sin(self.DecEpoch*DEG)])
+            ecEpoch = spy.mxv(site.epoch.M_equatorial_ecliptic,uEpoch)
+            r,LonEpoch,LatEpoch = spy.recrad(ecEpoch)
+            self.LonEpoch = LonEpoch*RAD
+            self.LatEpoch = LatEpoch*RAD
+
+            # Compute hour angle
+            self.HA = np.mod(site.ltst - self.RAEpoch,24)
+            
+            # Compute elevation and azimuth
+            self.el = np.arcsin(np.sin(self.DecEpoch*DEG)*np.sin(site.lat*DEG) + \
+                                np.cos(self.DecEpoch*DEG)*np.cos(site.lat*DEG)*np.cos(self.HA*15*DEG))*RAD
+            self.az = np.arctan2(-np.sin(self.HA*15*DEG)*np.cos(self.DecEpoch*DEG)/np.cos(self.el*DEG),
+                                 (np.sin(self.DecEpoch*DEG) - np.sin(site.lat*DEG)*np.sin(self.el*DEG))/\
+                                    (np.cos(site.lat*DEG)*np.cos(self.el*DEG)))*RAD
+            self.az = np.mod(self.az,360)
+
+
+            # Local sidereal time
+            self.tsa = np.mod(self.RAEpoch + self.HA,24) 
+
+            self._store_data('SPICE')
+            Montu.vprint(verbose,"\tCoordinates @ J2000: ")
+            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
+            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
+            Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
+            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAEpoch),Montu.dec2hex(self.DecEpoch))
+            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonEpoch),Montu.dec2hex(self.LatEpoch))
+            Montu.vprint(verbose,f"\tLocal true sidereal time: ",Montu.dec2hex(site.ltst))
+            Montu.vprint(verbose,f"\tHour angle @ Epoch: ",Montu.dec2hex(self.HA))
+            Montu.vprint(verbose,f"\tLocal coordinates @ Epoch: ",Montu.dec2hex(self.az),Montu.dec2hex(self.el))
+
+            compute = True
+
         if not compute:
             raise ValueError(f"Method '{method}' for computing ephemerides not recognized")
 
+        if store:
+            self.df=pd.concat([self.df,pd.DataFrame(self.data)])
+            self.df.reset_index(drop=True,inplace=True)
+
+    def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
+        """Compute the rate of ecliptic longitude advance
+        """
+
+        # Time before
+        self.calculate_sky_position(mtime-dt,site,method,verbose=0)
+        EclLon_m_dt = self.LonEpoch
+
+        # Time after 
+        self.calculate_sky_position(mtime+dt,site,method,verbose=0)
+        EclLon_p_dt = self.LonEpoch
+
+        # Angle diff
+        angle_diff = (EclLon_p_dt-EclLon_m_dt)
+
+        # Angle differences: thanx ChatGPT!
+        if angle_diff > 180:
+            angle_diff -= 360
+        elif angle_diff < -180:
+            angle_diff += 360
+        
+        # Compute derivative using central difference algorithm
+        dlondt = angle_diff/(2*dt)*DAY # Degrees per day
+
+        return dlondt
+
+    def reset_store(self):
+        self.df = pd.DataFrame()
+
+    def _store_data(self,metstr):
+        self.data.update({
+                # Generic
+                f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
+                f'RAEpoch':[self.RAEpoch],f'DecEpoch':[self.DecEpoch],
+                f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
+                f'LonEpoch':[self.LonEpoch],f'LatEpoch':[self.LatEpoch],
+                f'tsa':[self.tsa],f'HA':[self.HA],f'az':[self.az],f'el':[self.el],
+                # Method
+                f'RAJ2000_{metstr}':[self.RAJ2000],f'DecJ2000_{metstr}':[self.DecJ2000],
+                f'RAEpoch_{metstr}':[self.RAEpoch],f'DecEpoch_{metstr}':[self.DecEpoch],
+                f'LonJ2000_{metstr}':[self.LonJ2000],f'LatJ2000_{metstr}':[self.LatJ2000],
+                f'LonEpoch_{metstr}':[self.LonEpoch],f'LatEpoch_{metstr}':[self.LatEpoch],
+                f'tsa_{metstr}':[self.tsa],f'HA_{metstr}':[self.HA],f'az_{metstr}':[self.az],f'el_{metstr}':[self.el],
+            })
+
     def __str__(self):
-        pass
+        str = f"""Planetary Body
+===============================
+Names: 
+    Basic name: {self.name}
+"""
+        return str
 
 ###############################################################
 # Tests 
