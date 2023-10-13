@@ -57,7 +57,57 @@ allstars=Stars()
 
 It may take a long time to download the planetary kernels, so be patient! 
 
-### Position of mars at an historical date
+### Get an historical date in all calendars and scales
+
+One of the most interesting and basic functionalities of MontuPython is to convert date among 
+different type of calendars and astronomical scales.  You may taste these functionalities using:
+
+```python
+mtime = MonTime('bce2501-01-01 12:00:00')
+```
+
+whose output will be:
+
+```
+Montu Time Object:
+--------------------------
+General:
+    Calendar: proleptic
+    Is bce: True
+    Components UTC: [-1, 2500, 1, 1, 12, 0, 0, 0]
+Uniform scales:
+    Terrestrial time:
+        tt: -142006202700.32
+        jtd: 807954.6909685184
+    UTC time:
+        et: -142006262400.0
+        jed: 807953.9999999999
+    Delta-t = TT - UTC = 59699.68000000001
+Strings:
+    Date in SPICE format: 2501 B.C. 01-01 12:00:00.000000
+    Date in proleptic calendar: -2500-01-01 12:00:00.0
+    Date in proleptic calendar (jul.year): 2214-01-01 12:00:00.000000
+    Date in mixed calendar: -2500-01-22 12:00:00
+    Date in mixed calendar (jul.year): 2212-01-22 12:00:00
+Objects:
+    Date in datetime64 format: -2500-01-01T12:00:00.000
+    Date in datetime format proleptic: 2500-01-01 12:00:00
+    Date in datetime format proleptic (julian year): 2214-01-01 12:00:00
+    Date in datetime format mixed: 2500-01-22 12:00:00
+    Date in datetime format mixed (julian year): 2212-01-22 12:00:00
+    Date in PyPlanet Epoch: 807953.9999999999
+    Date in PyEphem Epoch: -2501/1/22 12:00:00
+    Date in AstroPy Time: 807954.6909685184
+Astronomical properties at Epoch:
+    True obliquity of ecliptic: 23:58:33.587
+    True nutation longitude: 00:00:10.214
+    Greenwhich Meridian Sidereal Time: 18:40:25.323
+Hash: 3649516878321859143
+```
+
+Notice that the date in Gregorian proleptic will be bce2001-01-01 but in mixed calendar will be bce 2501-01-22.
+
+### Position of mars at an historical date and place
 
 First we need to prepare some basic objects, the Earth (where the observer is), the location on Earth, the time of 
 observation and the object to be observed:
