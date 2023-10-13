@@ -1034,7 +1034,7 @@ class PlanetaryBody(object):
         # No predicted yet
         self.predict = False
 
-    def calculate_sky_position(self,mtime=None,site=None,method='Horizons',
+    def calculate_sky_position(self,mtime=None,site=None,method='SPICE',
                                store=None,verbose=True):
         """Calculate position of a planet 
 
