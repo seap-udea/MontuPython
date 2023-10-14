@@ -8,9 +8,7 @@
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/montu/data/montu-python-logo-complete.png?raw=true" alt="Logo""/></p>
 <!-- Fuente: https://symbolikon.com/downloads/montu-egyptian-god/-->
 
-`MontuPython` (transileterated is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present.
-It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical 
-phenomena in other sites of interest for cultural astronomy (archeoastronomy).
+`MontuPython` (transileterated mnṯw ꜥꜣpp(y)) is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
 ## Download and install
 
@@ -105,7 +103,7 @@ Astronomical properties at Epoch:
 Hash: 3649516878321859143
 ```
 
-Notice that the date in Gregorian proleptic will be bce2001-01-01 but in mixed calendar will be bce 2501-01-22.
+Notice that the date in Gregorian proleptic will be bce2501-01-01 but in mixed calendar will be bce 2501-01-22.
 
 ### Position of mars at an historical date and place
 
@@ -212,6 +210,7 @@ The resulting figure will be:
 ## What's new
 
 Versions 0.5.*:
+- Solved the DEBUG problem.
 - First fully-fledge working script, yay!
 - MonTime class is now able to produce dates in all relevant calendars and formats.
 - Verified ephemerides calculations for planets.

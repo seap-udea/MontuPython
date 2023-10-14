@@ -24,6 +24,8 @@ from pyplanets.core.epoch import Epoch as pyplanets_Epoch
 from pymeeus.Epoch import Epoch as pymeeus_Epoch
 from pyplanets.core.coordinates import true_obliquity as pyplanets_true_obliquity
 from pyplanets.core.coordinates import nutation_longitude as pyplanets_nutation_longitude
+from pyplanets.core.coordinates import precession_equatorial
+from pyplanets.core.angle import Angle as pyplanets_Angle
 from pyplanets.planets.mercury import Mercury as pyplanets_Mercury
 from pyplanets.planets.venus import Venus as pyplanets_Venus
 from pyplanets.planets.earth import Earth as pyplanets_Earth
@@ -32,9 +34,6 @@ from pyplanets.planets.jupiter import Jupiter as pyplanets_Jupiter
 from pyplanets.planets.saturn import Saturn as pyplanets_Saturn
 from pyplanets.planets.uranus import Uranus as pyplanets_Uranus
 from pyplanets.planets.neptune import Neptune as pyplanets_Neptune
-from pyplanets.core.constellation import Constellation as pyplanets_Constellation
-from pyplanets.core.coordinates import precession_equatorial
-from pyplanets.core.angle import Angle as pyplanets_Angle
 
 # Astropy
 from astropy import constants as astropy_constants
@@ -51,10 +50,7 @@ import ephem as pyephem
 
 # Avoid warnings
 import warnings
-import logging
 warnings.filterwarnings("ignore")
-logger = logging.getLogger()
-logger.disabled = True
 
 ###############################################################
 # Global settings of the package
@@ -65,6 +61,10 @@ pd.set_option("display.precision",17)
 ###############################################################
 # Constants
 ###############################################################
+# Styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html#sphx-glr-gallery-style-sheets-style-sheets-reference-py
+PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
+SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
+
 LEGACY = True
 MAIN = False
 
@@ -119,6 +119,21 @@ KERNELS = {
     'earth_assoc_itrf93.tf':''
 }
 KERNELS_LOADED = dict()
+
+# Planets
+PLANETARY_IDS = dict(
+    SUN = 10,
+    MERCURY = 1,
+    VERNUS = 2,
+    EARTH = 399,
+    MOON = 301,
+    MARS = 4,
+    JUPITER = 5,
+    SATURN = 6,
+    URANUS = 7,
+    NEPTUNE = 8,
+)
+PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 
 ###############################################################
 # Montu Python Util Class
@@ -877,6 +892,8 @@ class Stars(object):
         axs.grid(alpha=0.2)
         axs.axis('equal')
         fig.tight_layout()
+
+        SET_PLT_DEFAULT_STYLE()
         return fig,axs
 
 
@@ -967,20 +984,6 @@ class ObservingSite(object):
 ###############################################################
 # Planetary body
 ###############################################################
-PLANETARY_IDS = dict(
-    SUN = 10,
-    MERCURY = 1,
-    VERNUS = 2,
-    EARTH = 399,
-    MOON = 301,
-    MARS = 4,
-    JUPITER = 5,
-    SATURN = 6,
-    URANUS = 7,
-    NEPTUNE = 8,
-)
-PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
-
 class PlanetaryBody(object):
     """Create a planetary body
 
@@ -1025,8 +1028,8 @@ class PlanetaryBody(object):
         self.Rp=rs[2]
         self.f=(self.Re-self.Rp)/self.Re
 
-        # Create object from PyPlanet
-        exec(f'self.pyplanet = pyplanets_{self.capital}')
+        # Create object from PyPlanet: try to avoid 
+        # exec(f'self.pyplanet = pyplanets_{self.capital}')
 
         # Create Horizons object
         self.query_horizons = astropy_Horizons(id='4')
@@ -1411,3 +1414,9 @@ if __name__ == '__main__':
     
 #"""
 
+###############################################################
+# Individual modules
+###############################################################
+from montu.time import *
+from montu.planets import *
+from montu.stars import *
