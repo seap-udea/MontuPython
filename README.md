@@ -128,15 +128,23 @@ The result will be:
 Computing position of body 'mars' at epoch: jtd = 807954.6909685184 
 Updating orientation of site (old time 2000-01-01 11:58:56.126200, new time 2501 B.C. 01-01 12:00:00.000000)
 Method 'SPICE':
+	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
 	Coordinates @ J2000: 
-		Equatorial: (12.0, 31, 48.75374471536361) (1.0, 37, 12.183893707210274)
-		Ecliptic: (186.0, 39, 46.94915035185886) (4.0, 38, 36.30772065411392)
+		Equatorial: 12:31:48.754 01:37:12.184
+		Ecliptic: 186:39:46.949 04:38:36.308
 	Coordinates @ Epoch : 
-		Equatorial: (8.0, 32, 9.7958860775843) (24.0, 6, 28.554848777837947)
-		Ecliptic: (124.0, 21, 21.541927979009188) (4.0, 39, 5.338625036125535)
-	Local true sidereal time:  (20.0, 52, 25.32259203620299)
-	Hour angle @ Epoch:  (12.0, 20, 15.526705958618692)
-	Local coordinates @ Epoch:  (6.0, 11, 24.27528943044642) (-41.0, 38, 31.093764289017827)
+		Equatorial: 08:32:9.796 24:06:28.555
+		Ecliptic: 124:21:21.542 04:39:5.339
+	Observing conditions: 
+		Distance to site [au]:  0.660450348841685
+		Distance to sun [au]:  1.6261149729985933
+		Solar elongation [deg]:  157:49:18.876
+		Phase angle [deg]:  13:21:31.981
+		Magnitude:  -1.1
+	Other properties: 
+		Local true sidereal time:  20:52:25.323
+		Hour angle @ Epoch:  12:20:15.527
+		Local coordinates @ Epoch:  06:11:24.275 -41:38:31.094
 ```
 
 There are different methods to calculate the position of a planets with MontuPython. You can try all of them:
@@ -151,35 +159,59 @@ The result of the previous command will be:
 ```
 Computing position of body 'mars' at epoch: jtd = 807954.6909685184 
 Method 'Horizons':
+	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
 	Coordinates @ J2000: 
-		Equatorial: (12.0, 31, 49.14719999999818) (1.0, 37, 6.7080000000001405)
-		Ecliptic: (186.0, 39, 54.55755751664583) (4.0, 38, 33.60945464297373)
+		Equatorial: 12:31:49.147 01:37:6.708
+		Ecliptic: 186:39:54.558 04:38:33.609
 	Coordinates @ Epoch : 
-		Equatorial: (8.0, 32, 9.283199999998999) (24.0, 6, 29.555999999998903)
-		Ecliptic: (124.0, 21, 14.472000000019989) (4.0, 39, 4.619159999998601)
-	Local true sidereal time:  (20.0, 52, 25.33680635060051)
-	Hour angle @ Epoch:  (12.0, 20, 16.053606350601513)
-	Local coordinates @ Epoch:  (6.0, 11, 33.727199999998945) (-41.0, 38, 29.317200000006665)
+		Equatorial: 08:32:9.283 24:06:29.556
+		Ecliptic: 124:21:14.472 04:39:4.619
+	Observing conditions: 
+		Distance to site [au]:  0.66052182424896
+		Distance to sun [au]:  1.626124866723
+		Solar elongation [deg]:  157:47:51.000
+		Phase angle [deg]:  13:22:14.880
+		Magnitude:  -1.1
+	Other properties: 
+		Local true sidereal time:  20:52:25.323
+		Hour angle @ Epoch:  12:20:16.054
+		Local coordinates @ Epoch:  06:11:33.727 -41:38:29.317
 Method 'VSOP87':
+	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
 	Coordinates @ J2000: 
-		Equatorial: (12.0, 31, 48.35959491216798) (1.0, 37, 33.10917010023772)
-		Ecliptic: (186.0, 39, 33.204611828884936) (4.0, 38, 53.19324054798258)
+		Equatorial: 12:31:48.360 01:37:33.109
+		Ecliptic: 186:39:33.205 04:38:53.193
 	Coordinates @ Epoch : 
-		Equatorial: (8.0, 32, 9.71805413547699) (24.0, 6, 40.9201083707282)
-		Ecliptic: (124.0, 21, 17.39024402412724) (4.0, 39, 17.039572599530572)
-	Local true sidereal time:  (20.0, 52, 25.322505532880086)
-	Hour angle @ Epoch:  (12.0, 20, 15.604451397396701)
-	Local coordinates @ Epoch:  (6.0, 11, 23.905564366115826) (-41.0, 38, 18.685147982311605)
+		Equatorial: 08:32:9.718 24:06:40.920
+		Ecliptic: 124:21:17.390 04:39:17.040
+	Observing conditions: 
+		Distance to site [au]:  0.6604883074760437
+		Distance to sun [au]:  1.626107096672058
+		Solar elongation [deg]:  157:49:6.094
+		Phase angle [deg]:  13:21:48.632
+		Magnitude:  -1.13
+	Other properties: 
+		Local true sidereal time:  20:52:25.323
+		Hour angle @ Epoch:  12:20:15.604
+		Local coordinates @ Epoch:  06:11:23.906 -41:38:18.685
 Method 'SPICE':
+	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
 	Coordinates @ J2000: 
-		Equatorial: (12.0, 31, 48.75374471536361) (1.0, 37, 12.183893707210274)
-		Ecliptic: (186.0, 39, 46.94915035185886) (4.0, 38, 36.30772065411392)
+		Equatorial: 12:31:48.754 01:37:12.184
+		Ecliptic: 186:39:46.949 04:38:36.308
 	Coordinates @ Epoch : 
-		Equatorial: (8.0, 32, 9.7958860775843) (24.0, 6, 28.554848777837947)
-		Ecliptic: (124.0, 21, 21.541927979009188) (4.0, 39, 5.338625036125535)
-	Local true sidereal time:  (20.0, 52, 25.32259203620299)
-	Hour angle @ Epoch:  (12.0, 20, 15.526705958618692)
-	Local coordinates @ Epoch:  (6.0, 11, 24.27528943044642) (-41.0, 38, 31.093764289017827)
+		Equatorial: 08:32:9.796 24:06:28.555
+		Ecliptic: 124:21:21.542 04:39:5.339
+	Observing conditions: 
+		Distance to site [au]:  0.660450348841685
+		Distance to sun [au]:  1.6261149729985933
+		Solar elongation [deg]:  157:49:18.876
+		Phase angle [deg]:  13:21:31.981
+		Magnitude:  -1.1
+	Other properties: 
+		Local true sidereal time:  20:52:25.323
+		Hour angle @ Epoch:  12:20:15.527
+		Local coordinates @ Epoch:  06:11:24.275 -41:38:31.094
 ```
 
 ### Create a map of the sky
@@ -210,6 +242,7 @@ The resulting figure will be:
 ## What's new
 
 Versions 0.5.*:
+- New properties (distances, phase angle, magnituded) added to PlanetaryBody class method.
 - Solved the DEBUG problem.
 - First fully-fledge working script, yay!
 - MonTime class is now able to produce dates in all relevant calendars and formats.

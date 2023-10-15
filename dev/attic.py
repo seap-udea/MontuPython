@@ -1,3 +1,17 @@
+from pyplanets.core.constellation import Constellation as pyplanets_Constellation
+
+#"""
+import logging
+import sys
+logger = logging.getLogger()
+logging.basicConfig(level=logging.INFO, stream=sys.stdout,
+                    format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s", datefmt="-%Y-%m-%d %H:%M:%S")
+
+#"""
+
+
+
+
 
 cals[0] = (4713 - cals[0]) + 1
 julian_year = (4713 - self.components[1]) + 1

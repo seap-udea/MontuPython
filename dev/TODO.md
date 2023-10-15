@@ -1,11 +1,13 @@
 
 # ToDo
 
-Urgent: 
+- Precess star positions. 
 
-- Remove DEBUGGING messages.
+- Create Sebau class for astronomical objects.
 
-- All classes include `verbose` option.
+- Create routine to compute 
+
+
 
 - Correct for time-of-flight and aberration the coordinates calculated with SPICE.
 
@@ -22,8 +24,6 @@ Urgent:
 - Precess using FK5 routine of astropy and compare.
 
 - Write routines to transform to local equatorial to local altazimutal and viceversa.
-
-- When computing coordinates of a planet create a DataFrame storing coordinates at different dates.
 
 Others:
 
@@ -156,3 +156,9 @@ Method 'SPICE':
 - Update date strings when changing the tt or jd variables ((SOLVED))
 
 - Calculate Montunctions and draw trajectories of the planet for Tito's PhD thesis ((SOLVED))
+
+- Remove DEBUGGING messages. ((SOLVED))
+
+- When computing coordinates of a planet create a DataFrame storing coordinates at different dates ((SOLVED))
+
+- All classes include `verbose` option ((DROPPED))
