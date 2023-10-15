@@ -102,6 +102,9 @@ class PlanetaryBody_x(object):
         # Check compute
         compute = False
 
+        # We need to compute distance and magnitude
+        print("We need magnitudes")
+
         # Compute absolute coordinates (RA & Dec) at J2000 and epoch
         if method == 'Horizons' or all_methods:            
 

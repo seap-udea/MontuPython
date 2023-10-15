@@ -26,14 +26,15 @@ from pyplanets.core.coordinates import true_obliquity as pyplanets_true_obliquit
 from pyplanets.core.coordinates import nutation_longitude as pyplanets_nutation_longitude
 from pyplanets.core.coordinates import precession_equatorial
 from pyplanets.core.angle import Angle as pyplanets_Angle
-from pyplanets.planets.mercury import Mercury as pyplanets_Mercury
-from pyplanets.planets.venus import Venus as pyplanets_Venus
-from pyplanets.planets.earth import Earth as pyplanets_Earth
-from pyplanets.planets.mars import Mars as pyplanets_Mars
-from pyplanets.planets.jupiter import Jupiter as pyplanets_Jupiter
-from pyplanets.planets.saturn import Saturn as pyplanets_Saturn
-from pyplanets.planets.uranus import Uranus as pyplanets_Uranus
-from pyplanets.planets.neptune import Neptune as pyplanets_Neptune
+
+from pymeeus.Mercury import Mercury as pymeeus_Mercury
+from pymeeus.Venus import Venus as pymeeus_Venus
+from pymeeus.Earth import Earth as pymeeus_Earth
+from pymeeus.Mars import Mars as pymeeus_Mars
+from pymeeus.Jupiter import Jupiter as pymeeus_Jupiter
+from pymeeus.Saturn import Saturn as pymeeus_Saturn
+from pymeeus.Uranus import Uranus as pymeeus_Uranus
+from pymeeus.Neptune import Neptune as pymeeus_Neptune
 
 # Astropy
 from astropy import constants as astropy_constants
@@ -266,7 +267,7 @@ class Montu(object):
         map = lambda x:a*x+b
         return map
     
-    def dec2hex(dec,string=False):
+    def dec2hex(dec,string=True):
         sgn = np.sign(dec)
         dec = abs(dec)
         h = int(dec)
@@ -715,8 +716,10 @@ class MonTime(object):
         new.update_time()
         return new
 
+    """
     def __sub__(self,mtime):
         return self.jed-mtime.jed
+    """
     
     def __str__(self):
         str = f"""Montu Time Object:
@@ -1029,7 +1032,7 @@ class PlanetaryBody(object):
         self.f=(self.Re-self.Rp)/self.Re
 
         # Create object from PyPlanet: try to avoid 
-        # exec(f'self.pyplanet = pyplanets_{self.capital}')
+        exec(f'self.pymeeus_planet = pymeeus_{self.capital}')
 
         # Create Horizons object
         self.query_horizons = astropy_Horizons(id='4')
@@ -1067,6 +1070,7 @@ class PlanetaryBody(object):
         
         if site is None:
             raise ValueError("No site selected")
+        self.site = site
 
         # Update orientation of site
         Montu.vprint(verbose,f"Computing position of body '{self.name}' at epoch: jtd = {mtime.jtd} ")
@@ -1098,7 +1102,20 @@ class PlanetaryBody(object):
             # Sky coordinates in J2000
             self.RAJ2000 = float(ephemerides.RA/15)
             self.DecJ2000 = float(ephemerides.DEC)
-            
+
+            # Distance
+            self.distance = float(ephemerides.delta)
+            self.sundistance = float(ephemerides.r)
+
+            # Elongation and phase
+            self.elongation = float(self.ephemerides.elong)
+            self.phase = float(self.ephemerides.alpha_true)
+
+            # Magnitude
+            self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
+                                                           self.distance,
+                                                           self.phase*DEG)
+
             # Ecliptic coordinates in J2000
             uJ2000 = np.array([np.cos(self.DecJ2000*DEG)*np.cos(15*self.RAJ2000*DEG),
                                np.cos(self.DecJ2000*DEG)*np.sin(15*self.RAJ2000*DEG),
@@ -1127,15 +1144,7 @@ class PlanetaryBody(object):
             self.tsa = np.mod(self.RAEpoch + self.HA,24)
 
             self._store_data('Horizons')
-            Montu.vprint(verbose,"\tCoordinates @ J2000: ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
-            Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAEpoch),Montu.dec2hex(self.DecEpoch))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonEpoch),Montu.dec2hex(self.LatEpoch))
-            Montu.vprint(verbose,f"\tLocal true sidereal time: ",Montu.dec2hex(self.tsa))
-            Montu.vprint(verbose,f"\tHour angle @ Epoch: ",Montu.dec2hex(self.HA))
-            Montu.vprint(verbose,f"\tLocal coordinates @ Epoch: ",Montu.dec2hex(self.az),Montu.dec2hex(self.el))
+            self._show_position(verbose)
 
             compute = True
 
@@ -1160,7 +1169,17 @@ class PlanetaryBody(object):
             self.pyephem_planet.compute(self.pyephem_site)
             self.RAEpoch = float(self.pyephem_planet.ra)*RAD/15
             self.DecEpoch = float(self.pyephem_planet.dec)*RAD
+
+            # Distance
+            self.distance = float(self.pyephem_planet.earth_distance)
+            self.sundistance = float(self.pyephem_planet.sun_distance)
    
+            # Elongation and phase
+            self.elongation = abs(self.pyephem_planet.elong*RAD)
+            illum = float(self.pyephem_planet.phase)
+            self.phase = np.arccos(2*(illum/100)-1)*RAD
+            self.magnitude = float(self.pyephem_planet.mag)
+
             # Ecliptic coordinates at Epoch
             uEpoch = np.array([np.cos(self.DecEpoch*DEG)*np.cos(15*self.RAEpoch*DEG),
                                np.cos(self.DecEpoch*DEG)*np.sin(15*self.RAEpoch*DEG),
@@ -1197,15 +1216,7 @@ class PlanetaryBody(object):
             self.tsa = np.mod(self.RAEpoch + self.HA,24)
 
             self._store_data('VSOP87')
-            Montu.vprint(verbose,"\tCoordinates @ J2000: ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
-            Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAEpoch),Montu.dec2hex(self.DecEpoch))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonEpoch),Montu.dec2hex(self.LatEpoch))
-            Montu.vprint(verbose,f"\tLocal true sidereal time: ",Montu.dec2hex(self.tsa))
-            Montu.vprint(verbose,f"\tHour angle @ Epoch: ",Montu.dec2hex(self.HA))
-            Montu.vprint(verbose,f"\tLocal coordinates @ Epoch: ",Montu.dec2hex(self.az),Montu.dec2hex(self.el))
+            self._show_position(verbose)
 
             compute = True
 
@@ -1217,6 +1228,7 @@ class PlanetaryBody(object):
             # Retrieve positions in space
             site_planet_SSB_J2000,lt = spy.spkezr(site.planet.id,mtime.tt,'J2000','None','SSB')
             planet_SSB_J2000,lt = spy.spkezr(self.id,mtime.tt,'J2000','None','SSB')
+            sun_SSB_J2000,lt = spy.spkezr('10',mtime.tt,'J2000','None','SSB')
             site_SSB_J2000 = site_planet_SSB_J2000[:3] + site.pos_J2000 
 
             # Celestial Coordinates at J2000
@@ -1224,6 +1236,24 @@ class PlanetaryBody(object):
             r,RAJ2000,DECJ2000 = spy.recrad(planet_site_J2000)
             self.RAJ2000 = RAJ2000*RAD/15
             self.DecJ2000 = DECJ2000*RAD
+
+            # Phase angle
+            site_sun_J2000 = site_SSB_J2000 - sun_SSB_J2000[:3]
+            planet_sun_J2000 = planet_SSB_J2000[:3] - sun_SSB_J2000[:3]
+
+            self.elongation = np.arccos(-site_sun_J2000@planet_site_J2000/\
+                ((site_sun_J2000@site_sun_J2000)**0.5*(planet_site_J2000@planet_site_J2000)**0.5))*RAD
+            self.phase = np.arccos(planet_sun_J2000@planet_site_J2000/\
+                ((planet_site_J2000@planet_site_J2000)**0.5*(planet_sun_J2000@planet_sun_J2000)**0.5))*RAD
+            
+            # Distance
+            self.distance = (planet_site_J2000 @ planet_site_J2000)**0.5/AU
+            self.sundistance = (planet_sun_J2000 @ planet_sun_J2000)**0.5/AU
+
+            # Magnitude
+            self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
+                                                           self.distance,
+                                                           self.phase*DEG)
 
             # Ecliptic coordinates J2000
             planet_site_EJ2000 = spy.mxv(M_J2000_ECLIPJ2000,planet_site_J2000)
@@ -1262,15 +1292,7 @@ class PlanetaryBody(object):
             self.tsa = np.mod(self.RAEpoch + self.HA,24) 
 
             self._store_data('SPICE')
-            Montu.vprint(verbose,"\tCoordinates @ J2000: ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAJ2000),Montu.dec2hex(self.DecJ2000))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonJ2000),Montu.dec2hex(self.LatJ2000))
-            Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
-            Montu.vprint(verbose,"\t\tEquatorial:",Montu.dec2hex(self.RAEpoch),Montu.dec2hex(self.DecEpoch))
-            Montu.vprint(verbose,"\t\tEcliptic:",Montu.dec2hex(self.LonEpoch),Montu.dec2hex(self.LatEpoch))
-            Montu.vprint(verbose,f"\tLocal true sidereal time: ",Montu.dec2hex(site.ltst))
-            Montu.vprint(verbose,f"\tHour angle @ Epoch: ",Montu.dec2hex(self.HA))
-            Montu.vprint(verbose,f"\tLocal coordinates @ Epoch: ",Montu.dec2hex(self.az),Montu.dec2hex(self.el))
+            self._show_position(verbose)
 
             compute = True
 
@@ -1281,6 +1303,27 @@ class PlanetaryBody(object):
             self.df=pd.concat([self.df,pd.DataFrame(self.data)])
             self.df.reset_index(drop=True,inplace=True)
 
+    def _show_position(self,verbose):
+        Montu.vprint(verbose,"\tPosition Epoch: ",
+                     self.epoch.datestr,
+                     self.epoch.jed)
+        Montu.vprint(verbose,"\tCoordinates @ J2000: ")
+        Montu.vprint(verbose,"\t\tEquatorial:",D2H(self.RAJ2000),D2H(self.DecJ2000))
+        Montu.vprint(verbose,"\t\tEcliptic:",D2H(self.LonJ2000),D2H(self.LatJ2000))
+        Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
+        Montu.vprint(verbose,f"\t\tEquatorial:",D2H(self.RAEpoch),D2H(self.DecEpoch))
+        Montu.vprint(verbose,f"\t\tEcliptic:",D2H(self.LonEpoch),D2H(self.LatEpoch))
+        Montu.vprint(verbose,f"\tObserving conditions: ")
+        Montu.vprint(verbose,f"\t\tDistance to site [au]: ",self.distance)
+        Montu.vprint(verbose,f"\t\tDistance to sun [au]: ",self.sundistance)
+        Montu.vprint(verbose,f"\t\tSolar elongation [deg]: ",D2H(self.elongation))
+        Montu.vprint(verbose,f"\t\tPhase angle [deg]: ",D2H(self.phase))
+        Montu.vprint(verbose,f"\t\tMagnitude: ",self.magnitude)
+        Montu.vprint(verbose,f"\tOther properties: ")
+        Montu.vprint(verbose,f"\t\tLocal true sidereal time: ",D2H(self.site.ltst))
+        Montu.vprint(verbose,f"\t\tHour angle @ Epoch: ",D2H(self.HA))
+        Montu.vprint(verbose,f"\t\tLocal coordinates @ Epoch: ",D2H(self.az),D2H(self.el))
+        
     def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
         """Compute the rate of ecliptic longitude advance
         """
@@ -1318,12 +1361,16 @@ class PlanetaryBody(object):
                 f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
                 f'LonEpoch':[self.LonEpoch],f'LatEpoch':[self.LatEpoch],
                 f'tsa':[self.tsa],f'HA':[self.HA],f'az':[self.az],f'el':[self.el],
+                f'site_distance':[self.distance],f'sun_distance':[self.sundistance],
+                f'elongation':[self.elongation],f'phase':[self.phase],f'mag':[self.magnitude],
                 # Method
                 f'RAJ2000_{metstr}':[self.RAJ2000],f'DecJ2000_{metstr}':[self.DecJ2000],
                 f'RAEpoch_{metstr}':[self.RAEpoch],f'DecEpoch_{metstr}':[self.DecEpoch],
                 f'LonJ2000_{metstr}':[self.LonJ2000],f'LatJ2000_{metstr}':[self.LatJ2000],
                 f'LonEpoch_{metstr}':[self.LonEpoch],f'LatEpoch_{metstr}':[self.LatEpoch],
                 f'tsa_{metstr}':[self.tsa],f'HA_{metstr}':[self.HA],f'az_{metstr}':[self.az],f'el_{metstr}':[self.el],
+                f'site_distance_{metstr}':[self.distance],f'sun_distance_{metstr}':[self.sundistance],
+                f'elongation_{metstr}':[self.elongation],f'phase_{metstr}':[self.phase],f'mag_{metstr}':[self.magnitude],
             })
 
     def __str__(self):
@@ -1333,6 +1380,63 @@ Names:
     Basic name: {self.name}
 """
         return str
+
+class Extra(object):
+    def station_longitude_1(y):
+            """Based on PyMeeus
+            Valid only for [-2000,4000]
+            """
+            # Set some specific constants for Mars' opposition
+            a = 2452097.382
+            b = 779.936104
+            m0 = 181.9573
+            m1 = 48.705244
+            k = round((365.2425 * y + 1721060.0 - a) / b)
+            jde0 = a + k * b
+            m = m0 + k * m1
+            m = m*DEG
+            t = (jde0 - 2451545.0) / 36525.0
+            corr = (-37.079 + t * (-0.0009 + t * 0.00002) +
+                    np.sin(m) * (-20.0651 + t * (0.0228 + t * 0.00004)) +
+                    np.cos(m) * (14.5205 + t * (0.0504 - t * 0.00001)) +
+                    np.sin(2.0 * m) * (1.1737 - t * 0.0169) +
+                    np.cos(2.0 * m) * (-4.255 + t * (-0.0075 + t * 0.00008)) +
+                    np.sin(3.0 * m) * (0.4897 + t * (0.0074 - t * 0.00001)) +
+                    np.cos(3.0 * m) * (1.1151 + t * (-0.0021 - t * 0.00005)) +
+                    np.sin(4.0 * m) * (-0.3636 + t * (-0.002 + t * 0.00001)) +
+                    np.cos(4.0 * m) * (-0.1769 + t * (0.0028 + t * 0.00002)) +
+                    np.sin(5.0 * m) * (0.1437 - t * 0.0004) +
+                    np.cos(5.0 * m) * (-0.0383 - t * 0.0016))
+            jde = jde0 + corr
+            return jde
+
+    def station_longitude_2(y):
+            """Based on PyMeeus
+            Valid only for [-2000,4000]
+            """
+            # Set some specific constants for Mars' opposition
+            a = 2452097.382
+            b = 779.936104
+            m0 = 181.9573
+            m1 = 48.705244
+            k = round((365.2425 * y + 1721060.0 - a) / b)
+            jde0 = a + k * b
+            m = m0 + k * m1
+            m = m*DEG
+            t = (jde0 - 2451545.0) / 36525.0
+            corr = (36.7191 + t * (0.0016 + t * 0.00003) +
+                    np.sin(m) * (-12.6163 + t * (0.0417 - t * 0.00001)) +
+                    np.cos(m) * (20.1218 + t * (0.0379 - t * 0.00006)) +
+                    np.sin(2.0 * m) * (-1.636 - t * 0.019) +
+                    np.cos(2.0 * m) * (-3.9657 + t * (0.0045 + t * 0.00007)) +
+                    np.sin(3.0 * m) * (1.1546 + t * (0.0029 - t * 0.00003)) +
+                    np.cos(3.0 * m) * (0.2888 + t * (-0.0073 - t * 0.00002)) +
+                    np.sin(4.0 * m) * (-0.3128 + t * (0.0017 + t * 0.00002)) +
+                    np.cos(4.0 * m) * (0.2513 + t * (0.0026 - t * 0.00002)) +
+                    np.sin(5.0 * m) * (-0.0021 - t * 0.0016) +
+                    np.cos(5.0 * m) * (-0.1497 - t * 0.0006))
+            jde = jde0 + corr
+            return jde   
 
 ###############################################################
 # Tests 
@@ -1417,6 +1521,8 @@ if __name__ == '__main__':
 ###############################################################
 # Individual modules
 ###############################################################
+"""
 from montu.time import *
 from montu.planets import *
 from montu.stars import *
+"""
