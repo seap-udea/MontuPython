@@ -25,7 +25,7 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         ],
-    version='0.5.2',
+    version='0.6.1',
 
     # ######################################################################
     # FILES
@@ -49,7 +49,7 @@ setuptools.setup(
     # ######################################################################
     # DEPENDENCIES
     # ######################################################################
-    install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem',
+    install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem','pymeeus',
                       'astroquery','plotly','numpy','spiceypy','pyplanets','astropy','astroquery'],
 
     # ######################################################################

@@ -98,13 +98,16 @@ MILLENIUM = 10*YEAR # s
 
 If the dictionary is blank it means that the kernel is in the data directory.
 """
-KERNELS = {
-    'latest_leapseconds.tls':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
-    'de441_part-1.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-1.bsp',
-    'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
+BASIC_KERNELS = {
+    'latest_leapseconds.tls':'',
     'frame.tk':'',
     'pck00011.tpc':'',
     'earth_assoc_itrf93.tf':''
+}
+PRECISION_KERNELS = {
+    'latest_leapseconds.tls':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
+    'de441_part-1.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-1.bsp',
+    'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
 }
 KERNELS_LOADED = dict()
 
@@ -200,7 +203,7 @@ class Montu(object):
         out = [-1]+out if bce else [1]+out
         return out
 
-    def load_kernels(kernels=KERNELS,dir='/tmp/',verbose=True):
+    def load_kernels(kernels=BASIC_KERNELS,dir='/tmp/',verbose=False):
         
         # Check if dir exists
         if not os.path.exists(dir):
