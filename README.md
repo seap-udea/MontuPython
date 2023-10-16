@@ -118,7 +118,7 @@ First we need to prepare some basic objects, the Earth (where the observer is), 
 ```python
 earth = PlanetaryBody('Earth')
 tebas = ObservingSite(planet=earth,lon=33,lat=24,height=0)
-mtime = MonTime('bce2501-01-01 12:00:00')
+mtime = MonTime('-2500-01-01 12:00:00')
 mars = PlanetaryBody('Mars')
 ```
 
