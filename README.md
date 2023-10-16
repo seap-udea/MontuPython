@@ -69,38 +69,30 @@ whose output will be:
 ```
 Montu Time Object:
 --------------------------
+Date in proleptic UTC: -2500-01-01 12:00:00.0000
+Date in mixed UTC: -2500-01-22 12:00:00:
+Date in SPICE format: 2501 B.C. 01-01 12:00:00.00
 General:
-    Calendar: proleptic
+    Components: [-1, 2500, 1, 1, 12, 0, 0, 0]
     Is bce: True
-    Components UTC: [-1, 2500, 1, 1, 12, 0, 0, 0]
+    Is Julian: True
 Uniform scales:
     Terrestrial time:
-        tt: -142006202700.32
-        jtd: 807954.6909685184
+        tt: -142006202700.32004
+        jtd: 807954.6909685181
     UTC time:
-        et: -142006262400.0
-        jed: 807953.9999999999
+        et: -142006262400.00003
+        jed: 807953.9999999997
     Delta-t = TT - UTC = 59699.68000000001
-Strings:
-    Date in SPICE format: 2501 B.C. 01-01 12:00:00.000000
-    Date in proleptic calendar: -2500-01-01 12:00:00.0
-    Date in proleptic calendar (jul.year): 2214-01-01 12:00:00.000000
-    Date in mixed calendar: -2500-01-22 12:00:00
-    Date in mixed calendar (jul.year): 2212-01-22 12:00:00
 Objects:
-    Date in datetime64 format: -2500-01-01T12:00:00.000
-    Date in datetime format proleptic: 2500-01-01 12:00:00
-    Date in datetime format proleptic (julian year): 2214-01-01 12:00:00
-    Date in datetime format mixed: 2500-01-22 12:00:00
-    Date in datetime format mixed (julian year): 2212-01-22 12:00:00
-    Date in PyPlanet Epoch: 807953.9999999999
+    Date in datetime64 format: -2500-01-01T12:00:00.000000
+    Date in PyPlanet Epoch: 807953.9999999997
     Date in PyEphem Epoch: -2501/1/22 12:00:00
-    Date in AstroPy Time: 807954.6909685184
+    Date in AstroPy Time: 807954.6909685181
 Astronomical properties at Epoch:
     True obliquity of ecliptic: 23:58:33.587
     True nutation longitude: 00:00:10.214
     Greenwhich Meridian Sidereal Time: 18:40:25.323
-Hash: 3649516878321859143
 ```
 
 Notice that the date in Gregorian proleptic will be bce2501-01-01 but in mixed calendar will be bce 2501-01-22.
@@ -125,10 +117,9 @@ mars.calculate_sky_position(mtime,tebas)
 
 The result will be:
 ```
-Computing position of body 'mars' at epoch: jtd = 807954.6909685184 
-Updating orientation of site (old time 2000-01-01 11:58:56.126200, new time 2501 B.C. 01-01 12:00:00.000000)
+Computing position of body 'mars' at epoch: jtd = 807954.6909685181 
 Method 'SPICE':
-	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
+	Position Epoch: prolectic gregorian -2500-01-01 12:00:00.0000, JED = 807953.9999999997
 	Coordinates @ J2000: 
 		Equatorial: 12:31:48.754 01:37:12.184
 		Ecliptic: 186:39:46.949 04:38:36.308
@@ -136,8 +127,8 @@ Method 'SPICE':
 		Equatorial: 08:32:9.796 24:06:28.555
 		Ecliptic: 124:21:21.542 04:39:5.339
 	Observing conditions: 
-		Distance to site [au]:  0.660450348841685
-		Distance to sun [au]:  1.6261149729985933
+		Distance to site [au]:  0.6604503488431318
+		Distance to sun [au]:  1.6261149729988635
 		Solar elongation [deg]:  157:49:18.876
 		Phase angle [deg]:  13:21:31.981
 		Magnitude:  -1.1
@@ -157,9 +148,9 @@ mars.calculate_sky_position(mtime,tebas,method='all')
 
 The result of the previous command will be:
 ```
-Computing position of body 'mars' at epoch: jtd = 807954.6909685184 
+Computing position of body 'mars' at epoch: jtd = 807954.6909685181 
 Method 'Horizons':
-	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
+	Position Epoch: prolectic gregorian -2500-01-01 12:00:00.0000, JED = 807953.9999999997
 	Coordinates @ J2000: 
 		Equatorial: 12:31:49.147 01:37:6.708
 		Ecliptic: 186:39:54.558 04:38:33.609
@@ -177,7 +168,7 @@ Method 'Horizons':
 		Hour angle @ Epoch:  12:20:16.054
 		Local coordinates @ Epoch:  06:11:33.727 -41:38:29.317
 Method 'VSOP87':
-	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
+	Position Epoch: prolectic gregorian -2500-01-01 12:00:00.0000, JED = 807953.9999999997
 	Coordinates @ J2000: 
 		Equatorial: 12:31:48.360 01:37:33.109
 		Ecliptic: 186:39:33.205 04:38:53.193
@@ -195,7 +186,7 @@ Method 'VSOP87':
 		Hour angle @ Epoch:  12:20:15.604
 		Local coordinates @ Epoch:  06:11:23.906 -41:38:18.685
 Method 'SPICE':
-	Position Epoch:  -2500-01-01 12:00:00.0 807953.9999999999
+	Position Epoch: prolectic gregorian -2500-01-01 12:00:00.0000, JED = 807953.9999999997
 	Coordinates @ J2000: 
 		Equatorial: 12:31:48.754 01:37:12.184
 		Ecliptic: 186:39:46.949 04:38:36.308
@@ -203,8 +194,8 @@ Method 'SPICE':
 		Equatorial: 08:32:9.796 24:06:28.555
 		Ecliptic: 124:21:21.542 04:39:5.339
 	Observing conditions: 
-		Distance to site [au]:  0.660450348841685
-		Distance to sun [au]:  1.6261149729985933
+		Distance to site [au]:  0.6604503488431318
+		Distance to sun [au]:  1.6261149729988635
 		Solar elongation [deg]:  157:49:18.876
 		Phase angle [deg]:  13:21:31.981
 		Magnitude:  -1.1
@@ -243,6 +234,8 @@ The resulting figure will be:
 
 Versions 0.6.*:
 - Refactor of MonTime class.
+- Corrected a problem with tt during the years 300-1582.
+- General cleaning of the package.
 
 Versions 0.5.*:
 - New properties (distances, phase angle, magnituded) added to PlanetaryBody class method.
