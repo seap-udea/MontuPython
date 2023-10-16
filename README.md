@@ -47,7 +47,6 @@ In order to properly use MontuPython you need to import the package and load the
 data:
 
 ```python
-import montu
 from montu import *
 Montu.load_kernels()
 allstars=Stars()
@@ -61,7 +60,14 @@ One of the most interesting and basic functionalities of MontuPython is to conve
 different type of calendars and astronomical scales.  You may taste these functionalities using:
 
 ```python
+mtime = MonTime('2501 b.c.e. 01-01 12:00:00')
+```
+
+other alternative formats for the same date are:
+
+```python
 mtime = MonTime('bce2501-01-01 12:00:00')
+mtime = MonTime('-2500-01-01 12:00:00')
 ```
 
 whose output will be:
@@ -99,8 +105,15 @@ Notice that the date in Gregorian proleptic will be bce2501-01-01 but in mixed c
 
 ### Position of mars at an historical date and place
 
-First we need to prepare some basic objects, the Earth (where the observer is), the location on Earth, the time of 
-observation and the object to be observed:
+For this we need to load precision information about the planets using:
+
+```python
+Montu.load_kernels(PRECISION_KERNELS)
+```
+
+> **NOTE**: *Precision kernels* are binary files used by the NASA NAIF SPICE information system which is used by `MontuPython` to calculate with the highest precision the position of the planets in the present and in the past. Some of them are large files (in the order of Giga bytes) so you need enough space to download them.
+
+First we need to prepare some basic objects, the Earth (where the observer is), the location on Earth, the time of observation and the object to be observed:
 
 ```python
 earth = PlanetaryBody('Earth')
@@ -236,6 +249,8 @@ Versions 0.6.*:
 - Refactor of MonTime class.
 - Corrected a problem with tt during the years 300-1582.
 - General cleaning of the package.
+- Kernels are separated into basic kernels (which are automatically loaded).
+- Julian day dates are rounded-up to 7 figures to avoid representation artifacts.
 
 Versions 0.5.*:
 - New properties (distances, phase angle, magnituded) added to PlanetaryBody class method.

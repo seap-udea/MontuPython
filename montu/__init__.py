@@ -94,12 +94,14 @@ CENTURY = 100*YEAR # s
 MILLENIUM = 10*YEAR # s
 
 # Required kernels
-"""This dictionary describe the kernels the package require to compute planetary positions
+"""This dictionaries describe the kernels the package require to compute planetary positions
 
 If the dictionary is blank it means that the kernel is in the data directory.
+
+The leapseconds kernes should be updated periodically.
 """
 BASIC_KERNELS = {
-    'latest_leapseconds.tls':'',
+    'naif0012.tls':'',
     'frame.tk':'',
     'pck00011.tpc':'',
     'earth_assoc_itrf93.tf':''
@@ -149,6 +151,14 @@ M_J2000_ECLIPJ2000 = spy.pxform('J2000','ECLIPJ2000',0)
 PYEPHEM_JD_REF = 2415020.0
 PYEPHEM_MJD_2000 = 36525.0
 JED_2000 = 2451545.0
+
+# JD PRECISION
+"""
+Rounding errors may produce strange figures when dealing with 
+Julian Days. We round-up all JD values to JD_PRECISION_FIGURES
+to avoid this artifacts. 7 figures correspond to 0.01 seconds.
+"""
+JD_PRECISION_FIGURES = 8
 
 # Datum of the calendar in Julian year
 """Note from wikipedia:
@@ -506,8 +516,8 @@ class MonTime(object):
                     et = et
 
                 # Get Julian day
-                jed = spy.unitim(et,'ET','JED')
-                jtd = spy.unitim(tt,'ET','JED')
+                jed = round(spy.unitim(et,'ET','JED'),JD_PRECISION_FIGURES)
+                jtd = round(spy.unitim(tt,'ET','JED'),JD_PRECISION_FIGURES)
 
                 """
                 There is an error of between 0.5 and 10 seconds for years 
@@ -543,14 +553,14 @@ class MonTime(object):
                 # According to scale choose terrestrial time
                 if scale == 'tt':
                     tt = et
-                    jtd = jd
+                    jtd = round(jd,JD_PRECISION_FIGURES)
                     et = tt - deltat
-                    jed = jtd - deltat/DAY
+                    jed = round(jtd - deltat/DAY,JD_PRECISION_FIGURES)
                 else:
                     et = et
-                    jed = jd
+                    jed = round(jd,JD_PRECISION_FIGURES)
                     tt = et + deltat
-                    jtd = jed + deltat/DAY
+                    jtd = round(jed + deltat/DAY,JD_PRECISION_FIGURES)
 
             else:
                 raise ValueError("Calendar '{calendar}' not recognzed. Use 'proleptic' or 'mixed'.")
@@ -626,7 +636,7 @@ class MonTime(object):
             jd = time
         elif format == 'tt':
             et = time
-            jd = spy.unitim(et,'ET','JED')
+            jd = round(spy.unitim(et,'ET','JED'),JD_PRECISION_FIGURES)
         else:
             raise AssertionError(f"Format '{format}' not recognized (valid 'iso', 'tt', 'jd')")
 
@@ -640,14 +650,14 @@ class MonTime(object):
         # Terrestrial time
         et = spy.unitim(jd,'JED','ET')
         if scale == 'tt':
-            self.jtd = jd
+            self.jtd = round(jd,JD_PRECISION_FIGURES)
             self.tt = et
-            self.jed = jd - self.deltat/DAY
+            self.jed = round(jd - self.deltat/DAY,JD_PRECISION_FIGURES)
             self.et = self.tt - self.deltat
         else:
-            self.jed = jd
+            self.jed = round(jd,JD_PRECISION_FIGURES)
             self.et = et
-            self.jtd = self.jed + self.deltat/DAY
+            self.jtd = round(self.jed + self.deltat/DAY,JD_PRECISION_FIGURES)
             self.tt = self.et + self.deltat
 
         # Create pyplanet epoch: you need to provide jd with no deltat correction: is internal
@@ -667,7 +677,7 @@ class MonTime(object):
             # Adjust year if bce
             cals[0] -= 1
             cals[0] *= -1
-        self.datemix = f'{cals[0]}-{cals[1]:02d}-{cals[2]:02d} {cals[3]:02d}:{cals[4]:02d}:{cals[4]:02d}:'
+        self.datemix = f'{cals[0]}-{cals[1]:02d}-{cals[2]:02d} {cals[3]:02d}:{cals[4]:02d}:{cals[4]:02d}'
         
         # Replace month name
         MONTH_ABREVS = dict(JAN=1,FEB=2,MAR=3,APR=4,MAY=5,JUN=6,JUL=7,AUG=8,SEP=9,OCT=10,NOV=11,DEC=12)
@@ -1463,6 +1473,9 @@ class Extra(object):
 # Correction for JED
 jed_correction_data = np.loadtxt(Montu._data_path('corrections_dt.dat'))
 JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
+
+# Load basic kernels
+Montu.load_kernels()
 
 ###############################################################
 # Individual modules
