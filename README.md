@@ -241,6 +241,9 @@ The resulting figure will be:
 
 ## What's new
 
+Versions 0.6.*:
+- Refactor of MonTime class.
+
 Versions 0.5.*:
 - New properties (distances, phase angle, magnituded) added to PlanetaryBody class method.
 - Solved the DEBUG problem.

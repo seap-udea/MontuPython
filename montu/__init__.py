@@ -15,11 +15,21 @@ import re
 import numpy as np
 import spiceypy as spy
 import pandas as pd
-import matplotlib.pyplot as plt
-from datetime import datetime
+
+# Class utilities
 from functools import lru_cache
 
-# Special packages
+# Avoid warnings
+import warnings
+warnings.filterwarnings("ignore")
+
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Atrotools
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Pyephem
+import ephem as pyephem
+
+# PyPlanets and pyMeeus
 from pyplanets.core.epoch import Epoch as pyplanets_Epoch
 from pymeeus.Epoch import Epoch as pymeeus_Epoch
 from pyplanets.core.coordinates import true_obliquity as pyplanets_true_obliquity
@@ -37,38 +47,36 @@ from pymeeus.Uranus import Uranus as pymeeus_Uranus
 from pymeeus.Neptune import Neptune as pymeeus_Neptune
 
 # Astropy
-from astropy import constants as astropy_constants
-from astropy import units as monu # Montu Units are astropy units
 from astropy.time import Time as astropy_Time
 from astroquery.jplhorizons import Horizons as astropy_Horizons
 from astropy.coordinates import EarthLocation as astropy_EarthLocation
+
+# Scipy
+from scipy.interpolate import interp1d
+
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# REMOVE THIS PACKAGES WHEN DONE
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+from datetime import datetime
+import matplotlib.pyplot as plt
+
+# Astropy
+from astropy import constants as astropy_constants
+from astropy import units as monu # Montu Units are astropy units
 from astropy.coordinates import AltAz as astropy_AltAz
 from astropy.coordinates import SkyCoord as astropy_SkyCoord
 from astropy.coordinates import Angle as astropy_Angle
 
-# Pyephem
-import ephem as pyephem
-
-# Avoid warnings
-import warnings
-warnings.filterwarnings("ignore")
-
 ###############################################################
 # Global settings of the package
 ###############################################################
+# Set precision
 np.set_printoptions(precision=17)
 pd.set_option("display.precision",17)
 
 ###############################################################
 # Constants
 ###############################################################
-# Styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html#sphx-glr-gallery-style-sheets-style-sheets-reference-py
-PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
-SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
-
-LEGACY = True
-MAIN = False
-
 # Numerical Constants
 RAD = 180/np.pi
 DEG = 1/RAD
@@ -84,27 +92,6 @@ DAY = 86400 # s
 YEAR = 365.25*DAY # s
 CENTURY = 100*YEAR # s
 MILLENIUM = 10*YEAR # s
-
-SIDEREAL_YEAR = 365.256363004*DAY # d, J2000
-TROPICAL_YEAR = 365.242190402*DAY # d, J2000
-
-# Rotation matrix between J2000 and ECLIPJ2000
-M_J2000_ECLIPJ2000 = spy.pxform('J2000','ECLIPJ2000',0)
-
-# Historical
-PYEPHEM_JD_REF = 2415020.0
-PYEPHEM_MJD_2000 = 36525.0
-JED_2000 = 2451545.0
-
-# Datum of the calendar in Julian year
-"""Note from wikipedia:
-'The Julian day number (JDN) is the integer assigned to a whole solar day 
-in the Julian day count starting from noon Universal Time, with Julian day 
-number 0 assigned to the day starting at noon on Monday, January 1, 4713 BC, 
-proleptic Julian calendar (November 24, 4714 BC, in the proleptic Gregorian calendar)'
-"""
-JULIAN_DATUM_PROLEPTIC = 4713
-JULIAN_DATUM_JULIAN = 4712
 
 # Required kernels
 """This dictionary describe the kernels the package require to compute planetary positions
@@ -136,6 +123,40 @@ PLANETARY_IDS = dict(
 )
 PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# REMOVE THIS CONSTANTS WHEN DONE
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+"""References
+    Styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+    #sphx-glr-gallery-style-sheets-style-sheets-reference-py
+"""
+PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
+SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
+
+LEGACY = True
+MAIN = False
+
+SIDEREAL_YEAR = 365.256363004*DAY # d, J2000
+TROPICAL_YEAR = 365.242190402*DAY # d, J2000
+
+# Rotation matrix between J2000 and ECLIPJ2000
+M_J2000_ECLIPJ2000 = spy.pxform('J2000','ECLIPJ2000',0)
+
+# Historical
+PYEPHEM_JD_REF = 2415020.0
+PYEPHEM_MJD_2000 = 36525.0
+JED_2000 = 2451545.0
+
+# Datum of the calendar in Julian year
+"""Note from wikipedia:
+'The Julian day number (JDN) is the integer assigned to a whole solar day 
+in the Julian day count starting from noon Universal Time, with Julian day 
+number 0 assigned to the day starting at noon on Monday, January 1, 4713 BC, 
+proleptic Julian calendar (November 24, 4714 BC, in the proleptic Gregorian calendar)'
+"""
+JULIAN_DATUM_PROLEPTIC = 4713
+JULIAN_DATUM_JULIAN = 4712
+
 ###############################################################
 # Montu Python Util Class
 ###############################################################
@@ -146,40 +167,6 @@ class Montu(object):
         """
         if verbose:
             print(*args)
-
-    def _data_path(filename,check=False):
-        """Get the full path of the `datafile` which is one of the datafiles provided with the package.
-        
-        Parameters:
-            filename: Name of the data file, string.
-            
-        Return:
-            Full path to package datafile in the python environment.
-            
-        """
-        file_path = os.path.join(os.path.dirname(__file__),'data',filename)
-        if check and (not os.path.isfile(file_path)):
-            raise ValueError(f"File '{filename}' does not exist in data directory")
-        return file_path
-
-    def _wget(url, filename, verbose=False):
-        """Get a file from a url and store it as filename
-
-        Source: ChatGPT
-        """
-        response = requests.get(url, stream=True)
-        total_size = int(response.headers.get('content-length', 0))
-        Montu.vprint(verbose,f"Downloading {filename} from {url} [size = {total_size}]")
-
-        # Initialize the progress bar
-        progress_bar = tqdm.tqdm(total=total_size, unit='B', unit_scale=True)
-
-        with open(filename, 'wb') as file:
-            for data in response.iter_content(chunk_size=1024):
-                file.write(data)
-                progress_bar.update(len(data))
-
-        progress_bar.close()
 
     def dt2cal(dt,bce=False):
         """Convert array of datetime64 to a calendar array of year, month, day, hour,
@@ -261,12 +248,6 @@ class Montu(object):
         from IPython.display import display,HTML
         display(HTML(df.to_html()))
 
-    def _linear_map(mapped,observed):
-        a = (observed[1]-observed[0])/(mapped[1]-mapped[0])
-        b = observed[0] - a*mapped[0]
-        map = lambda x:a*x+b
-        return map
-    
     def dec2hex(dec,string=True):
         sgn = np.sign(dec)
         dec = abs(dec)
@@ -279,6 +260,7 @@ class Montu(object):
         else:
             ret = sgn*h,m,s
         return ret
+
     
     def string_difference(string1, string2):
         """Calculate the difference between two strings
@@ -329,6 +311,46 @@ class Montu(object):
         text=plt_text(1,1,mark,**args);
         return text
 
+    def _data_path(filename,check=False):
+        """Get the full path of the `datafile` which is one of the datafiles provided with the package.
+        
+        Parameters:
+            filename: Name of the data file, string.
+            
+        Return:
+            Full path to package datafile in the python environment.
+            
+        """
+        file_path = os.path.join(os.path.dirname(__file__),'data',filename)
+        if check and (not os.path.isfile(file_path)):
+            raise ValueError(f"File '{filename}' does not exist in data directory")
+        return file_path
+
+    def _wget(url, filename, verbose=False):
+        """Get a file from a url and store it as filename
+
+        Source: ChatGPT
+        """
+        response = requests.get(url, stream=True)
+        total_size = int(response.headers.get('content-length', 0))
+        Montu.vprint(verbose,f"Downloading {filename} from {url} [size = {total_size}]")
+
+        # Initialize the progress bar
+        progress_bar = tqdm.tqdm(total=total_size, unit='B', unit_scale=True)
+
+        with open(filename, 'wb') as file:
+            for data in response.iter_content(chunk_size=1024):
+                file.write(data)
+                progress_bar.update(len(data))
+
+        progress_bar.close()
+
+    def _linear_map(mapped,observed):
+        a = (observed[1]-observed[0])/(mapped[1]-mapped[0])
+        b = observed[0] - a*mapped[0]
+        map = lambda x:a*x+b
+        return map
+
 # Aliases
 D2H = Montu.dec2hex
 
@@ -348,49 +370,71 @@ class MonTime(object):
     it manages times and dates.
 
     Initialization parameters:
-        date: string | float
-            Date. When iso, possible formats are (all the same date):
+        date: string | float:
+
+            Date provided. 
+            
+            When 'iso', possible formats are (all the same date):
                 -1000-01-01 12:00:00.00
                 bce1001-01-01 12:00:00.00
                 1001 b.c.e. 01-01 12:00:00.00
 
-        format: string, default = 'iso'
-            Format of the input date. Possible values: 'iso', 'tt', 'jd'
+            When 'sothic' (not implemented yet) the format is:
+                20-II-shemu
+            
+            With seasons given by 5 leter names: shemu,akhet,peret
+
+        format: string, default = 'iso':
+
+            Format of the input date. 
+            Possible values: 'iso', 'tt', 'jd', 'sothic'
         
-        scale: string, default = 'utc'
-            Scale of the time: 'tt' (terrestrial time, uniform), 
-            'utc' (coordinated, based on rotation).
+        scale: string, default = 'utc':
+
+            Scale of the time.
+            Available: 'tt' (terrestrial time, uniform),  'utc' (coordinated, based on rotation).
 
         proleptic: boolean, default = True
-            Proleptic gregorian correspond to the case when the Gregorian calendar
-            is extended before the adoption date at 1582-10-15. 
 
-            When proleptic = False, the Julian calendar is used before the adoption
-            date.
+            Proleptic gregorian correspond to the case when the Gregorian calendar
+            is extended before the adoption date at 1582-10-15. When proleptic = False, the Julian 
+            calendar is used before the adoption date.
 
     Attributes:
 
         Time as strings:
         
-            datestr: string
+            datepro: string:
                 Date in gregorian prolectic, with format '[-]CCYY-MM-DD HH:MM:SS.fff'
-                
+
+            datemix: string:
+                Date in gregorian mixed, with format '[-]CCYY-MM-DD HH:MM:SS.fff'
+
+            datespice: string:
+                Date in gregorian prolectic, with SPICE format.
+
         Time in uniform scales:
+            deltat: float [seconds]
+                Difference Dt = TT - UTC. 
             tt: float [seconds]
                 Ephemeris time in tt. 
             et: float [seconds]
-                Ephemeris time in utc. 
-            deltat: float [seconds]
-                Difference Dt = TT - UTC. 
+                Ephemeris time in utc. et = tt - deltat 
             jtd: float [days]
                 Julian day in terrestrial time.
             jed: float [days]
-                Julian day in UTC.
+                Julian day in UTC. jed = jtd - deltat/86400
 
         Time as special objects:
 
-            dateastro: string
-                Date in astropy format '[-]CCYY-MM-DD HH:MM:SS.fff'
+            obj_pyplanet: pyplanets.Epoch:
+                Date in pyplanets format.
+
+            obj_pyephem: pyephem.Date:
+
+
+            obj_astrotyme: Time:
+                Date in astropy format.
             
         datemix: string
             Date in a mixed style (non-prolectic), with format '[bce]CCYY-MM-DD HH:MM:SS.fff', 
@@ -422,53 +466,66 @@ class MonTime(object):
                  date,
                  format='iso',
                  scale='utc',
-                 calendar='proleptic',
-                 verbose=False):
+                 calendar='proleptic'):
         
+        # If only a number is provided we assume is a terrestrial time
         if type(date) != str and format == 'iso':
-            # If only a number is provided we assume is a terrestrial time
             format = 'tt'
             scale = 'tt'
 
-        # Set calendar
+        # Set calendar assumed
         self.calendar = calendar
         
         if format == 'iso':
-
             # Date was provided as a string
+
             if calendar=='proleptic':
+
                 # Parse string
                 self._parse_datestr(date)
 
                 # Calculated deltat
-                deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],
-                                                    self.components[2])
+                deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],self.components[2])
 
-                # Convert to TT
-                et = spy.str2et(self.datespice)
-                et -= round(spy.deltet(et,'ET'),3)
-                et = round(et,3) # Precision in time is milliseconds
+                # Convert to terrestrial time as if date was given in TT scale
+                et = spy.utc2et(self.datespice)
+                deltat_leaps = spy.deltet(et,'ET')
+                et -= deltat_leaps
                 
+                # According to scale, add or remove deltat
                 if scale == 'tt':
+                    # et is terrestrial time
                     tt = et
                     et = et - deltat
                 else:
+                    # et is utc time
                     tt = et + deltat
                     et = et
-                
+
                 # Get Julian day
                 jed = spy.unitim(et,'ET','JED')
                 jtd = spy.unitim(tt,'ET','JED')
 
+                """
+                There is an error of between 0.5 and 10 seconds for years 
+                between 300 c.e. and 1582 c.e. of unknown origin and it seems
+                to come from the SPICE algorithms or the algorithms calculating
+                deltat in PyMeeus. This code correct this effect.
+                """
+                year = self.components[0]*self.components[1]
+                if 300<=year<=1582:
+                    jed_correction = JED_CORRECTION(year)
+                    tt -= jed_correction
+
             elif calendar=='mixed':
+
                 # Parse string
                 self._parse_datestr(date)
 
                 # Calculated deltat
-                deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],
-                                                    self.components[2])
+                deltat = pymeeus_Epoch.tt2ut(self.components[0]*self.components[1],self.components[2])
 
-                # Create pyplanet object since input format is non-prolectic
+                # Convert from components to pymeeus epoch which receives date in mixed calendar
                 args = (self.components[0]*self.components[1],
                         self.components[2],
                         self.components[3]+\
@@ -476,13 +533,11 @@ class MonTime(object):
                         self.components[5]/(24*60)+\
                         self.components[6]/(24*60*60)+\
                         self.components[7]/(24*60*60*1e6))
-                pyplanet = pyplanets_Epoch(*args)
-                
-                # According to scale
-                jd = pyplanet.jde()
+                pymeeus_epoch = pymeeus_Epoch(*args)
+                jd = pymeeus_epoch.jde()
                 et = spy.unitim(jd,'JED','ET')
                 
-                # Choose according to scale
+                # According to scale choose terrestrial time
                 if scale == 'tt':
                     tt = et
                     jtd = jd
@@ -493,8 +548,9 @@ class MonTime(object):
                     jed = jd
                     tt = et + deltat
                     jtd = jed + deltat/DAY
+
             else:
-                raise ValueError("Calendar '{calendar}' not recognzed. Use 'proleptic', 'mixed'.")
+                raise ValueError("Calendar '{calendar}' not recognzed. Use 'proleptic' or 'mixed'.")
 
             # Initialize object according to tt
             self.update_time(tt,format='tt',scale='tt')
@@ -504,11 +560,12 @@ class MonTime(object):
             self.update_time(date,format,scale)
 
     def _parse_datestr(self,date):
-        """Parse string
+        """Parse date string
         """
+
         # Default format
         style = 'astro' # Default style of input string 
-        self.datestr = date # Default date
+        self.datepro = date # Default date
 
         # Strip blank spaces
         date = date.strip()
@@ -525,20 +582,13 @@ class MonTime(object):
         if self.bce and (style == 'calendar'):
             subs1 = lambda m:str(-(int(m.group(1))-1))
             subs2 = lambda m:str(-(int(m.group(1))-1))+'-'
-            self.datestr = re.sub('bce[a-z\s]*(\d+)',subs1,self.datestr.lower())
-            self.datestr = re.sub('(\d+)\s*b[\.]*c[\.]*e[\.]*\s*',subs2,self.datestr.lower())
+            self.datepro = re.sub('bce[a-z\s]*(\d+)',subs1,self.datepro.lower())
+            self.datepro = re.sub('(\d+)\s*b[\.]*c[\.]*e[\.]*\s*',subs2,self.datepro.lower())
 
         # Create calendar and datetime object
-        self.obj_datetime64 = np.datetime64(self.datestr)
-        self.components = Montu.dt2cal(np.datetime64(self.datestr.strip('-')),
+        self.obj_datetime64 = np.datetime64(self.datepro)
+        self.components = Montu.dt2cal(np.datetime64(self.datepro.strip('-')),
                                        bce=self.bce)
-        # Pay attention to leap seconds
-        try:
-            self.obj_datetime = datetime(*self.components[1:])
-        except ValueError:
-            components = copy.deepcopy(self.components)
-            components[3] = components[3] - 1
-            self.obj_datetime = datetime(*components[1:])
         
         # Generate info
         self.year = self.components[0]*self.components[1]
@@ -549,45 +599,26 @@ class MonTime(object):
         self.second = self.components[6]
         self.usecond = self.components[7]
         
-        # Datetime in Julian years
-        julian_year = (JULIAN_DATUM_PROLEPTIC - self.components[1]) + 1
-        if julian_year>0:
-            self.obj_datejulian = datetime(*((julian_year,)+tuple(self.components[2:])))
-        else:
-            julian_year -= 1 # To avoid year 0
-            self.obj_datejulian = datetime(*((-julian_year,)+tuple(self.components[2:])))
-
-        # Date in julian years
-        self.datejulian = self.obj_datejulian.strftime('%Y-%m-%d %H:%M:%S.%f')
-        
-        # Convert to SPICE format
-        if self.bce:
-            datelist = [int(f) for f in self.obj_datetime.strftime('%Y,%m,%d,%H,%M,%S,%f').split(',')]
-            datelist[0] += 1
-            dateprev = datetime(*tuple(datelist))
-        else:
-            dateprev = self.obj_datetime
-
         # Adjust SPICE string according to epoch
         if self.bce:
-            self.datespice = dateprev.strftime('%Y B.C. %m-%d %H:%M:%S.%f')
-        elif 0<self.components[1]<1000:
-            self.datespice = dateprev.strftime('%Y A.D. %m-%d %H:%M:%S.%f')
+            self.datespice = f'{-self.year+1:04d} B.C. {self.month:02d}-{self.day:02d} {self.hour:02d}:{self.minute:02d}:{self.second:02d}.{self.usecond:02d}'
+        elif 0<self.year<1000:
+            self.datespice = f'{self.year:04d} A.D. {self.month:02d}-{self.day:02d} {self.hour:02d}:{self.minute:02d}:{self.second:02d}.{self.usecond:02d}'
         else:
-            self.datespice = self.datestr
-
+            self.datespice = self.datepro
+        
     def update_time(self,time=None,format='tt',scale='tt'):
-        """This is the most important method.
+        """Update time object according to terrestrial time
+        
+        This is the most important method.
         """
-
         # Use if you set the attribute tt manually
         if time is None:
             time = self.tt
             format = 'tt'
             scale = 'tt'
 
-        self.scale = scale
-        # Initialize dates using terrestrial time
+        # Choose input format
         if format == 'jd':
             jd = time
         elif format == 'tt':
@@ -597,8 +628,9 @@ class MonTime(object):
             raise AssertionError(f"Format '{format}' not recognized (valid 'iso', 'tt', 'jd')")
 
         # Initialize Epoch
-        pyplanet = pyplanets_Epoch(jd)
-        year,month,day = pyplanet.get_date()
+        pymeeus_epoch = pymeeus_Epoch(jd)
+        year,month,day = pymeeus_epoch.get_date()
+        self.isjulian = pymeeus_Epoch.is_julian(year,month,day)
         self.deltat = pymeeus_Epoch.tt2ut(year,month)
         self.bce = True if year<=0 else False
         
@@ -618,59 +650,39 @@ class MonTime(object):
         # Create pyplanet epoch: you need to provide jd with no deltat correction: is internal
         self.obj_pyplanet = pyplanets_Epoch(self.jed)
 
-        # Create astrotime 
+        # Create astrotime: you need the tdb time
         self.obj_astrotime = astropy_Time(self.jtd,format='jd',scale='tdb')
         
-        # PyEphem Date
+        # PyEphem Date: you need to provide jd with no deltat correction: is internal
         self.obj_pyephem = pyephem.Date(self.jed - PYEPHEM_JD_REF)
         
-        # Generate object and string for datemixed 
+        # String for datemixed
         pyephem_str = f'{self.obj_pyephem}'.strip('-')
         parts = pyephem_str.split(' ')
-        cals = [int(p) for p in parts[0].split('/')] +[int(p) for p in parts[1].split(':')]
+        cals = [int(p) for p in parts[0].split('/')] +[int(p) for p in parts[1].split(':')] 
+        if self.bce:
+            # Adjust year if bce
+            cals[0] -= 1
+            cals[0] *= -1
+        self.datemix = f'{cals[0]}-{cals[1]:02d}-{cals[2]:02d} {cals[3]:02d}:{cals[4]:02d}:{cals[4]:02d}:'
+        
+        # Replace month name
+        MONTH_ABREVS = dict(JAN=1,FEB=2,MAR=3,APR=4,MAY=5,JUN=6,JUL=7,AUG=8,SEP=9,OCT=10,NOV=11,DEC=12)
 
-        # Mixed normal
+        # Set string from terrestrial time
+        self.datespice = spy.et2utc(self.et+spy.deltet(self.et,'ET'),'C',4)
+        datestr = self.datespice
+
+        # Converting from 
+        sub_bc = lambda m:f'-{int(m.group(1))-1:04d}-{MONTH_ABREVS[m.group(2)]:02d}-'
+        sub_ad = lambda m:f'{int(m.group(1)):04d}-{MONTH_ABREVS[m.group(2)]:02d}-'
+        sub_nm = lambda m:f'-{MONTH_ABREVS[m.group(1)]:02d}-'
         if self.bce:
-            cals[0] = cals[0]-1
-        # Be careful with the leap months
-        try:
-            self.obj_datetimemix = datetime(*cals)
-        except ValueError:
-            cals[1] = cals[1]-1
-            self.obj_datetimemix = datetime(*cals)
-        if self.bce:
-            self.datemixed = self.obj_datetimemix.strftime('-%Y-%m-%d %H:%M:%S')
+            datestr = re.sub('(\d+)\s*B.C.\s*(\w+)\s*',sub_bc,datestr)
+        elif 'A.D.' in datestr:
+            datestr = re.sub('(\d+)\s*A.D.\s*(\w+)\s*',sub_ad,datestr)
         else:
-            self.datemixed = self.obj_datetimemix.strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Mixed in Julian years
-        julian_year = (JULIAN_DATUM_JULIAN - cals[0] - 1) + 1
-        if julian_year>0:
-            self.obj_datejulianmix = datetime(*((julian_year,)+tuple(cals[1:])))
-        else:
-            julian_year -= 1 # To avoid year 0
-            self.obj_datejulianmix = datetime(*((-julian_year,)+tuple(cals[1:])))
-        self.datejulianmixed = self.obj_datejulianmix.strftime('%Y-%m-%d %H:%M:%S')
-        
-        # Set string
-        c = spy.et2utc(self.et+spy.deltet(self.et,'ET'),'C',4)
-        sub = lambda m:f'{int(m.group(1)):04d} '
-        if self.bce:
-            c = re.sub('(\d+)\s*B.C.\s*',sub,c)
-            # Be careful with leap year
-            try:
-                d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
-            except ValueError:
-                d = self.obj_datetimemix
-            datestr = f'{-(d.year-1)}-{d.month:02d}-{d.day:02d} {d.hour:02d}:{d.minute:02d}:{d.second:02d}.{d.microsecond}'
-        else:
-            if 'A.D.' in c:
-                c = re.sub('(\d+)\s*A.D.\s*',sub,c)
-                d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
-            else:
-                d = datetime.strptime(c,'%Y %b %d %H:%M:%S.%f')
-                
-            datestr = f'{d.year}-{d.month:02d}-{d.day:02d} {d.hour:02d}:{d.minute:02d}:{d.second:02d}.{d.microsecond}'
+            datestr = re.sub('\s+(\w+)\s+',sub_nm,datestr)
         
         # Parse string
         self._parse_datestr(datestr)
@@ -724,10 +736,13 @@ class MonTime(object):
     def __str__(self):
         str = f"""Montu Time Object:
 --------------------------
+Date in proleptic UTC: {self.datepro}
+Date in mixed UTC: {self.datemix}
+Date in SPICE format: {self.datespice}
 General:
-    Calendar: {self.calendar}
+    Components: {self.components}
     Is bce: {self.bce}
-    Components UTC: {self.components}
+    Is Julian: {self.isjulian}
 Uniform scales:
     Terrestrial time:
         tt: {self.tt}
@@ -736,18 +751,8 @@ Uniform scales:
         et: {self.et}
         jed: {self.jed}
     Delta-t = TT - UTC = {self.deltat}
-Strings:
-    Date in SPICE format: {self.datespice}
-    Date in proleptic calendar: {self.datestr}
-    Date in proleptic calendar (jul.year): {self.datejulian}
-    Date in mixed calendar: {self.datemixed}
-    Date in mixed calendar (jul.year): {self.datejulianmixed}
 Objects:
     Date in datetime64 format: {self.obj_datetime64}
-    Date in datetime format proleptic: {self.obj_datetime}
-    Date in datetime format proleptic (julian year): {self.obj_datejulian}
-    Date in datetime format mixed: {self.obj_datetimemix}
-    Date in datetime format mixed (julian year): {self.obj_datejulianmix}
     Date in PyPlanet Epoch: {self.obj_pyplanet}
     Date in PyEphem Epoch: {self.obj_pyephem}
     Date in AstroPy Time: {self.obj_astrotime}
@@ -755,8 +760,11 @@ Astronomical properties at Epoch:
     True obliquity of ecliptic: {D2H(self.epsilon,1)}
     True nutation longitude: {D2H(self.delta_psi,1)}
     Greenwhich Meridian Sidereal Time: {D2H(self.gtst,1)}
-Hash: {self._get_hash()}
 """
+        return str
+    
+    def __repr__(self) -> str:
+        str = f"MonTime('{self.datepro}'/'{self.datemix}')"
         return str
     
     def get_equinoxes_solstices_year(self):
@@ -990,6 +998,15 @@ class ObservingSite(object):
 class PlanetaryBody(object):
     """Create a planetary body
 
+    Attributes:
+        body ('MARS'), name ('mars'), id ('4'), capital('Mars'): string
+
+        frameplanet: string:
+            Name of reference frame fixed on planet
+
+        
+
+    
     Examples: 
         earth = PlanetaryBody('399')
         mars = PlanetaryBody('mars')
@@ -1058,11 +1075,12 @@ class PlanetaryBody(object):
                 'all': all methods
         """
         self.data = {
-            'datetime64':[mtime.obj_datejulian],
+            'datepro':[mtime.datepro],
+            'datemix':[mtime.datemix],
+            'datetime64':[mtime.obj_datetime64],
             'tt':[mtime.tt],
             'jtd':[mtime.jtd],
             'jed':[mtime.jed],
-
             }
         if store:
             if 'df' not in self.__dict__.keys():
@@ -1304,12 +1322,10 @@ class PlanetaryBody(object):
             self.df.reset_index(drop=True,inplace=True)
 
     def _show_position(self,verbose):
-        Montu.vprint(verbose,"\tPosition Epoch: ",
-                     self.epoch.datestr,
-                     self.epoch.jed)
-        Montu.vprint(verbose,"\tCoordinates @ J2000: ")
-        Montu.vprint(verbose,"\t\tEquatorial:",D2H(self.RAJ2000),D2H(self.DecJ2000))
-        Montu.vprint(verbose,"\t\tEcliptic:",D2H(self.LonJ2000),D2H(self.LatJ2000))
+        Montu.vprint(verbose,f"\tPosition Epoch: prolectic gregorian {self.epoch.datepro}, JED = {self.epoch.jed}")
+        Montu.vprint(verbose,f"\tCoordinates @ J2000: ")
+        Montu.vprint(verbose,f"\t\tEquatorial:",D2H(self.RAJ2000),D2H(self.DecJ2000))
+        Montu.vprint(verbose,f"\t\tEcliptic:",D2H(self.LonJ2000),D2H(self.LatJ2000))
         Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
         Montu.vprint(verbose,f"\t\tEquatorial:",D2H(self.RAEpoch),D2H(self.DecEpoch))
         Montu.vprint(verbose,f"\t\tEcliptic:",D2H(self.LonEpoch),D2H(self.LatEpoch))
@@ -1439,91 +1455,18 @@ class Extra(object):
             return jde   
 
 ###############################################################
+# Data initialization
+###############################################################
+# Correction for JED
+jed_correction_data = np.loadtxt(Montu._data_path('corrections_dt.dat'))
+JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
+
+###############################################################
 # Individual modules
 ###############################################################
-"""
-from montu.time import *
-from montu.planets import *
-from montu.stars import *
-"""
 
 ###############################################################
 # Tests 
 ###############################################################
-#"""
 if __name__ == '__main__':
     print('Montu Python Test Suite')
-
-    # Util tools
-    print("Testing vprint:")
-    Montu.vprint(False,"Hidden message")
-    Montu.vprint(True,"Visible message")
-
-    # File path
-    print("Testing data path:")
-    print(Montu._data_path('frame.tk'))
-
-    # Testing files
-    print("Testing kernels")
-    Montu._wget('https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
-                '/tmp/leaps.tls',verbose=True)
-    
-    Montu.load_kernels({'pck00011.tpc':''})
-    Montu.load_kernels()
-    Montu.load_kernels()
-
-    # Testing stars
-    allstars = Stars()
-    print("Number of stars in database: ",len(allstars.data))
-
-    # Get a single stars
-    aldebaran = allstars.get_stars(ProperName='Aldebaran')
-    print("Aldebaran J2000: ",aldebaran.data)
-
-    # All visible stars in the sky
-    visible = allstars.get_stars(Mag=[-2,6.5])
-    print("Number of visible stars in the sky",visible.number)
-
-    # All visible stars with declination less than 1 deg
-    equator = allstars.get_stars(Mag=[-2,6.5],Dec=[-1,1])
-    print("Number of visible stars near the equator",equator.number)
-
-    # Get Hyades
-    hyades = allstars.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,
-                                     radius=5,Mag=[-1,4])
-    print("Number of Hyades:",hyades.number)
-
-    # Plot Hyades
-    hyades = allstars.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,
-                                     radius=10,Mag=[-1,10])
-    #fig = hyades.plot_stars(pad=0.0,labels=False,figargs=dict(figsize=(8,8)))
-    #plt.show()
-
-    # Dates
-    print("Testing dates")
-    print("Reference date: J2000")
-    mtime = MonTime('2000-01-01 12:00:00.00',format='iso',scale='tt',proleptic=True,verbose=True)
-    print()
-    mtime = MonTime('2000-01-01 12:00:00.00',format='iso',scale='utc',proleptic=True,verbose=True)
-    print()
-    mtime = MonTime('2000-01-01 12:00:00.00',format='iso',scale='tt',proleptic=False,verbose=True)
-    print()
-    mtime = MonTime('2000-01-01 12:00:00.00',format='iso',scale='utc',proleptic=False,verbose=True)
-
-    print("Ancient date: -2500")
-    mtime = MonTime('-2500-01-01 12:00:00.00',format='iso',scale='utc',proleptic=True,verbose=True)
-    print()
-    mtime = MonTime('-2500-01-01 12:00:00.00',format='iso',scale='utc',proleptic=False,verbose=True)
-    print()
-    mtime = MonTime('-2500-01-01 12:00:00.00',format='iso',scale='tt',proleptic=True,verbose=True)
-    print()
-    mtime = MonTime('-2500-01-01 12:00:00.00',format='iso',scale='tt',proleptic=False,verbose=True)
-    print()
-
-    print("Initialize with terrestrial time")
-    mtime = MonTime(807954,format='jd',scale='tt',proleptic=True,verbose=True)
-    print()
-    mtime = MonTime(807954,format='jd',scale='utc',proleptic=True,verbose=True)
-    
-#"""
-
