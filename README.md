@@ -220,13 +220,13 @@ Now we want to create a map of the sky surrounding Aldebaran. For that purpose w
 the information about Aldebaran:
 
 ```python
-aldebaran = allstars.get_stars(ProperName='Aldebaran')
+aldebaran = ALL_STARS.get_stars(ProperName='Aldebaran')
 ```
 
 Now we select all stars between magnitude -1 and 5 around Aldebaran in a radius of 10 degrees:
 
 ```python
-hyades = allstars.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,radius=10,Mag=[-1,5])
+hyades = ALL_STARS.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,radius=10,Mag=[-1,5])
 ```
 
 Plot the selected stars:
