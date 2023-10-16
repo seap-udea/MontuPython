@@ -21,12 +21,6 @@ If you are using `PyPI` installation it's as simple as:
 pip install montu
 ```
 
-You can also test the unstable version of the package with:
-
-```
-pip install -i https://test.pypi.org/simple/ montu
-```
-
 ## Quick start
 
 In this section you should provide the most simple instructions to use
@@ -35,24 +29,26 @@ your package.
 For instance:
 
 ```
-import montu
-print(montu.version())
+from montu import *
 ```
 
-## Code examples
+or for a safe import:
 
-For a fully-fledged working example see `examples/montunctions.ipynb`.
+```
+import montu as mn
+```
 
-In order to properly use MontuPython you need to import the package and load the required
-data:
+## Basic code examples
+
+A `Google Colab` notebook with some basic commands are available [here](https://colab.research.google.com/drive/1AbvT5u3yf40UPV9QldbsroeG2teUo52p?usp=sharing).
+
+In order to properly use MontuPython you need to import the package:
 
 ```python
 from montu import *
-Montu.load_kernels()
-allstars=Stars()
 ```
 
-It may take a long time to download the planetary kernels, so be patient! 
+Importing the package will also load some basic data required for calculations, including a complete database with the brightest stars.
 
 ### Get an historical date in all calendars and scales
 
@@ -243,6 +239,10 @@ The resulting figure will be:
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
+## Advanced examples
+
+For a fully-fledged working example see `examples/montunctions.ipynb`.
+
 ## What's new
 
 Versions 0.6.*:
@@ -251,6 +251,7 @@ Versions 0.6.*:
 - General cleaning of the package.
 - Kernels are separated into basic kernels (which are automatically loaded).
 - Julian day dates are rounded-up to 7 figures to avoid representation artifacts.
+- Package now load ALL_STARS from import.
 
 Versions 0.5.*:
 - New properties (distances, phase angle, magnituded) added to PlanetaryBody class method.

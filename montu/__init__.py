@@ -1477,6 +1477,9 @@ JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
 # Load basic kernels
 Montu.load_kernels()
 
+# Load all stars in package
+ALL_STARS=Stars()
+
 ###############################################################
 # Individual modules
 ###############################################################
