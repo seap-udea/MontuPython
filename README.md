@@ -240,7 +240,7 @@ The resulting figure will be:
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
-### More complicated example: evolution of pole stars
+### More complicated example: evolution of pole stars
 
 Choose from database all bright stars that according to [wikipedia](https://en.wikipedia.org/wiki/Pole_star#Precession_of_the_equinoxes) were or will be close to the celestial North pole:
 
