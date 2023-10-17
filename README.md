@@ -306,6 +306,10 @@ Star Alderamin will be the closest to the pole at 7569-06-13 07:52:18.7355 (decl
 Star Kochab will be the closest to the pole at 1041 B.C. 08-30 22:55:00.192000 (declination 83:30:4.833)
 ```
 
+### Other example scripts
+
+You will find a complete set of runable example notebooks in the )[Google Drive public repository of `Montu`](https://drive.google.com/drive/folders/11L59yZ3A1g1ZT7v_dLDPwLMnRMR-tFgE?usp=sharing).
+
 ## Advanced examples
 
 For a fully-fledged working example see `examples/montunctions.ipynb`.
