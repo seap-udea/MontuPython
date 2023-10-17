@@ -64,6 +64,7 @@ other alternative formats for the same date are:
 ```python
 mtime = MonTime('bce2501-01-01 12:00:00')
 mtime = MonTime('-2500-01-01 12:00:00')
+print(mtime)
 ```
 
 whose output will be:
