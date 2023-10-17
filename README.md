@@ -240,6 +240,66 @@ The resulting figure will be:
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
+### Evolution of pole star
+
+Choose from database all bright stars that according to [wikipedia](https://en.wikipedia.org/wiki/Pole_star#Precession_of_the_equinoxes) were or will be close to the celestial North pole:
+
+```python
+star_names = ('Polaris','Vega','Thuban','Deneb','Alderamin','Kochab')
+stars = ALL_STARS.get_stars(ProperName=star_names)
+```
+
+Now precess the position of all stars from -20 000 to 20 000 years from 2000:
+
+```python
+now = MonTime()
+df = pd.DataFrame()
+for dt in tqdm.tqdm(np.linspace(-20000*YEAR,20000*YEAR,1000)):
+    past = now + dt
+    pstars = SkyCoordinates.precess_coordinates(stars.data,past)
+
+    row = dict(tt = past.tt)
+    for star in star_names:
+        row.update({star:float(pstars[pstars.ProperName == star].DecEpoch)})
+    df = pd.concat([df,pd.DataFrame([row])])
+```
+
+Now plot declinations as a function of time:
+
+```python
+fig,ax = plt.subplots(figsize=(10,6))
+for star in star_names:
+    ax.plot(df['tt'],df[star],label=star)
+
+ax.legend(loc='lower center',ncol=len(star_names))
+ax.set_xlabel("Time [year]")
+ax.set_ylabel("Declination [deg]")
+ax.margins(0)
+```
+
+The resulting figure will be:
+
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/pole-stars.png?raw=true" alt="Logo""/></p>
+
+Check the date when star is close to the pole:
+
+```python
+for star in star_names:
+    imax = df[star].argmax()
+    mtime = MonTime(df.iloc[imax].tt)
+    print(f"Star {star} will be the closest to the pole at {mtime.datespice} (declination {D2H(df.iloc[imax][star])})")
+```
+
+The output will be:
+```
+Star Polaris will be the closest to the pole at 2083-11-07 23:25:59.5813 (declination 89:31:51.354)
+Star Vega will be the closest to the pole at 11692 B.C. 10-12 08:20:37.619000 (declination 87:24:10.508)
+Star Thuban will be the closest to the pole at 2803 B.C. 11-12 23:35:40.709700 (declination 89:54:19.213)
+Star Deneb will be the closest to the pole at 14735 B.C. 08-30 11:40:55.71900 (declination 86:57:22.016)
+Star Alderamin will be the closest to the pole at 7569-06-13 07:52:18.7355 (declination 87:55:56.040)
+Star Kochab will be the closest to the pole at 1041 B.C. 08-30 22:55:00.192000 (declination 83:30:4.833)
+```
+
 ## Advanced examples
 
 For a fully-fledged working example see `examples/montunctions.ipynb`.
@@ -247,7 +307,8 @@ For a fully-fledged working example see `examples/montunctions.ipynb`.
 ## What's new
 
 Versions 0.7.*:
-- The package now include precession and altaz coordinates of stars.
+- More interesting examples added.
+- A new class SkyCoordinates allows to precess coordinates of any set of objects.
 - Star catalogue coordinates are now given in J2000.
 
 Versions 0.6.*:
