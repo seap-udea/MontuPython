@@ -240,7 +240,7 @@ The resulting figure will be:
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
-### Evolution of pole star
+### More complicated example: evolution of pole stars
 
 Choose from database all bright stars that according to [wikipedia](https://en.wikipedia.org/wiki/Pole_star#Precession_of_the_equinoxes) were or will be close to the celestial North pole:
 
@@ -274,7 +274,13 @@ for star in star_names:
 ax.legend(loc='lower center',ncol=len(star_names))
 ax.set_xlabel("Time [year]")
 ax.set_ylabel("Declination [deg]")
+ax.axvline(MonTime().tt,color='k',lw=3)
+ax.text(0.5,1.01,'Now',ha='center',transform=ax.transAxes)
 ax.margins(0)
+ax.set_xticks(np.linspace(df['tt'].min(),df['tt'].max(),14))
+ax.grid()
+MonTime.set_time_ticks(ax)
+Montu.montu_mark(ax)
 ```
 
 The resulting figure will be:
