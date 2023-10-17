@@ -10,6 +10,7 @@ import requests
 import tqdm
 import copy
 import re
+import math
 
 # Basic packages
 import numpy as np
@@ -23,9 +24,9 @@ from functools import lru_cache
 import warnings
 warnings.filterwarnings("ignore")
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # Atrotools
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # Pyephem
 import ephem as pyephem
 
@@ -51,6 +52,9 @@ from astropy.time import Time as astropy_Time
 from astroquery.jplhorizons import Horizons as astropy_Horizons
 from astropy.coordinates import EarthLocation as astropy_EarthLocation
 
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+# Numerical toolstrotools
+#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 # Scipy
 from scipy.interpolate import interp1d
 
@@ -80,6 +84,7 @@ pd.set_option("display.precision",17)
 # Numerical Constants
 RAD = 180/np.pi
 DEG = 1/RAD
+UARCSEC = 1e-6/3600 # mircroarsec in degrees
 
 # Phsyical
 AU = 149597870.700 # km, value in Horizons
@@ -92,6 +97,7 @@ DAY = 86400 # s
 YEAR = 365.25*DAY # s
 CENTURY = 100*YEAR # s
 MILLENIUM = 10*YEAR # s
+TAI_TO_SID = 1.00273781191135448 # Sidereal seconds / Uniform seconds
 
 # Required kernels
 """This dictionaries describe the kernels the package require to compute planetary positions
@@ -181,6 +187,16 @@ class Montu(object):
         if verbose:
             print(*args)
 
+    def arange(start, stop, step=1, endpoint=True):
+        """Same as np.arange but including endpoint
+
+        Source: https://stackoverflow.com/a/68551927
+        """
+        arr = np.arange(start, stop, step)
+        if endpoint and arr[-1]+step==stop:
+            arr = np.concatenate([arr,[stop]])
+        return arr
+
     def dt2cal(dt,bce=False):
         """Convert array of datetime64 to a calendar array of year, month, day, hour,
         minute, seconds, microsecond with these quantites indexed on the last axis.
@@ -262,6 +278,8 @@ class Montu(object):
         display(HTML(df.to_html()))
 
     def dec2hex(dec,string=True):
+
+        dec = float(dec)
         sgn = np.sign(dec)
         dec = abs(dec)
         h = int(dec)
@@ -374,8 +392,27 @@ class MontuConfiguration(object):
     Verbosity = False
 
 ###############################################################
-# MonTime Class
+# Utilitary and MonTime Class
 ###############################################################
+class Dictobj(object):
+    """Convert a dictionary to an object
+
+    Examples:
+        ob = Dictobj(a=2,b=3)
+        print(ob.a,ob.b)
+        ob = Dictobj(dict=dict(a=2,b=3))
+        print(ob.a,ob.b)
+        ob = Dictobj(dict={'a':2,'b':3})
+        print(ob.a,ob.b)
+    """
+
+    def __init__(self, **kwargs):
+        if 'dict' in kwargs.keys():
+            kwargs.update(kwargs['dict'])
+        for key, value in kwargs.items():
+            if key == 'dict':continue
+            setattr(self, key, value)
+
 class MonTime(object):
     """Create a time-frame object
     
@@ -476,11 +513,19 @@ class MonTime(object):
 
     """    
     def __init__(self,
-                 date,
+                 date=None,
                  format='iso',
                  scale='utc',
                  calendar='proleptic'):
         
+
+        # If date is None take now
+        if date is None:
+            date = datetime.now().isoformat().replace('T',' ')
+            format = 'iso'
+            scale = 'utc'
+            calendar = 'proleptic'
+
         # If only a number is provided we assume is a terrestrial time
         if type(date) != str and format == 'iso':
             format = 'tt'
@@ -807,6 +852,36 @@ Astronomical properties at Epoch:
         winter_jed = pyephem.previous_winter_solstice(date) + PYEPHEM_JD_REF
         return vernal_jed,summer_jed,auttumnal_jed,winter_jed
     
+    @staticmethod
+    def tai_to_sid(mtime):
+        """Compute the instantaneous rate of sidereal days to tai days at epoch mtime
+        """
+        # Present
+        epsilon = float(pyplanets_true_obliquity(mtime.obj_pyplanet))
+        delta_psi = float(pyplanets_nutation_longitude(mtime.obj_pyplanet))
+        gtst1 = 24*mtime.obj_pyplanet.apparent_sidereal_time(epsilon,delta_psi)
+
+        # Future
+        mtime2 = mtime + 1*DAY
+        epsilon = float(pyplanets_true_obliquity(mtime2.obj_pyplanet))
+        delta_psi = float(pyplanets_nutation_longitude(mtime2.obj_pyplanet))
+        gtst2 = 24*mtime2.obj_pyplanet.apparent_sidereal_time(epsilon,delta_psi)
+
+        # Advance
+        tai2sid = 1 + (gtst2 - gtst1)/24
+        return tai2sid
+    
+    @staticmethod
+    def set_time_ticks(ax):
+        """Set xticks as MonTime objects
+        """
+        tts = ax.get_xticks()
+        xlabels = []
+        for tt in tts:
+            mtime = MonTime(tt)
+            xlabels += [f'{mtime.year}']
+        ax.set_xticklabels(xlabels)
+
 ###############################################################
 # Stars Class
 ###############################################################
@@ -824,7 +899,7 @@ class Stars(object):
 
         else:
             # Load data from the database provided with package
-            self.data = pd.read_csv(Montu._data_path('stars.csv',check=True))
+            self.data = pd.read_csv(Montu._data_path('bright_stars.csv',check=True))
         
         self.number = len(self.data)
 
@@ -849,16 +924,22 @@ class Stars(object):
         # If args provided it will try to filter database according to conditions
         cond = np.array([True]*len(self.data))
         for key,item in args.items():
+            if key == 'suffix':continue
             if isinstance(item,list):
                 min = float(item[0])
                 max = float(item[1])
                 cond = (self.data[key]>=min)&(self.data[key]<=max)&(cond)
-            else:   
+            elif isinstance(item,tuple):
+                cond_or = np.array([False]*len(self.data))
+                for it in item:
+                    cond_or = (self.data[key]==it)|cond_or
+                cond = (cond_or)&(cond)
+            else:
                 cond = (self.data[key]==item)&(cond)
     
         return Stars(self.data[cond])
     
-    def get_stars_area(self,RA=0,Dec=0,radius=10,**kwargs):
+    def get_stars_area(self,RA=0,Dec=0,radius=10,suffix='J2000',**kwargs):
         """Get stars in a region of the sky
 
         Examples:
@@ -866,14 +947,16 @@ class Stars(object):
             hyades = allstars.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,
                                              radius=5,Mag=[-1,4])
         """
-        stars = self.get_stars(
-            RA=[RA-radius/15,RA+radius/15],
-            Dec=[Dec-radius,Dec+radius],
-            **kwargs
-        )
+        kwargs.update({
+            'RA'+suffix:[RA-radius/15,RA+radius/15],
+            'Dec'+suffix:[Dec-radius,Dec+radius],
+        })
+        stars = self.get_stars(**kwargs)
         return stars
     
-    def plot_stars(self,labels=False,pad=0,figargs=dict(),stargs=dict()):
+    def plot_stars(self,
+                   suffix='J2000',
+                   labels=False,pad=0,figargs=dict(),stargs=dict()):
         """Plot stars in a given area
         """
         plt.style.use('dark_background')
@@ -891,7 +974,8 @@ class Stars(object):
         dstargs.update(stargs)
 
         size_by_mag = Montu._linear_map([-1.5,5],[200,1])
-        axs.scatter(15*self.data.RA,self.data.Dec,
+        axs.scatter(15*self.data['RA'+suffix],
+                    self.data['Dec'+suffix],
                     s=size_by_mag(self.data.Mag),
                     **dstargs)
         
@@ -905,14 +989,32 @@ class Stars(object):
                         color='w',fontsize=8)
 
         # Decoration
-        axs.set_xlabel('RAJ2000 [deg]',fontsize=10)
-        axs.set_ylabel('DecJ2000 [deg]',fontsize=10)
+        axs.set_xlabel(f'RA{suffix} [HH:MM]',fontsize=10)
+        axs.set_ylabel(f'Dec{suffix} [deg]',fontsize=10)
         
         # Range
-        rang = max(15*((self.data.RA).max()-(self.data.RA).min()),
-                (self.data.Dec).max()-(self.data.Dec).min())
+        rang = max(15*((self.data['RA'+suffix]).max()-(self.data['RA'+suffix]).min()),
+                   (self.data['Dec'+suffix]).max()-(self.data['Dec'+suffix]).min())
         axs.margins(pad*rang)
         
+        # Change tick labels
+        ra_ticks = axs.get_xticks()
+        ra_tick_labels = []
+        for ra in ra_ticks:
+            comps = D2H(ra/15,string=False)
+            ra_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
+        axs.set_xticklabels(ra_tick_labels)
+
+        dec_ticks = axs.get_yticks()
+        dec_tick_labels = []
+        for dec in dec_ticks:
+            comps = D2H(dec,string=False)
+            dec_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
+        axs.set_yticklabels(dec_tick_labels,rotation=90)
+
+        # Montu water mark
+        Montu.montu_mark(axs)
+
         axs.grid(alpha=0.2)
         axs.axis('equal')
         fig.tight_layout()
@@ -977,9 +1079,16 @@ class ObservingSite(object):
         # Update site at J2000
         self.update_site(MonTime(0,format='tt',scale='tt'))
 
-    def update_site(self,mtime):  
+    def update_site(self,mtime,verbose=False):  
         """Update site
         """
+
+        if 'epoch' in self.__dict__.keys():
+            if mtime.jed == self.epoch.jed:
+                Montu.vprint(verbose,f"Orientation of site not updated")
+                return
+            else:
+                Montu.vprint(verbose,f"Updating orientation of site (old time {self.epoch.datepro}, new time {mtime.datepro})")
 
         # Update epoch
         self.epoch = mtime
@@ -1103,11 +1212,10 @@ class PlanetaryBody(object):
             raise ValueError("No site selected")
         self.site = site
 
-        # Update orientation of site
         Montu.vprint(verbose,f"Computing position of body '{self.name}' at epoch: jtd = {mtime.jtd} ")
-        if mtime.tt != site.epoch.tt:
-            Montu.vprint(verbose,f"Updating orientation of site (old time {site.epoch.datespice}, new time {mtime.datespice})")
-            site.update_site(mtime)
+        
+        # Update orientation of site
+        site.update_site(mtime)
 
         # Storing epoch
         self.epoch = mtime
@@ -1466,6 +1574,250 @@ class Extra(object):
                     np.cos(5.0 * m) * (-0.1497 - t * 0.0006))
             jde = jde0 + corr
             return jde   
+
+###############################################################
+# Sky coordinates
+###############################################################
+class SkyCoordinates(object):
+
+    def precess_coordinates(objects,mtime,inplace=False,bar=False):
+        """Precess coordinates of objects
+
+        Parameters:
+            objects: Series | DataFrame
+                Data containing the information on objects.
+                The object must have the following columns or attributes:
+                    DecJ2000: Declination in J2000 [deg]
+                    RAJ2000: Right ascension in J2000 [hours]
+
+        Return:
+        """
+        objects_is_series = False
+        if len(objects.shape) == 1:
+            objects_is_series = True
+            series = objects
+            objects = pd.DataFrame([objects])
+        elif not inplace:
+            objects = copy.deepcopy(objects)
+
+        if bar:
+            bar = tqdm.tqdm
+        else:
+            bar = lambda x:x
+
+        for index in bar(objects.index):
+            obj = objects.loc[index]
+
+            # Get cordinates
+            DecJ2000 = obj.DecJ2000
+            RAJ2000 = obj.RAJ2000
+
+            # Normal vector pointing to J2000 coordinates
+            uJ2000 = spy.latrec(1,15*RAJ2000*DEG,DecJ2000*DEG)
+            
+            # Transform vector
+            uEpoch = spy.mxv(mtime.M_J2000_Epoch,uJ2000)
+
+            # Get spherical coordinates of new vector
+            r,RA,Dec = spy.recrad(uEpoch)
+            RAEpoch = RA*RAD/15
+            DecEpoch = Dec*RAD
+
+            # Get result
+            results = dict(
+                RAEpoch = RAEpoch,
+                DecEpoch = DecEpoch,
+                # Deprecated: remove when debuuging is done
+                RAEpoch_comp = RAEpoch,
+                DecEpoch_comp = DecEpoch,
+            )
+
+            if not objects_is_series:
+                # Add fields to object
+                objects.loc[index,results.keys()] = results.values()
+                
+        if not inplace:
+            return objects
+        elif objects_is_series:
+            for key,item in results.items():
+                series[key] = item
+    
+    def _to_altaz_math(HA,Dec,lat):
+        """Transform from local equatorial to azimuth and elevation
+        """
+        # Elevation and azimuth
+        el = math.asin(math.sin(Dec*DEG)*math.sin(lat*DEG) + \
+                    math.cos(Dec*DEG)*math.cos(lat*DEG)*math.cos(HA*15*DEG))*RAD
+        az = math.atan2(-math.sin(HA*15*DEG)*math.cos(Dec*DEG)/math.cos(el*DEG),
+                        (math.sin(Dec*DEG) - math.sin(lat*DEG)*math.sin(el*DEG))/\
+                            (math.cos(lat*DEG)*math.cos(el*DEG)))*RAD
+        az = np.mod(az,360)
+        return az,el
+
+    def _to_altaz_np(HA,Dec,lat):
+        """Transform from local equatorial to azimuth and elevation
+        """
+        # Elevation and azimuth
+        el = np.arcsin(np.sin(Dec*DEG)*np.sin(lat*DEG) + \
+                    np.cos(Dec*DEG)*np.cos(lat*DEG)*np.cos(HA*15*DEG))*RAD
+        az = np.arctan2(-np.sin(HA*15*DEG)*np.cos(Dec*DEG)/np.cos(el*DEG),
+                        (np.sin(Dec*DEG) - np.sin(lat*DEG)*np.sin(el*DEG))/\
+                            (np.cos(lat*DEG)*np.cos(el*DEG)))*RAD
+        az = np.mod(az,360)
+        return az,el
+
+    def to_altaz(objects,site,mtime,inplace=False,
+                 bar=False,fields=Dictobj(Dec='DecEpoch',RA='RAEpoch')):
+        """Transform from equatorial at Epoch to Alt Azimutal
+        """
+        
+        # Update site
+        site.update_site(mtime)
+
+        objects_is_series = False
+        if len(objects.shape) == 1:
+            objects_is_series = True
+            series = objects
+            objects = pd.DataFrame([objects])
+        elif not inplace:
+            objects = copy.deepcopy(objects)
+
+        if bar:
+            bar = tqdm.tqdm
+        else:
+            bar = lambda x:x
+
+        for index in bar(objects.index):
+            obj = objects.loc[index]
+
+            # Get coordinates
+            Dec = obj[fields.Dec]
+            RA = obj[fields.RA]
+
+            # Compute hour angle
+            HA = np.mod(site.ltst - RA,24)
+
+            # Elevation and azimuth
+            # az,el = SkyCoordinates._to_altaz_math(HA,Dec,site.lat)
+            az,el = SkyCoordinates._to_altaz_np(HA,Dec,site.lat)
+
+            # Atmospheric refraction
+
+            # Compute airmass 
+            
+            # Results
+            results = dict(
+                HA = HA,
+                az = az,
+                el = el,
+                # Deprecated: remove when debuuging is done
+                HA_comp = HA,
+                az_comp = az,
+                el_comp = el,
+            )
+
+            if not objects_is_series:
+                # Add fields to object
+                objects.loc[index,results.keys()] = results.values()
+                
+        if not inplace:
+            return objects
+        elif objects_is_series:
+            for key,item in results.items():
+                series[key] = item
+
+    def _daily_motion(HA0,Dec0,lat,deltat,tai2sid=TAI_TO_SID,pm_ra=0,pm_dec=0):
+        """Propagate local position of a body at a given sky coordinates
+
+        Parameters:
+            HA0 [hours], Dec0 [deg]:
+                Initial local sky coordinates of the object.
+
+            lat: float [deg]:
+                Latitude of the observing site
+
+            pm_ra, pm_dec: float [uarcsec], default = 0:
+                Propet motion in RA and in Dec.
+
+            tai2sid: float, default = TAI_TO_SID:
+                Ratio of sidereal day to TAI day.
+                It can be computed using MonTime.tai_to_sid(mtime).
+
+        Return:
+            HA: float [hour]:
+                Hour angle.
+            az, el: float [degree]:
+                Azimuth and elevation            
+        """
+        # Equatorial coordinates
+        Dec = Dec0 + pm_dec*UARCSEC*deltat
+        HA = HA0 + pm_ra*UARCSEC*deltat/15
+        # Advance in sidereal time
+        dst = tai2sid*deltat/HOUR # Advanced hours
+        # Hour angle after deltat
+        HA = np.mod(HA + dst,24)
+        # Elevation and azimuth
+        az,el = SkyCoordinates._to_altaz_np(HA,Dec,lat)
+        return HA,az,el
+
+    def daily_motion(obj,site,mtime,duration=24*HOUR,deltat=1*HOUR,tai2sid=TAI_TO_SID):
+        """Propagate local position of a body at a given sky coordinates
+
+        Parameters:
+            obj: Object information.
+                Pandas series containing the coordinates of the object.
+                The series should have the attributes: RAEpoch, DecEpoch, pm_ra and pm_dec.
+
+            site: ObservingSite:
+                Observing site.
+
+            duration: float [seconds], default = 24*HOUR:
+                Duration of the motion.
+
+            deltat: float [seconds], default = 1*HOUR
+                Step size.
+
+            tai2sid: float, default = TAI_TO_SID:
+                Ratio of sidereal day to TAI day.
+                It can be computed using MonTime.tai_to_sid(mtime)
+        
+        Return:
+
+            daily_df: DataFrame:
+                Containing the following columns:
+                    tt: Terrestrial time.
+                    HA: Hour angle.
+                    az, el: Azimuth and elevation
+                    isvisible: True if object is visible.
+        """
+        
+        # Update site
+        site.update_site(mtime)
+
+        # Initial time
+        tt0 = mtime.tt
+
+        # Initial hour angle
+        # Get coordinates
+        Dec0 = float(obj.DecEpoch)
+        RA0 = float(obj.RAEpoch)
+        HA0 = np.mod(site.ltst - RA0,24)
+
+        results = []
+        for i,tt in enumerate(Montu.arange(tt0,tt0+duration,deltat)):
+
+            HA,az,el = SkyCoordinates._daily_motion(HA0,Dec0,site.lat,tt-tt0,tai2sid=tai2sid)
+            # Results
+            results += [dict(
+                tt = tt,
+                HA = HA,
+                az = az,
+                el = el,
+                isvisible = True if el>0 else False,
+            )]
+            
+        daily_df = pd.DataFrame(results)
+        return daily_df
 
 ###############################################################
 # Data initialization

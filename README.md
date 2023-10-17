@@ -226,7 +226,8 @@ aldebaran = ALL_STARS.get_stars(ProperName='Aldebaran')
 Now we select all stars between magnitude -1 and 5 around Aldebaran in a radius of 10 degrees:
 
 ```python
-hyades = ALL_STARS.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,radius=10,Mag=[-1,5])
+hyades = ALL_STARS.get_stars_area(RA=aldebaran.data.RAJ2000,Dec=aldebaran.data.DecJ2000,
+								  radius=10,Mag=[-1,5])
 ```
 
 Plot the selected stars:
@@ -244,6 +245,10 @@ The resulting figure will be:
 For a fully-fledged working example see `examples/montunctions.ipynb`.
 
 ## What's new
+
+Versions 0.7.*:
+- The package now include precession and altaz coordinates of stars.
+- Star catalogue coordinates are now given in J2000.
 
 Versions 0.6.*:
 - Refactor of MonTime class.

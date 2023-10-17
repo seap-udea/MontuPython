@@ -67,6 +67,8 @@ Others:
 
 - Get a more complete database with stars, including all proper names and Bayer and Flamsteed names with proper characters.
 
+- Include airmass. See wikipedia page and this paper: http://www.dioi.org/vols/wc0.pdf.
+
 ## Useful documentation:
 
 - Reference frames: https://naif.jpl.nasa.gov/pub/naif/toolkit_docs/Tutorials/pdf/individual_docs/23_lunar-earth_pck-fk.pdf
