@@ -308,7 +308,7 @@ Star Kochab will be the closest to the pole at 1041 B.C. 08-30 22:55:00.192000 (
 
 ### Other example scripts
 
-You will find a complete set of runable example notebooks in the [Google Drive public repository of `Montu`](https://drive.google.com/drive/folders/11L59yZ3A1g1ZT7v_dLDPwLMnRMR-tFgE?usp=sharing).
+You will find a complete set of runable example notebooks in the [Google Drive public repository of `MontuPython`](https://drive.google.com/drive/folders/11L59yZ3A1g1ZT7v_dLDPwLMnRMR-tFgE?usp=sharing).
 
 ## Advanced examples
 
