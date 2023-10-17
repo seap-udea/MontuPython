@@ -310,6 +310,8 @@ Versions 0.7.*:
 - More interesting examples added.
 - A new class SkyCoordinates allows to precess coordinates of any set of objects.
 - Star catalogue coordinates are now given in J2000.
+- Some improvements in the `plot_stars`` method.
+- A new `sid_to_tai` for `MonTime` class for calculating the ratio of sidereal to TAI time.
 
 Versions 0.6.*:
 - Refactor of MonTime class.
