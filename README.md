@@ -317,6 +317,7 @@ For a fully-fledged working example see `examples/montunctions.ipynb`.
 ## What's new
 
 Versions 0.7.*:
+- A Google Drive repository with examples was created.
 - More interesting examples added.
 - A new class SkyCoordinates allows to precess coordinates of any set of objects.
 - Star catalogue coordinates are now given in J2000.
