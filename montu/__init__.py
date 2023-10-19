@@ -10,6 +10,7 @@ import requests
 import tqdm
 import copy
 import re
+import regex
 import math
 
 # Basic packages
@@ -98,6 +99,7 @@ YEAR = 365.25*DAY # s
 CENTURY = 100*YEAR # s
 MILLENIUM = 10*YEAR # s
 TAI_TO_SID = 1.00273781191135448 # Sidereal seconds / Uniform seconds
+LETTERS=dict(A=1,B=2,C=3,D=4,E=5,F=6)
 
 # Required kernels
 """This dictionaries describe the kernels the package require to compute planetary positions
