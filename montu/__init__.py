@@ -12,6 +12,7 @@ import copy
 import re
 import regex
 import math
+import inspect
 
 # Basic packages
 import numpy as np
@@ -343,6 +344,11 @@ class Montu(object):
             
         text=plt_text(1,1,mark,**args);
         return text
+
+    def get_methods(my_class):
+        """Get a list of the methods for class my_class
+        """
+        return sorted([member[0] for member in inspect.getmembers(my_class) if '__' not in member[0]])
 
     def _data_path(filename,check=False):
         """Get the full path of the `datafile` which is one of the datafiles provided with the package.
