@@ -140,13 +140,6 @@ PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 # REMOVE THIS CONSTANTS WHEN DONE
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-"""References
-    Styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
-    #sphx-glr-gallery-style-sheets-style-sheets-reference-py
-"""
-PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
-SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
-
 LEGACY = True
 MAIN = False
 
@@ -169,15 +162,17 @@ to avoid this artifacts. 7 figures correspond to 0.01 seconds.
 """
 JD_PRECISION_FIGURES = 8
 
-# Datum of the calendar in Julian year
-"""Note from wikipedia:
-'The Julian day number (JDN) is the integer assigned to a whole solar day 
-in the Julian day count starting from noon Universal Time, with Julian day 
-number 0 assigned to the day starting at noon on Monday, January 1, 4713 BC, 
-proleptic Julian calendar (November 24, 4714 BC, in the proleptic Gregorian calendar)'
-"""
-JULIAN_DATUM_PROLEPTIC = 4713
-JULIAN_DATUM_JULIAN = 4712
+###############################################################
+# Montu Python Util Class
+###############################################################
+class Seba(object):
+    """This is the general class for all celestial objects in MontuPython
+
+    The name of the class come from the word for star in ancient egyptian, 
+    seba /sbꜣ/.
+    """
+    def __init__(self):
+        pass
 
 ###############################################################
 # Montu Python Util Class
@@ -889,147 +884,6 @@ Astronomical properties at Epoch:
             mtime = MonTime(tt)
             xlabels += [f'{mtime.year}']
         ax.set_xticklabels(xlabels)
-
-###############################################################
-# Stars Class
-###############################################################
-class Stars(object):
-
-    def __init__(self,data=None,filename=None):
-
-        if data is not None:
-            # Load data for stars from a dataframe already loaded
-            self.data = copy.deepcopy(data)
-            
-        elif filename:
-            # Load data from a file
-            self.data = pd.read_csv(filename)
-
-        else:
-            # Load data from the database provided with package
-            self.data = pd.read_csv(Montu._data_path('bright_stars.csv',check=True))
-        
-        self.number = len(self.data)
-
-    def get_stars(self,**args):
-        """Filter stars by criteria
-
-        Examples:
-            # Get a single stars
-            aldebaran = allstars.get_stars(ProperName='Aldebaran')
-
-            # All visible stars in the sky
-            visible = allstars.get_stars(Mag=[-1,6.5])
-
-            # All visible stars with declination less than 1 deg
-            equator = allstars.get_stars(Mag=[-1,6.5],Dec=[-1,1])
-        """
-
-        # If no args get all stars in data base
-        if len(args)==0:
-            return self.data
-        
-        # If args provided it will try to filter database according to conditions
-        cond = np.array([True]*len(self.data))
-        for key,item in args.items():
-            if key == 'suffix':continue
-            if isinstance(item,list):
-                min = float(item[0])
-                max = float(item[1])
-                cond = (self.data[key]>=min)&(self.data[key]<=max)&(cond)
-            elif isinstance(item,tuple):
-                cond_or = np.array([False]*len(self.data))
-                for it in item:
-                    cond_or = (self.data[key]==it)|cond_or
-                cond = (cond_or)&(cond)
-            else:
-                cond = (self.data[key]==item)&(cond)
-    
-        return Stars(self.data[cond])
-    
-    def get_stars_area(self,RA=0,Dec=0,radius=10,suffix='J2000',**kwargs):
-        """Get stars in a region of the sky
-
-        Examples:
-            # Get all stars around aldebaran in a radius of 5 degrees and with magnitudes between -1 and 4
-            hyades = allstars.get_stars_area(RA=aldebaran.data.RA,Dec=aldebaran.data.Dec,
-                                             radius=5,Mag=[-1,4])
-        """
-        kwargs.update({
-            'RA'+suffix:[RA-radius/15,RA+radius/15],
-            'Dec'+suffix:[Dec-radius,Dec+radius],
-        })
-        stars = self.get_stars(**kwargs)
-        return stars
-    
-    def plot_stars(self,
-                   suffix='J2000',
-                   labels=False,pad=0,figargs=dict(),stargs=dict()):
-        """Plot stars in a given area
-        """
-        plt.style.use('dark_background')
-
-        # Figure
-        dfigargs = dict(figsize=(5,5))
-        dfigargs.update(figargs)
-        fig,axs = plt.subplots(1,1,**dfigargs)
-
-        # Axis
-        axs.set_facecolor('black')
-
-        # Scatter
-        dstargs = dict(marker='*',color='y')
-        dstargs.update(stargs)
-
-        size_by_mag = Montu._linear_map([-1.5,5],[200,1])
-        axs.scatter(15*self.data['RA'+suffix],
-                    self.data['Dec'+suffix],
-                    s=size_by_mag(self.data.Mag),
-                    **dstargs)
-        
-        # Labels
-        if labels:
-            for index in self.data.index:
-                star = self.data.loc[index]
-                star.fillna('',inplace=True)
-                name = star.ProperName if star.ProperName != '' else star.BayerFlamsteed
-                axs.text(15*star.RA,star.Dec,f'{name}',
-                        color='w',fontsize=8)
-
-        # Decoration
-        axs.set_xlabel(f'RA{suffix} [HH:MM]',fontsize=10)
-        axs.set_ylabel(f'Dec{suffix} [deg]',fontsize=10)
-        
-        # Range
-        rang = max(15*((self.data['RA'+suffix]).max()-(self.data['RA'+suffix]).min()),
-                   (self.data['Dec'+suffix]).max()-(self.data['Dec'+suffix]).min())
-        axs.margins(pad*rang)
-        
-        # Change tick labels
-        ra_ticks = axs.get_xticks()
-        ra_tick_labels = []
-        for ra in ra_ticks:
-            comps = D2H(ra/15,string=False)
-            ra_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
-        axs.set_xticklabels(ra_tick_labels)
-
-        dec_ticks = axs.get_yticks()
-        dec_tick_labels = []
-        for dec in dec_ticks:
-            comps = D2H(dec,string=False)
-            dec_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
-        axs.set_yticklabels(dec_tick_labels,rotation=90)
-
-        # Montu water mark
-        Montu.montu_mark(axs)
-
-        axs.grid(alpha=0.2)
-        axs.axis('equal')
-        fig.tight_layout()
-
-        SET_PLT_DEFAULT_STYLE()
-        return fig,axs
-
 
 ###############################################################
 # Observing site
@@ -1831,6 +1685,9 @@ class SkyCoordinates(object):
 # Data initialization
 ###############################################################
 # Correction for JED
+"""There is a problem when calculating JED for dates between
+-500 and -100
+"""
 jed_correction_data = np.loadtxt(Montu._data_path('corrections_dt.dat'))
 JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
 
@@ -1838,11 +1695,12 @@ JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
 Montu.load_kernels()
 
 # Load all stars in package
-ALL_STARS=Stars()
+# ALL_STARS=Stars() # Load 
 
 ###############################################################
-# Individual modules
+# Import stars modules
 ###############################################################
+from montu.stars import *
 
 ###############################################################
 # Tests 
