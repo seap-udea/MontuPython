@@ -65,13 +65,7 @@ class Planet(Seba):
         # No predicted yet
         self.predict = False
 
-    def where_at_J2000():
-        pass
-
-    def where_at_Epoch():
-        pass
-
-    def where_in_sky(self,mtime=None,site=None,
+    def _compare_positions(self,mtime=None,site=None,
                      method='SPICE',store=None,
                      verbose=False):
         """Calculate position of a planet 
@@ -89,7 +83,7 @@ class Planet(Seba):
                 'VSOP87': use VSOP87 analytical theory.
                 'all': all methods
         """
-        self.data = {
+        self.position = {
             'datepro':[mtime.datepro],
             'datemix':[mtime.datemix],
             'datetime64':[mtime.obj_datetime64],
@@ -98,8 +92,8 @@ class Planet(Seba):
             'jed':[mtime.jed],
             }
         if store:
-            if 'df' not in self.__dict__.keys():
-                self.df = pd.DataFrame()
+            if 'data' not in self.__dict__.keys():
+                self.data = pd.DataFrame()
         
         if site is None:
             raise ValueError("No site selected")
@@ -332,8 +326,8 @@ class Planet(Seba):
             raise ValueError(f"Method '{method}' for computing ephemerides not recognized")
 
         if store:
-            self.df=pd.concat([self.df,pd.DataFrame(self.data)])
-            self.df.reset_index(drop=True,inplace=True)
+            self.data=pd.concat([self.data,pd.DataFrame(self.position)])
+            self.data.reset_index(drop=True,inplace=True)
 
     def _show_position(self,verbose):
         Util.vprint(verbose,f"\tPosition Epoch: prolectic gregorian {self.epoch.datepro}, JED = {self.epoch.jed}")
@@ -381,10 +375,137 @@ class Planet(Seba):
         return dlondt
 
     def reset_store(self):
-        self.df = pd.DataFrame()
+        self.data = pd.DataFrame()
 
     def _store_data(self,metstr):
-        self.data.update({
+        self.position.update({
+                # Generic
+                f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
+                f'RAEpoch':[self.RAEpoch],f'DecEpoch':[self.DecEpoch],
+                f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
+                f'LonEpoch':[self.LonEpoch],f'LatEpoch':[self.LatEpoch],
+                f'tsa':[self.tsa],f'HA':[self.HA],f'az':[self.az],f'el':[self.el],
+                f'site_distance':[self.distance],f'sun_distance':[self.sundistance],
+                f'elongation':[self.elongation],f'phase':[self.phase],f'mag':[self.magnitude],
+                # Method
+                f'RAJ2000_{metstr}':[self.RAJ2000],f'DecJ2000_{metstr}':[self.DecJ2000],
+                f'RAEpoch_{metstr}':[self.RAEpoch],f'DecEpoch_{metstr}':[self.DecEpoch],
+                f'LonJ2000_{metstr}':[self.LonJ2000],f'LatJ2000_{metstr}':[self.LatJ2000],
+                f'LonEpoch_{metstr}':[self.LonEpoch],f'LatEpoch_{metstr}':[self.LatEpoch],
+                f'tsa_{metstr}':[self.tsa],f'HA_{metstr}':[self.HA],f'az_{metstr}':[self.az],f'el_{metstr}':[self.el],
+                f'site_distance_{metstr}':[self.distance],f'sun_distance_{metstr}':[self.sundistance],
+                f'elongation_{metstr}':[self.elongation],f'phase_{metstr}':[self.phase],f'mag_{metstr}':[self.magnitude],
+            })
+
+    def where_among_stars(self,mtime=None,site=None,store=None,verbose=False):
+        """Calculate position of a planet 
+
+        Parameters:
+            mtime: Time:
+                Time when the position of the planet will be calculated.
+
+            site: Site:
+                Observing site w.r.t. position of the planet will be calculated.
+        """
+        self.position = {
+            'datepro':[mtime.datepro],
+            'datemix':[mtime.datemix],
+            'datetime64':[mtime.obj_datetime64],
+            'tt':[mtime.tt],
+            'jtd':[mtime.jtd],
+            'jed':[mtime.jed],
+            }
+        if store:
+            if 'data' not in self.__dict__.keys():
+                self.data = pd.DataFrame()
+        
+        if site is None:
+            raise ValueError("No site selected")
+        self.site = site
+
+        # Update orientation of site
+        site.update_site(mtime)
+
+        # Retrieve positions in space
+        site_planet_SSB_J2000,lt = spy.spkezr(site.planet.id,mtime.tt,'J2000','None','SSB')
+        planet_SSB_J2000,lt = spy.spkezr(self.id,mtime.tt,'J2000','None','SSB')
+        sun_SSB_J2000,lt = spy.spkezr('10',mtime.tt,'J2000','None','SSB')
+        site_SSB_J2000 = site_planet_SSB_J2000[:3] + site.pos_J2000 
+
+        # Celestial Coordinates at J2000
+        planet_site_J2000 = planet_SSB_J2000[:3] - site_SSB_J2000
+        r,RAJ2000,DECJ2000 = spy.recrad(planet_site_J2000)
+        self.RAJ2000 = RAJ2000*RAD/15
+        self.DecJ2000 = DECJ2000*RAD
+
+        # Phase angle
+        site_sun_J2000 = site_SSB_J2000 - sun_SSB_J2000[:3]
+        planet_sun_J2000 = planet_SSB_J2000[:3] - sun_SSB_J2000[:3]
+
+        self.elongation = np.arccos(-site_sun_J2000@planet_site_J2000/\
+            ((site_sun_J2000@site_sun_J2000)**0.5*(planet_site_J2000@planet_site_J2000)**0.5))*RAD
+        self.phase = np.arccos(planet_sun_J2000@planet_site_J2000/\
+            ((planet_site_J2000@planet_site_J2000)**0.5*(planet_sun_J2000@planet_sun_J2000)**0.5))*RAD
+        
+        # Distance
+        self.distance = (planet_site_J2000 @ planet_site_J2000)**0.5/AU
+        self.sundistance = (planet_sun_J2000 @ planet_sun_J2000)**0.5/AU
+
+        # Magnitude
+        self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
+                                                        self.distance,
+                                                        self.phase*DEG)
+
+        # Ecliptic coordinates J2000
+        planet_site_EJ2000 = spy.mxv(M_J2000_ECLIPJ2000,planet_site_J2000)
+        r,LonJ2000,LatJ2000 = spy.recrad(planet_site_EJ2000)
+        self.LonJ2000 = LonJ2000*RAD
+        self.LatJ2000 = LatJ2000*RAD
+
+        self._store_sky_position()
+        if store:
+            self.data=pd.concat([self.data,pd.DataFrame(self.position)])
+            self.data.reset_index(drop=True,inplace=True)
+
+    def _store_sky_position(self):
+        self.position.update({
+                f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
+                f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
+                f'site_distance':[self.distance],f'sun_distance':[self.sundistance],
+                f'elongation':[self.elongation],f'phase':[self.phase],f'mag':[self.magnitude],
+            })
+
+    def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
+        """Compute the rate of ecliptic longitude advance
+        """
+
+        # Time before
+        self.calculate_sky_position(mtime-dt,site,method,verbose=0)
+        EclLon_m_dt = self.LonEpoch
+
+        # Time after 
+        self.calculate_sky_position(mtime+dt,site,method,verbose=0)
+        EclLon_p_dt = self.LonEpoch
+
+        # Angle diff
+        angle_diff = (EclLon_p_dt-EclLon_m_dt)
+
+        # Angle differences: thanx ChatGPT!
+        if angle_diff > 180:
+            angle_diff -= 360
+        elif angle_diff < -180:
+            angle_diff += 360
+        
+        # Compute derivative using central difference algorithm
+        dlondt = angle_diff/(2*dt)*DAY # Degrees per day
+
+        return dlondt
+
+    def reset_store(self):
+        self.data = pd.DataFrame()
+
+    def _store_data(self,metstr):
+        self.position.update({
                 # Generic
                 f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
                 f'RAEpoch':[self.RAEpoch],f'DecEpoch':[self.DecEpoch],

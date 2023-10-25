@@ -23,6 +23,8 @@ pip install montu
 
 ## Quick start
 
+A `Google Colab` notebook with some basic commands are available [here](https://colab.research.google.com/drive/1AbvT5u3yf40UPV9QldbsroeG2teUo52p?usp=sharing).
+
 In this section you should provide the most simple instructions to use
 your package.
 
@@ -37,18 +39,6 @@ or for a safe import:
 ```
 import montu as mn
 ```
-
-### Basic code examples
-
-A `Google Colab` notebook with some basic commands are available [here](https://colab.research.google.com/drive/1AbvT5u3yf40UPV9QldbsroeG2teUo52p?usp=sharing).
-
-In order to properly use MontuPython you need to import the package:
-
-```python
-from montu import *
-```
-
-Importing the package will also load some basic data required for calculations, including a complete database with the brightest stars.
 
 ### Create a map of the sky
 

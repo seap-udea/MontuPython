@@ -56,11 +56,11 @@ class Util(object):
         out = [-1]+out if bce else [1]+out
         return out
 
-    def load_kernels(kernels=BASIC_KERNELS,dir='/tmp/',verbose=False):
+    def load_kernels(kernels=BASIC_KERNELS,dir='montmp/',verbose=False):
         
         # Check if dir exists
         if not os.path.exists(dir):
-            os.system(f"mkdir -p {dir}")    
+            os.system(f"mkdir -p {dir}")
 
         # Load kernel
         for kernel,item in kernels.items():
@@ -216,3 +216,4 @@ class Util(object):
 
 # Aliases
 D2H = Util.dec2hex
+PRINTDF = Util.print_df
