@@ -2,7 +2,7 @@ from montu import *
 ###############################################################
 # Module constants
 ###############################################################
-STELLAR_CATALOGUE = 'montu_stellar_catalogue_1.csv'
+STELLAR_CATALOGUE = 'montu_stellar_catalogue_v37.csv'
 
 """References
     Styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
@@ -121,7 +121,7 @@ class Stars(Sebau):
             hyades = stars.get_stars_around(center=[aldebaran.data.RAJ2000,aldebaran.data.DecJ2000],radius=15,Vmag=[-1,4])
         """
         kwargs.update({
-            coords[0]:[float(center[0]-radius),float(center[0]+radius)],
+            coords[0]:[float(center[0]-radius/15),float(center[0]+radius/15)],
             coords[1]:[float(center[1]-radius),float(center[1]+radius)],
         })
         stars = self.get_stars(**kwargs)
@@ -164,7 +164,7 @@ class Stars(Sebau):
         dstargs.update(stargs)
 
         size_by_mag = Util._linear_map([-1.5,5],[200,1])
-        axs.scatter(self.data[coords[0]],
+        axs.scatter(15*self.data[coords[0]],
                     self.data[coords[1]],
                     s=size_by_mag(self.data.Vmag),
                     **dstargs)
@@ -180,7 +180,7 @@ class Stars(Sebau):
                 axs.text(star[coords[0]],star[coords[1]],f'{name}',
                          color='w',fontsize=fontsize(star.Vmag))
                          """
-                axs.annotate(f'{name}',xy=[star[coords[0]],star[coords[1]]],xycoords='data',
+                axs.annotate(f'{name}',xy=[15*star[coords[0]],star[coords[1]]],xycoords='data',
                              xytext=[5,5],textcoords='offset points',
                              fontsize=fontsize(star.Vmag))
 
@@ -189,10 +189,14 @@ class Stars(Sebau):
         axs.set_ylabel(f'{coords[1]} [deg]',fontsize=10)
         
         # Range
-        rang = max(((self.data[coords[0]]).max()-(self.data[coords[0]]).min()),
+        rang = max(((15*self.data[coords[0]]).max()-(15*self.data[coords[0]]).min()),
                    (self.data[coords[1]]).max()-(self.data[coords[1]]).min())
         axs.margins(pad*rang)
         
+        axs.grid(alpha=0.2)
+        axs.axis('equal')
+        fig.tight_layout()
+
         # Change tick labels
         ra_ticks = axs.get_xticks()
         ra_tick_labels = []
@@ -210,10 +214,6 @@ class Stars(Sebau):
 
         # Montu water mark
         Util.montu_mark(axs)
-
-        axs.grid(alpha=0.2)
-        axs.axis('equal')
-        fig.tight_layout()
 
         SET_PLT_DEFAULT_STYLE()
         return fig,axs

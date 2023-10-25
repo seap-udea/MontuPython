@@ -87,6 +87,7 @@ pd.set_option("display.precision",17)
 RAD = 180/np.pi
 DEG = 1/RAD
 UARCSEC = 1e-6/3600 # mircroarsec in degrees
+MARCSEC = 1e-3/3600 # milliarcsec in degrees 
 
 # Phsyical
 AU = 149597870.700 # km, value in Horizons
