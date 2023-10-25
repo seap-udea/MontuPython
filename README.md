@@ -38,7 +38,7 @@ or for a safe import:
 import montu as mn
 ```
 
-## Basic code examples
+### Basic code examples
 
 A `Google Colab` notebook with some basic commands are available [here](https://colab.research.google.com/drive/1AbvT5u3yf40UPV9QldbsroeG2teUo52p?usp=sharing).
 
@@ -49,6 +49,32 @@ from montu import *
 ```
 
 Importing the package will also load some basic data required for calculations, including a complete database with the brightest stars.
+
+### Create a map of the sky
+
+Now we want to create a map of the sky surrounding Aldebaran. For that purpose we get first 
+the information about Aldebaran:
+
+```python
+aldebaran = ALL_STARS.get_stars(ProperName='Aldebaran')
+```
+
+Now we select all stars between magnitude -1 and 5 around Aldebaran in a radius of 10 degrees:
+
+```python
+hyades = ALL_STARS.get_stars_area(RA=aldebaran.data.RAJ2000,Dec=aldebaran.data.DecJ2000,
+								  radius=10,Mag=[-1,5])
+```
+
+Plot the selected stars:
+
+```python
+fig,ax = hyades.plot_stars(pad=0.0,labels=False,figargs=dict(figsize=(8,8)))
+```
+
+The resulting figure will be:
+
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
 ### Get an historical date in all calendars and scales
 
@@ -214,32 +240,6 @@ Method 'SPICE':
 		Hour angle @ Epoch:  12:20:15.527
 		Local coordinates @ Epoch:  06:11:24.275 -41:38:31.094
 ```
-
-### Create a map of the sky
-
-Now we want to create a map of the sky surrounding Aldebaran. For that purpose we get first 
-the information about Aldebaran:
-
-```python
-aldebaran = ALL_STARS.get_stars(ProperName='Aldebaran')
-```
-
-Now we select all stars between magnitude -1 and 5 around Aldebaran in a radius of 10 degrees:
-
-```python
-hyades = ALL_STARS.get_stars_area(RA=aldebaran.data.RAJ2000,Dec=aldebaran.data.DecJ2000,
-								  radius=10,Mag=[-1,5])
-```
-
-Plot the selected stars:
-
-```python
-fig,ax = hyades.plot_stars(pad=0.0,labels=False,figargs=dict(figsize=(8,8)))
-```
-
-The resulting figure will be:
-
-<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
 ### More complicated example: evolution of pole stars
 
