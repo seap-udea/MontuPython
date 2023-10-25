@@ -174,6 +174,15 @@ class Seba(object):
     def __init__(self):
         pass
 
+class Sebau(object):
+    """This is the general class for a set of celestial objects in MontuPython
+
+    The name of the class is the plural for star in ancient egyptian, 
+    sebau /sbꜣw/.
+    """
+    def __init__(self):
+        pass
+
 ###############################################################
 # Montu Python Util Class
 ###############################################################
