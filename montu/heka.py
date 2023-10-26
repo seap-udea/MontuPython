@@ -101,11 +101,9 @@ class Heka(object):
                 DecJ2000t = DecJ2000t,
                 RAEpoch = RAEpoch,
                 DecEpoch = DecEpoch,
-                # Deprecated: remove when debuuging is done
-                RAJ2000t_comp = RAJ2000t,
-                DecJ2000t_comp = DecJ2000t,
-                RAEpoch_comp = RAEpoch,
-                DecEpoch_comp = DecEpoch,
+                epoch_tt = epoch.tt,
+                epoch_jed = epoch.jed,
+                epoch_datepro = epoch.datepro,
             )
 
             if not sebau_is_series:
@@ -223,6 +221,9 @@ class Heka(object):
                 az = az,
                 el = el,
                 zen = zen,
+                epoch_tt = site.epoch.tt,
+                epoch_jed = site.epoch.jed,
+                epoch_datepro = site.epoch.datepro,
                 # Deprecated: remove when debuuging is done
                 HA_comp = HA,
                 az_comp = az,
@@ -240,7 +241,8 @@ class Heka(object):
             for key,item in results.items():
                 series[key] = item
 
-    def _daily_motion(HA0,Dec0,lat,deltat,tai2sid=TAI_TO_SID,pm_ra=0,pm_dec=0):
+    def _daily_motion(HA0,Dec0,lat,deltat,tai2sid=TAI_TO_SID,
+                      pm_ra=0,pm_dec=0,pa_ra=0,pa_dec=0):
         """Propagate local position of a body at a given sky coordinates
 
         Parameters:
@@ -263,16 +265,24 @@ class Heka(object):
             az, el: float [degree]:
                 Azimuth and elevation            
         """
+        # Uodate proper motion (leap frog)
+        pm_ra = pm_ra + pa_ra*(deltat/JULYEAR)
+        pm_dec = pm_dec + pa_dec*(deltat/JULYEAR)
+
         # Equatorial coordinates
-        Dec = Dec0 + pm_dec*UARCSEC*deltat
-        HA = HA0 + pm_ra*UARCSEC*deltat/15
+        Dec0 = Dec0 + deltat*(pm_dec*MARCSEC/JULYEAR)
+        HA0 = HA0 + deltat*(pm_ra*MARCSEC/JULYEAR)/15
+
         # Advance in sidereal time
         dst = tai2sid*deltat/HOUR # Advanced hours
+        
         # Hour angle after deltat
-        HA = np.mod(HA + dst,24)
+        HA = np.mod(HA0 + dst,24)
+        
         # Elevation and azimuth
-        az,el = Heka._to_altaz(HA,Dec,lat)
-        return HA,az,el
+        az,el = Heka._to_altaz(HA,Dec0,lat)
+        
+        return HA,az,el,pm_ra,pm_dec
 
     def move_over_nut(seba,site,mtime,
                       duration=24*HOUR,deltat=1*HOUR,tai2sid=None):
@@ -307,7 +317,17 @@ class Heka(object):
                     az, el, zen: Azimuth and elevation at tt
                     isvisible: True if object is reachable (is above horizon).
         """
-        
+
+        # Check if seba is DataFrame:
+        if type(seba) == pd.DataFrame:
+            if len(seba)>1:
+                raise AssertionError(f"Object provided has more than 1 position ({len(seba)})")    
+            seba = seba.iloc[0]
+        elif type(seba) == pd.Series:
+            pass
+        else:
+            raise AssertionError("Object provided is not DataFrame or Series")
+
         # Update site
         site.update_site(mtime)
         if tai2sid is None:
@@ -316,17 +336,36 @@ class Heka(object):
         # Initial time
         tt0 = mtime.tt
 
-        # Initial hour angle
+        # Check if sky coordinates has been precessed
+        if 'RAEpoch' in seba.keys():
+            dt = abs(tt0 - seba.epoch_tt)
+            if dt>1:
+                raise ValueError(f"The epoch provided JD {mtime.jed} does not coincide with epoch of sky coordinates {seba.epoch_jed}")
+        else:
+            Heka.precess_to_epoch(seba,mtime,inplace=True)
+
         # Get coordinates
         Dec0 = float(seba.DecEpoch)
         RA0 = float(seba.RAEpoch)
         HA0 = np.mod(site.ltst - RA0,24)
 
+        # Get proper motion and acceleration
+        if 'pmRA' in seba.keys():
+            pmRA = seba.pmRA
+            pmDec = seba.pmDec
+        if 'paRA' in seba.keys():
+            paRA = seba.paRA
+            paDec = seba.paDec
+
+        # Main loop
         results = []
         for i,tt in enumerate(Util.arange(tt0,tt0+duration,deltat)):
 
-            HA,az,el = Heka._daily_motion(HA0,Dec0,site.lat,tt-tt0,tai2sid=tai2sid)
+            HA,az,el,pmRA,pmDec = Heka._daily_motion(HA0,Dec0,site.lat,tt-tt0,
+                                          tai2sid=tai2sid,
+                                          pm_ra=pmRA,pm_dec=pmDec)
             zen = 90 - el
+
             # Results
             results += [dict(
                 tt = tt,
@@ -340,3 +379,48 @@ class Heka(object):
         path = pd.DataFrame(results)
         return path
 
+    def plot_over_nut(paths):
+        
+        if not isinstance(paths,list):
+            paths = [paths]
+        
+        # Create plot
+        fig,axs = plt.subplots(subplot_kw=dict(projection='polar'),
+                                facecolor='g')
+        axs.set_facecolor('black')
+
+        # Plot paths
+        for path in paths:
+            # Choose only points above horizon (reachable)
+            cond = (path.el >= 0)
+            # Plot 
+            axs.scatter(path[cond].az*DEG,path[cond].zen,
+                        color='y') #,s=path[cond].el)
+
+        # Decoration
+        # Change from zenithal angle to elevation labels
+        axs.set_rgrids(np.arange(0,90,15),angle=0)
+        el_labels = []
+        zs = axs.get_yticks()
+        for z in zs:
+            el_labels += [f'+{90-z}']
+        axs.set_yticklabels(el_labels,color='w',fontsize=6);
+        
+        # Change azimut labels
+        azs = np.unique(list(np.arange(0,360,15))+[0,90,180,270])*DEG
+        axs.set_xticks(azs)
+        azlabels = []
+        for az in azs:
+            az = az*RAD
+            if az==0:azlabel='N'
+            elif az==90:azlabel='E'
+            elif az==180:azlabel='S'
+            elif az==270:azlabel='W'
+            else:azlabel=f'{az:.0f}'
+            azlabels += [azlabel]
+        axs.set_xticklabels(azlabels,fontsize=6,color='w');
+
+        # Grid
+        axs.grid(alpha=0.3)
+        
+        return fig,axs

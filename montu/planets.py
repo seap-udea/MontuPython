@@ -397,7 +397,62 @@ class Planet(Seba):
                 f'elongation_{metstr}':[self.elongation],f'phase_{metstr}':[self.phase],f'mag_{metstr}':[self.magnitude],
             })
 
-    def where_among_stars(self,mtime=None,site=None,store=None,verbose=False):
+    def _calculate_coordinates(self,tt,site):
+
+        # Update orientation of site
+        M_fixedplanet_J2000 = spy.pxform(site.planet.frameplanet,'J2000',tt)
+        pos_J2000 = spy.mxv(M_fixedplanet_J2000,site.pos_fixedplanet)
+
+        # Retrieve positions in space
+        self.site_planet_SSB_J2000,lt = spy.spkezr(site.planet.id,tt,'J2000','None','SSB')
+        self.planet_SSB_J2000,lt = spy.spkezr(self.id,tt,'J2000','None','SSB')
+        self.sun_SSB_J2000,lt = spy.spkezr('10',tt,'J2000','None','SSB')
+        self.site_SSB_J2000 = self.site_planet_SSB_J2000[:3] + pos_J2000 
+
+        # Celestial Coordinates at J2000
+        self.planet_site_J2000 = self.planet_SSB_J2000[:3] - self.site_SSB_J2000
+        self.vplanet_site_J2000 = self.planet_SSB_J2000[3:] - self.site_planet_SSB_J2000[3:]
+        self.planet_site_J2000 = self.planet_site_J2000
+        self.vplanet_site_J2000 = self.vplanet_site_J2000
+
+        r,RAJ2000,DECJ2000 = spy.recrad(self.planet_site_J2000)
+        RAJ2000 = RAJ2000*RAD/15
+        DecJ2000 = DECJ2000*RAD
+
+        # Ecliptic coordinates J2000
+        self.planet_site_EJ2000 = spy.mxv(M_J2000_ECLIPJ2000,self.planet_site_J2000)
+        r,LonJ2000,LatJ2000 = spy.recrad(self.planet_site_EJ2000)
+        LonJ2000 = LonJ2000*RAD
+        LatJ2000 = LatJ2000*RAD
+
+        return np.array([RAJ2000,DecJ2000,LonJ2000,LatJ2000])
+
+    def _calculate_proper_motion(self,tt,site,dt=1*DAY,position=None):
+
+        # Time before
+        pos_t_m_dt = self._calculate_coordinates(tt-dt,site)
+
+        # Present time
+        if position is None:
+            pos_t = self._calculate_coordinates(tt,site)
+        else:
+            pos_t = position
+
+        # Time after
+        pos_t_p_dt = self._calculate_coordinates(tt+dt,site)
+
+        # First derivative
+        dpdt = (pos_t_p_dt - pos_t_m_dt)/(2*dt)
+
+        # Second derivative
+        d2pdt2 = (pos_t_p_dt - 2*pos_t + pos_t_m_dt)/dt**2
+
+        # Quantities are given in deg/s and deg/s^2
+
+        return dpdt/(MARCSEC/JULYEAR),d2pdt2/(MARCSEC/JULYEAR**2)
+
+    def where_among_stars(self,mtime=None,site=None,
+                          store=None,propermotion=True,verbose=False):
         """Calculate position of a planet 
 
         Parameters:
@@ -423,44 +478,36 @@ class Planet(Seba):
             raise ValueError("No site selected")
         self.site = site
 
-        # Update orientation of site
-        site.update_site(mtime)
-
-        # Retrieve positions in space
-        site_planet_SSB_J2000,lt = spy.spkezr(site.planet.id,mtime.tt,'J2000','None','SSB')
-        planet_SSB_J2000,lt = spy.spkezr(self.id,mtime.tt,'J2000','None','SSB')
-        sun_SSB_J2000,lt = spy.spkezr('10',mtime.tt,'J2000','None','SSB')
-        site_SSB_J2000 = site_planet_SSB_J2000[:3] + site.pos_J2000 
-
-        # Celestial Coordinates at J2000
-        planet_site_J2000 = planet_SSB_J2000[:3] - site_SSB_J2000
-        r,RAJ2000,DECJ2000 = spy.recrad(planet_site_J2000)
-        self.RAJ2000 = RAJ2000*RAD/15
-        self.DecJ2000 = DECJ2000*RAD
+        # Calculate coordinates
+        position = self._calculate_coordinates(mtime.tt,site)
+        self.RAJ2000,self.DecJ2000,self.LonJ2000,self.LatJ2000 = list(position)
 
         # Phase angle
-        site_sun_J2000 = site_SSB_J2000 - sun_SSB_J2000[:3]
-        planet_sun_J2000 = planet_SSB_J2000[:3] - sun_SSB_J2000[:3]
+        site_sun_J2000 = self.site_SSB_J2000 - self.sun_SSB_J2000[:3]
+        planet_sun_J2000 = self.planet_SSB_J2000[:3] - self.sun_SSB_J2000[:3]
 
-        self.elongation = np.arccos(-site_sun_J2000@planet_site_J2000/\
-            ((site_sun_J2000@site_sun_J2000)**0.5*(planet_site_J2000@planet_site_J2000)**0.5))*RAD
-        self.phase = np.arccos(planet_sun_J2000@planet_site_J2000/\
-            ((planet_site_J2000@planet_site_J2000)**0.5*(planet_sun_J2000@planet_sun_J2000)**0.5))*RAD
+        self.elongation = np.arccos(-site_sun_J2000@self.planet_site_J2000/\
+            ((site_sun_J2000@site_sun_J2000)**0.5*(self.planet_site_J2000@self.planet_site_J2000)**0.5))*RAD
+        self.phase = np.arccos(planet_sun_J2000@self.planet_site_J2000/\
+            ((self.planet_site_J2000@self.planet_site_J2000)**0.5*(planet_sun_J2000@planet_sun_J2000)**0.5))*RAD
         
         # Distance
-        self.distance = (planet_site_J2000 @ planet_site_J2000)**0.5/AU
+        self.distance = (self.planet_site_J2000 @ self.planet_site_J2000)**0.5/AU
         self.sundistance = (planet_sun_J2000 @ planet_sun_J2000)**0.5/AU
 
         # Magnitude
         self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
                                                         self.distance,
                                                         self.phase*DEG)
-
-        # Ecliptic coordinates J2000
-        planet_site_EJ2000 = spy.mxv(M_J2000_ECLIPJ2000,planet_site_J2000)
-        r,LonJ2000,LatJ2000 = spy.recrad(planet_site_EJ2000)
-        self.LonJ2000 = LonJ2000*RAD
-        self.LatJ2000 = LatJ2000*RAD
+        
+        # Calculate proper motion
+        if propermotion == True:
+            dpdt,d2pdt2 = self._calculate_proper_motion(mtime.tt,site,position=position)
+            self.pmRA,self.pmDec,self.pmLon,self.pmLat = list(dpdt)
+            self.paRA,self.paDec,self.paLon,self.paLat = list(d2pdt2)
+        else:
+            self.pmRA,self.pmDec,self.pmLon,self.pmLat = [0]*4
+            self.paRA,self.paDec,self.paLon,self.paLat = [0]*4
 
         self._store_sky_position()
         if store:
@@ -470,9 +517,13 @@ class Planet(Seba):
     def _store_sky_position(self):
         self.position.update({
                 f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
+                f'pmRA':[self.pmRA],f'paRA':[self.paRA],f'pmDec':[self.pmDec],f'paDec':[self.paDec],
                 f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
+                f'pmLon':[self.pmLon],f'paLon':[self.paLon],f'pmLat':[self.pmLat],f'paLat':[self.paLat],
                 f'site_distance':[self.distance],f'sun_distance':[self.sundistance],
                 f'elongation':[self.elongation],f'phase':[self.phase],f'mag':[self.magnitude],
+                f'XJ2000':[self.planet_site_J2000[0]],f'YJ2000':[self.planet_site_J2000[1]],f'ZJ2000':[self.planet_site_J2000[2]],
+                f'VXJ2000':[self.vplanet_site_J2000[0]],f'VYJ2000':[self.vplanet_site_J2000[1]],f'VZJ2000':[self.vplanet_site_J2000[2]],
             })
 
     def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
