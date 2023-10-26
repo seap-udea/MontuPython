@@ -2,9 +2,13 @@
 show:
 	@-cat montu/version.py
 
+status:
+	@-git status
+
 # GitHub
 push:
 	rm -rf .git/refs/remotes/origin/main.lock
+	rm -rf .git/HEAD.lock
 	git commit -am "New commit"
 	git push
 
@@ -28,7 +32,8 @@ cleancrap:
 	@-find . -name ".DS_Store" -delete
 	@-find . -name "Icon*" -delete
 	@-find . -name "*.egg-info*" -type d | xargs rm -fr
-
+	@-find . -name "__pycache__" -type d | xargs rm -fr
+	
 cleandist:
 	@echo "Cleaning dist..."
 	@rm -rf dist/*.*
