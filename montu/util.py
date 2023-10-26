@@ -104,6 +104,18 @@ class Util(object):
         from IPython.display import display,HTML
         display(HTML(df.to_html()))
 
+    def table_df(df,format='github'):
+        """Present a DataFrame in a tabular form
+
+        format: string, default = 'github':
+            Format of the table.
+
+            Other formats: “plain”,“simple”,“github”,“grid”,“fancy_grid”,“pipe”,
+            “orgtbl”,“jira”,“presto”,“pretty”,“psql”,“rst”,“mediawiki”,“moinmoin”,
+            “youtrack”,“html”,“latex”,“latex_raw”,“latex_booktabs”,“textile”, 
+        """
+        print(tabulate(df,headers='keys',tablefmt=format))
+
     def dec2hex(dec,string=True):
 
         dec = float(dec)
@@ -217,3 +229,4 @@ class Util(object):
 # Aliases
 D2H = Util.dec2hex
 PRINTDF = Util.print_df
+TABLEDF = Util.table_df

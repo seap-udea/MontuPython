@@ -57,13 +57,92 @@ class Planet(Seba):
         self.f=(self.Re-self.Rp)/self.Re
 
         # Create object from PyPlanet: try to avoid 
-        exec(f'self.pymeeus_planet = pymeeus_{self.capital}')
+        try:
+            exec(f'self.pymeeus_planet = pymeeus_{self.capital}')
+        except:
+            self.pymeeus_planet = None
 
         # Create Horizons object
         self.query_horizons = astropy_Horizons(id='4')
 
         # No predicted yet
         self.predict = False
+
+        # Data: if None it indicates that no where_among_stars with store = True has been ran
+        self.data = None
+
+    def where_among_stars(self,mtime=None,site=None,
+                          store=None,propermotion=True,
+                          verbose=False):
+        """Calculate position of a planet 
+
+        Parameters:
+            mtime: Time:
+                Time when the position of the planet will be calculated.
+
+            site: Site:
+                Observing site w.r.t. position of the planet will be calculated.
+        """
+        self.position = {
+            'jed':[mtime.jed],
+            'tt':[mtime.tt],
+            }
+        if store:
+            if 'data' not in self.__dict__.keys():
+                self.data = pd.DataFrame()
+        
+        if site is None:
+            raise ValueError("No site selected")
+        self.site = site
+
+        # Calculate coordinates
+        position = self._calculate_coordinates(mtime.tt,site)
+        self.RAJ2000,self.DecJ2000,self.LonJ2000,self.LatJ2000 = list(position)
+
+        # Phase angle
+        site_sun_J2000 = self.site_SSB_J2000 - self.sun_SSB_J2000[:3]
+        planet_sun_J2000 = self.planet_SSB_J2000[:3] - self.sun_SSB_J2000[:3]
+
+        self.elongation = np.arccos(-site_sun_J2000@self.planet_site_J2000/\
+            ((site_sun_J2000@site_sun_J2000)**0.5*(self.planet_site_J2000@self.planet_site_J2000)**0.5))*RAD
+        self.phase = np.arccos(planet_sun_J2000@self.planet_site_J2000/\
+            ((self.planet_site_J2000@self.planet_site_J2000)**0.5*(planet_sun_J2000@planet_sun_J2000)**0.5))*RAD
+        
+        # Distance
+        self.distance = (self.planet_site_J2000 @ self.planet_site_J2000)**0.5/AU
+        self.sundistance = (planet_sun_J2000 @ planet_sun_J2000)**0.5/AU
+
+        # Magnitude
+        self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
+                                                        self.distance,
+                                                        self.phase*DEG)
+        
+        # Calculate proper motion
+        if propermotion == True:
+            dpdt,d2pdt2 = self._calculate_proper_motion(mtime.tt,site,position=position)
+            self.pmRA,self.pmDec,self.pmLon,self.pmLat = list(dpdt)
+            self.paRA,self.paDec,self.paLon,self.paLat = list(d2pdt2)
+        else:
+            self.pmRA,self.pmDec,self.pmLon,self.pmLat = [0]*4
+            self.paRA,self.paDec,self.paLon,self.paLat = [0]*4
+
+        self._store_sky_position()
+        if store:
+            self.data=pd.concat([self.data,self.position])
+            self.data.reset_index(drop=True,inplace=True)
+
+    def _store_sky_position(self):
+        self.position.update({
+                f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
+                f'pmRA':[self.pmRA],f'paRA':[self.paRA],f'pmDec':[self.pmDec],f'paDec':[self.paDec],
+                f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
+                f'pmLon':[self.pmLon],f'paLon':[self.paLon],f'pmLat':[self.pmLat],f'paLat':[self.paLat],
+                f'site_distance':[self.distance],f'sun_distance':[self.sundistance],
+                f'elongation':[self.elongation],f'phase':[self.phase],f'mag':[self.magnitude],
+                f'XJ2000':[self.planet_site_J2000[0]],f'YJ2000':[self.planet_site_J2000[1]],f'ZJ2000':[self.planet_site_J2000[2]],
+                f'VXJ2000':[self.vplanet_site_J2000[0]],f'VYJ2000':[self.vplanet_site_J2000[1]],f'VZJ2000':[self.vplanet_site_J2000[2]],
+            })
+        self.position = pd.DataFrame(self.position)
 
     def _compare_positions(self,mtime=None,site=None,
                      method='SPICE',store=None,
@@ -450,81 +529,6 @@ class Planet(Seba):
         # Quantities are given in deg/s and deg/s^2
 
         return dpdt/(MARCSEC/JULYEAR),d2pdt2/(MARCSEC/JULYEAR**2)
-
-    def where_among_stars(self,mtime=None,site=None,
-                          store=None,propermotion=True,verbose=False):
-        """Calculate position of a planet 
-
-        Parameters:
-            mtime: Time:
-                Time when the position of the planet will be calculated.
-
-            site: Site:
-                Observing site w.r.t. position of the planet will be calculated.
-        """
-        self.position = {
-            'datepro':[mtime.datepro],
-            'datemix':[mtime.datemix],
-            'datetime64':[mtime.obj_datetime64],
-            'tt':[mtime.tt],
-            'jtd':[mtime.jtd],
-            'jed':[mtime.jed],
-            }
-        if store:
-            if 'data' not in self.__dict__.keys():
-                self.data = pd.DataFrame()
-        
-        if site is None:
-            raise ValueError("No site selected")
-        self.site = site
-
-        # Calculate coordinates
-        position = self._calculate_coordinates(mtime.tt,site)
-        self.RAJ2000,self.DecJ2000,self.LonJ2000,self.LatJ2000 = list(position)
-
-        # Phase angle
-        site_sun_J2000 = self.site_SSB_J2000 - self.sun_SSB_J2000[:3]
-        planet_sun_J2000 = self.planet_SSB_J2000[:3] - self.sun_SSB_J2000[:3]
-
-        self.elongation = np.arccos(-site_sun_J2000@self.planet_site_J2000/\
-            ((site_sun_J2000@site_sun_J2000)**0.5*(self.planet_site_J2000@self.planet_site_J2000)**0.5))*RAD
-        self.phase = np.arccos(planet_sun_J2000@self.planet_site_J2000/\
-            ((self.planet_site_J2000@self.planet_site_J2000)**0.5*(planet_sun_J2000@planet_sun_J2000)**0.5))*RAD
-        
-        # Distance
-        self.distance = (self.planet_site_J2000 @ self.planet_site_J2000)**0.5/AU
-        self.sundistance = (planet_sun_J2000 @ planet_sun_J2000)**0.5/AU
-
-        # Magnitude
-        self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
-                                                        self.distance,
-                                                        self.phase*DEG)
-        
-        # Calculate proper motion
-        if propermotion == True:
-            dpdt,d2pdt2 = self._calculate_proper_motion(mtime.tt,site,position=position)
-            self.pmRA,self.pmDec,self.pmLon,self.pmLat = list(dpdt)
-            self.paRA,self.paDec,self.paLon,self.paLat = list(d2pdt2)
-        else:
-            self.pmRA,self.pmDec,self.pmLon,self.pmLat = [0]*4
-            self.paRA,self.paDec,self.paLon,self.paLat = [0]*4
-
-        self._store_sky_position()
-        if store:
-            self.data=pd.concat([self.data,pd.DataFrame(self.position)])
-            self.data.reset_index(drop=True,inplace=True)
-
-    def _store_sky_position(self):
-        self.position.update({
-                f'RAJ2000':[self.RAJ2000],f'DecJ2000':[self.DecJ2000],
-                f'pmRA':[self.pmRA],f'paRA':[self.paRA],f'pmDec':[self.pmDec],f'paDec':[self.paDec],
-                f'LonJ2000':[self.LonJ2000],f'LatJ2000':[self.LatJ2000],
-                f'pmLon':[self.pmLon],f'paLon':[self.paLon],f'pmLat':[self.pmLat],f'paLat':[self.paLat],
-                f'site_distance':[self.distance],f'sun_distance':[self.sundistance],
-                f'elongation':[self.elongation],f'phase':[self.phase],f'mag':[self.magnitude],
-                f'XJ2000':[self.planet_site_J2000[0]],f'YJ2000':[self.planet_site_J2000[1]],f'ZJ2000':[self.planet_site_J2000[2]],
-                f'VXJ2000':[self.vplanet_site_J2000[0]],f'VYJ2000':[self.vplanet_site_J2000[1]],f'VZJ2000':[self.vplanet_site_J2000[2]],
-            })
 
     def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
         """Compute the rate of ecliptic longitude advance

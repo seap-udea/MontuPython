@@ -217,3 +217,11 @@ class Stars(Sebau):
 
         SET_PLT_DEFAULT_STYLE()
         return fig,axs
+    
+    def __repr__(self):
+        repr = f"Stars(number={len(self.data)})"
+        return repr
+
+    def __str__(self):
+        desc = str(self.data)
+        return desc

@@ -21,6 +21,7 @@ import pandas as pd
 
 # Class utilities
 from functools import lru_cache
+from tabulate import tabulate
 
 # Avoid warnings
 import warnings

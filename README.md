@@ -41,6 +41,12 @@ or for a safe import:
 import montu
 ```
 
+A simple operation is to obtain the azimuth and elevation of mars at a given epoch:
+
+```python
+
+```
+
 ### Working with stars
 
 `MontuPython` comes along with a complete catalogue of around 119000 stars.  You may load the catalogue using:

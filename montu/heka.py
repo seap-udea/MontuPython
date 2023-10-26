@@ -8,8 +8,138 @@ from montu import *
 ###############################################################
 class Heka(object):
 
-    def precess_to_epoch(sebau,mtime=None,inplace=False,bar=False):
-        """Precess coordinates of celestial objects (sebau in ancient egyptian(
+
+    def where_in_sky(sebau,at=None,site=None,
+                     inplace=False,bar=False):
+        """Compute the horizontal coordinates at an epoch of one or many celestial objects.
+        
+        Parameters:
+            sebau: Planet | Stars | Series | DataFrame:
+                Data object containing information on one or many celestial objects (sebau).
+
+            site: montu.ObservingSite:
+                Observing site.
+
+            at: montu.Time, default = None:
+                Date to which we want to precess coordinates.
+                If None is because Sebau data include epoch.
+
+            inplace: Boolean, default = False:
+                If True the changes are stored in the input object (sebau).
+
+            bar: Boolean, default = False:
+                Use tqdm to show advance.
+
+        Return:
+            If inplace is False, the routine return an object of the 
+            same type as `sebau` but containing the new fields:
+                RAJ2000t, DecJ2000t: coordinates displaced by proper motion.
+                RAEpoch, DecEpoch: coordinates precessed.
+                az, el, zen: azimuth, elevation and zenith angle.
+
+            If inplace is True, the same fields are added to sebau.
+        """
+        # By default we assume that the provided object is a pandas Series
+        sebau_is_series = True
+        # According to type of object decide the action to take
+        if isinstance(sebau,Planet):
+            if sebau.data is not None:
+                # Recover data
+                sebau = sebau.data
+            else:
+                # Get position among stars 
+                sebau.where_among_stars(at,site)
+                # Extract data 
+                sebau = sebau.position
+            sebau_is_series = False
+        elif isinstance(sebau,Stars):
+            # Extract data about the stars provided
+            sebau = sebau.data
+            sebau_is_series = False
+            pass
+        elif type(sebau) is pd.Series:
+            # Check
+            pass
+        elif type(sebau) is pd.DataFrame:
+            sebau_is_series = False
+            pass
+        else:
+            raise AssertionError(f"Celestial object provided is not of a recognized class ({type(sebau)})")
+        if sebau_is_series:
+            series = sebau
+            sebau = pd.DataFrame([sebau])
+        if not inplace:
+            sebau = copy.deepcopy(sebau)
+
+        # Check if Sebau include epoch
+        epoch = at
+        epoch_implicit = False
+        if 'tt' in sebau.keys():
+            epoch_implicit = True
+        else:
+            # Update site
+            site.update_site(epoch)
+
+        # Check if sebau coordinates has been precessed
+        if 'RAEpoch' not in sebau.keys():
+            Heka.precess_to_epoch(sebau,at=at,inplace=True,bar=False)
+        
+        # Use a bar during calculations
+        if bar:
+            bar = tqdm.tqdm
+        else:
+            bar = lambda x:x
+
+        # Main loop
+        for index in bar(sebau.index):
+            seba = sebau.loc[index]
+
+            if epoch_implicit:
+                # Update site if epoch implicit
+                site.update_site(Time(seba.tt))
+
+            # Get coordinates
+            Dec = seba['DecEpoch']
+            RA = seba['RAEpoch']
+
+            # Compute hour angle
+            HA = np.mod(site.ltst - RA,24)
+
+            # Elevation and azimuth
+            az,el = Heka._to_altaz(HA,Dec,site.lat)
+
+            # Zenital distance
+            zen = 90 - el
+
+            # Atmospheric refraction
+
+            # Compute airmass 
+            
+            # Results
+            results = dict(
+                HA = HA,
+                az = az,
+                el = el,
+                zen = zen,
+                epoch_tt = site.epoch.tt,
+                epoch_jed = site.epoch.jed,
+            )
+
+            if not sebau_is_series:
+                # Add fields to object
+                sebau.loc[index,results.keys()] = results.values()
+                
+        # How to return results
+        if not inplace:
+            return sebau
+        
+        elif sebau_is_series:
+            # Inplace for series
+            for key,item in results.items():
+                series[key] = item
+
+    def precess_to_epoch(sebau,at=None,inplace=False,bar=False):
+        """Precess coordinates of celestial objects (sebau in ancient egyptian)
         to epoch of observation
 
         Parameters:
@@ -37,16 +167,34 @@ class Heka(object):
 
             If inplace is True, the same fields are added to sebau.
         """
-
-        # Check what type of object was provided
-        sebau_is_series = False
-        if len(sebau.shape) == 1:
-            sebau_is_series = True
+        # By default we assume that the provided object is a pandas Series
+        sebau_is_series = True
+        # According to type of object decide the action to take
+        if isinstance(sebau,Planet):
+            # Get position among stars 
+            sebau.where_among_stars(at,site)
+            # Extract data 
+            sebau = sebau.position
+            sebau_is_series = False
+        elif isinstance(sebau,Stars):
+            # Extract data about the stars provided
+            sebau = sebau.data
+            sebau_is_series = False
+            pass
+        elif type(sebau) is pd.Series:
+            # Check
+            pass
+        elif type(sebau) is pd.DataFrame:
+            sebau_is_series = False
+            pass
+        else:
+            raise AssertionError(f"Celestial object provided is not of a recognized class ({type(sebau)})")
+        if sebau_is_series:
             series = sebau
             sebau = pd.DataFrame([sebau])
-        elif not inplace:
+        if not inplace:
             sebau = copy.deepcopy(sebau)
-
+        
         # Check if Sebau include epoch
         epoch_implicit = False
         if 'tt' in sebau.keys():
@@ -56,12 +204,15 @@ class Heka(object):
         are_stars = False
         if 'SpType' in sebau.keys():
             are_stars = True
-
+            
         # Use a bar during calculations
         if bar:
             bar = tqdm.tqdm
         else:
             bar = lambda x:x
+
+        # Epoch
+        epoch = at
 
         # Main loop
         for index in bar(sebau.index):
@@ -70,8 +221,6 @@ class Heka(object):
             # Epoch
             if epoch_implicit:
                 epoch = Time(seba.tt)
-            else:
-                epoch = mtime
 
             # If stars apply motion
             if are_stars:
@@ -103,7 +252,6 @@ class Heka(object):
                 DecEpoch = DecEpoch,
                 epoch_tt = epoch.tt,
                 epoch_jed = epoch.jed,
-                epoch_datepro = epoch.datepro,
             )
 
             if not sebau_is_series:
@@ -128,119 +276,7 @@ class Heka(object):
                             (np.cos(lat*DEG)*np.cos(el*DEG)))*RAD
         az = np.mod(az,360)
         return az,el
-
-    def where_in_sky(sebau,site,mtime=None,
-                     inplace=False,bar=False):
-        """Transform from equatorial at Epoch to Alt Azimutal
-        
-        Parameters:
-            sebau: Series | DataFrame:
-                Data containing the information on sebau.
-                The object must have the following columns or attributes:
-                    DecJ2000: Declination in J2000 [deg]
-                    RAJ2000: Right ascension in J2000 [hours]
-
-            site: montu.ObservingSite:
-                Observing site.
-
-            mtime: montu.Time, default = None:
-                Date to which we want to precess coordinates.
-                If None is because Sebau data include epoch.
-
-            inplace: Boolean, default = False:
-                If True the changes are stored in the input object (sebau).
-
-            bar: Boolean, default = False:
-                Use tqdm to show advance.
-
-        Return:
-            If inplace is False, the routine return an object of the 
-            same type as `sebau` but containing the new fields:
-                RAJ2000t, DecJ2000t: coordinates displaced by proper motion.
-                RAEpoch, DecEpoch: coordinates precessed.
-                az, el, zen: azimuth, elevation and zenith angle.
-
-            If inplace is True, the same fields are added to sebau.
-        """
-        # Check what type of object was provided
-        sebau_is_series = False
-        if len(sebau.shape) == 1:
-            sebau_is_series = True
-            series = sebau
-            sebau = pd.DataFrame([sebau])
-        elif not inplace:
-            sebau = copy.deepcopy(sebau)
-
-        # Check if Sebau include epoch
-        epoch_implicit = False
-        if 'tt' in sebau.keys():
-            epoch_implicit = True
-        else:
-            # Update site
-            site.update_site(mtime)
-
-        # Check if sebau coordinates has been precessed
-        if 'RAEpoch' not in sebau.keys():
-            Heka.precess_to_epoch(sebau,site,inplace=True,bar=False)
-        
-        # Use a bar during calculations
-        if bar:
-            bar = tqdm.tqdm
-        else:
-            bar = lambda x:x
-
-        # Main loop
-        for index in bar(sebau.index):
-            seba = sebau.loc[index]
-
-            # Update time if epoch implicit
-            if epoch_implicit:
-                # Update site if epoch implicit
-                site.update_site(Time(seba.tt))
-
-            # Get coordinates
-            Dec = seba['DecEpoch']
-            RA = seba['RAEpoch']
-
-            # Compute hour angle
-            HA = np.mod(site.ltst - RA,24)
-
-            # Elevation and azimuth
-            az,el = Heka._to_altaz(HA,Dec,site.lat)
-
-            # Zenital distance
-            zen = 90 - el
-
-            # Atmospheric refraction
-
-            # Compute airmass 
-            
-            # Results
-            results = dict(
-                HA = HA,
-                az = az,
-                el = el,
-                zen = zen,
-                epoch_tt = site.epoch.tt,
-                epoch_jed = site.epoch.jed,
-                epoch_datepro = site.epoch.datepro,
-                # Deprecated: remove when debuuging is done
-                HA_comp = HA,
-                az_comp = az,
-                el_comp = el,
-                zen_comp = zen
-            )
-
-            if not sebau_is_series:
-                # Add fields to object
-                sebau.loc[index,results.keys()] = results.values()
-                
-        if not inplace:
-            return sebau
-        elif sebau_is_series:
-            for key,item in results.items():
-                series[key] = item
-
+    
     def _daily_motion(HA0,Dec0,lat,deltat,tai2sid=TAI_TO_SID,
                       pm_ra=0,pm_dec=0,pa_ra=0,pa_dec=0):
         """Propagate local position of a body at a given sky coordinates
@@ -284,8 +320,9 @@ class Heka(object):
         
         return HA,az,el,pm_ra,pm_dec
 
-    def move_over_nut(seba,site,mtime,
-                      duration=24*HOUR,deltat=1*HOUR,tai2sid=None):
+    def move_over_nut(seba,at=None,site=None,
+                      during=24*HOUR,each=1*HOUR,
+                      tai2sid=None):
         """Propagate local position of a body at a given sky coordinates.
 
         Parameters:
@@ -296,10 +333,10 @@ class Heka(object):
             site: montu.ObservingSite:
                 Observing site.
 
-            duration: float [seconds], default = 24*HOUR:
-                Duration of the motion in seconds.
+            during: float [seconds], default = 24*HOUR:
+                during of the motion in seconds.
 
-            deltat: float [seconds], default = 1*HOUR
+            each: float [seconds], default = 1*HOUR
                 Step size of the motion.
 
             tai2sid: float, default = None:
@@ -322,27 +359,31 @@ class Heka(object):
         if type(seba) == pd.DataFrame:
             if len(seba)>1:
                 raise AssertionError(f"Object provided has more than 1 position ({len(seba)})")    
+            # Convert seba to pandas Series
             seba = seba.iloc[0]
+
         elif type(seba) == pd.Series:
+            # Default format
             pass
+
         else:
             raise AssertionError("Object provided is not DataFrame or Series")
 
         # Update site
-        site.update_site(mtime)
+        site.update_site(at)
         if tai2sid is None:
-            tai2sid = Time.tai_to_sid(mtime)
+            tai2sid = Time.tai_to_sid(at)
 
         # Initial time
-        tt0 = mtime.tt
+        tt0 = at.tt
 
         # Check if sky coordinates has been precessed
         if 'RAEpoch' in seba.keys():
             dt = abs(tt0 - seba.epoch_tt)
             if dt>1:
-                raise ValueError(f"The epoch provided JD {mtime.jed} does not coincide with epoch of sky coordinates {seba.epoch_jed}")
+                raise ValueError(f"The epoch provided JD {at.jed} does not coincide with epoch of sky coordinates {seba.epoch_jed}")
         else:
-            Heka.precess_to_epoch(seba,mtime,inplace=True)
+            Heka.precess_to_epoch(seba,at=at,inplace=True)
 
         # Get coordinates
         Dec0 = float(seba.DecEpoch)
@@ -359,11 +400,10 @@ class Heka(object):
 
         # Main loop
         results = []
-        for i,tt in enumerate(Util.arange(tt0,tt0+duration,deltat)):
+        for i,tt in enumerate(Util.arange(tt0,tt0+during,each)):
 
             HA,az,el,pmRA,pmDec = Heka._daily_motion(HA0,Dec0,site.lat,tt-tt0,
-                                          tai2sid=tai2sid,
-                                          pm_ra=pmRA,pm_dec=pmDec)
+                                                     tai2sid=tai2sid,pm_ra=pmRA,pm_dec=pmDec)
             zen = 90 - el
 
             # Results
