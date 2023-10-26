@@ -7,9 +7,9 @@ status:
 
 # GitHub
 push:
-	rm -rf .git/HEAD.lock
+	@-rm -rf .git/HEAD.lock
 	git commit -am "New commit"
-	rm -rf .git/refs/remotes/origin/main.lock
+	@-rm -rf .git/refs/remotes/origin/main.lock
 	git push
 
 #Example: make release RELMODE=release VERSION=0.2.0.2 
