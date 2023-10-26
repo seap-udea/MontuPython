@@ -473,7 +473,7 @@ mars_path = montu.Heka.move_over_nut(mars.data.iloc[0],at=mtime,site=tebas,
 fig,axs = montu.Heka.plot_over_nut([aldebaran_path,mars_path])
 ```
 
-<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/mars_over_muy.png?raw=true" alt="Logo""/></p>
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/dev/gallery/mars_over_nut.png?raw=true" alt="Logo""/></p>
 
 
 ## An indepth example: evolution of pole stars
