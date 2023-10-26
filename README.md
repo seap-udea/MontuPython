@@ -25,6 +25,49 @@ pip install montu
 
 A `Google Colab` notebook with some basic commands are available [here](https://colab.research.google.com/drive/1AbvT5u3yf40UPV9QldbsroeG2teUo52p?usp=sharing).
 
+
+In this section you should provide the most simple instructions to use
+your package.
+
+You may import the package using:
+
+```python
+from montu import *
+```
+
+or for a safe import:
+
+```python
+import montu
+```
+
+### Working with stars
+
+`MontuPython` comes along with a complete catalogue of around 119000 stars.  You may load the catalogue using:
+
+```python
+allstars = montu.Stars()
+```
+
+Once loaded the attribute `allstars.data` contains a Pandas DataFrame with all the data about the star, including position in the sky (right ascension and declination), magnitude, color index, proper motion among many other properties.
+
+You can extract a subset of stars using the method `get_stars`. For instance you can get only the stars visible to naked eye:
+
+```python
+stars = allstars.get_stars(Vmag=[-2,6.5])
+```
+
+Or extract the information of a single star, eg. Aldebaran:
+
+```python
+aldebaran = stars.get_stars(ProperName='Aldebaran')
+```
+
+
+
+
+
+
 In this section you should provide the most simple instructions to use
 your package.
 
@@ -306,6 +349,14 @@ You will find a complete set of runable example notebooks â€“`Colab` notebooksâ€
 For a fully-fledged working example see `examples/montunctions.ipynb`.
 
 ## What's new
+
+Versions 0.8.*:
+- Major refactoring of classes.
+- New class Heka, intended to perform calculations.
+- New plot of positions in a stereographic projection with respect to the Horizon.
+- Now horizontal coordinates of planet and star can be computed.
+- New stellar catalogue incorporated to the planet.
+- Classes were divided in modules (stars, planets, observer, etc.)
 
 Versions 0.7.*:
 - A Google Drive repository with examples was created.
