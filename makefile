@@ -4,6 +4,7 @@ show:
 
 # GitHub
 push:
+	rm -rf .git/refs/remotes/origin/main.lock
 	git commit -am "New commit"
 	git push
 
