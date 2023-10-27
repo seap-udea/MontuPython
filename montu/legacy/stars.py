@@ -1,28 +1,20 @@
-###############################################################
-# Montu interdependencies
-###############################################################
-import montu
-
-###############################################################
-# Required packages
-###############################################################
-import copy
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-from tabulate import tabulate
-
+from montu import *
 ###############################################################
 # Module constants
 ###############################################################
 STELLAR_CATALOGUE = 'montu_stellar_catalogue_v37.csv'
 
+"""References
+    Styles: https://matplotlib.org/stable/gallery/style_sheets/style_sheets_reference.html
+    #sphx-glr-gallery-style-sheets-style-sheets-reference-py
+"""
+PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
+SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
+
 ###############################################################
 # Stars Class
 ###############################################################
-class Stars(object):
+class Stars(Sebau):
     """Stellar catalogue
 
     Initialization parameters:
@@ -52,6 +44,7 @@ class Stars(object):
 
             
     """
+
     def __init__(self,data=None,filename=None):
 
         if data is not None:
@@ -64,7 +57,7 @@ class Stars(object):
 
         else:
             # Load data from the database provided with package
-            self.data = pd.read_csv(montu.Util._data_path(STELLAR_CATALOGUE,check=True))
+            self.data = pd.read_csv(Util._data_path(STELLAR_CATALOGUE,check=True))
 
         self.number = len(self.data)
 
@@ -170,14 +163,14 @@ class Stars(object):
         dstargs = dict(marker='*',color='y')
         dstargs.update(stargs)
 
-        size_by_mag = montu.Util._linear_map([-1.5,5],[200,1])
+        size_by_mag = Util._linear_map([-1.5,5],[200,1])
         axs.scatter(15*self.data[coords[0]],
                     self.data[coords[1]],
                     s=size_by_mag(self.data.Vmag),
                     **dstargs)
         
         # Labels
-        fontsize = montu.Util._linear_map([6,-2],[4,14])
+        fontsize = Util._linear_map([6,-2],[4,14])
         if labels:
             for index in self.data.index:
                 star = self.data.loc[index]
@@ -208,20 +201,21 @@ class Stars(object):
         ra_ticks = axs.get_xticks()
         ra_tick_labels = []
         for ra in ra_ticks:
-            comps = montu.D2H(ra/15,string=False)
+            comps = D2H(ra/15,string=False)
             ra_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
         axs.set_xticklabels(ra_tick_labels)
 
         dec_ticks = axs.get_yticks()
         dec_tick_labels = []
         for dec in dec_ticks:
-            comps = montu.D2H(dec,string=False)
+            comps = D2H(dec,string=False)
             dec_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
         axs.set_yticklabels(dec_tick_labels,rotation=90)
 
         # Montu water mark
-        montu.Util.montu_mark(axs)
+        Util.montu_mark(axs)
 
+        SET_PLT_DEFAULT_STYLE()
         return fig,axs
     
     def __repr__(self):
@@ -229,5 +223,5 @@ class Stars(object):
         return repr
 
     def __str__(self):
-        desc = tabulate(self.data,headers='keys',tablefmt=format)))
+        desc = str(self.data)
         return desc

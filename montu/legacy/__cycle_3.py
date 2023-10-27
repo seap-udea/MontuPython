@@ -166,6 +166,10 @@ to avoid this artifacts. 7 figures correspond to 0.01 seconds.
 """
 JD_PRECISION_FIGURES = 8
 
+# Correction for JED
+jed_correction_data = np.loadtxt(Montu._data_path('corrections_dt.dat'))
+JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
+
 ###############################################################
 # Montu Python Util Class
 ###############################################################
@@ -500,9 +504,6 @@ class Util(object):
 D2H = Util.dec2hex
 PRINTDF = Util.print_df
 TABLEDF = Util.table_df
-# Correction for JED
-jed_correction_data = np.loadtxt(Util._data_path('corrections_dt.dat'))
-JED_CORRECTION = interp1d(jed_correction_data[:,0],jed_correction_data[:,1])
 
 ###############################################################
 # Main class

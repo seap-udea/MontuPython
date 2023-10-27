@@ -1,35 +1,7 @@
-###############################################################
-# Montu interdependencies
-###############################################################
-import montu
-
-###############################################################
-# Required packages
-###############################################################
-import inspect
-import os
-import requests
-import tqdm
-
-import numpy as np
-import spiceypy as spy
-from tabulate import tabulate
-
+from montu import *
 ###############################################################
 # Module constants
 ###############################################################
-BASIC_KERNELS = {
-    'naif0012.tls':'',
-    'frame.tk':'',
-    'pck00011.tpc':'',
-    'earth_assoc_itrf93.tf':''
-}
-PRECISION_KERNELS = {
-    'latest_leapseconds.tls':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
-    'de441_part-1.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-1.bsp',
-    'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
-}
-KERNELS_LOADED = dict()
 
 ###############################################################
 # Montu Python Util Class
@@ -51,28 +23,6 @@ class Util(object):
         if endpoint and arr[-1]+step==stop:
             arr = np.concatenate([arr,[stop]])
         return arr
-    
-    def print_df(df):
-        """Print DataFrame.
-        
-        Parameters:
-            df: Pandas DataFrame:
-                DataFrame to print.
-        """
-        from IPython.display import display,HTML
-        display(HTML(df.to_html()))
-
-    def table_df(df,format='github'):
-        """Present a DataFrame in a tabular form
-
-        format: string, default = 'github':
-            Format of the table.
-
-            Other formats: “plain”,“simple”,“github”,“grid”,“fancy_grid”,“pipe”,
-            “orgtbl”,“jira”,“presto”,“pretty”,“psql”,“rst”,“mediawiki”,“moinmoin”,
-            “youtrack”,“html”,“latex”,“latex_raw”,“latex_booktabs”,“textile”, 
-        """
-        print(tabulate(df,headers='keys',tablefmt=format))
 
     def dt2cal(dt,bce=False):
         """Convert array of datetime64 to a calendar array of year, month, day, hour,
@@ -144,6 +94,28 @@ class Util(object):
             spy.furnsh(kernel_path)
             KERNELS_LOADED[kernel] = True
 
+    def print_df(df):
+        """Print DataFrame.
+        
+        Parameters:
+            df: Pandas DataFrame:
+                DataFrame to print.
+        """
+        from IPython.display import display,HTML
+        display(HTML(df.to_html()))
+
+    def table_df(df,format='github'):
+        """Present a DataFrame in a tabular form
+
+        format: string, default = 'github':
+            Format of the table.
+
+            Other formats: “plain”,“simple”,“github”,“grid”,“fancy_grid”,“pipe”,
+            “orgtbl”,“jira”,“presto”,“pretty”,“psql”,“rst”,“mediawiki”,“moinmoin”,
+            “youtrack”,“html”,“latex”,“latex_raw”,“latex_booktabs”,“textile”, 
+        """
+        print(tabulate(df,headers='keys',tablefmt=format))
+
     def dec2hex(dec,string=True):
 
         dec = float(dec)
@@ -159,6 +131,7 @@ class Util(object):
             ret = sgn*h,m,s
         return ret
 
+    
     def string_difference(string1, string2):
         """Calculate the difference between two strings
         """
@@ -196,7 +169,7 @@ class Util(object):
         )
         
         #Text of the water mark
-        mark=f"MontuPython {montu.version}"
+        mark=f"MontuPython {version}"
         
         #Choose the according to the fact it is a 2d or 3d plot
         try:
@@ -253,21 +226,7 @@ class Util(object):
         map = lambda x:a*x+b
         return map
 
-class Dictobj(object):
-    """Convert a dictionary to an object
-
-    Examples:
-        ob = Dictobj(a=2,b=3)
-        print(ob.a,ob.b)
-        ob = Dictobj(dict=dict(a=2,b=3))
-        print(ob.a,ob.b)
-        ob = Dictobj(dict={'a':2,'b':3})
-        print(ob.a,ob.b)
-    """
-
-    def __init__(self, **kwargs):
-        if 'dict' in kwargs.keys():
-            kwargs.update(kwargs['dict'])
-        for key, value in kwargs.items():
-            if key == 'dict':continue
-            setattr(self, key, value)
+# Aliases
+D2H = Util.dec2hex
+PRINTDF = Util.print_df
+TABLEDF = Util.table_df
