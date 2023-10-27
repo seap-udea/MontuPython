@@ -7,11 +7,8 @@ status:
 
 # GitHub
 push:cleangit
-	@-rm -rf .git/HEAD.lock
 	git commit -am "New commit"
-	@-rm -rf .git/refs/remotes/origin/main.lock
 	git push
-	@-rm -rf .git/index.lock
 
 #Example: make release RELMODE=release VERSION=0.2.0.2 
 release:
