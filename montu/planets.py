@@ -113,9 +113,12 @@ class Planet(Seba):
         self.sundistance = (planet_sun_J2000 @ planet_sun_J2000)**0.5/AU
 
         # Magnitude
-        self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
-                                                        self.distance,
-                                                        self.phase*DEG)
+        try:
+            self.magnitude = self.pymeeus_planet.magnitude(self.sundistance,
+                                                            self.distance,
+                                                            self.phase*DEG)
+        except:
+            self.magnitude = 33
         
         # Calculate proper motion
         if propermotion == True:
