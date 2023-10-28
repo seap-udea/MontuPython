@@ -229,5 +229,6 @@ class Stars(object):
         return repr
 
     def __str__(self):
-        desc = tabulate(self.data,headers='keys',tablefmt=format)))
+        desc = f"{len(self.data)} star(s):\n"
+        desc += tabulate(self.data,headers='keys',tablefmt='github')
         return desc

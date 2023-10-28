@@ -338,6 +338,7 @@ class Time(object):
         
         # Parse string
         self._parse_datestr(datestr)
+        return self.__str__()
 
     def __copy__(self):
         return Time(self.tt)
@@ -406,6 +407,11 @@ Uniform scales:
         else:
             str = f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/JED {self.jed}/JTD {self.jtd})"
         return str
+    
+    @staticmethod
+    def get_date(jed):
+        comps = pyephem.Date(jed-montu.PYEPHEM_JD_REF).tuple()
+        return comps
     
     @staticmethod
     def set_time_ticks(ax):

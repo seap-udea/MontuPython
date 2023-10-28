@@ -1,4 +1,3 @@
-
 ###############################################################
 # Import montu modules
 ###############################################################
@@ -6,6 +5,8 @@ from montu.version import *
 from montu.util import *
 from montu.time import *
 from montu.stars import *
+from montu.observer import *
+from montu.sun import *
 
 ###############################################################
 # Aliases
@@ -16,9 +17,17 @@ PRINTDF = Util.print_df
 TABLEDF = Util.table_df
 
 ###############################################################
-# Import other modules
+# External modules
 ###############################################################
 import warnings
+import numpy as np
+
+###############################################################
+# Constants
+###############################################################
+# Numerical Constants
+RAD = 180/np.pi
+DEG = 1/RAD
 
 ###############################################################
 # Initialization
