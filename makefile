@@ -6,7 +6,7 @@ status:
 	@-git status
 
 # GitHub
-push:
+push:cleangit
 	git commit -am "New commit"
 	git push
 
