@@ -74,9 +74,12 @@ class Sebau(object):
         condition = {
             'ha':self.seba.ha*montu.RAD/15,
             'Vmag':self.seba.mag,
-            'rise_time':self.seba.rise_time,'rise_az':self.seba.rise_az*montu.RAD,
-            'set_time':self.seba.set_time,'set_az':self.seba.set_az*montu.RAD,
-            'transit_time':self.seba.transit_time,'transit_el':(self.seba.transit_alt or 0)*montu.RAD,
+            'rise_time':(self.seba.rise_time or 0) + montu.PYEPHEM_JD_REF,
+            'rise_az':self.seba.rise_az*montu.RAD,
+            'set_time':(self.seba.set_time or 0) + montu.PYEPHEM_JD_REF,
+            'set_az':self.seba.set_az*montu.RAD,
+            'transit_time':(self.seba.transit_time or 0) + montu.PYEPHEM_JD_REF,
+            'transit_el':(self.seba.transit_alt or 0)*montu.RAD,
             'elongation':self.seba.elong*montu.RAD,'earth_distance':self.seba.earth_distance,
             'sun_distance':self.seba.sun_distance,'is_circumpolar':self.seba.circumpolar,
             'is_neverup':self.seba.neverup,'angsize':self.seba.size,
@@ -136,6 +139,12 @@ class Sebau(object):
     def reset_store(self):
         self.position = []
         self.condition = []
+
+    def tabulate_positions(self):
+        return pd.DataFrame(self.position)
+    
+    def tabulate_conditions(self):
+        return pd.DataFrame(self.condition)
         
 ###############################################################
 # Sun Class

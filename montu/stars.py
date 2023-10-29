@@ -137,7 +137,42 @@ class Stars(object):
     def precess_to(self,epoch=None):
         pass
 
-    def where_in_sky(self,at=None,site=None,pandas=False,store=False):
+    def where_in_space(self,at=None,inplace=False):
+        """Determine the stellar coordinates of a set of stars at a given epoch.
+
+        Parameters:
+            at: montu.Time, default = None:
+                Epoch to determine position in sky.
+            
+            inplace: Boolean, default = False:
+                If True the DataFrame of the stars is updated.
+                If False a DataFrame with the updated positions is returned.
+
+        Return:
+            data: pandas.DataFrame:
+                Positions of stars with additional fields:
+                    tt: Epoch in terrestrial time seconds.
+                    jed: Epoch in Julian days (utc).
+                    RAJ2000t, DecJ2000t: Positions updated to epoch.
+                    RAEpoch, DecEpoch: Positions precessed to epoch.
+
+            NOTE: If inplace = True, this columns are added to `data` of stars.
+        """
+        dDec = seba.pmDec*(epoch.jed-JED_2000)*MARCSEC/365.25
+        DecJ2000t = seba.DecJ2000 + dDec
+        dRA = seba.pmRA*(epoch.jed-JED_2000)*MARCSEC/365.25/15
+        RAJ2000t = seba.RAJ2000 + dRA
+        pass
+    
+    def where_in_sky(self,at=None,site=None):
+        """Determine the stellar coordinates with respect to the horizon of 
+        the stars.
+        """
+        pass
+    
+    def conditions_in_sky(self,at=None,site=None):
+        """Determine astronomical conditions in sky (rise time, set time, etc.)
+        """
         pass
     
     def plot_stars(self,coords=['RAJ2000','DecJ2000'],
