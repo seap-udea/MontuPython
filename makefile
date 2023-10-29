@@ -42,6 +42,7 @@ cleangit:
 	@-rm -rf .git/index.lock
 	@-rm -rf .git/HEAD.lock
 	@-rm -rf .git/refs/remotes/origin/main.lock
+	@-rm -rf .git/refs/heads/main.lock
 
 readme:
 	python3 -m nbconvert README.ipynb --to markdown
