@@ -28,6 +28,8 @@ import numpy as np
 # Numerical Constants
 RAD = 180/np.pi
 DEG = 1/RAD
+MARCSEC = 1e-3/3600 # milliarcsec in degrees 
+
 
 ###############################################################
 # Initialization

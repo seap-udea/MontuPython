@@ -14,10 +14,16 @@ import matplotlib.pyplot as plt
 
 from tabulate import tabulate
 
+from pymeeus.Epoch import Epoch as pymeeus_Epoch
+from pymeeus.Angle import Angle as pymeeus_Angle
+import pymeeus.Coordinates as pymeeus_Coordinates
+
 ###############################################################
 # Module constants
 ###############################################################
 STELLAR_CATALOGUE = 'montu_stellar_catalogue_v37.csv'
+
+# Angular measures
 
 ###############################################################
 # Stars Class
@@ -133,9 +139,25 @@ class Stars(object):
         })
         stars = self.get_stars(**kwargs)
         return stars
-    
-    def precess_to(self,epoch=None):
-        pass
+   
+    @staticmethod
+    def _precess_coordinates(seba,epoch):
+        """Precess coordinates of a celestial object
+        """
+        RAEpoch,DecEpoch = pymeeus_Coordinates.precession_equatorial(
+            montu.PYMEEUS_JED_2000,epoch,
+            pymeeus_Angle(seba['RAJ2000'],ra=True),
+            pymeeus_Angle(seba['DecJ2000']),
+            pymeeus_Angle(seba['pmRA']*montu.MARCSEC),
+            pymeeus_Angle(seba['pmDec']*montu.MARCSEC)
+        )
+        RAEpoch = np.mod(float(RAEpoch),360)/15
+        DecEpoch = float(DecEpoch)
+        """
+        There is a problem when precessing stars close to the pole
+        """
+        DecEpoch = 90 - DecEpoch if (seba['DecJ2000']-DecEpoch)>45 else DecEpoch
+        return RAEpoch,DecEpoch
 
     def where_in_space(self,at=None,inplace=False):
         """Determine the stellar coordinates of a set of stars at a given epoch.
@@ -158,18 +180,126 @@ class Stars(object):
 
             NOTE: If inplace = True, this columns are added to `data` of stars.
         """
-        dDec = seba.pmDec*(epoch.jed-JED_2000)*MARCSEC/365.25
-        DecJ2000t = seba.DecJ2000 + dDec
-        dRA = seba.pmRA*(epoch.jed-JED_2000)*MARCSEC/365.25/15
-        RAJ2000t = seba.RAJ2000 + dRA
-        pass
-    
-    def where_in_sky(self,at=None,site=None):
-        """Determine the stellar coordinates with respect to the horizon of 
-        the stars.
+        # If at is not provide use present
+        if at is None:
+            at = montu.Time()
+
+        # Create pymeeus epoch
+        epoch = pymeeus_Epoch(at.jed)
+
+        # Determine which data to modify according to inplace
+        if inplace:
+            data = self.data
+        else:
+            data = copy.deepcopy(self.data)
+
+        # Move stars according to proper potion
+        dt = (at.jed-montu.JED_2000)*montu.MARCSEC/365.25
+        data['tt'] = at.tt
+        data['jed'] = at.jed
+        data['RAJ2000t'] = data.RAJ2000 + self.data.pmRA*dt/15
+        data['DecJ2000t'] = data.DecJ2000 + self.data.pmDec*dt
+        data['RAEpoch'],data['DecEpoch'] = zip(*np.array(data.apply(lambda seba:Stars._precess_coordinates(seba,epoch),axis=1)))    
+
+        if not inplace:
+            return data
+
+    @staticmethod
+    def _to_alt_az(seba,lat):
+        """Convert to altazimutal coordinates.
+
+        Parameters:
+            seba: dictionary|pandas.Series:
+                Celestial object. It must have the following attributes:
+                    HA: Hour angle [hours]
+                    DecEpoch: Declination at epoch [deg]
+
+            lat: float [deg]:
+                Latitude of the observing site.
+
+        Return:
+            az: float [deg]:
+                Azimuth.
+            el: float [deg]:
+                Elevation.
+            zen: float [deg]:
+                Zenithal angle.
         """
-        pass
-    
+        # Get coordinates
+        HA = seba['HA']
+        Dec = seba['DecEpoch']
+        
+        # Compute horizontal coordinates
+        el = np.arcsin(np.sin(Dec*montu.DEG)*np.sin(lat*montu.DEG) + \
+                    np.cos(Dec*montu.DEG)*np.cos(lat*montu.DEG)*np.cos(HA*15*montu.DEG))*montu.RAD
+        az = np.arctan2(-np.sin(HA*15*montu.DEG)*np.cos(Dec*montu.DEG)/np.cos(el*montu.DEG),
+                        (np.sin(Dec*montu.DEG) - np.sin(lat*montu.DEG)*np.sin(el*montu.DEG))/\
+                            (np.cos(lat*montu.DEG)*np.cos(el*montu.DEG)))*montu.RAD
+        az = np.mod(az,360)
+        zen = 90 - el
+        return az,el,zen
+
+    def where_in_sky(self,at=None,observer=None,inplace=False):
+        """Determine the position in the sky a set of stars at a given epoch.
+
+        Parameters:
+            at: montu.Time, default = None:
+                Epoch to determine position in sky.
+            
+            observer: montu.Observer, default = None:
+                    Observer which see the object.
+
+
+            inplace: Boolean, default = False:
+                If True the DataFrame of the stars is updated.
+                If False a DataFrame with the updated positions is returned.
+
+        Return:
+            data: pandas.DataFrame:
+                Positions of stars with additional fields:
+                    tt: Epoch in terrestrial time seconds.
+                    jed: Epoch in Julian days (utc).
+                    RAJ2000t, DecJ2000t: Positions updated to epoch.
+                    RAEpoch, DecEpoch: Positions precessed to epoch.
+                    az, el: azimuth and elevation at place and epoch.
+
+            NOTE: If inplace = True, this columns are added to `data` of stars.
+        """
+        # If at is not provide use present
+        if at is None:
+            at = montu.Time()
+
+        # Check inputs
+        if not isinstance(observer,montu.Observer):
+            raise ValueError("You must provide a valid montu.Observer")
+
+        # Determine which data to modify according to inplace
+        if inplace:
+            data = self.data
+        else:
+            data = copy.deepcopy(self.data)
+
+        # Check if data has been precessed to epoch
+        if 'RAEpoch' not in data.keys():
+            # Precess stars if not precessed yet
+            self.where_in_space(at,inplace=True)
+
+        # Create pymeeus epoch
+        epoch = pymeeus_Epoch(at.jed)
+
+        # Compute local true sidereal time
+        observer.site.date = at.jed - montu.PYEPHEM_JD_REF
+        ltst = observer.site.sidereal_time()*montu.RAD/15
+        
+        # Find hour angle
+        data['HA'] = data.apply(lambda seba:np.mod(ltst - seba['RAEpoch'],24),axis=1)
+
+        # Convert to alt azimutal
+        data['az'],data['el'],data['zen'] = zip(*data.apply(lambda seba:Stars._to_alt_az(seba,observer.lat),axis=1))
+
+        if not inplace:
+            return data
+        
     def conditions_in_sky(self,at=None,site=None):
         """Determine astronomical conditions in sky (rise time, set time, etc.)
         """
@@ -265,11 +395,14 @@ class Stars(object):
 
         return fig,axs
     
-    def __repr__(self):
-        repr = f"Stars(number={len(self.data)})"
-        return repr
-
     def __str__(self):
         desc = f"{len(self.data)} star(s):\n"
         desc += tabulate(self.data,headers='keys',tablefmt='github')
         return desc
+
+    def __repr__(self):
+        #repr = f"Stars(number={len(self.data)})"
+        repr = self.__str__()
+        return repr
+
+    

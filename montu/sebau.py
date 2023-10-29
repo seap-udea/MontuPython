@@ -10,10 +10,25 @@ import ephem as pyephem
 import pandas as pd
 
 from tabulate import tabulate
+from functools import lru_cache
 
 ###############################################################
 # Module constants
 ###############################################################
+# Planets
+PLANETARY_IDS = dict(
+    SUN = 10,
+    MERCURY = 1,
+    VERNUS = 2,
+    EARTH = 399,
+    MOON = 301,
+    MARS = 4,
+    JUPITER = 5,
+    SATURN = 6,
+    URANUS = 7,
+    NEPTUNE = 8,
+)
+PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 
 ###############################################################
 # Class Sebau
@@ -21,6 +36,14 @@ from tabulate import tabulate
 class Sebau(object):
     """Class of celestial object
     """
+
+    @lru_cache()
+    def __new__(cls,id):
+        """This method is intended to avoid creating a new object with the same id
+        Instead this method create a clone of the previously created object.
+        """
+        return super().__new__(cls)
+
     def __init__(self):
         # Basic attributes
         self.reset_store()
@@ -35,10 +58,6 @@ class Sebau(object):
             observer: montu.Observer, default = None:
                 Observer which see the object.
 
-            pandas: boolean, default = False:
-                If true, store position in a dataframe.
-                If false, store position as a dictionary.
-            
             store: boolean, default = False:
                 If true, store positions in sucessive calls.
 
@@ -57,7 +76,7 @@ class Sebau(object):
             'DecGeo':self.seba.g_dec*montu.RAD,'el':self.seba.alt*montu.RAD,
             'az':self.seba.az*montu.RAD,
         }
-
+        # Accumulating store
         if store:
             self.position += [position]
         else:
@@ -145,6 +164,10 @@ class Sebau(object):
     
     def tabulate_conditions(self):
         return pd.DataFrame(self.condition)
+
+    @staticmethod
+    def where_in_sky_all_planets(at=None,observer=None):
+        pass
         
 ###############################################################
 # Sun Class
@@ -225,9 +248,23 @@ class Planet(Sebau):
     """
     def __init__(self,name):
         super().__init__()
+
+        # Names
+        self.name_upper = name.upper()
+        if self.name_upper in PLANETARY_IDS.keys():
+            self.name = self.name_upper.lower()
+            self.id = str(PLANETARY_IDS[self.name_upper])
+        elif self.name_upper in PLANETARY_NAMES.keys():
+            self.id = str(self.name_upper)
+            self.name = PLANETARY_NAMES[self.id].lower()
+        else:
+            raise ValueError(f"Planet '{self.name_upper}' not recognized, check variable PLANETARY_NAMES")
+        self.name_lower = self.name.lower()
+        self.name = self.name_lower[0].upper() + self.name_lower[1:]
+        self.name_upper = self.name.upper()
         
         # Find the planet
-        exec(f"self.seba = pyephem.{name}()")
+        exec(f"self.seba = pyephem.{self.name}()")
         self.name = self.seba.name
 
     def where_in_sky(self, at=None, observer=None, store=False):

@@ -39,6 +39,7 @@ JED_CORRECTION = interp1d(
 PYEPHEM_JD_REF = 2415020.0
 PYEPHEM_MJD_2000 = 36525.0
 JED_2000 = 2451545.0
+PYMEEUS_JED_2000 = pymeeus_Epoch(JED_2000)
 
 # Astronomical
 MIN = 60 # s
@@ -46,6 +47,7 @@ HOUR = 60*MIN # s
 DAY = 86400 # s
 CALYEAR = 365*DAY # s, calendar year
 JULYEAR = 365.25*DAY # s, julian year
+SIDYEAR = 365.256363004*DAY #s, sidereal year
 YEAR = 365.25*DAY # s
 CENTURY = 100*YEAR # s
 MILLENIUM = 10*YEAR # s
@@ -338,7 +340,7 @@ class Time(object):
         
         # Parse string
         self._parse_datestr(datestr)
-        return self.__str__()
+        return self
 
     def __copy__(self):
         return Time(self.tt)
@@ -420,9 +422,8 @@ Uniform scales:
         tts = ax.get_xticks()
         xlabels = []
         for tt in tts:
-            mtime = Time(tt)
-            readable = mtime.get_readable()
-            xlabels += [f'{readable.year}']
+            mtime = Time(tt).get_readable()
+            xlabels += [f'{mtime.readable.year}']
         ax.set_xticklabels(xlabels)
         
 Time.__doc__ = """Create a time object
