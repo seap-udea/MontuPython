@@ -6,7 +6,7 @@ from montu.util import *
 from montu.time import *
 from montu.stars import *
 from montu.observer import *
-from montu.sun import *
+from montu.sebau import *
 
 ###############################################################
 # Aliases

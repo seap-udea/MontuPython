@@ -271,3 +271,9 @@ class Dictobj(object):
         for key, value in kwargs.items():
             if key == 'dict':continue
             setattr(self, key, value)
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __repr__(self):
+        return self.__str__()

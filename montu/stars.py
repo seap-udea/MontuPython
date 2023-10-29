@@ -134,6 +134,12 @@ class Stars(object):
         stars = self.get_stars(**kwargs)
         return stars
     
+    def precess_to(self,epoch=None):
+        pass
+
+    def where_in_sky(self,at=None,site=None,pandas=False,store=False):
+        pass
+    
     def plot_stars(self,coords=['RAJ2000','DecJ2000'],
                    labels=True,pad=0,figargs=dict(),stargs=dict()):
         """Plot all stars in data.

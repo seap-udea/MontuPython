@@ -1,3 +1,95 @@
+ def CHECK_VALUE(value,factor,sum,list=False):
+    set_value = value
+    return_value = set_value if set_value is None else set_value*factor+sum
+    return [return_value] if list else return_value
+
+ 
+    def where_in_sky(self,at=None,observer=None,pandas=False,store=False):
+        """Compute position in the sky of seba
+
+        Parameters:
+            at: montu.Time, default = None:
+                Time at which the position should be computed.
+
+            observer: montu.Observer, default = None:
+                Observer which see the object.
+
+            pandas: boolean, default = False:
+                If true, store position in a dataframe.
+                If false, store position as a dictionary.
+            
+            store: boolean, default = False:
+                If true, store positions in sucessive calls.
+
+        Update:
+            Once this routine is called the position of the 
+            object is updated.
+        """
+        self._compute_ephemerides(at,observer)
+
+        # Prepare storage
+        if store:
+            self.position = pd.DataFrame(self.position) if pandas else self.position
+        
+        # Basic store
+        position = {
+            'tt':[int(at.tt)],'jed':[at.jed],
+            'Name':[self.seba.name],'RAJ2000':[self.seba.a_ra*montu.RAD/15],
+            'DecJ2000':[self.seba.a_dec*montu.RAD],'RAEpoch':[self.seba.ra*montu.RAD/15],
+            'DecEpoch':[self.seba.dec*montu.RAD],'RAGeo':[self.seba.g_ra*montu.RAD/15],
+            'DecGeo':[self.seba.g_dec*montu.RAD],'el':[self.seba.alt*montu.RAD],
+            'az':[self.seba.az*montu.RAD],
+        }
+
+        if store:
+            if pandas:
+                if not isinstance(self.position,pd.DataFrame):
+                    self.position = pd.DataFrame(self.position)
+                self.position = pd.concat([self.position,pd.DataFrame(position)])
+                self.position.reset_index(drop=True,inplace=True)
+            else:
+                for key,item in position.items():position[key] = item[0]
+                self.position += [position]
+        else:
+            if pandas:
+                self.position = pd.DataFrame(position)
+            else: 
+                for key,item in position.items():position[key] = item[0]
+                self.position = montu.Dictobj(dict=position)
+    
+    def conditions_in_sky(self,at=None,observer=None,pandas=False,store=False):
+ 
+        """Calculate full conditions in the sky
+        """
+        # First compute
+        self.where_in_sky(at,observer,pandas,store)
+        
+        # Store
+        condition = {
+            'ha':[self.seba.ha*montu.RAD/15],
+            'Vmag':[self.seba.mag],
+            'rise_time':[self.seba.rise_time],'rise_az':[self.seba.rise_az*montu.RAD],
+            'set_time':[self.seba.set_time],'set_az':[self.seba.set_az*montu.RAD],
+            'transit_time':[self.seba.transit_time],'transit_el':[(self.seba.transit_alt or 0)*montu.RAD],
+            'elongation':[self.seba.elong*montu.RAD],'earth_distance':[self.seba.earth_distance],
+            'sun_distance':[self.seba.sun_distance],'is_circumpolar':[self.seba.circumpolar],
+            'is_neverup':[self.seba.neverup],'angsize':[self.seba.size],
+            'phase':[self.seba.phase],'hlat':[self.seba.hlat*montu.RAD],'hlon':[self.seba.hlon*montu.RAD],
+            'hlong':[self.seba.hlong*montu.RAD],
+        }
+
+        if store:
+            if pandas:
+                if not isinstance(self.condition,pd.DataFrame):
+                    self.condition = pd.DataFrame(self.condition)
+                self.condition = pd.concat([self.condition,pd.DataFrame(condition)])
+                self.condition.reset_index(drop=True,inplace=True)
+            else:
+                self.condition += [condition]
+        else:
+            self.condition = pd.DataFrame(condition) if pandas else montu.Dictobj(dict=condition)
+
+
 from pyplanets.core.constellation import Constellation as pyplanets_Constellation
 
 #"""

@@ -14,10 +14,6 @@ from tabulate import tabulate
 ###############################################################
 # Module constants
 ###############################################################
-def CHECK_VALUE(value,factor,sum,list=False):
-    set_value = value
-    return_value = set_value if set_value is None else set_value*factor+sum
-    return [return_value] if list else return_value
 
 ###############################################################
 # Class Sebau
@@ -29,7 +25,7 @@ class Sebau(object):
         # Basic attributes
         self.reset_store()
 
-    def where_in_sky(self,at=None,observer=None,pandas=False,store=False):
+    def where_in_sky(self,at=None,observer=None,store=False):
         """Compute position in the sky of seba
 
         Parameters:
@@ -52,64 +48,49 @@ class Sebau(object):
         """
         self._compute_ephemerides(at,observer)
 
-        # Prepare storage
-        if store:
-            self.position = pd.DataFrame(self.position) if pandas else self.position
-        
         # Basic store
         position = {
-            'tt':[int(at.tt)],'jed':[at.jed],
-            'Name':[self.seba.name],'RAJ2000':[self.seba.a_ra*montu.RAD/15],
-            'DecJ2000':[self.seba.a_dec*montu.RAD],'RAEpoch':[self.seba.ra*montu.RAD/15],
-            'DecEpoch':[self.seba.dec*montu.RAD],'RAGeo':[self.seba.g_ra*montu.RAD/15],
-            'DecGeo':[self.seba.g_dec*montu.RAD],'el':[self.seba.alt*montu.RAD],
-            'az':[self.seba.az*montu.RAD],
+            'tt':int(at.tt),'jed':at.jed,
+            'Name':self.seba.name,'RAJ2000':self.seba.a_ra*montu.RAD/15,
+            'DecJ2000':self.seba.a_dec*montu.RAD,'RAEpoch':self.seba.ra*montu.RAD/15,
+            'DecEpoch':self.seba.dec*montu.RAD,'RAGeo':self.seba.g_ra*montu.RAD/15,
+            'DecGeo':self.seba.g_dec*montu.RAD,'el':self.seba.alt*montu.RAD,
+            'az':self.seba.az*montu.RAD,
         }
 
         if store:
-            if pandas:
-                if not isinstance(self.position,pd.DataFrame):
-                    self.position = pd.DataFrame(self.position)
-                self.position = pd.concat([self.position,pd.DataFrame(position)])
-                self.position.reset_index(drop=True,inplace=True)
-            else:
-                self.position += [position]
+            self.position += [position]
         else:
-            self.position = pd.DataFrame(position) if pandas else montu.Dictobj(dict=position)
+            self.position = montu.Dictobj(dict=position)
     
-    def conditions_in_sky(self,at=None,observer=None,pandas=False,store=False):
+    def conditions_in_sky(self,at=None,observer=None,store=False):
  
         """Calculate full conditions in the sky
         """
         # First compute
-        self.where_in_sky(at,observer,pandas,store)
+        self.where_in_sky(at,observer,store)
         
         # Store
         condition = {
-            'ha':[self.seba.ha*montu.RAD/15],
-            'Vmag':[self.seba.mag],
-            'rise_time':[self.seba.rise_time],'rise_az':[self.seba.rise_az*montu.RAD],
-            'set_time':[self.seba.set_time],'set_az':[self.seba.set_az*montu.RAD],
-            'transit_time':[self.seba.transit_time],'transit_el':[(self.seba.transit_alt or 0)*montu.RAD],
-            'elongation':[self.seba.elong*montu.RAD],'earth_distance':[self.seba.earth_distance],
-            'sun_distance':[self.seba.sun_distance],'is_circumpolar':[self.seba.circumpolar],
-            'is_neverup':[self.seba.neverup],'angsize':[self.seba.size],
-            'phase':[self.seba.phase],'hlat':[self.seba.hlat*montu.RAD],'hlon':[self.seba.hlon*montu.RAD],
-            'hlong':[self.seba.hlong*montu.RAD],
+            'ha':self.seba.ha*montu.RAD/15,
+            'Vmag':self.seba.mag,
+            'rise_time':self.seba.rise_time,'rise_az':self.seba.rise_az*montu.RAD,
+            'set_time':self.seba.set_time,'set_az':self.seba.set_az*montu.RAD,
+            'transit_time':self.seba.transit_time,'transit_el':(self.seba.transit_alt or 0)*montu.RAD,
+            'elongation':self.seba.elong*montu.RAD,'earth_distance':self.seba.earth_distance,
+            'sun_distance':self.seba.sun_distance,'is_circumpolar':self.seba.circumpolar,
+            'is_neverup':self.seba.neverup,'angsize':self.seba.size,
+            'phase':self.seba.phase,'hlat':self.seba.hlat*montu.RAD,'hlon':self.seba.hlon*montu.RAD,
+            'hlong':self.seba.hlong*montu.RAD,
         }
 
         if store:
-            if pandas:
-                if not isinstance(self.condition,pd.DataFrame):
-                    self.condition = pd.DataFrame(self.condition)
-                self.condition = pd.concat([self.condition,pd.DataFrame(condition)])
-                self.condition.reset_index(drop=True,inplace=True)
-            else:
-                self.condition += [condition]
+            self.condition += [condition]
         else:
-            self.condition = pd.DataFrame(condition) if pandas else montu.Dictobj(dict=condition)
+            self.condition = montu.Dictobj(dict=condition)
 
     def _compute_ephemerides(self,at=None,observer=None):
+        
         # Check inputs
         if not isinstance(observer,montu.Observer):
             raise ValueError("You must provide a valid montu.Observer")
@@ -123,27 +104,35 @@ class Sebau(object):
         # Compute ephemerides
         self.seba.compute(observer.site)
 
+    def when_it_appears(self,at=None,observer=None):
+        """Compute the time at a given date and place when the body
+        appears in the night sky.
+        """
+        pass
+
     def __str__(self):
 
         # Positions
         output = f"Object {self.seba.name} positions:\n"
-        try:
-            output += f"{tabulate(self.position,headers='keys',tablefmt='github')}'"
-        except:
-            output += f"{tabulate(self.position.__dict__,headers='keys',tablefmt='github')}'"
-        
+        if isinstance(self.position,montu.Dictobj):
+            tabulable = [self.position.__dict__]
+        else:
+            tabulable = self.position
+        output += f"{tabulate(tabulable,headers='keys',tablefmt='github')}'"
+
         # Conditions
         output += f"\nObject {self.seba.name} conditions:\n"
-        try:
-            output += f"{tabulate(self.condition,headers='keys',tablefmt='github')}'"
-        except:
-            output += f"{tabulate(self.condition.__dict__,headers='keys',tablefmt='github')}'"
-
+        if isinstance(self.condition,montu.Dictobj):
+            tabulable = [self.condition.__dict__]
+        else:
+            tabulable = self.condition
+        output += f"{tabulate(tabulable,headers='keys',tablefmt='github')}'"
+        
         return output
     
     def __repr__(self):
         return self.__str__()
-    
+
     def reset_store(self):
         self.position = []
         self.condition = []
@@ -159,9 +148,24 @@ class Sun(Sebau):
         self.seba = pyephem.Sun()
         self.name = self.seba.name
 
+    def where_in_sky(self, at=None, observer=None, store=False):
+        super().where_in_sky(at, observer, store)
+
+    def conditions_in_sky(self, at=None, observer=None, store=False):
+        super().conditions_in_sky(at, observer, store)
+
     @staticmethod
-    def next_seasons(mtime):
-        date = pyephem.Date(mtime.jed - montu.PYEPHEM_JD_REF)
+    def when_night_start_ends(at=None,observer=None):
+        """It gets the time when sun sets but also the time of dawn.
+
+        It gives you a function to compute the time of appearance 
+        of objects as a function of their magnitudes
+        """
+        pass
+        
+    @staticmethod
+    def next_seasons(at=None):
+        date = pyephem.Date(at.jed - montu.PYEPHEM_JD_REF)
         vernal_jed = pyephem.next_vernal_equinox(date) + montu.PYEPHEM_JD_REF
         summer_jed = pyephem.next_summer_solstice(date) + montu.PYEPHEM_JD_REF
         auttumnal_jed = pyephem.next_autumnal_equinox(date) + montu.PYEPHEM_JD_REF
@@ -169,8 +173,8 @@ class Sun(Sebau):
         return vernal_jed,summer_jed,auttumnal_jed,winter_jed
     
     @staticmethod
-    def previous_seasons(mtime):
-        date = pyephem.Date(mtime.jed - montu.PYEPHEM_JD_REF)
+    def previous_seasons(at=None):
+        date = pyephem.Date(at.jed - montu.PYEPHEM_JD_REF)
         vernal_jed = pyephem.previous_vernal_equinox(date) + montu.PYEPHEM_JD_REF
         summer_jed = pyephem.previous_summer_solstice(date) + montu.PYEPHEM_JD_REF
         auttumnal_jed = pyephem.previous_autumnal_equinox(date) + montu.PYEPHEM_JD_REF
@@ -188,20 +192,22 @@ class Moon(Sebau):
         self.seba = pyephem.Moon()
         self.name = self.seba.name
 
-    def where_in_sky(self, at=None, observer=None, 
-                     pandas=False, store=False):
-        super().where_in_sky(at, observer, pandas, store)
+    def where_in_sky(self, at=None, observer=None, store=False):
+        super().where_in_sky(at, observer, store)
 
-    def conditions_in_sky(self, at=None, observer=None, 
-                          pandas=False, store=False):
-        super().conditions_in_sky(at, observer, pandas, store)
+    def conditions_in_sky(self, at=None, observer=None, store=False):
+        super().conditions_in_sky(at, observer, store)
         
         # Additional fields
         additional_conditions = {
             'colong':[self.seba.colong*montu.RAD],'libration_lat':[self.seba.libration_lat*montu.RAD],
             'libration_long':[self.seba.libration_long*montu.RAD],'moon_phase':[self.seba.moon_phase],
         }
-        
+
+    @staticmethod
+    def next_moon_quarters(at=None):
+        pass
+
 ###############################################################
 # Planet Class
 ###############################################################
@@ -215,10 +221,8 @@ class Planet(Sebau):
         exec(f"self.seba = pyephem.{name}()")
         self.name = self.seba.name
 
-    def where_in_sky(self, at=None, observer=None, 
-                     pandas=False, store=False):
-        super().where_in_sky(at, observer, pandas, store)
+    def where_in_sky(self, at=None, observer=None, store=False):
+        super().where_in_sky(at, observer, store)
 
-    def conditions_in_sky(self, at=None, observer=None, 
-                          pandas=False, store=False):
-        super().conditions_in_sky(at, observer, pandas, store)
+    def conditions_in_sky(self, at=None, observer=None, store=False):
+        super().conditions_in_sky(at, observer, store)
