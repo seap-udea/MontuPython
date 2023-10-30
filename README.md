@@ -658,7 +658,7 @@ You will find a complete set of runable example notebooks â€“`Colab` notebooksâ€
 
 ## Advanced examples
 
-For a fully-fledged working example see `examples/MontuPython-Montunctions.ipynb`.
+For a fully-fledged working example see [`examples/MontuPython-Montunctions.ipynb`](https://drive.google.com/file/d/1kTFaHqfxydv_Sbc3rvn-TH24--CDlCTy/view?usp=drive_link).
 
 
 ## What's new
