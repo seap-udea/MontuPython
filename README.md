@@ -17,11 +17,6 @@ different arquitectures.
 
 If you are using `PyPI` installation it's as simple as:
 
-```
-pip install montu
-```
-
-
 
 ```python
 # Uncomment if you are in Google Colab
