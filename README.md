@@ -227,12 +227,6 @@ fig,axs = hyades.plot_stars()
 fig.savefig('gallery/hyades.png')
 ```
 
-
-    
-![png](README_files/README_35_0.png)
-    
-
-
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
 Now you can precess the stars:
