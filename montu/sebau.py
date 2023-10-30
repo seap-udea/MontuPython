@@ -20,6 +20,8 @@ from pymeeus.Jupiter import Jupiter as pymeeus_Jupiter
 from pymeeus.Saturn import Saturn as pymeeus_Saturn
 from pymeeus.Uranus import Uranus as pymeeus_Uranus
 from pymeeus.Neptune import Neptune as pymeeus_Neptune
+from pymeeus.Moon import Moon as pymeeus_Moon
+from pymeeus.Sun import Sun as pymeeus_Sun
 
 ###############################################################
 # Module constants
