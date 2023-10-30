@@ -48,6 +48,9 @@ You may import the package using:
 from montu import *
 ```
 
+    Running MontuPython version 0.9.0
+
+
 or for a safe import:
 
 
@@ -226,6 +229,12 @@ plt.ioff() # Used only for README generation
 fig,axs = hyades.plot_stars()
 fig.savefig('gallery/hyades.png')
 ```
+
+
+    
+![png](README_files/README_35_0.png)
+    
+
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
@@ -595,7 +604,7 @@ for dt in tqdm.tqdm(np.linspace(-20000*montu.YEAR,20000*montu.YEAR,1000)):
     df = pd.concat([df,pd.DataFrame([row])])
 ```
 
-      0%|          | 0/1000 [00:00<?, ?it/s]100%|██████████| 1000/1000 [00:07<00:00, 130.21it/s]
+      1%|          | 11/1000 [00:00<00:10, 98.73it/s]100%|██████████| 1000/1000 [00:08<00:00, 120.18it/s]
 
 
 Now plot declinations as a function of time:
@@ -635,12 +644,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2083-11-20 21:04:14.1000 (declination 89:31:44.514)
-    Star Vega will be the closest to the pole at 11572 B.C. 12-08 05:49:24.500000 (declination 86:22:2.229)
-    Star Thuban will be the closest to the pole at 2803 B.C. 11-25 21:13:55.300000 (declination 89:55:33.160)
-    Star Deneb will be the closest to the pole at 14735 B.C. 09-12 09:20:55.600000 (declination 86:57:15.883)
-    Star Alderamin will be the closest to the pole at 7529-06-11 14:55:32.3000 (declination 87:58:41.178)
-    Star Kochab will be the closest to the pole at 1081 B.C. 08-29 05:21:29.900000 (declination 83:29:31.877)
+    Star Polaris will be the closest to the pole at 2083-11-20 21:09:06.9000 (declination 89:31:44.515)
+    Star Vega will be the closest to the pole at 11572 B.C. 12-08 05:54:17.300000 (declination 86:22:2.229)
+    Star Thuban will be the closest to the pole at 2803 B.C. 11-25 21:18:48.100000 (declination 89:55:33.161)
+    Star Deneb will be the closest to the pole at 14735 B.C. 09-12 09:25:48.400000 (declination 86:57:15.883)
+    Star Alderamin will be the closest to the pole at 7529-06-11 15:00:25.1000 (declination 87:58:41.178)
+    Star Kochab will be the closest to the pole at 1081 B.C. 08-29 05:26:22.700000 (declination 83:29:31.877)
 
 
 ## Other example scripts

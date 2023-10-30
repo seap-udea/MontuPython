@@ -39,3 +39,6 @@ warnings.filterwarnings("ignore")
 
 # Load basic SPICE kernels
 Util.load_kernels()
+
+# Showing version 
+print(f"Running MontuPython version {version}")
