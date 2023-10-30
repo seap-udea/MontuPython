@@ -49,8 +49,9 @@ setuptools.setup(
     # ######################################################################
     # DEPENDENCIES
     # ######################################################################
-    install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem','pymeeus','regex','pandas','tabulate',
-                      'astroquery','plotly','numpy','spiceypy','pyplanets','astropy','astroquery'],
+    install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem',
+                      'pymeeus','regex','pandas','tabulate','numpy','spiceypy',
+                      'pyplanets'],
 
     # ######################################################################
     # OPTIONS
