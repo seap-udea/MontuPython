@@ -81,7 +81,8 @@ class Time(object):
                  date=None,
                  format='iso',
                  scale='utc',
-                 calendar='proleptic'):
+                 calendar='proleptic',
+                 full=False):
         
         # Representation is a dictionary with the representation
         self.readable = montu.Dictobj()
@@ -191,6 +192,9 @@ class Time(object):
         else:
             # Initialize object according to date and format and 
             self.update_time(date,format,scale)
+
+            if full:
+                self.get_readable()
 
     def _parse_datestr(self,date):
         """Parse date string

@@ -31,6 +31,15 @@ PRECISION_KERNELS = {
 }
 KERNELS_LOADED = dict()
 
+from tqdm import tqdm
+def GENERATOR():
+    """This routine is intended to create a while True loop for tqdm 
+    counter
+    """
+    while True:yield
+WHILE_TRUE = lambda:tqdm(GENERATOR())
+PROGRESS = lambda iterable:tqdm(iterable)
+
 ###############################################################
 # Montu Python Util Class
 ###############################################################

@@ -77,6 +77,7 @@ class Sebau(object):
             'az':self.seba.az*montu.RAD,
         }
         # Accumulating store
+        self.position_store = store
         if store:
             self.position += [position]
         else:
@@ -105,7 +106,8 @@ class Sebau(object):
             'phase':self.seba.phase,'hlat':self.seba.hlat*montu.RAD,'hlon':self.seba.hlon*montu.RAD,
             'hlong':self.seba.hlong*montu.RAD,
         }
-
+        
+        self.condition_store = store
         if store:
             self.condition += [condition]
         else:
@@ -157,7 +159,15 @@ class Sebau(object):
 
     def reset_store(self):
         self.position = []
+        self.position_store = False
         self.condition = []
+        self.condition_store = False
+
+    def tabulate_store(self):
+        if self.position_store:
+            self.position = pd.DataFrame(self.position)
+        if self.condition_store:
+            self.condition = pd.DataFrame(self.condition)
 
     def tabulate_positions(self):
         return pd.DataFrame(self.position)
@@ -272,3 +282,6 @@ class Planet(Sebau):
 
     def conditions_in_sky(self, at=None, observer=None, store=False):
         super().conditions_in_sky(at, observer, store)
+
+    def next_planesticies(self,at=None):
+        pass

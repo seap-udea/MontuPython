@@ -36,6 +36,15 @@ from pymeeus.Saturn import Saturn as pymeeus_Saturn
 from pymeeus.Uranus import Uranus as pymeeus_Uranus
 from pymeeus.Neptune import Neptune as pymeeus_Neptune
 
+from pyplanets.planets.mercury import Mercury as pyplanets_Mercury
+from pyplanets.planets.venus import Venus as pyplanets_Venus
+from pyplanets.planets.earth import Earth as pyplanets_Earth
+from pyplanets.planets.mars import Mars as pyplanets_Mars
+from pyplanets.planets.jupiter import Jupiter as pyplanets_Jupiter
+from pyplanets.planets.saturn import Saturn as pyplanets_Saturn
+from pyplanets.planets.uranus import Uranus as pyplanets_Uranus
+from pyplanets.planets.neptune import Neptune as pyplanets_Neptune
+
 # Astropy
 from astropy import constants as astropy_constants
 from astropy import units as monu # Montu Units are astropy units

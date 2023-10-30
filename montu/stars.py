@@ -22,8 +22,8 @@ import pymeeus.Coordinates as pymeeus_Coordinates
 # Module constants
 ###############################################################
 STELLAR_CATALOGUE = 'montu_stellar_catalogue_v37.csv'
-
-# Angular measures
+PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
+SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
 
 ###############################################################
 # Stars Class
@@ -393,6 +393,7 @@ class Stars(object):
         # Montu water mark
         montu.Util.montu_mark(axs)
 
+        SET_PLT_DEFAULT_STYLE()
         return fig,axs
     
     def __str__(self):
