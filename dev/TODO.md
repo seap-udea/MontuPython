@@ -1,29 +1,21 @@
 
 # ToDo
 
-- Precess star positions. 
+- Develop another fully-fledged example: Venus appearances.
 
-- Create Sebau class for astronomical objects.
+- Given an azimuth and elevation obtain all visible stars passing at these point.
 
-- Create routine to compute 
+- Create a common data table with planets and stars.
 
+- Transform from horizontal to equatorial.
 
+- Test: fecha = -54-06-03, salida de Alkaid por azimuth 18 grados, 09:16:00, Dendera
 
-- Correct for time-of-flight and aberration the coordinates calculated with SPICE.
+- Create maps of the sky inlcuding the Horizon:
+  - Maps from above.
+  - Maps looking at north or south.
 
-- Create __str__ method for:    
-  * MonTime ((SOLVED))
-  * Site
-  * Planet
-  * SkyObject
-
-- Create a comparison matrix between different coordinates calculation methods.
-
-- Study differences between methods along time.
-
-- Precess using FK5 routine of astropy and compare.
-
-- Write routines to transform to local equatorial to local altazimutal and viceversa.
+- Include airmass. See wikipedia page and this paper: http://www.dioi.org/vols/wc0.pdf.
 
 Others:
 
@@ -34,11 +26,6 @@ Others:
 
 - Produce plots with `plotly`.
 
-- Create special Class to compute interesting events for archeoastronomy:
-  * Sunrise, Sunset
-  * Lunar phases
-  * Equinoxes and solstices.
-  
 - Include a modulus to calculate lunar and solar eclipses. See what is the best package in the market.
 
 - See if we can get information on the topography of a given site and convert it on information about the horizon.
@@ -47,8 +34,6 @@ Others:
   * Store coordinates as pyplanets_Angle
   * Precess coordinates
   * Correct for aberration
-
-- Test: fecha = -54-06-03, salida de Alkaid por azimuth 18 grados, 09:16:00, Dendera
 
 - Test calculations with historical solar eclipse.
 
@@ -62,12 +47,6 @@ Others:
 
 - Create maps of the sky in different projections
   * Especially maps of the circumpolar region.
-
-- Create maps of the sky inlcuding the Horizon.
-
-- Get a more complete database with stars, including all proper names and Bayer and Flamsteed names with proper characters.
-
-- Include airmass. See wikipedia page and this paper: http://www.dioi.org/vols/wc0.pdf.
 
 ## Useful documentation:
 
@@ -164,3 +143,32 @@ Method 'SPICE':
 - When computing coordinates of a planet create a DataFrame storing coordinates at different dates ((SOLVED))
 
 - All classes include `verbose` option ((DROPPED))
+
+
+- Precess star positions. (SOLVED)
+
+- Create Sebau class for astronomical objects. (SOLVED)
+
+- Correct for time-of-flight and aberration the coordinates calculated with SPICE. (DEPRECATED)
+
+- Create __str__ method for: (SOLVED)
+  * MonTime ((SOLVED))
+  * Site
+  * Planet
+  * SkyObject
+
+- Create a comparison matrix between different coordinates calculation methods. (DEPRECATED)
+
+- Study differences between methods along time. (DEPRECATED)
+
+- Precess using FK5 routine of astropy and compare. (DEPRECATED)
+
+- Write routines to transform to local equatorial to local altazimutal and viceversa. (SOLVED)
+
+- Create special Class to compute interesting events for archeoastronomy: (SOLVED)
+  * Sunrise, Sunset
+  * Lunar phases
+  * Equinoxes and solstices.
+  
+- Get a more complete database with stars, including all proper names and Bayer and Flamsteed names with proper characters. (SOLVED)
+

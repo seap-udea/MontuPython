@@ -208,11 +208,33 @@ class Sun(Sebau):
         super().conditions_in_sky(at, observer, store)
 
     @staticmethod
-    def when_night_start_ends(at=None,observer=None):
-        """It gets the time when sun sets but also the time of dawn.
+    def when_is_twilight(at=None,observer=None,sunbelow=18):
+        """Time of start and end of night time (between twilights).
 
-        It gives you a function to compute the time of appearance 
-        of objects as a function of their magnitudes
+        Parameters:
+            at: montu.Time, default = None:
+                Time at which the twilight is calculated.
+
+            observer: montu.Observer, default = None:
+                Observer which see the object.
+
+            sunbelow: float [deg], default = 18:
+                Angle below the horizon on which the astronomical
+                twilight is defined.
+
+        Return:
+            dusk, down: float [julian day]:
+                Time of start and end of night: time of astronomical dusk
+                time of astronomical down.
+
+            appearance_function: function(Vmag):
+                It gives you a function to compute the time when the 
+                object starts to be observed and when it dissapears.
+                This time depends on the angle below the horizon from which 
+                we define the object will be visible under clear sky conditions.
+
+        References:
+            https://en.wikipedia.org/wiki/Twilight
         """
         pass
         
