@@ -12,6 +12,15 @@ import pandas as pd
 from tabulate import tabulate
 from functools import lru_cache
 
+# Planet classes
+from pymeeus.Mercury import Mercury as pymeeus_Mercury
+from pymeeus.Venus import Venus as pymeeus_Venus
+from pymeeus.Mars import Mars as pymeeus_Mars
+from pymeeus.Jupiter import Jupiter as pymeeus_Jupiter
+from pymeeus.Saturn import Saturn as pymeeus_Saturn
+from pymeeus.Uranus import Uranus as pymeeus_Uranus
+from pymeeus.Neptune import Neptune as pymeeus_Neptune
+
 ###############################################################
 # Module constants
 ###############################################################
@@ -277,6 +286,9 @@ class Planet(Sebau):
         exec(f"self.seba = pyephem.{self.name}()")
         self.name = self.seba.name
 
+        # Get class of the planet
+        self.planet_class = eval(f"pymeeus_{self.name}")
+
     def where_in_sky(self, at=None, observer=None, store=False):
         super().where_in_sky(at, observer, store)
 
@@ -284,4 +296,11 @@ class Planet(Sebau):
         super().conditions_in_sky(at, observer, store)
 
     def next_planesticies(self,at=None):
-        pass
+        """Compute the closest stations in longitude
+        """
+        epoch = montu.pymeeus_Epoch(at.jed)
+        
+        jed_station1 = self.planet_class.station_longitude_1(epoch)
+        jed_station2 = self.planet_class.station_longitude_2(epoch)
+
+        return float(jed_station1),float(jed_station2)
