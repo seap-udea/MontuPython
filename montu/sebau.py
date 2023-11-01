@@ -8,9 +8,11 @@ import montu
 ###############################################################
 import ephem as pyephem
 import pandas as pd
+import numpy as np
 
 from tabulate import tabulate
 from functools import lru_cache
+from scipy.optimize import brentq
 
 # Planet classes
 from pymeeus.Mercury import Mercury as pymeeus_Mercury
@@ -30,7 +32,7 @@ from pymeeus.Sun import Sun as pymeeus_Sun
 PLANETARY_IDS = dict(
     SUN = 10,
     MERCURY = 1,
-    VERNUS = 2,
+    VENUS = 2,
     EARTH = 399,
     MOON = 301,
     MARS = 4,
@@ -47,13 +49,6 @@ PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 class Sebau(object):
     """Class of celestial object
     """
-
-    @lru_cache()
-    def __new__(cls,id):
-        """This method is intended to avoid creating a new object with the same id
-        Instead this method create a clone of the previously created object.
-        """
-        return super().__new__(cls)
 
     def __init__(self):
         # Basic attributes
@@ -76,7 +71,7 @@ class Sebau(object):
             Once this routine is called the position of the 
             object is updated.
         """
-        self._compute_ephemerides(at,observer)
+        self._compute_ephemerides(at.jed,observer)
 
         # Basic store
         position = {
@@ -106,11 +101,11 @@ class Sebau(object):
             'ha':self.seba.ha*montu.RAD/15,
             'Vmag':self.seba.mag,
             'rise_time':(self.seba.rise_time or 0) + montu.PYEPHEM_JD_REF,
-            'rise_az':self.seba.rise_az*montu.RAD,
+            'rise_az':(self.seba.rise_az or 2*np.pi)*montu.RAD,
             'set_time':(self.seba.set_time or 0) + montu.PYEPHEM_JD_REF,
             'set_az':self.seba.set_az*montu.RAD,
             'transit_time':(self.seba.transit_time or 0) + montu.PYEPHEM_JD_REF,
-            'transit_el':(self.seba.transit_alt or 0)*montu.RAD,
+            'transit_el':(self.seba.transit_alt or 2*np.pi)*montu.RAD,
             'elongation':self.seba.elong*montu.RAD,'earth_distance':self.seba.earth_distance,
             'sun_distance':self.seba.sun_distance,'is_circumpolar':self.seba.circumpolar,
             'is_neverup':self.seba.neverup,'angsize':self.seba.size,
@@ -124,17 +119,17 @@ class Sebau(object):
         else:
             self.condition = montu.Dictobj(dict=condition)
 
-    def _compute_ephemerides(self,at=None,observer=None):
+    def _compute_ephemerides(self,jed=None,observer=None):
         
         # Check inputs
         if not isinstance(observer,montu.Observer):
             raise ValueError("You must provide a valid montu.Observer")
 
-        if at is None:
-            at = montu.Time()
+        if jed is None:
+            jed = montu.Time().jed
 
         # Update observer site
-        observer.site.date = at.jed - montu.PYEPHEM_JD_REF
+        observer.site.date = jed - montu.PYEPHEM_JD_REF
 
         # Compute ephemerides
         self.seba.compute(observer.site)
@@ -206,37 +201,6 @@ class Sun(Sebau):
 
     def conditions_in_sky(self, at=None, observer=None, store=False):
         super().conditions_in_sky(at, observer, store)
-
-    @staticmethod
-    def when_is_twilight(at=None,observer=None,sunbelow=18):
-        """Time of start and end of night time (between twilights).
-
-        Parameters:
-            at: montu.Time, default = None:
-                Time at which the twilight is calculated.
-
-            observer: montu.Observer, default = None:
-                Observer which see the object.
-
-            sunbelow: float [deg], default = 18:
-                Angle below the horizon on which the astronomical
-                twilight is defined.
-
-        Return:
-            dusk, down: float [julian day]:
-                Time of start and end of night: time of astronomical dusk
-                time of astronomical down.
-
-            appearance_function: function(Vmag):
-                It gives you a function to compute the time when the 
-                object starts to be observed and when it dissapears.
-                This time depends on the angle below the horizon from which 
-                we define the object will be visible under clear sky conditions.
-
-        References:
-            https://en.wikipedia.org/wiki/Twilight
-        """
-        pass
         
     @staticmethod
     def next_seasons(at=None):
@@ -255,6 +219,59 @@ class Sun(Sebau):
         auttumnal_jed = pyephem.previous_autumnal_equinox(date) + montu.PYEPHEM_JD_REF
         winter_jed = pyephem.previous_winter_solstice(date) + montu.PYEPHEM_JD_REF
         return vernal_jed,summer_jed,auttumnal_jed,winter_jed
+
+    @staticmethod
+    def when_is_twilight(day=None, observer=None, sunbelow=-6):
+        """Time of start and end of night time (between twilights).
+
+        Parameters:
+            at: montu.Time, default = None:
+                Time at which the twilight is calculated.
+
+            observer: montu.Observer, default = None:
+                Observer which see the object.
+
+            sunbelow: float [deg], default = -6:
+                Angle below the horizon on which the astronomical
+                twilight is defined.
+                For convention: 
+                    sunbelow = -6 for civil twilight
+                    sunbelow = -12 for nautical twilight
+                    sunbelow = -18 for astronomical twilight
+
+        Return:
+            dusk_time, down_time: float [julian day]:
+                Time of start and end of night: time of astronomical dusk
+                time of astronomical down.
+
+            appearance_function: function(Vmag):
+                It gives you a function to compute the time when the 
+                object starts to be observed and when it dissapears.
+                This time depends on the angle below the horizon from which 
+                we define the object will be visible under clear sky conditions.
+
+        References:
+            https://en.wikipedia.org/wiki/Twilight
+        """
+        # Get rise and set time for Sun
+        sun = montu.Sun()
+        sun.conditions_in_sky(at=day,observer=observer)
+        set_time = sun.condition.set_time
+        rise_time = sun.condition.rise_time
+        
+        # Routine for calculating twilight
+        def is_sun_elevation_at(dt,ref_time,elevation):
+            time = ref_time + dt/montu.DAY
+            sun._compute_ephemerides(time,observer=observer)
+            sun_elevation = sun.seba.alt*montu.RAD
+            return sun_elevation - elevation
+
+        # Calculate dusk and dawn time
+        xtol = 1 # Tolerance set to 1 second to reduce computing time 
+        dusk_time = rise_time + brentq(is_sun_elevation_at,-6*montu.HOUR,0,args=(rise_time,sunbelow),xtol=xtol)/montu.DAY
+        dawn_time = set_time + brentq(is_sun_elevation_at,0,+6*montu.HOUR,args=(set_time,sunbelow),xtol=xtol)/montu.DAY
+
+        return dusk_time,dawn_time
 
 ###############################################################
 # Moon Class

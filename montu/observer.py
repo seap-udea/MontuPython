@@ -1,6 +1,7 @@
 ###############################################################
 # Montu interdependencies
 ###############################################################
+import montu
 
 ###############################################################
 # Required packages
@@ -54,3 +55,8 @@ class Observer(object):
         self.site.pressure = self.pressure
         self.site.temp = self.temperature
         self.site.elevation = self.height
+
+    def get_local_time(self,mtime,hms=True):
+        comps = montu.Time.get_date(mtime)
+        hour = (comps[3]+comps[4]/60.0+comps[5]/3600.0) + self.lon/15
+        return montu.D2H(hour) if hms else hour

@@ -413,6 +413,15 @@ Uniform scales:
         else:
             str = f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/JED {self.jed}/JTD {self.jtd})"
         return str
+
+    def strftime(self,timefmt='%Y'):
+        timefmt = timefmt.replace('%Y',f'{self.readable.year}')
+        timefmt = timefmt.replace('%m',f'{self.readable.month:02d}')
+        timefmt = timefmt.replace('%d',f'{self.readable.day:02d}')
+        timefmt = timefmt.replace('%H',f'{self.readable.hour:02d}')
+        timefmt = timefmt.replace('%M',f'{self.readable.minute:02d}')
+        timefmt = timefmt.replace('%S',f'{self.readable.second:02d}')
+        return timefmt
     
     @staticmethod
     def get_date(jed):
@@ -420,15 +429,15 @@ Uniform scales:
         return comps
     
     @staticmethod
-    def set_time_ticks(ax):
+    def set_time_ticks(ax,format='tt',timefmt='%Y',**kwargs):
         """Set xticks as Time objects
         """
         tts = ax.get_xticks()
         xlabels = []
         for tt in tts:
-            mtime = Time(tt).get_readable()
-            xlabels += [f'{mtime.readable.year}']
-        ax.set_xticklabels(xlabels)
+            mtime = Time(tt,format=format).get_readable()
+            xlabels += [f'{mtime.strftime(timefmt)}']
+        ax.set_xticklabels(xlabels,**kwargs)
         
 Time.__doc__ = """Create a time object
     

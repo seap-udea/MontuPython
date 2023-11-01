@@ -40,5 +40,8 @@ warnings.filterwarnings("ignore")
 # Load basic SPICE kernels
 Util.load_kernels()
 
+# Load planetary data
+ALLPLANETS = Util.load_planets()
+
 # Showing version 
 print(f"Running MontuPython version {version}")

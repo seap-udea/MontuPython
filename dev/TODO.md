@@ -1,7 +1,12 @@
 
 # ToDo
 
+- Compute the arc of vision of a planet (see Belokrylov et al.)
+  - Arcus visionis: gamma = H (elevation of seba) + |h| (elevation of sun). 
+
 - Develop another fully-fledged example: Venus appearances.
+
+- Reproduce this plot: https://en.wikipedia.org/wiki/Twilight#/media/File:Daylight_Length.svg.
 
 - Given an azimuth and elevation obtain all visible stars passing at these point.
 

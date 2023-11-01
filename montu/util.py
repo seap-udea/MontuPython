@@ -11,6 +11,7 @@ import os
 import requests
 import tqdm
 
+import pandas as pd
 import numpy as np
 import spiceypy as spy
 from tabulate import tabulate
@@ -30,6 +31,8 @@ PRECISION_KERNELS = {
     'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
 }
 KERNELS_LOADED = dict()
+
+PLANETARY_DATAFILE = 'planets-jpl.csv'
 
 from tqdm import tqdm
 def GENERATOR():
@@ -261,6 +264,16 @@ class Util(object):
         b = observed[0] - a*mapped[0]
         map = lambda x:a*x+b
         return map
+
+    def load_planets():
+        # Load planets
+        planets = pd.read_csv(montu.Util._data_path(PLANETARY_DATAFILE),sep=';')
+        planets.set_index('Planet',inplace=True)
+
+        # Derivative quantities
+        planets['SynodicOrbit'] = abs(1/(1/planets.loc['Earth','SiderealOrbit']-1/planets['SiderealOrbit']))
+
+        return planets
 
 class Dictobj(object):
     """Convert a dictionary to an object
