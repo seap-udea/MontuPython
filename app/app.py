@@ -6,7 +6,6 @@ from datetime import date
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
 
-
 sidebar = html.Div(
     [
         dbc.Nav([
@@ -21,6 +20,7 @@ sidebar = html.Div(
 
 app.layout = dbc.Container([
     dbc.Row([
+        dbc.Row(html.Div("")),
         dbc.Row(html.Div("Montu App",
                          style={'fontSize':50, 'textAlign':'center', 'background-color': '#DED18D', 'font-weight': 'bold'})),
         dbc.Row(html.Div("Astronomical ephemerides for the ancient world",

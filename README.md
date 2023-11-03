@@ -560,7 +560,7 @@ mars
 
 
 
-## An indepth example: evolution of pole stars
+## An indepth example: evolution of polar stars
 
 Choose from database all bright stars that according to [wikipedia](https://en.wikipedia.org/wiki/Pole_star#Precession_of_the_equinoxes) were or will be close to the celestial North pole:
 
@@ -658,8 +658,10 @@ You will find a complete set of runable example notebooks â€“`Colab` notebooksâ€
 
 ## Advanced examples
 
-For a fully-fledged working example see [`examples/MontuPython-Montunctions.ipynb`](https://drive.google.com/file/d/1kTFaHqfxydv_Sbc3rvn-TH24--CDlCTy/view?usp=drive_link).
+Fully-fledged working examples:
 
+- [`examples/MontuPython-Montunctions.ipynb`](https://drive.google.com/file/d/1kTFaHqfxydv_Sbc3rvn-TH24--CDlCTy/view?usp=drive_link)
+- [`examples/MontuPython-VenusAzimuths.ipynb`](https://drive.google.com/file/d/1M5NIOTl6TP9l0yrwgb50nyK5gmFwk4Ne/view?usp=sharing)
 
 ## What's new
 
@@ -672,6 +674,7 @@ Versions 0.9.*:
 - New classes Sun, Moon. 
 - Complete example of Montunctions adapted to the new package architectures.
 - The general design of the package is maintained.
+- New functions for calculating Twilight time.
 
 Versions 0.8.*:
 - Major refactoring of classes.
