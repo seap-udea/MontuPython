@@ -675,6 +675,7 @@ Versions 0.9.*:
 - Complete example of Montunctions adapted to the new package architectures.
 - The general design of the package is maintained.
 - New functions for calculating Twilight time.
+- Juanita Agudelo has created a basic Dash app for interacting with the package that it is now included in repo (not in public package yet).
 
 Versions 0.8.*:
 - Major refactoring of classes.
