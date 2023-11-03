@@ -1,0 +1,20 @@
+
+.input_date {
+    width: 20%;
+    margin-right: 10px;
+}
+
+.h5 {
+    text-align: center;
+}
+
+.p {
+    text-align: center;
+}
+
+.center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 40%;
+  }
