@@ -131,7 +131,6 @@ def on_form_change(radio_items_value):
     return radio_items_value
 
 @callback(Output("output", "children"), [Input("radios", "value")])
-
 def display_value(value):
     if value == "calendar":
         return input_date 
@@ -192,25 +191,16 @@ def number_render(year, month, day, hour, min, sec):
     Input("sec", "value"),
     Input("radioitems-input", "value")
 )
+def submit_button(button, year, month, day, hour, min, sec, radioitems):
 
-def subbit_button(button, year, month, day, hour, min, sec, radioitems):
-
-    year = str(year)
-    month = convert(month)
-    day = convert(day)
-
-    hour = convert(hour)
-    min = convert(min)
-    sec = convert(sec)
-
-    date = year + '-' + month + '-' + day + ' ' + hour + ':' + min + ':' + sec  
+    date = f'{int(year)}-{int(month):02d}-{int(day):02d} {int(hour):02d}:{int(min):02d}:{int(sec):02d}'  
     mtime = mn.Time(date, format='iso',scale='utc',calendar=radioitems)
 
-    proleptic = mtime.readable.datepro, # Date in gregorian proleptic
-    mixed = mtime.readable.datemix, # Date in gregorian mixed
-    jd_utc = mtime.jed, # Date in Julian Day (utc scale)
-    jd = mtime.tt, # Date in ephemerides time (tt scale)
-    es = mtime.et, # Date in ephemerides time (utc scale)
+    proleptic = mtime.readable.datepro # Date in gregorian proleptic
+    mixed = mtime.readable.datemix # Date in gregorian mixed
+    jd_utc = mtime.jed # Date in Julian Day (utc scale)
+    jd = mtime.tt # Date in ephemerides time (tt scale)
+    es = mtime.et # Date in ephemerides time (utc scale)
     delta_t = mtime.deltat
 
     result = f'''Date Proleptic : {proleptic} 
@@ -219,4 +209,5 @@ def subbit_button(button, year, month, day, hour, min, sec, radioitems):
     JD : {jd} 
     Ephemerides seconds : {es}
     Delta-t : {delta_t}'''
+    
     return result
