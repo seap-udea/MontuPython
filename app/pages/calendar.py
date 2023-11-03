@@ -193,7 +193,7 @@ def number_render(year, month, day, hour, min, sec):
 )
 def submit_button(button, year, month, day, hour, min, sec, radioitems):
 
-    date = f'{int(year)}-{int(month):02d}-{int(day):02d} {int(hour):02d}:{int(min):02d}:{int(sec):02d}'  
+    date = f'{int(year or 1)}-{int(month or 1):02d}-{int(day or 1):02d} {int(hour or 0):02d}:{int(min or 0):02d}:{int(sec or 0):02d}'  
     mtime = mn.Time(date, format='iso',scale='utc',calendar=radioitems)
 
     proleptic = mtime.readable.datepro # Date in gregorian proleptic
@@ -205,9 +205,9 @@ def submit_button(button, year, month, day, hour, min, sec, radioitems):
 
     result = f'''Date Proleptic : {proleptic} 
     Date Mixed : {mixed} 
-    JD (UTC) : {jd_utc} 
-    JD : {jd} 
-    Ephemerides seconds : {es}
+    Julian day (UTC) : {jd_utc} 
+    Julian day (TT): {jd} 
+    Ephemerides seconds (TT): {es}
     Delta-t : {delta_t}'''
     
     return result
