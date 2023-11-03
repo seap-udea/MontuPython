@@ -77,24 +77,24 @@ input_date = html.Div(
         html.H5('Date',{'display':'inline-block', 'border': '1px solid black'}),
         ], style={'display':'inline-block', 'margin-right':20, 'margin-left':20, 'margin-top':10}),
         
-        dcc.Input(id="year", type="number", placeholder="Year", style={'marginRight':'10px', 'width':'10%', 'marginTop':'10px'}),
-        dcc.Input(id="month", type="number", min=1, max=12, debounce=True, placeholder="Month", style={'marginRight':'10px', 'width':'10%','marginTop':'10px'}),
-        dcc.Input(id="day", type="number", placeholder="Day", min=1, max=31, step=1, style={'marginTop':'10px'}),
+        dcc.Input(id="year", type="number", value = 2000, placeholder="Year", style={'marginRight':'10px', 'width':'10%', 'marginTop':'10px'}),
+        dcc.Input(id="month", type="number", min=1, max=12, value = 1, debounce=True, placeholder="Month", style={'marginRight':'10px', 'width':'10%','marginTop':'10px'}),
+        dcc.Input(id="day", type="number", placeholder="Day", value = 1, min=1, max=31, step=1, style={'marginTop':'10px'}),
         
         html.Div([
         html.H5('Time',{'display':'inline-block', 'border': '1px solid black'}),
         ], style={'display':'inline-block', 'margin-right':20, 'margin-left':20}),
-        dcc.Input(id="hour", type="number", min=1, max=24, placeholder="Hour", style={'width':'7%'}),
+        dcc.Input(id="hour", type="number", value = 12, min=1, max=24, placeholder="Hour", style={'width':'7%'}),
         
         html.Div([
         html.H6(':',{'display':'inline-block', 'border': '1px solid black'}),
         ], style={'display':'inline-block', 'margin-right':5, 'margin-left':5}),
-        dcc.Input(id="min", type="number", min=0, max=59, debounce=True, placeholder="Min", style={'width':'7%'}),
+        dcc.Input(id="min", type="number", value = 0, min=0, max=59, debounce=True, placeholder="Min", style={'width':'7%'}),
         
         html.Div([
         html.H6(':',{'display':'inline-block', 'border': '1px solid black'}),
         ], style={'display':'inline-block', 'margin-right':5, 'margin-left':5}),
-        dcc.Input(id="sec", type="number", min=0, max=59, placeholder="Sec", step=1, style={'width':'7%'}),
+        dcc.Input(id="sec", type="number", value = 0, min=0, max=59, placeholder="Sec", step=1, style={'width':'7%'}),
         #html.Div(id="date-out")
     ]
 )
@@ -113,7 +113,6 @@ result = html.Div(id="final_output", style={'white-space': 'pre-line'})
 
 layout = html.Div([
     html.H5('Date Converter', className='h5'),
-    html.P('Use this date converter to convert proleptic dates or mixed gregorian dates to ...', className='p'),
     html.Center(button_group), 
     html.Center(radioitems), 
     html.Center(button), 

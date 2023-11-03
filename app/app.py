@@ -26,7 +26,6 @@ app.layout = dbc.Container([
         dbc.Row(html.Div("Astronomical ephemerides for the ancient world",
                          style={'fontSize':32, 'textAlign':'center', 'background-color': '#DED18D'}))
     ]),
-    #html.Hr(style={'background-color': '#DED18D'}),
     dbc.Row(
         [
             dbc.Col(
