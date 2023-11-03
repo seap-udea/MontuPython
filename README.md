@@ -717,4 +717,4 @@ Version 0.1.*:
 
 ------------
 
-This package has been designed and written by Jorge I. Zuluaga with the historical advise of egyptologist Francisco "Tito" Vivas (C) 2023
+This package has been designed and written mostly by Jorge I. Zuluaga with the historical advise of egyptologist Francisco "Tito" Vivas, and contributions by Juanita Agudelo (C) 2023
