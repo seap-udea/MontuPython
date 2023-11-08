@@ -40,9 +40,7 @@ app.layout = dbc.Container([
         ]
     )
 ], fluid=True)
-
 server = app.server
 
 if __name__=='__main__':
-    #app.run_server(debug=True, port=3000)
-    app.run_server(debug=False, port=3000)
+    app.run_server(debug=False, port=8000)

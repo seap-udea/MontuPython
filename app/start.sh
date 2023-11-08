@@ -1,2 +1,2 @@
 #!/bin/bash
-gunicorn app:server — bind=0.0.0.0:8050
+gunicorn -w 2 app:server — bind=0.0.0.0:8050

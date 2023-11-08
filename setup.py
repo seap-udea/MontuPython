@@ -51,7 +51,7 @@ setuptools.setup(
     # ######################################################################
     install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem',
                       'pymeeus','regex','pandas','tabulate','numpy','spiceypy',
-                      'pyplanets'],
+                      'pyplanets','requests'],
 
     # ######################################################################
     # OPTIONS
