@@ -41,7 +41,7 @@ radioitems = html.Div(
                 {"label": "Proleptic Date", "value": "proleptic"},
                 {"label": "Mixed Date", "value": "mixed"}
             ],
-            value="proleptic",
+            value="mixed",
             id="radioitems-input",
             inline=True
         ),
@@ -77,14 +77,14 @@ input_date = html.Div(
         html.H5('Date',{'display':'inline-block', 'border': '1px solid black'}),
         ], style={'display':'inline-block', 'margin-right':20, 'margin-left':20, 'margin-top':10}),
         
-        dcc.Input(id="year", type="number", value = 2000, placeholder="Year", style={'marginRight':'10px', 'width':'10%', 'marginTop':'10px'}),
+        dcc.Input(id="year", type="number", value = -44, placeholder="Year", style={'marginRight':'10px', 'width':'10%', 'marginTop':'10px'}),
         dcc.Input(id="month", type="number", min=1, max=12, value = 1, debounce=True, placeholder="Month", style={'marginRight':'10px', 'width':'10%','marginTop':'10px'}),
         dcc.Input(id="day", type="number", placeholder="Day", value = 1, min=1, max=31, step=1, style={'marginTop':'10px'}),
         
         html.Div([
         html.H5('Time',{'display':'inline-block', 'border': '1px solid black'}),
         ], style={'display':'inline-block', 'margin-right':20, 'margin-left':20}),
-        dcc.Input(id="hour", type="number", value = 12, min=1, max=24, placeholder="Hour", style={'width':'7%'}),
+        dcc.Input(id="hour", type="number", value = 0, min=1, max=24, placeholder="Hour", style={'width':'7%'}),
         
         html.Div([
         html.H6(':',{'display':'inline-block', 'border': '1px solid black'}),
