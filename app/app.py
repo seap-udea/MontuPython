@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output
 from datetime import date
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+app._favicon = ("montu.ico")
 
 sidebar = html.Div(
     [

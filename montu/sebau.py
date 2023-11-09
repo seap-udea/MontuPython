@@ -98,6 +98,8 @@ class Sebau(object):
         
         # Store
         condition = {
+            'tt':int(at.tt),'jed':at.jed,
+            'Name':self.seba.name,
             'ha':self.seba.ha*montu.RAD/15,
             'Vmag':self.seba.mag,
             'rise_time':(self.seba.rise_time or 0) + montu.PYEPHEM_JD_REF,
@@ -180,7 +182,17 @@ class Sebau(object):
     
     def tabulate_conditions(self):
         return pd.DataFrame(self.condition)
-
+    
+    def tabulate_ephemerides(self):
+        # Tabulate all
+        self.tabulate_store()
+        # Create a unique ephemerides pandas object
+        self.ephemerides = self.position
+        if self.condition_store:
+            self.ephemerides = pd.merge(self.ephemerides,
+                                        self.condition,
+                                        on=['tt','jed','Name'])
+            
     @staticmethod
     def where_in_sky_all_planets(at=None,observer=None):
         pass

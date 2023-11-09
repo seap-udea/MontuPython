@@ -9,4 +9,9 @@ Documentation:
 - https://github.com/Coding-with-Adam/Dash-by-Plotly/blob/master/Dash_More_Advanced_Stuff/Intro%20to%20Python%20multipage/App-B/app.py
 - https://www.dash-extensions.com/
 
+Favicon collection: 
+- https://iconos8.es/icons/set/favicon
+
+Favicon generator:
+- https://tools.w3cub.com/favicon-converter
 
