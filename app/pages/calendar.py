@@ -105,11 +105,11 @@ layout = html.Div([
     dcc.Markdown(id="date-output",style={'white-space': 'pre-line', 'font-size': '1.5em'}),
     html.Hr(),
     dcc.Input(id="year", type="hidden",value=2000),
-    dcc.Input(id="month", type="hidden",value=2000),
-    dcc.Input(id="day", type="hidden",value=2000),
-    dcc.Input(id="hour", type="hidden",value=2000),
-    dcc.Input(id="min", type="hidden",value=2000),
-    dcc.Input(id="sec", type="hidden",value=2000),
+    dcc.Input(id="month", type="hidden",value=1),
+    dcc.Input(id="day", type="hidden",value=1),
+    dcc.Input(id="hour", type="hidden",value=0),
+    dcc.Input(id="min", type="hidden",value=0),
+    dcc.Input(id="sec", type="hidden",value=0),
     ])
 
 ################################################################
