@@ -9,10 +9,11 @@ import numpy as np
 # Preliminary data
 ################################################################
 stars_visible = montu.Stars(filename=montu.Util._data_path('montu_stellar_catalogue_v37_visible.csv'))
-columns=[{'name': col, 'id': col} for col in ['MN','HD','Name','Vmag',
-                                              'Bayer','Falmsteed',
-                                              'Constellation',
-                                              'Distance'
+stars_visible.data['RAJ2000'] = stars_visible.data.apply(lambda row:montu.D2H(row['RAJ2000']),axis=1)
+stars_visible.data['DecJ2000'] = stars_visible.data.apply(lambda row:montu.D2H(row['DecJ2000']),axis=1)
+columns=[{'name': col, 'id': col} for col in ['MN','HD','Name','Bayer',
+                                              'RAJ2000','DecJ2000','Constellation',
+                                              'Vmag','Distance'
                                               ]]
 
 ################################################################
