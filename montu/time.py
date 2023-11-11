@@ -424,9 +424,14 @@ Uniform scales:
         return timefmt
     
     @staticmethod
-    def get_date(jed):
+    def get_date(jed,format='comps'):
         comps = pyephem.Date(jed-montu.PYEPHEM_JD_REF).tuple()
-        return comps
+        if format == 'comps':
+            return comps
+        elif format == 'mtime':
+            datemix = f'{comps[0]}-{comps[1]:02d}-{comps[2]:02d} {comps[3]:02d}:{comps[4]:02d}:{comps[5]:06.3f}'
+            mtime = montu.Time(datemix,calendar='mixed')
+            return mtime
     
     @staticmethod
     def set_time_ticks(ax,format='tt',timefmt='%Y',**kwargs):
