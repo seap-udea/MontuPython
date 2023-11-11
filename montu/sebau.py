@@ -315,7 +315,8 @@ class Moon(Sebau):
     def next_moon_quarters(since=None,
                            starting_at=None,
                            numquarters=4,
-                           output='jed'):
+                           output='jed',
+                           format='dict'):
         """
         Compute the next moon quarters starting at a given date.
 
@@ -337,7 +338,20 @@ class Moon(Sebau):
                     'mtime': montu.Time object.
                     'datepro': date string in proleptic calendar.
                     'datemix': date string in mixed calendar.
-        
+
+            format: string, default = 'dict':
+                which format do you want the return:
+                    'dict':
+                        dict(full1=[<date>,delta-t,delta-0],
+                             last1=[<date>,delta-t,delta-0],
+                             ...
+                            )
+                    'columns':
+                        [
+                            {'Quarter':'full','Datetime':<date>,'delta-t':<delta-t>,'delta-0':<delta-0>},
+                            {'Quarter':'last','Datetime':<date>,'delta-t':<delta-t>,'delta-0':<delta-0>},
+                        ]
+
         Return:
 
 
@@ -348,7 +362,7 @@ class Moon(Sebau):
         if since is None:
             since = montu.Time()
         
-        quarter_dates = dict()
+        quarter_dates = dict() if format=='dict' else []
         pyepoch = montu.pymeeus_Epoch(since.jed)
 
         # Prepare search
@@ -395,8 +409,11 @@ class Moon(Sebau):
                         raise ValueError(f"Output format '{output}' not recognized (valid are 'jed', 'mtime')")
                     
                     # Save quarter
-                    cycle = int(nquarters/4)+1 if numquarters>4 else ''
-                    quarter_dates[quarter+str(cycle)] = [return_value,delta_quarter,delta_day]
+                    if format == 'dict':
+                        cycle = int(nquarters/4)+1 if numquarters>4 else ''
+                        quarter_dates[quarter+str(cycle)] = [return_value,delta_quarter,delta_day]
+                    elif format == 'columns':
+                        quarter_dates += [{'Quarter':quarter,'Datetime':return_value,'delta-t':delta_quarter,'delta-0':delta_day}]
 
                     nquarters += 1
             
