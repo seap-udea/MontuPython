@@ -353,7 +353,7 @@ class Moon(Sebau):
                         ]
 
         Return:
-
+            Dates of quarters.
 
         Examples:
             Determine the date of quarters of the first synodic month after 2000-01-01
