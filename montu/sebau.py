@@ -43,6 +43,9 @@ PLANETARY_IDS = dict(
 )
 PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 
+# Name of quarters of the moon in pymeeus
+PYMEEUS_QUARTERS = ['new','first','full','last']
+
 ###############################################################
 # Class Sebau
 ###############################################################
@@ -309,8 +312,99 @@ class Moon(Sebau):
         }
 
     @staticmethod
-    def next_moon_quarters(at=None):
-        pass
+    def next_moon_quarters(since=None,
+                           starting_at=None,
+                           numquarters=4,
+                           output='jed'):
+        """
+        Compute the next moon quarters starting at a given date.
+
+        Parameters:
+            since: montu.Time, default = None:
+                Reference date. If None, mtime is now.
+
+            starting_at: string, default = None:
+                Quarter on which the sequence starts. If None the sequence
+                will start at the first quarter found afer 'since'.
+
+            numquarters: float, default = 4:
+                Number of quarters to find. 
+
+            output: string, default = 'jed':
+                Which output do you wante:
+                    'jed': julian days.
+                    'date': date as a list of values.
+                    'mtime': montu.Time object.
+                    'datepro': date string in proleptic calendar.
+                    'datemix': date string in mixed calendar.
+        
+        Return:
+
+
+        Examples:
+            Determine the date of quarters of the first synodic month after 2000-01-01
+                montu.Moon.next_moon_quarters(since=montu.Time('2000-01-01'),starting_at='new')
+        """
+        if since is None:
+            since = montu.Time()
+        
+        quarter_dates = dict()
+        pyepoch = montu.pymeeus_Epoch(since.jed)
+
+        # Prepare search
+        new_pyepoch = montu.pymeeus_Moon.moon_phase(pyepoch-15,target='new')
+        next_pyepoch = new_pyepoch
+        prev_pyepoch = next_pyepoch
+
+        nquarters = 0
+        n = 1
+        while nquarters<numquarters:
+            # Which is the next wuarter
+            quarter = PYMEEUS_QUARTERS[n%4]
+            if quarter == 'new':
+                new_pyepoch = next_pyepoch
+            
+            # Search for next quarters
+            next_pyepoch = montu.pymeeus_Moon.moon_phase(new_pyepoch,target=quarter)
+            delta_quarter = float(next_pyepoch - prev_pyepoch)
+            
+            # Check if quarter is posterior
+            if float(next_pyepoch) > since.jed:
+                save_quarter = True
+
+                # If this is the first quarter check that it is the first one
+                if nquarters == 0 and (starting_at is not None):
+                    if quarter != starting_at:
+                        save_quarter = False
+
+                # Save quarter if starting_at condition is fulfilled
+                if save_quarter:
+                    delta_day = float(next_pyepoch - since.jed)
+                    # Extract date
+                    if output == 'jed':
+                        return_value = float(next_pyepoch)
+                    elif output == 'date':
+                        return_value = next_pyepoch.get_full_date()
+                    elif output == 'mtime':
+                        return_value = montu.Time(float(next_pyepoch),format='jd').get_readable()
+                    elif output == 'datepro':
+                        return_value = montu.Time(float(next_pyepoch),format='jd').get_readable().readable.datepro
+                    elif output == 'datemix':
+                        return_value = montu.Time(float(next_pyepoch),format='jd').get_readable().readable.datemix
+                    else:
+                        raise ValueError(f"Output format '{output}' not recognized (valid are 'jed', 'mtime')")
+                    
+                    # Save quarter
+                    cycle = int(nquarters/4)+1 if numquarters>4 else ''
+                    quarter_dates[quarter+str(cycle)] = [return_value,delta_quarter,delta_day]
+
+                    nquarters += 1
+            
+            # Sum 
+            prev_pyepoch = next_pyepoch
+            n += 1
+            
+        return quarter_dates
 
 ###############################################################
 # Planet Class

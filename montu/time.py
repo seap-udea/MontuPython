@@ -438,7 +438,7 @@ Uniform scales:
             mtime = Time(tt,format=format).get_readable()
             xlabels += [f'{mtime.strftime(timefmt)}']
         ax.set_xticklabels(xlabels,**kwargs)
-        
+     
 Time.__doc__ = """Create a time object
     
     This is one of the most important classes in the package, since
