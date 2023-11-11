@@ -48,9 +48,6 @@ You may import the package using:
 from montu import *
 ```
 
-    Running MontuPython version 0.9.0
-
-
 or for a safe import:
 
 
@@ -229,12 +226,6 @@ plt.ioff() # Used only for README generation
 fig,axs = hyades.plot_stars()
 fig.savefig('gallery/hyades.png')
 ```
-
-
-    
-![png](README_files/README_35_0.png)
-    
-
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
@@ -560,6 +551,99 @@ mars
 
 
 
+### Working with the sun and the moon
+
+There are two special planetary objects, the Sun and the Moon. Although you can define them as if they where planets:
+
+
+```python
+sun = montu.Planet('Sun')
+moon = montu.Planet('Moon')
+```
+
+and as we did with planets, you can calculate positions and conditions:
+
+
+```python
+mtime = montu.Time('-2500-01-01 12:00:00')
+Tebas = montu.Observer(lon=33,lat=24)
+moon.conditions_in_sky(at=mtime,observer=Tebas)
+moon
+```
+
+
+
+
+    Object Moon positions:
+    |            tt |    jed | Name   |   RAJ2000 |   DecJ2000 |   RAEpoch |   DecEpoch |   RAGeo |   DecGeo |      el |      az |
+    |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|---------|---------|
+    | -142006202700 | 807954 | Moon   |    13.119 |   -1.75958 |   9.19541 |    21.2138 | 9.20076 |  21.8977 | -44.543 | 353.683 |'
+    Object Moon conditions:
+    |            tt |    jed | Name   |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |   hlat |    hlon |   hlong |
+    |---------------|--------|--------|---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|--------|---------|---------|
+    | -142006202700 | 807954 | Moon   | 11.6783 |  -12.6 |      807954 |   67.2764 |     807954 |  294.859 |    2.41502e+06 |          360 |     -148.449 |       0.00255291 |       0.997457 | False            | False        |   1879.51 | 92.6462 | 5.0768 | 133.821 | 133.821 |'
+
+
+
+There are additional methods, both proper and static, that can be used with these objects. For instance, you can:
+
+- calculate the time of twilight:
+
+
+```python
+dusk_time, dawn_time = montu.Sun.when_is_twilight(day=mtime,observer=Tebas,sunbelow=-18)
+Tebas.get_local_time(dusk_time), Tebas.get_local_time(dawn_time) 
+```
+
+
+
+
+    ('05:34:2.892', '18:55:22.138')
+
+
+
+- Get the date of solstices and equinoxes:
+
+
+```python
+mtime = montu.Time('2023-01-01 12:00:00')
+vernal, summer, autumn, winter = montu.Sun.next_seasons(at=mtime)
+
+(
+    montu.Time.get_date(vernal,format='mtime'),
+    montu.Time.get_date(summer,format='mtime'),
+    montu.Time.get_date(autumn,format='mtime'),
+    montu.Time.get_date(winter,format='mtime'),
+)
+```
+
+
+
+
+    (Time('2023-03-20 21:24:15.1000'/'2023-03-20 21:24:24'/JED 2460024.3918415/JTD 2460024.392691),
+     Time('2023-06-21 14:57:55.5000'/'2023-06-21 14:57:57'/JED 2460117.123559/JTD 2460117.1244109),
+     Time('2023-09-23 06:50:00.3000'/'2023-09-23 06:50:50'/JED 2460210.7847257/JTD 2460210.7855787),
+     Time('2023-12-22 03:27:09.3000'/'2023-12-22 03:27:27'/JED 2460300.6438576/JTD 2460300.6447118))
+
+
+
+- Get the lunar phases:
+
+
+```python
+montu.Moon.next_moon_quarters(since=mtime,output='datepro')
+```
+
+
+
+
+    {'full': ['2023-01-06 23:09:10.8000', 7.907907465007156, 5.46470835711807],
+     'last': ['2023-01-15 02:11:35.3000', 8.126672363374382, 13.591380720492452],
+     'new': ['2023-01-21 20:54:23.1000', 6.7797199985943735, 20.371100719086826],
+     'first': ['2023-01-28 15:20:01.7000', 6.767808315809816, 27.138909034896642]}
+
+
+
 ## An indepth example: evolution of polar stars
 
 Choose from database all bright stars that according to [wikipedia](https://en.wikipedia.org/wiki/Pole_star#Precession_of_the_equinoxes) were or will be close to the celestial North pole:
@@ -604,7 +688,7 @@ for dt in tqdm.tqdm(np.linspace(-20000*montu.YEAR,20000*montu.YEAR,1000)):
     df = pd.concat([df,pd.DataFrame([row])])
 ```
 
-      1%|          | 11/1000 [00:00<00:10, 98.73it/s]100%|██████████| 1000/1000 [00:08<00:00, 120.18it/s]
+      0%|          | 0/1000 [00:00<?, ?it/s]100%|██████████| 1000/1000 [00:06<00:00, 145.08it/s]
 
 
 Now plot declinations as a function of time:
@@ -644,12 +728,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2083-11-20 21:09:06.9000 (declination 89:31:44.515)
-    Star Vega will be the closest to the pole at 11572 B.C. 12-08 05:54:17.300000 (declination 86:22:2.229)
-    Star Thuban will be the closest to the pole at 2803 B.C. 11-25 21:18:48.100000 (declination 89:55:33.161)
-    Star Deneb will be the closest to the pole at 14735 B.C. 09-12 09:25:48.400000 (declination 86:57:15.883)
-    Star Alderamin will be the closest to the pole at 7529-06-11 15:00:25.1000 (declination 87:58:41.178)
-    Star Kochab will be the closest to the pole at 1081 B.C. 08-29 05:26:22.700000 (declination 83:29:31.877)
+    Star Polaris will be the closest to the pole at 2083-11-29 08:05:31.4000 (declination 89:31:44.618)
+    Star Vega will be the closest to the pole at 11572 B.C. 12-16 16:50:41.700000 (declination 86:22:2.206)
+    Star Thuban will be the closest to the pole at 2803 B.C. 12-04 08:15:12.500000 (declination 89:55:33.463)
+    Star Deneb will be the closest to the pole at 14735 B.C. 09-20 20:22:12.800000 (declination 86:57:15.884)
+    Star Alderamin will be the closest to the pole at 7529-06-20 01:56:49.5000 (declination 87:58:41.195)
+    Star Kochab will be the closest to the pole at 1081 B.C. 09-06 16:22:47.100000 (declination 83:29:31.882)
 
 
 ## Other example scripts
@@ -676,6 +760,8 @@ Versions 0.9.*:
 - The general design of the package is maintained.
 - New functions for calculating Twilight time.
 - Juanita Agudelo has created a basic Dash app for interacting with the package that it is now included in repo (not in public package yet).
+- MontuApp has been developed in depth.
+- Lunar phases added.
 
 Versions 0.8.*:
 - Major refactoring of classes.
