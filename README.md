@@ -48,6 +48,9 @@ You may import the package using:
 from montu import *
 ```
 
+    Running MontuPython version 0.9.4
+
+
 or for a safe import:
 
 
@@ -91,9 +94,9 @@ mars
     |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|----------|---------|
     | -142006202700 | 807954 | Mars   |    12.531 |    1.62045 |   8.53603 |    24.1114 | 8.53601 |  24.1141 | -41.6385 | 6.18997 |'
     Object Mars conditions:
-    |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |    hlat |    hlon |   hlong |
-    |---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|---------|---------|---------|
-    | 12.3377 |  -1.13 |      807954 |   63.1349 |     807954 |  296.821 |         807954 |      89.8414 |     -157.818 |         0.660488 |        1.62611 | False            | False        |   14.1713 | 98.6462 | 1.88842 | 111.259 | 111.259 |'
+    |            tt |    jed | Name   |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |    hlat |    hlon |   hlong |
+    |---------------|--------|--------|---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|---------|---------|---------|
+    | -142006202700 | 807954 | Mars   | 12.3377 |  -1.13 |      807954 |   63.1349 |     807954 |  296.821 |         807954 |      89.8414 |     -157.818 |         0.660488 |        1.62611 | False            | False        |   14.1713 | 98.6462 | 1.88842 | 111.259 | 111.259 |'
 
 
 
@@ -116,6 +119,164 @@ aldebaran
     |----|------|-------|------|-------|-----------|-----------|---------------------------------------------------------------------------------------|--------------|---------|-------------|-----------------|-----------|------------|--------|---------|----------|------------|--------|------------|------------|-------|----------|--------------|----------|----------|----------|-----------|-----------|-----------|-----------|--------------|--------------|--------------|--------------|--------|------------|-------------|-----------|------------|---------|---------|---------|---------|
     | 14 |   15 | 29139 | 1457 | 21421 | Gl 171.1A | Aldebaran | 87 Tau/87Alp Tau/Aldebaran/Gl 171.1A/HD 29139/HIP 21421/HR 1457/HYG 21368/MN 15/α Tau | Aldebaran    | α Tau   | 87 Tau      | Tau             |   4.59868 |    16.5093 |  62.78 | -189.36 |     54.5 |    20.4332 |   0.87 |      0.888 |      0.858 | 1.538 | K5III    |       163.23 |  7.02722 |  18.2876 |  5.80666 | -2.14e-06 | 5.709e-05 | 1.528e-05 |     21368 | Gl 171.1     |            1 |            1 | -1.42006e+11 | 807954 |    4.59345 |      16.746 |  0.610393 |   -2.25214 | 20.2633 | 107.596 | 29.5909 | 60.4091 |
 
+
+
+### Working with time
+
+One of the most interesting and basic functionalities of MontuPython is to convert date among 
+different type of calendars and astronomical scales.  You may taste these functionalities using:
+
+
+```python
+mtime = montu.Time('bce2501-01-01 12:00:00')
+```
+
+other alternative formats for the same date are:
+
+
+```python
+mtime = montu.Time('2501 b.c.e. 01-01 12:00:00')
+mtime = montu.Time('-2500-01-01 12:00:00')
+```
+
+If you print this time object you will get:
+
+
+```python
+print(mtime)
+```
+
+    Montu Time Object:
+    -------------------------- 
+    Readable:
+        Date in proleptic UTC: -2500-01-01 12:00:00.0000
+        Date in mixed UTC: -2500-01-22 12:00:00
+        Date in SPICE format: 2501 B.C. 01-01 12:00:00.00
+        Date in caniucular format: hrw 280-I-Shemu-17
+        Components: [-1, 2500, 1, 1, 12, 0, 0, 0]
+    Objects:
+        Date in datetime64 format: -2500-01-01T12:00:00.000000
+        Date in PyPlanet Epoch: 807954.0
+        Date in PyEphem Epoch: -2501/1/22 12:00:00
+    General:
+        Is bce: True
+        Is Julian: True
+    Uniform scales:
+        Terrestrial time:
+            tt: -142006202700.3
+            jtd: 807954.6909688
+            htd: 102457.19096879999
+        UTC time:
+            et: -142006262400.0
+            jed: 807954.0
+            hed: 102456.5
+        Delta-t = TT - UTC = 59699.7
+    
+
+
+Notice that the date in Gregorian proleptic will be **bce 2501-01-01** but in the mixed calendar that uses Julian calendar before its adoption at 1582-10-04, will be **bce 2501-01-22**.
+
+#### Egyptian civil calendar
+
+In the previous output you may also notice that the class `montu.Time` automatically convert the gregorian/julian date into the *civil egyptian calendar* or the *caniucular* calendar. In the previous example, the date bce 2501-01-22 (julian) correspond to the civil egyptian date of **I-Shemu-17**. Since the years in the *caniucular calendar* were regularly referred to specific king's reigns, we have introduced in `MontuPython` the so-called *Horus years* (abreviated *hrw*). The zero *Horus year* is bce 2782 which corresponds to the first *apokatastasis*, namely the year when the day **I-Akhet-1** coincide with the heliacal rise of Sirius. 
+
+You may also provide a date in the *caniucular calendar* and obtain the corresponding julian date:
+
+
+```python
+mtime = montu.Time('hrw 1461-I-Akhet-1',calendar='caniucular')
+print(mtime)
+```
+
+    Montu Time Object:
+    -------------------------- 
+    Readable:
+        Date in proleptic UTC: -1321-07-08 00:00:00.0000
+        Date in mixed UTC: -1321-07-20 00:00:00
+        Date in SPICE format: 1322 B.C. 07-08 00:00:00.00
+        Date in caniucular format: hrw 1461-I-Akhet-1
+        Components: [-1, 1321, 7, 8, 0, 0, 0, 0]
+    Objects:
+        Date in datetime64 format: -1321-07-08T00:00:00.000000
+        Date in PyPlanet Epoch: 1238762.5
+        Date in PyEphem Epoch: -1322/7/20 00:00:00
+    General:
+        Is bce: True
+        Is Julian: True
+    Uniform scales:
+        Terrestrial time:
+            tt: -104784376449.2
+            jtd: 1238762.8651713
+            htd: 533265.3651713
+        UTC time:
+            et: -104784408000.0
+            jed: 1238762.5
+            hed: 533265.0
+        Delta-t = TT - UTC = 31550.8
+    
+
+
+As you may see, this is the second *apokatastasis*, ie. in bce 1322-07-20, the heliacal rise of Sirius happened again at I-Akhet-1.
+
+#### Operations with dates
+
+You may add or substract time to a given date. This is done by adding or substracting seconds to the reference time:
+
+
+```python
+mtime = montu.Time('2001-01-01 12:00:00',format='iso')
+(mtime,
+ mtime - 12*montu.HOUR, 
+ mtime + 1*montu.DAY, 
+ mtime - 3*montu.CALYEAR, 
+ mtime + 20*montu.JULYEAR)
+```
+
+
+    (Time('2001-01-01 12:00:00.0000'/'2001-01-01 12:00:00'/'hrw 4784-I-Shemu-14'/JED 2451911.0/JTD 2451911.0007419),
+     Time(JED 2451910.5/JTD 2451910.5007419),
+     Time(JED 2451912.0/JTD 2451912.0007419),
+     Time(JED 2450816.0000127/JTD 2450816.0007419),
+     Time(JED 2459215.9999063/JTD 2459216.0007419))
+
+
+As you may notice, adding or substracting and integer number of seconds not necesarily correspond to adding or sutracting days or years to the calendar. This is because of the difference in UT and TT: UT is always behind TT by a certain amount of seconds.  Normally leapseconds are included every once in a while. However to calculate ephemerides in the ancient world, `MontuPython` uses a continuous model of deltat that small discrepancies from year to year.
+
+To add calendar periods of time you may use the `add` method of `Montu.Time`:
+
+
+```python
+mtime = montu.Time('2001-01-01 12:00:00')
+mtime2 = mtime.add(1*montu.CALYEAR)
+print(mtime2)
+```
+
+    Montu Time Object:
+    -------------------------- 
+    Readable:
+        Date in proleptic UTC: 2002-01-01 12:00:00.0000
+        Date in mixed UTC: 2002-01-01 12:00:00
+        Date in SPICE format: 2002-01-01 12:00:00.0000
+        Date in caniucular format: hrw 4785-I-Shemu-14
+        Components: [1, 2002, 1, 1, 12, 0, 0, 0]
+    Objects:
+        Date in datetime64 format: 2002-01-01T12:00:00.000000
+        Date in PyPlanet Epoch: 2452276.0
+        Date in PyEphem Epoch: 2002/1/1 12:00:00
+    General:
+        Is bce: False
+        Is Julian: False
+    Uniform scales:
+        Terrestrial time:
+            tt: 63158464.3
+            jtd: 2452276.0007442
+            htd: 1746778.5007441998
+        UTC time:
+            et: 63158400.0
+            jed: 2452276.0
+            hed: 1746778.5
+        Delta-t = TT - UTC = 64.3
+    
 
 
 ### Working with stars
@@ -311,117 +472,6 @@ fig.savefig('gallery/hyades-precessed.png')
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades-precessed.png?raw=true" alt="Logo""/></p>
 
-### Working with time
-
-One of the most interesting and basic functionalities of MontuPython is to convert date among 
-different type of calendars and astronomical scales.  You may taste these functionalities using:
-
-
-```python
-mtime = montu.Time('bce2501-01-01 12:00:00')
-```
-
-other alternative formats for the same date are:
-
-
-```python
-mtime = montu.Time('2501 b.c.e. 01-01 12:00:00')
-mtime = montu.Time('-2500-01-01 12:00:00')
-```
-
-If you print this time object you will get:
-
-
-```python
-print(mtime)
-```
-
-    Montu Time Object:
-    -------------------------- 
-    Readable:
-        Date in proleptic UTC: -2500-01-01 12:00:00.0000
-        Date in mixed UTC: -2500-01-22 12:00:00
-        Date in SPICE format: 2501 B.C. 01-01 12:00:00.00
-        Components: [-1, 2500, 1, 1, 12, 0, 0, 0]
-    Objects:
-        Date in datetime64 format: -2500-01-01T12:00:00.000000
-        Date in PyPlanet Epoch: 807954.0
-        Date in PyEphem Epoch: -2501/1/22 12:00:00
-    General:
-        Is bce: True
-        Is Julian: True
-    Uniform scales:
-        Terrestrial time:
-            tt: -142006202700.3
-            jtd: 807954.6909688
-        UTC time:
-            et: -142006262400.0
-            jed: 807954.0
-        Delta-t = TT - UTC = 59699.7
-    
-
-
-Notice that the date in Gregorian proleptic will be 2501 b.c.e 01-01 but in the mixed calendar that uses Julian calendar before its adoption at 1582-10-04, will be 2501 bce 01-22.
-
-You may add or substract time to a given date. This is done by adding or substracting seconds to the reference time:
-
-
-```python
-mtime = montu.Time('2001-01-01 12:00:00',format='iso')
-(mtime,
- mtime - 12*montu.HOUR, 
- mtime + 1*montu.DAY, 
- mtime - 3*montu.CALYEAR, 
- mtime + 20*montu.JULYEAR)
-```
-
-
-
-
-    (Time('2001-01-01 12:00:00.0000'/'2001-01-01 12:00:00'/JED 2451911.0/JTD 2451911.0007419),
-     Time(JED 2451910.5/JTD 2451910.5007419),
-     Time(JED 2451912.0/JTD 2451912.0007419),
-     Time(JED 2450816.0000127/JTD 2450816.0007419),
-     Time(JED 2459215.9999063/JTD 2459216.0007419))
-
-
-
-As you may notice, adding or substracting and integer number of seconds not necesarily correspond to adding or sutracting days or years to the calendar. This is because of the difference in UT and TT: UT is always behind TT by a certain amount of seconds.  Normally leapseconds are included every once in a while. However to calculate ephemerides in the ancient world, `MontuPython` uses a continuous model of deltat that small discrepancies from year to year.
-
-To add calendar periods of time you may use the `add` method of `Montu.Time`:
-
-
-```python
-mtime = montu.Time('2001-01-01 12:00:00')
-mtime2 = mtime.add(1*montu.CALYEAR)
-print(mtime2)
-```
-
-    Montu Time Object:
-    -------------------------- 
-    Readable:
-        Date in proleptic UTC: 2002-01-01 12:00:00.0000
-        Date in mixed UTC: 2002-01-01 12:00:00
-        Date in SPICE format: 2002-01-01 12:00:00.0000
-        Components: [1, 2002, 1, 1, 12, 0, 0, 0]
-    Objects:
-        Date in datetime64 format: 2002-01-01T12:00:00.000000
-        Date in PyPlanet Epoch: 2452276.0
-        Date in PyEphem Epoch: 2002/1/1 12:00:00
-    General:
-        Is bce: False
-        Is Julian: False
-    Uniform scales:
-        Terrestrial time:
-            tt: 63158464.3
-            jtd: 2452276.0007442
-        UTC time:
-            et: 63158400.0
-            jed: 2452276.0
-        Delta-t = TT - UTC = 64.3
-    
-
-
 ### Working with planets and observing sites
 
 `MontuPython` allows calculate the position of all planets in the solar system, including the moon:
@@ -479,9 +529,9 @@ mars
     |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|----------|---------|
     | -142006202700 | 807954 | Mars   |    12.531 |    1.62045 |   8.53603 |    24.1114 | 8.53601 |  24.1141 | -41.6385 | 6.18997 |'
     Object Mars conditions:
-    |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |    hlat |    hlon |   hlong |
-    |---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|---------|---------|---------|
-    | 12.3377 |  -1.13 |      807954 |   63.1349 |     807954 |  296.821 |         807954 |      89.8414 |     -157.818 |         0.660488 |        1.62611 | False            | False        |   14.1713 | 98.6462 | 1.88842 | 111.259 | 111.259 |'
+    |            tt |    jed | Name   |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |    hlat |    hlon |   hlong |
+    |---------------|--------|--------|---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|---------|---------|---------|
+    | -142006202700 | 807954 | Mars   | 12.3377 |  -1.13 |      807954 |   63.1349 |     807954 |  296.821 |         807954 |      89.8414 |     -157.818 |         0.660488 |        1.62611 | False            | False        |   14.1713 | 98.6462 | 1.88842 | 111.259 | 111.259 |'
 
 
 
@@ -620,10 +670,10 @@ vernal, summer, autumn, winter = montu.Sun.next_seasons(at=mtime)
 
 
 
-    (Time('2023-03-20 21:24:15.1000'/'2023-03-20 21:24:24'/JED 2460024.3918415/JTD 2460024.392691),
-     Time('2023-06-21 14:57:55.5000'/'2023-06-21 14:57:57'/JED 2460117.123559/JTD 2460117.1244109),
-     Time('2023-09-23 06:50:00.3000'/'2023-09-23 06:50:50'/JED 2460210.7847257/JTD 2460210.7855787),
-     Time('2023-12-22 03:27:09.3000'/'2023-12-22 03:27:27'/JED 2460300.6438576/JTD 2460300.6447118))
+    (Time('2023-03-20 21:24:15.1000'/'2023-03-20 21:24:24'/'hrw 4806-IV-Shemu-7'/JED 2460024.3918415/JTD 2460024.392691),
+     Time('2023-06-21 14:57:55.5000'/'2023-06-21 14:57:57'/'hrw 4807-III-Akhet-5'/JED 2460117.123559/JTD 2460117.1244109),
+     Time('2023-09-23 06:50:00.3000'/'2023-09-23 06:50:50'/'hrw 4807-II-Peret-9'/JED 2460210.7847257/JTD 2460210.7855787),
+     Time('2023-12-22 03:27:09.3000'/'2023-12-22 03:27:27'/'hrw 4807-I-Shemu-9'/JED 2460300.6438576/JTD 2460300.6447118))
 
 
 
