@@ -28,7 +28,7 @@ module_field_doc = """
 ################################################################
 # Layout
 ################################################################
-dash.register_page(__name__) # Uncomment in production
+#dash.register_page(__name__) # Uncomment in production
 layout = html.Div([
     html.H3(children=f'Lunar phases', style={'textAlign':'center'}),
     html.Div([
@@ -131,3 +131,11 @@ def update_table(since,calendar,starting_at,nummonths,options):
 
     # Create table
     return quarter_dates
+
+################################################################
+# Independent app code
+################################################################
+app = Dash(__name__)
+app.layout = layout
+if __name__ == '__main__':
+    app.run(debug=True,port=8003)

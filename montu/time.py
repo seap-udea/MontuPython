@@ -72,6 +72,17 @@ ROUND_DAY_LEVEL = int(abs(np.log10((ROUND_SECOND_LEVEL+1)/DAY)))+3
 ROUND_SECONDS = lambda seconds:round(seconds,ROUND_SECOND_LEVEL)
 ROUND_JULIANDAYS = lambda days:round(days,ROUND_DAY_LEVEL)
 
+# Egyptian civil calendar (caniucular)
+HORUS_MONTH = dict(I=1,II=2,III=3,IV=4)
+HORUS_SEASON = dict(AKHET=1,PERET=2,SHEMU=3,
+                    A=1,P=2,S=3,
+                    AKH=1,PER=2,SHE=3)
+MONTH_HORUS = {str(v): k for k, v in HORUS_MONTH.items()}
+SEASON_HORUS = {'0':'Mesut','1':'Akhet','2':'Peret','3':'Shemu'}
+
+# Julian day of the first apokatastasis (coincidence heliakal rise of sopedet and I-Akhet-1)
+JED_APOKATASTASIS = 705497.5 # bce 2782-07-20
+
 ###############################################################
 # Main class
 ###############################################################
@@ -99,16 +110,25 @@ class Time(object):
             format = 'tt'
             scale = 'tt'
 
+        """
+        # Date is provided in Caniucular (civil egyptian)
+        if calendar == 'caniucular':
+
+            format = 'iso'
+            calendar = 'mixed'
+            pass
+        """
+
         # Set calendar assumed
         self.calendar = calendar
         
         if format == 'iso':
 
-            # Parse string
-            self._parse_datestr(date)    
-
             # Date was provided as a string
             if calendar=='proleptic':
+
+                # Parse string
+                self._parse_datestr(date)    
 
                 # Calculate deltat: you only need year and month
                 deltat = ROUND_SECONDS(
@@ -146,7 +166,13 @@ class Time(object):
                     tt -= jed_correction
                     tt = ROUND_SECONDS(tt)
 
+                # Initialize object according to tt
+                self.update_time(tt,format='tt',scale='tt')
+
             elif calendar=='mixed':
+
+                # Parse string
+                self._parse_datestr(date)    
 
                 # Calculated deltat
                 deltat = ROUND_SECONDS(
@@ -180,11 +206,37 @@ class Time(object):
                     tt = et + deltat
                     jtd = ROUND_JULIANDAYS(jed + deltat/DAY)
 
+                # Initialize object according to tt
+                self.update_time(tt,format='tt',scale='tt')
+
+            elif calendar=='caniucular':
+
+                # Parse input date
+                comps = date.split(' ')
+
+                # Extract time
+                if ':' in comps[-1]:
+                    time = comps[-1]
+                    hh,mm,ss = (float(c) for c in time.split(":"))
+                    djed = (hh + mm/60 + ss/3600)/24
+                else:
+                    djed = 0
+
+                # Check input format
+                if '-' in comps[1].upper():
+                    cdate = comps[0]+comps[1]
+                else:
+                    cdate = comps[0]
+
+                # Compute horus day and julian day
+                self.hed = Time._horus_date_to_days(cdate)
+                self.jed = self.hed + JED_APOKATASTASIS + djed
+
+                # Initialize object according to jed
+                self.update_time(self.jed,format='jd',scale='utc')
+
             else:
                 raise ValueError("Calendar '{calendar}' not recognzed. Use 'proleptic' or 'mixed'.")
-
-            # Initialize object according to tt
-            self.update_time(tt,format='tt',scale='tt')
 
             # Get readable
             self.get_readable()
@@ -309,6 +361,10 @@ class Time(object):
 
         # Create pyplanet epoch: you need to provide jd with no deltat correction: is internal
         self.obj_pyplanet = pyplanets_Epoch(self.jed)
+
+        # Horus day (days since bce 2782-07-20 00:00:00)
+        self.hed = self.jed - JED_APOKATASTASIS
+        self.htd = self.jtd - JED_APOKATASTASIS
     
     def get_readable(self):
         """Fill the readable attribute according to information.
@@ -341,7 +397,10 @@ class Time(object):
             datestr = re.sub('(\d+)\s*A.D.\s*(\w+)\s*',sub_ad,datestr)
         else:
             datestr = re.sub('\s+(\w+)\s+',sub_nm,datestr)
-        
+
+        # Convert to caniucular
+        self.readable.datecan = Time._jed_to_caniucular(self.jed)
+
         # Parse string
         self._parse_datestr(datestr)
         return self
@@ -376,6 +435,22 @@ class Time(object):
         """
         new = Time(self.jed + dtt/DAY,format='jd')
         return new
+    
+    def sub(self,dtt):
+        """Substract utc seconds. This is the way you should substract
+        seconds if want a given change in date.
+
+        For example:
+            mtime.add(365*DAY) -> will add 365 days to calendar
+        """
+        new = Time(self.jed - dtt/DAY,format='jd')
+        return new
+    
+    def diff(self,mtime):
+        """Compute difference between two dates in days
+        """
+        difference = self.jed - mtime.jed
+        return difference
 
     def __str__(self):
 
@@ -388,6 +463,7 @@ Readable:
     Date in proleptic UTC: {self.readable.datepro}
     Date in mixed UTC: {self.readable.datemix}
     Date in SPICE format: {self.readable.datespice}
+    Date in caniucular format: {self.readable.datecan}
     Components: {self.readable.comps}
 Objects:
     Date in datetime64 format: {self.readable.obj_datetime64}
@@ -400,9 +476,11 @@ Uniform scales:
     Terrestrial time:
         tt: {self.tt}
         jtd: {self.jtd}
+        htd: {self.htd}
     UTC time:
         et: {self.et}
         jed: {self.jed}
+        hed: {self.hed}
     Delta-t = TT - UTC = {self.deltat}
 """
         return str
@@ -411,7 +489,7 @@ Uniform scales:
         if len(self.readable.__dict__.keys()) == 0:
             str=f"Time(JED {self.jed}/JTD {self.jtd})"    
         else:
-            str = f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/JED {self.jed}/JTD {self.jtd})"
+            str = f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/'{self.readable.datecan}'/JED {self.jed}/JTD {self.jtd})"
         return str
 
     def strftime(self,timefmt='%Y'):
@@ -443,7 +521,124 @@ Uniform scales:
             mtime = Time(tt,format=format).get_readable()
             xlabels += [f'{mtime.strftime(timefmt)}']
         ax.set_xticklabels(xlabels,**kwargs)
-     
+
+    @staticmethod
+    def _horus_days(horus=0,month='I',season='Akhet',day=1):
+        """Obtain the number of days since I-Akhet-1 of the
+        year of the first ancient egyptian apokotástasis (2782 b.c.e.).
+
+        Parameters:
+            horus: int, default = 0:
+                Horus year, i.e. civil year starting at 2782 bce.
+            
+            month: string, default = 'I':
+                Month in the season. Values are I, II, III, IV
+
+            season: string, default = 'Akhet':
+                Season of the year. 
+                Values are AKHET (A,AKH), PERET (P,PER), SHEMU (S,SHE).
+
+            day: int, default = 1:
+                Day. It must be between 1 and 30 (including).
+
+        Return:
+            Number of days since 2782 bce I-Akhet-1.
+        """
+        D = (int(day)-1) + (HORUS_SEASON[season]-1)*120 + (HORUS_MONTH[month]-1)*30 + int(horus)*365
+        return D
+
+    @staticmethod
+    def _horus_date_to_days(caniucular_date):
+        """Obtain the number of days since I-Akhet-1 of the
+        year of the first ancient egyptian apokotástasis (2782 b.c.e.).
+
+        Parameters:
+            caniucular_date: string:
+                Format: CCYY-MM-SS-DD
+
+                where: 
+                    CCYY: Horus year, 0 = 2782 bce.
+                    MM: Number of month (I, II, III, IV)
+                    SS: Name (letter of abreviation) of season:
+                        Akhet (akh,a), Peret (per,p), Shemu (she,s)
+                    DD: Number of day
+
+        Return:
+            hd: int:
+                Horus days. Number of days since 2782 bce I-Akhet-1.
+        """
+        comps = caniucular_date.split('-')
+        
+        # Adjust ranges
+        comps[0] = int(comps[0].strip('hHrw ')) # Horus year
+        comps[1] = comps[1].upper() # Month (I, II, III, IV)
+        comps[2] = comps[2].upper() # Season (akhet,peret,shemu)
+        comps[3] = int(comps[3]) # Day (1..30)
+
+        if comps[1] not in HORUS_MONTH.keys():
+            raise ValueError(f"Month '{comps[1]}' not recognized in '{date}', it must be among {tuple(HORUS_MONTH.keys())}")
+        if comps[2] not in HORUS_SEASON.keys():
+            raise ValueError(f"Season '{comps[2]}' not recognized in '{date}', it must be among {tuple(HORUS_SEASON.keys())}")
+        if (int(comps[3])>30) or (int(comps[3])<1):
+            raise ValueError(f"Day '{comps[3]}' out of range. It must be between [1,30]")
+
+        return Time._horus_days(*comps)
+
+    @staticmethod
+    def _horus_day_to_caniucular(hd):
+        """Convert from Horus day to caniucular date
+
+        Parameters:
+            hd: int:
+                Horus days, ie. number of days since
+                2782 b.c.e. 07-20, which is the apokatastasis date
+                according to the reference date of Censorino
+                (see Lull, pag. 96)
+
+        Return:
+            cdate: string:
+                Caniucular date in the format CCYY-MM-SS-DD where: 
+                    CCYY: Horus year, 0 = 2782 bce.
+                    MM: Number of month (I, II, III, IV)
+                    SS: Name (letter of abreviation) of season:
+                        Akhet (akh,a), Peret (per,p), Shemu (she,s)
+                    DD: Number of day
+        """
+        prefix = 'hrw '
+        hy = int(hd/365) 
+        dy = hd%365
+        if dy<360:
+            s = int(dy/120) + 1
+            ds = dy - 120*(s-1)
+            m = int(ds/30) + 1
+            d = int(ds - 30*(m-1)) + 1
+            caniucular = f"{prefix}" + str(hy) + "-" + MONTH_HORUS[str(m)] + "-" + SEASON_HORUS[str(s)] + "-" + str(d)
+        else:
+            # Epagomenos
+            d = int(dy - 360 + 1)
+            caniucular = f"{prefix}" + str(hy) + "-" + "I" + "-" + SEASON_HORUS['0'] + "-" + str(d)
+        return caniucular
+
+    @staticmethod
+    def _mixed_to_caniucular(datemix):
+        """Convert a mixed date to caniucular
+        """
+        # Create montu.Time object
+        mtime = montu.Time(datemix,calendar='mixed')
+
+        return Time._jed_to_caniucular(mtime.jed)
+    
+    @staticmethod
+    def _jed_to_caniucular(jed):
+        """Convert a mixed date to caniucular
+        """
+        # Compute yhe horus day
+        hd = jed - JED_APOKATASTASIS
+
+        # Compute the caniucular date
+        cdate = Time._horus_day_to_caniucular(hd)
+        return cdate
+
 Time.__doc__ = """Create a time object
     
     This is one of the most important classes in the package, since

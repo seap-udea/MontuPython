@@ -33,11 +33,11 @@ input_date = html.Div(
             html.H5('Date',{'display':'inline-block', 'border': '1px solid black'})
         ],style={'display':'inline-block', 'margin-right':20, 'margin-left':20, 'margin-top':10}),
         
-        dcc.Input(id="year", type="number", value = -44, placeholder="Year", 
+        dcc.Input(id="year", type="number", value = -1321, placeholder="Year", 
                   style={'marginRight':'10px', 'width':'10%', 'marginTop':'10px'}),
-        dcc.Input(id="month", type="number", min=1, max=12, value = 1, placeholder="Month", 
+        dcc.Input(id="month", type="number", min=1, max=12, value = 7, placeholder="Month", 
                   style={'marginRight':'10px', 'width':'10%','marginTop':'10px'}),
-        dcc.Input(id="day", type="number", placeholder="Day", value = 1, min=1, max=31, step=1, 
+        dcc.Input(id="day", type="number", placeholder="Day", value = 20, min=1, max=31, step=1, 
                   style={'marginTop':'10px'}),
         
         html.Div([
@@ -95,7 +95,7 @@ layout = html.Div([
                 {"label": "Gregorian proleptic", "value": "proleptic"},
                 {"label": "Mixed", "value": "mixed"}
             ],
-            value="proleptic",
+            value="mixed",
             id="calendar-radio-input",
             inline=True
         ),
@@ -139,6 +139,7 @@ def get_date_output(mtime):
     spice = mtime.readable.datespice # Date in gregorian proleptic
     proleptic = mtime.readable.datepro # Date in gregorian proleptic
     mixed = mtime.readable.datemix # Date in mixed
+    caniucular = mtime.readable.datecan # Date in caniucular (civil egyptian)
     jd_utc = mtime.jed # Date in Julian Day (utc scale)
     jd = mtime.tt # Date in ephemerides time (tt scale)
     es = mtime.et # Date in ephemerides time (utc scale)
@@ -150,6 +151,7 @@ def get_date_output(mtime):
     - **Gregorian proleptic** (human readable) : {spice} 
     - **Gregorian Proleptic** (astronomical convention): {proleptic} 
     - **Mixed** (gregorian or Julian) : {mixed} 
+    - **Caniucular** (civil egyptian) : {caniucular} 
 - **Julian day (UTC)** : {jd_utc} days
 - **Julian day (TT)**: {jd} days
 - **Ephemerides seconds (TT)**: {es} seconds

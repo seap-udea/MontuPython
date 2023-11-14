@@ -59,8 +59,6 @@ layout = html.Div([
 # Compute ephemerides
 ################################################################
 def compute_ephemerides(initial='-2500-01-01',timespan=1,numpoints=52):
-    print(initial,timespan,numpoints)
-    print("Computing...")
     global planetary_ephemerides
     # Time and place
     mtime = montu.Time(initial)
