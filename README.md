@@ -812,6 +812,7 @@ Versions 0.9.*:
 - Juanita Agudelo has created a basic Dash app for interacting with the package that it is now included in repo (not in public package yet).
 - MontuApp has been developed in depth.
 - Lunar phases added.
+- Conversion gregorian/julian <-> civil egyptian has been implemented.
 
 Versions 0.8.*:
 - Major refactoring of classes.
