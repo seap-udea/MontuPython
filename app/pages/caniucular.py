@@ -110,7 +110,7 @@ layout = html.Div([
         dcc.Input(id='cdate-hyear',  value = 0,
                   type='number',style={'margin':'1%','font-size':font_input,'width':'4em'}),"-",
         dcc.Dropdown(id='cdate-month',options=['I','II','III','IV'], value = 'I', 
-                     style={'width':'3em','display':'inline-block','margin':'1%'}),"-",
+                     style={'width':'5em','display':'inline-block','margin':'1%'}),"-",
         dcc.Dropdown(id='cdate-season',options=['Akhet','Peret','Shemu','Mesut'], value = 'Akhet', 
                      style={'width':'6em','display':'inline-block','margin':'1%'}),"-",
         dcc.Input(id='cdate-day', value='20', 
