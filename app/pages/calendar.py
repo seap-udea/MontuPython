@@ -6,9 +6,19 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 
+# Paleta de colores egipcios
+egyptian_palette = {
+    'background': '#f5e2a1',  # Fondo amarillo claro
+    'text': '#000000',  # Texto en negro
+    'header': '#cda434',  # Encabezado en dorado egipcio
+    'accent': '#d97824',  # Acento en naranja oscuro
+}
+
+dash.register_page(__name__)
+
 # Estilos Egipcios
 egyptian_style = {
-    'backgroundColor': '#cda434',  # Dorado egipcio
+    'backgroundColor': egyptian_palette['background'],  # Fondo amarillo claro
     'padding': '10px',
     'borderRadius': '5px',
     'margin': '10px 0',  # Añadido para espaciar entre las secciones
@@ -64,18 +74,10 @@ input_date = html.Div(
     ], style={'display': 'flex', 'justifyContent': 'center', 'flexWrap': 'wrap'}
 )
 
-#  Julian date input
-# julian_date = html.Div([
-#     html.Div([html.H5('Julian Date', style=label_style)], style={'display': 'inline-block'}),
-#     dcc.Input(id="julian-input", type="number", value=2451545.0, placeholder="Julian Day", style=input_style),
-# ], style={'textAlign': 'center'})
-
 # Layout
-dash.register_page(__name__)
-layout = html.Div([
-    html.H3(children='Date converter', style={'textAlign': 'center'}),
+layout = html.Div(style={'background-color': egyptian_palette['background']}, children=[
+    html.H3(children='Date converter', style={'textAlign': 'center', 'color': egyptian_palette['text']}),
     html.Center(select_input),
-    # html.Center(julian_date),
     html.Center(html.Div([
         dbc.Label("Calendar: ", style=label_style),
         dbc.RadioItems(
@@ -90,7 +92,7 @@ layout = html.Div([
         ),
     ], style={'textAlign': 'center'})),  # Estilo modificado para centralizar
     html.Hr(),
-    dcc.Markdown(id="date-output", style={'white-space': 'pre-line', 'font-size': '1.5em'}),
+    dcc.Markdown(id="date-output", style={'white-space': 'pre-line', 'font-size': '1.5em', 'color': egyptian_palette['text']}),
     html.Hr(),
     dcc.Input(id="year", type="hidden", value=2000),
     dcc.Input(id="month", type="hidden", value=1),
@@ -149,4 +151,4 @@ def get_date_output(mtime):
 #///////////////////////////////
 @callback(Output("output", "children"), Input("input-type", "value"))
 def display_value(value):
-    return input_date 
+    return input_date
