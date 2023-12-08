@@ -6,9 +6,31 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 
-################################################################
+# Estilos Egipcios
+egyptian_style = {
+    'backgroundColor': '#cda434',  # Dorado egipcio
+    'padding': '10px',
+    'borderRadius': '5px',
+    'margin': '10px 0',  # Añadido para espaciar entre las secciones
+}
+
+input_style = {
+    'width': '10%',
+    'marginRight': '20px',  # Aumentado para más espacio
+    'marginTop': '10px',
+    'marginBottom': '10px',  # Añadido para espaciar entre los inputs
+    'border': '1px solid #cda434',  # Borde dorado
+    'padding': '5px',
+    'borderRadius': '5px'
+}
+
+label_style = {
+    'marginRight': '20px',
+    'marginLeft': '20px',
+    'marginTop': '10px'
+}
+
 # Preliminary data
-################################################################
 select_input = html.Div([
         dbc.RadioItems(
             id="input-type",
@@ -24,72 +46,38 @@ select_input = html.Div([
         ),
         html.Br(),
         html.Div(id="output")
-    ],className="radio-group",
-    )
+    ], className="radio-group",
+)
 
 input_date = html.Div(
     [
-        html.Div([
-            html.H5('Date',{'display':'inline-block', 'border': '1px solid black'})
-        ],style={'display':'inline-block', 'margin-right':20, 'margin-left':20, 'margin-top':10}),
+        html.Div([html.H5('Date', style=label_style)], style={'display': 'inline-block'}),
         
-        dcc.Input(id="year", type="number", value = -1321, placeholder="Year", 
-                  style={'marginRight':'10px', 'width':'10%', 'marginTop':'10px'}),
-        dcc.Input(id="month", type="number", min=1, max=12, value = 7, placeholder="Month", 
-                  style={'marginRight':'10px', 'width':'10%','marginTop':'10px'}),
-        dcc.Input(id="day", type="number", placeholder="Day", value = 20, min=1, max=31, step=1, 
-                  style={'marginTop':'10px'}),
+        dcc.Input(id="year", type="number", value=-1321, placeholder="Year", style=input_style),
+        dcc.Input(id="month", type="number", min=1, max=12, value=7, placeholder="Month", style=input_style),
+        dcc.Input(id="day", type="number", placeholder="Day", value=20, min=1, max=31, step=1, style=input_style),
         
-        html.Div([
-        html.H5('Time',{'display':'inline-block', 'border': '1px solid black'}),
-        ], style={'display':'inline-block', 'margin-right':20, 'margin-left':20}),
-        dcc.Input(id="hour", type="number", value = 0, min=0, max=24, placeholder="Hour", style={'width':'7%'}),
-        
-        html.Div([
-        html.H6(':',{'display':'inline-block', 'border': '1px solid black'}),
-        ], style={'display':'inline-block', 'margin-right':5, 'margin-left':5}),
-        dcc.Input(id="min", type="number", value = 0, min=0, max=59, debounce=True, placeholder="Min", style={'width':'7%'}),
-        
-        html.Div([
-        html.H6(':',{'display':'inline-block', 'border': '1px solid black'}),
-        ], style={'display':'inline-block', 'margin-right':5, 'margin-left':5}),
-        dcc.Input(id="sec", type="number", value = 0, min=0, max=59, placeholder="Sec", step=1, style={'width':'7%'}),
-        dcc.Input(id="julian-input", type="hidden",value=0),
-    ]
+        html.Div([html.H5('Time', style=label_style)], style={'display': 'inline-block'}),
+        dcc.Input(id="hour", type="number", value=0, min=0, max=24, placeholder="Hour", style=input_style),
+        dcc.Input(id="min", type="number", value=0, min=0, max=59, debounce=True, placeholder="Min", style=input_style),
+        dcc.Input(id="sec", type="number", value=0, min=0, max=59, placeholder="Sec", step=1, style=input_style),
+    ], style={'display': 'flex', 'justifyContent': 'center', 'flexWrap': 'wrap'}
 )
 
-julian_date = html.Div([
-    html.Div([
-    html.H5('Julian Date',{'display':'inline-block', 'border': '1px solid black'})], 
-    style={'display':'inline-block', 'margin-right':20, 'margin-left':20}),
-    dcc.Input(id="julian-input", type="number", value=2451545.0, placeholder="Julian Day", 
-              style={'width':'10%', 'marginTop':'10px'}),
-])
+#  Julian date input
+# julian_date = html.Div([
+#     html.Div([html.H5('Julian Date', style=label_style)], style={'display': 'inline-block'}),
+#     dcc.Input(id="julian-input", type="number", value=2451545.0, placeholder="Julian Day", style=input_style),
+# ], style={'textAlign': 'center'})
 
-################################################################
 # Layout
-################################################################
-dash.register_page(__name__) # Uncomment in production
+dash.register_page(__name__)
 layout = html.Div([
-    html.H3(children=f'Date converter', style={'textAlign':'center'}),
+    html.H3(children='Date converter', style={'textAlign': 'center'}),
+    html.Center(select_input),
+    # html.Center(julian_date),
     html.Center(html.Div([
-        dbc.RadioItems(
-            id="input-type",
-            className="btn-group",
-            inputClassName="btn-check",
-            labelClassName="btn btn-outline-primary",
-            labelCheckedClassName="active",
-            options=[
-                {"label": "Input calendar", "value": "calendar"},
-                #{"label": "Input julian day", "value": "julian"},
-            ],
-            value="calendar",
-        ),
-        html.Div(id="output")
-    ],className="radio-group",
-    )),
-    html.Center(html.Div([
-        dbc.Label("Calendar: "),
+        dbc.Label("Calendar: ", style=label_style),
         dbc.RadioItems(
             options=[
                 {"label": "Gregorian proleptic", "value": "proleptic"},
@@ -97,24 +85,21 @@ layout = html.Div([
             ],
             value="mixed",
             id="calendar-radio-input",
-            inline=True
+            inline=True,
+            style=egyptian_style
         ),
-        html.Br()
-    ])), 
+    ], style={'textAlign': 'center'})),  # Estilo modificado para centralizar
     html.Hr(),
-    dcc.Markdown(id="date-output",style={'white-space': 'pre-line', 'font-size': '1.5em'}),
+    dcc.Markdown(id="date-output", style={'white-space': 'pre-line', 'font-size': '1.5em'}),
     html.Hr(),
-    dcc.Input(id="year", type="hidden",value=2000),
-    dcc.Input(id="month", type="hidden",value=1),
-    dcc.Input(id="day", type="hidden",value=1),
-    dcc.Input(id="hour", type="hidden",value=0),
-    dcc.Input(id="min", type="hidden",value=0),
-    dcc.Input(id="sec", type="hidden",value=0),
-    ])
+    dcc.Input(id="year", type="hidden", value=2000),
+    dcc.Input(id="month", type="hidden", value=1),
+    dcc.Input(id="day", type="hidden", value=1),
+    dcc.Input(id="hour", type="hidden", value=0),
+    dcc.Input(id="min", type="hidden", value=0),
+    dcc.Input(id="sec", type="hidden", value=0),
+])
 
-################################################################
-# Routines
-################################################################
 
 ################################################################
 # Callbacks
