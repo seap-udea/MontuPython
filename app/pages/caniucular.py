@@ -66,6 +66,17 @@ for key,item in historical_dates.items():
 ################################################################
 # Layout
 ################################################################
+button_style = {
+    'background-color': '#007BFF',  # Este es el color azul estándar de Bootstrap
+    'color': 'white',               # Texto en color blanco
+    'border': 'none',               # Sin borde
+    'padding': '10px 24px',         # Ajusta el padding para cambiar el tamaño del botón
+    'border-radius': '4px',         # Bordes redondeados
+    'cursor': 'pointer',            # Cambia el cursor a un puntero
+    'font-size': '1em',             # Ajusta el tamaño de la fuente si es necesario
+    'margin-left': '1%',            # Ajusta el margen izquierdo si es necesario
+    'font-size': font_text,         # Utiliza la variable de tamaño de fuente ya definida
+}
 
 
 dash.register_page(__name__) # Uncomment in production
@@ -97,7 +108,7 @@ layout = html.Div([
 
         # Button 
         html.Button('Convert to caniucular',id='button-to-caniucular',value='Click',n_clicks=0,
-                    style={'margin-left':'1%','font-size':font_text}),
+                    style= button_style),
         
         # Output
         html.Br(),
@@ -127,7 +138,7 @@ layout = html.Div([
                      style={'width':'5em','display':'inline-block','margin':'0%','borderRadius': '10px', 'border': '2px solid gold'}),
         
         html.Button('Convert to julian',id='button-to-julian',value='Click',n_clicks=0,
-                    style={'margin-left':'1%','font-size':font_text}),
+                    style=button_style),
 
         # Output
         html.Br(),
@@ -146,7 +157,7 @@ layout = html.Div([
             style={'width':'10em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),
 
         html.Button('Convert',id='button-to-historical',value='Click',n_clicks=0,
-                    style={'margin-left':'1%','font-size':font_text}),
+                    style = button_style),
 
         html.Div(id='hdate-explanation'),
 
