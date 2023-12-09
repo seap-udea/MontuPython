@@ -29,6 +29,38 @@ module_field_doc = """
 # Layout
 ################################################################
 dash.register_page(__name__) # Uncomment in production
+
+style_cell = {
+    'backgroundColor': 'white',
+    'color': 'black',
+    'fontSize': 14,
+    'font-family':'Arial, sans-serif',
+    'textAlign': 'center',
+    'padding': '10px',
+    'border': '1px solid lightgrey'
+}
+
+style_header = {
+    'backgroundColor': 'lightgrey',
+    'fontWeight': 'bold',
+    'border': '1px solid black'
+}
+
+style_data_conditional = [
+    {
+        'if': {'row_index': 'odd'},
+        'backgroundColor': 'rgb(220, 220, 220)',
+    }
+]
+
+style_table = {
+    'maxWidth': '100%',
+    'overflowX': 'auto',
+    'margin': 'auto',
+    'border': '1px solid black',
+    'boxShadow': '4px 4px 4px lightgrey'
+}
+
 layout = html.Div([
     html.H3(children=f'Lunar phases', style={'textAlign':'center'}),
     html.Div([
@@ -73,19 +105,20 @@ layout = html.Div([
         ),
     ], style={'padding':'1%'}),
     dcc.Loading(
-        id="table-loading",
-        children=[
-            dash_table.DataTable(
-                id='table', data=[], page_size=10,
-                style_cell={
-                    'padding-right': '30px',
-                    'padding-left': '30px',
-                    'text-align': 'center',
-                    'marginLeft': 'auto',
-                    'marginRight': 'auto'
-                }
-            )],
-        type="default", fullscreen=False,
+    id="table-loading",
+    children=[
+        dash_table.DataTable(
+            id='table',
+            data=[],
+            page_size=10,
+            style_cell=style_cell,
+            style_header=style_header,
+            style_data_conditional=style_data_conditional,
+            style_table=style_table
+        )
+    ],
+    type="default",
+    fullscreen=False,
     ),
     html.Hr(),
     html.Div([
