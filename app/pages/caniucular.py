@@ -66,6 +66,8 @@ for key,item in historical_dates.items():
 ################################################################
 # Layout
 ################################################################
+
+
 dash.register_page(__name__) # Uncomment in production
 layout = html.Div([
     html.H3(children=f'Egyptian civil calendar', style={'textAlign':'center' , 'backgroundColor': '#f5e2a1'}),
@@ -74,24 +76,24 @@ layout = html.Div([
     ],style={'padding':'1%', 'backgroundColor': '#f5e2a1' }),
     
     html.Div([
-        html.Em("Julian/Gregorian date:",style={'margin':'0.1em'}),
+        html.Em("Julian/Gregorian date:",style={'margin':'0.1em','height': '10px'}),
 
         dcc.RadioItems(id="gdate-era",options=['bce','ce'],value='bce',inline=True,
-                       style={'width':'3em','display':'inline-block','align-items':'center','margin':'1%'}),
+                       style={'width':'3em','display':'inline-block','align-items':'center','margin':'1%','height': '20px'}),
         dcc.Input(id='gdate-year', value='2782', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'4em'}),"-",
+                  type='number',style={'margin':'1%','font-size':font_input,'width':'4em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),"-",
         dcc.Input(id='gdate-month', value='7', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em'}),"-",
+                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),"-",
         dcc.Input(id='gdate-day', value='20', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em'}),
+                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
         
-        html.Em("And add:",style={'margin':'0.1em'}),
+        #html.Em("And add:",style={'margin':'0.1em'}),
         
         dcc.Input(id='gdate-add', value='0', 
                   type='number',
-                  style={'margin':'1%','font-size':font_input,'width':'5em','display':'inline-block'}),
+                  style={'margin':'1%','font-size':font_input,'width':'5em','display':'inline-block','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
         dcc.Dropdown(id='gdate-add-units',options=['days','weeks','months','years'],value='days',
-                     style={'width':'5em','display':'inline-block','margin':'0%'}),
+                     style={'width':'5em','display':'inline-block','margin':'0%','borderRadius': '10px', 'border': '2px solid gold'}),
 
         # Button 
         html.Button('Convert to caniucular',id='button-to-caniucular',value='Click',n_clicks=0,
@@ -100,7 +102,7 @@ layout = html.Div([
         # Output
         html.Br(),
         html.Em("Calendar date:",style={'margin-left':'5em'}),
-        dcc.Input(id="gdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em'}),
+        dcc.Input(id="gdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em', 'borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
         
     ],style={'padding':'1%','font-size':font_text , 'backgroundColor': '#f5e2a1'}),
 
@@ -108,21 +110,21 @@ layout = html.Div([
         html.Em("Caniucular date:",style={'margin':'0.1em'}),
         
         dcc.Input(id='cdate-hyear',  value = 0,
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'4em'}),"-",
+                  type='number',style={'margin':'1%','font-size':font_input,'width':'4em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),"-",
         dcc.Dropdown(id='cdate-month',options=['I','II','III','IV'], value = 'I', 
-                     style={'width':'5em','display':'inline-block','margin':'1%'}),"-",
+                     style={'width':'5em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),"-",
         dcc.Dropdown(id='cdate-season',options=['Akhet','Peret','Shemu','Mesut'], value = 'Akhet', 
-                     style={'width':'6em','display':'inline-block','margin':'1%'}),"-",
+                     style={'width':'6em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),"-",
         dcc.Input(id='cdate-day', value='20', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em'}),
+                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
         
         html.Em("And add:",style={'margin':'0.1em'}),
         
         dcc.Input(id='cdate-add', value='0', 
                   type='number',
-                  style={'margin':'1%','font-size':font_input,'width':'5em','display':'inline-block'}),
+                  style={'margin':'1%','font-size':font_input,'width':'5em','display':'inline-block','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
         dcc.Dropdown(id='cdate-add-units',options=['days','weeks','months','years'],value='days',
-                     style={'width':'5em','display':'inline-block','margin':'0%'}),
+                     style={'width':'5em','display':'inline-block','margin':'0%','borderRadius': '10px', 'border': '2px solid gold'}),
         
         html.Button('Convert to julian',id='button-to-julian',value='Click',n_clicks=0,
                     style={'margin-left':'1%','font-size':font_text}),
@@ -130,7 +132,7 @@ layout = html.Div([
         # Output
         html.Br(),
         html.Em("Caniucular date:",style={'margin-left':'5em'}),
-        dcc.Input(id="cdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em'}),
+        dcc.Input(id="cdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em','borderRadius': '10px', 'border': '2px solid gold'}),
 
     ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle', 'backgroundColor': '#f5e2a1'}),
 
@@ -141,7 +143,7 @@ layout = html.Div([
             id='hdate',
             options = historical_dates_options,
             value = 'bce 2782-07-20', 
-            style={'width':'10em','display':'inline-block','margin':'1%'}),
+            style={'width':'10em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),
 
         html.Button('Convert',id='button-to-historical',value='Click',n_clicks=0,
                     style={'margin-left':'1%','font-size':font_text}),
