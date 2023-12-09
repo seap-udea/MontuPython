@@ -68,10 +68,10 @@ for key,item in historical_dates.items():
 ################################################################
 dash.register_page(__name__) # Uncomment in production
 layout = html.Div([
-    html.H3(children=f'Egyptian civil calendar', style={'textAlign':'center'}),
+    html.H3(children=f'Egyptian civil calendar', style={'textAlign':'center' , 'backgroundColor': '#f5e2a1'}),
     html.Div([
         dcc.Markdown(module_quickstart_doc),
-    ],style={'padding':'1%'}),
+    ],style={'padding':'1%', 'backgroundColor': '#f5e2a1' }),
     
     html.Div([
         html.Em("Julian/Gregorian date:",style={'margin':'0.1em'}),
@@ -102,7 +102,7 @@ layout = html.Div([
         html.Em("Calendar date:",style={'margin-left':'5em'}),
         dcc.Input(id="gdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em'}),
         
-    ],style={'padding':'1%','font-size':font_text}),
+    ],style={'padding':'1%','font-size':font_text , 'backgroundColor': '#f5e2a1'}),
 
     html.Div([
         html.Em("Caniucular date:",style={'margin':'0.1em'}),
@@ -132,7 +132,7 @@ layout = html.Div([
         html.Em("Caniucular date:",style={'margin-left':'5em'}),
         dcc.Input(id="cdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em'}),
 
-    ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle'}),
+    ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle', 'backgroundColor': '#f5e2a1'}),
 
     html.Div([
         html.Em("Historical dates:",style={'margin':'0.1em'}),
@@ -148,7 +148,7 @@ layout = html.Div([
 
         html.Div(id='hdate-explanation'),
 
-    ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle'}),
+    ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle', 'backgroundColor': '#f5e2a1'}),
 ])
 
 ################################################################
