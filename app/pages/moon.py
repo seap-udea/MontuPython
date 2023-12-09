@@ -33,61 +33,67 @@ layout = html.Div([
     html.H3(children=f'Lunar phases', style={'textAlign':'center'}),
     html.Div([
         dcc.Markdown(module_quickstart_doc),
-    ],style={'padding':'1%'}),
+    ], style={'padding':'1%'}),
     html.Div([
         "Initial date (format [-]CCYY-MM-DD):",
-        dcc.Input(id='since', placeholder = 'Right now',
-                  value='-236-08-23', type='text',style={'margin-left':'1%'}),
+        dcc.Input(id='since', placeholder='Right now',
+                  value='-236-08-23', type='text', style={
+                      'margin-left':'1%', 'border-radius': '15px', 'border': '2px solid gold'
+                  }),
         dcc.RadioItems(id="calendar",
                        options=[
-                           dict(label='Proleptic Gregorian',value='proleptic'),
-                           dict(label='Mixed Calendar',value='mixed'),
+                           dict(label='Proleptic Gregorian', value='proleptic'),
+                           dict(label='Mixed Calendar', value='mixed'),
                        ],
                        value='mixed',
                        inline=True,
                        style={'margin-left':'5%'}),
-    ],style={'padding':'1%'}),
+    ], style={'padding':'1%'}),
     html.Div([
         "Starting at quarter:",
-        dcc.Dropdown(['new','first','full','last','--'],value='--', id='starting_at',style={'width':'10em'}),
-    ],style={'padding':'1%'}),
+        dcc.Dropdown(['new', 'first', 'full', 'last', '--'], value='--', id='starting_at', style={
+            'width': '10em', 'border-radius': '15px', 'border': '2px solid gold'
+        }),
+    ], style={'padding':'1%'}),
     html.Div([
         "Number of synodic months:",
-        dcc.Input(id='nummonths', value='12', type='number',style={'margin-left':'1%','width':'3em'}),
-    ],style={'padding':'1%'}),
+        dcc.Input(id='nummonths', value='12', type='number', style={
+            'margin-left':'1%', 'width':'3em', 'border-radius': '15px', 'border': '2px solid gold'
+        }),
+    ], style={'padding':'1%'}),
     html.Div([
         "Options:",
         dcc.Checklist(
             id='options', 
             options=[
-                {'label':'Show caniucular','value':'show_caniucular'},
+                {'label': 'Show caniucular', 'value': 'show_caniucular'},
             ],
             value=['show_caniucular'],
             inline=True
         ),
-    ],style={'padding':'1%'}),
-    #dash_table.DataTable(data=stars_visible.data.to_dict('records'),columns=columns,page_size=10),
+    ], style={'padding':'1%'}),
     dcc.Loading(
-                    id="table-loading",
-                    children=[
-                        dash_table.DataTable(
-                            id='table',data=[],page_size=10,
-                            style_cell={
-                                'padding-right': '30px',
-                                'padding-left': '30px',
-                                'text-align': 'center',
-                                'marginLeft': 'auto',
-                                'marginRight': 'auto'
-                            }
-                        )],
-                    type="default",fullscreen=False,
-                ),
+        id="table-loading",
+        children=[
+            dash_table.DataTable(
+                id='table', data=[], page_size=10,
+                style_cell={
+                    'padding-right': '30px',
+                    'padding-left': '30px',
+                    'text-align': 'center',
+                    'marginLeft': 'auto',
+                    'marginRight': 'auto'
+                }
+            )],
+        type="default", fullscreen=False,
+    ),
     html.Hr(),
     html.Div([
         html.H3("Field explanation"),
         dcc.Markdown(module_field_doc),
-    ],style={'padding':'1%'}),
-])
+    ], style={'padding':'1%'}),
+], style={'backgroundColor': '#f5e2a1'})
+
 
 ################################################################
 # Routines
