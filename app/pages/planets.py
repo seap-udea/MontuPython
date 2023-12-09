@@ -25,35 +25,46 @@ properties = ['RAJ2000', 'DecJ2000', 'RAEpoch', 'DecEpoch',
 ################################################################
 dash.register_page(__name__) # Uncomment in production
 layout = html.Div([
-    html.H3(children=f'Planetary Ephemerides', style={'textAlign':'center'}),
+    html.H3(children='Planetary Ephemerides', style={'textAlign':'center'}),
     html.Div([
         " Initial date (format [-]CCYY-MM-DD): ",
-        dcc.Input(id='initial-date', value='-1500-01-01', type='text'), 
+        dcc.Input(id='initial-date', value='-1500-01-01', type='text', style={
+            'border-radius': '15px', 'border': '2px solid gold'
+        }), 
     ]),
     html.Div([
         " Time span (in years): ",
-        dcc.Input(id='time-span', value='10', type='text'),
+        dcc.Input(id='time-span', value='10', type='text', style={
+            'border-radius': '15px', 'border': '2px solid gold'
+        }),
     ]),
     html.Div([
         " Number of points: ",
-        dcc.Input(id='number-points', value='120', type='text')
+        dcc.Input(id='number-points', value='120', type='text', style={
+            'border-radius': '15px', 'border': '2px solid gold'
+        })
     ]),
     html.Div([
         "Planet:",
-        dcc.Dropdown(planet_names, 'Mercury', id='dropdown-planet',multi=True)
+        dcc.Dropdown(planet_names, 'Mercury', id='dropdown-planet', multi=True, style={
+            'border-radius': '15px', 'border': '2px solid gold'
+        })
     ]),
     html.Div([
         "Property:",
-        dcc.Dropdown(properties, 'DecEpoch', id='dropdown-property')
+        dcc.Dropdown(properties, 'DecEpoch', id='dropdown-property', style={
+            'border-radius': '15px', 'border': '2px solid gold'
+        })
     ]),
     html.Br(),
     html.Div(id='check-output'),
     dcc.Loading(
-                    id="graph-loading",
-                    children=[dcc.Graph(id='graph-content')],
-                    type="default",fullscreen=False,
-                )
-])
+        id="graph-loading",
+        children=[dcc.Graph(id='graph-content')],
+        type="default", fullscreen=False,
+    )
+], style={'backgroundColor': '#f5e2a1'})
+
 
 ################################################################
 # Compute ephemerides

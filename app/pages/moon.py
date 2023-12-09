@@ -30,6 +30,7 @@ module_field_doc = """
 ################################################################
 dash.register_page(__name__) # Uncomment in production
 
+## Style for the table
 style_cell = {
     'backgroundColor': 'white',
     'color': 'black',
