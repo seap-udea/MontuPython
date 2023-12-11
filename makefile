@@ -35,6 +35,7 @@ cleancrap:
 cleandist:
 	@echo "Cleaning dist..."
 	@rm -rf dist/*.*
+	@rm -rf montu-[0-9]*
 
 cleanall:cleancrap cleandist
 

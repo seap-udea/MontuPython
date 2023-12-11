@@ -1,6 +1,23 @@
 
 # ToDo
 
+- Clean up the README.
+
+- Eliminate spurious package dependencies.
+
+- Release version 1.0.0:
+  - Full documentation of the available classes.
+  - Full set of examples.
+
+- Create a year calendar:
+  - Day by day with the day in Julian, Gregorian Proleptic and Caniucular.
+
+- Compute the first day of lunar cycle: first appearance of the moon after New moon.
+
+- Create a full test battery for the package.
+
+- Compute solar and lunar eclipses: date and time.
+
 - Compute the arc of vision of a planet (see Belokrylov et al.)
   - Arcus visionis: gamma = H (elevation of seba) + |h| (elevation of sun). 
 
