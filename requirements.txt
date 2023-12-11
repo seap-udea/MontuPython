@@ -1,0 +1,10 @@
+plotly
+dash
+dash-html-components
+dash-bootstrap-components
+dash-core-components
+gdown
+pandas
+scipy
+gunicorn
+Montu
