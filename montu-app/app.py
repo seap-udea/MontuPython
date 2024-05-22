@@ -1,10 +1,18 @@
+
 import dash
 import dash_bootstrap_components as dbc
 from dash import html, dcc, callback, page_registry, page_container
 from dash.dependencies import Input, Output
 from datetime import date
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True)
+app = dash.Dash(
+    __name__,
+    external_stylesheets=[dbc.themes.BOOTSTRAP],
+    use_pages=True,
+    #requests_pathname_prefix='/var/www/html/dash/MontuPython/app',
+    requests_pathname_prefix='/montu-app/',
+    routes_pathname_prefix='/',
+)
 app._favicon = ("montu.ico")
 
 # Estilo egipcio para la barra lateral
@@ -74,7 +82,6 @@ app.layout = dbc.Container([
 ], fluid=True)
 
 server = app.server
-
 if __name__ == '__main__':
-    app.run_server(debug=False, host='0.0.0.0', port=8080)
+    app.run_server(debug=False, host='0.0.0.0', port=8060)
 
