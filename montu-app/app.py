@@ -3,9 +3,6 @@ import dash_bootstrap_components as dbc
 from dash import (
     html,
     dcc,
-    callback,
-    page_registry,
-    page_container,
     Input,
     Output,
     State,
@@ -22,7 +19,6 @@ app = dash.Dash(
 )
 app._favicon = "montu.ico"
 
-# Definir estilos para los elementos del menú
 menu_item_style = {
     "backgroundColor": "lightyellow",
     "margin": "5px 10px",
@@ -33,7 +29,6 @@ menu_item_style = {
     "padding": "10px",
 }
 
-# Crear la barra lateral con las opciones de menú
 sidebar = html.Div(
     [
         html.Div(
@@ -43,7 +38,7 @@ sidebar = html.Div(
                     style={"width": "80px", "margin": "0 auto", "display": "block"},
                 ),
                 html.H4(
-                    "MontuPython",
+                    "Montu App",
                     className="text-center mt-2",
                     style={"color": "black"},
                 ),
@@ -106,7 +101,6 @@ sidebar = html.Div(
     },
 )
 
-# Barra de navegación superior fija
 navbar = html.Nav(
     style={
         "background-color": egyptian_palette["header"],
@@ -160,23 +154,29 @@ navbar = html.Nav(
                         "transition": "all 0.3s ease",
                     },
                 ),
-                html.Img(
-                    src="assets/Montu.png",
-                    style={"width": "50px", "margin-right": "15px"},
-                ),
-                html.H3(
-                    "MontuPython",
+                html.Div(
                     style={
-                        "color": egyptian_palette["text"],
-                        "margin": "0",
+                        "display": "flex",
+                        "alignItems": "center",
+                        "justifyContent": "center",
+                        "flexDirection": "column",
                     },
+                    children=[
+                        html.H3(
+                            "Montu App",
+                            style={
+                                "color": egyptian_palette["text"],
+                                "margin": "0",
+                            },
+                        ),
+                        html.P("Astronomical ephemerides for the ancient world"),
+                    ],
                 ),
             ],
         ),
     ],
 )
 
-# CSS personalizado para la animación del botón de menú
 app.index_string = """
 <!DOCTYPE html>
 <html>
@@ -255,16 +255,25 @@ app.index_string = """
 </html>
 """
 
-# Layout principal de la aplicación
 app.layout = html.Div(
     [
         sidebar,
         navbar,
         dbc.Container(
             [
-                # Espacio para compensar la barra de navegación fija
                 html.Div(style={"height": "70px"}),
-                dbc.Row(dash.page_container, id="page-content"),
+                dbc.Row(
+                    html.Div(
+                        style={
+                            "background-color": egyptian_palette["background"],
+                            "min-height": "100vh",
+                            "font-family": "Roboto, sans-serif",
+                            "margin-top": "20px",
+                        },
+                        children=[dash.page_container],
+                    ),
+                    id="page-content",
+                ),
                 dbc.Row(
                     html.Footer(
                         style={
@@ -302,13 +311,11 @@ app.layout = html.Div(
             id="main-content",
             style={"transition": "all 0.3s"},
         ),
-        # Almacenamiento para el estado de la barra lateral
         dcc.Store(id="sidebar-state", data={"visible": False}),
     ]
 )
 
 
-# Callback para mostrar/ocultar la barra lateral y animar el botón
 @app.callback(
     [
         Output("sidebar", "style"),
@@ -322,10 +329,8 @@ app.layout = html.Div(
 )
 def toggle_sidebar(n_clicks, sidebar_state):
     if n_clicks is None:
-        # Valor inicial cuando la página se carga
         visible = False
     else:
-        # Cambiar visibilidad cuando se hace clic
         visible = not sidebar_state.get("visible", False)
 
     sidebar_style = {
@@ -345,14 +350,16 @@ def toggle_sidebar(n_clicks, sidebar_state):
         "transition": "all 0.3s",
         "marginLeft": "250px" if visible else "0px",
     }
-    
+
     # Clase para la animación del icono de menú
     menu_icon_class = "menu-icon open" if visible else "menu-icon"
-    
+
     # Estilo del botón (se mueve cuando el sidebar está abierto)
     button_style = {
         "position": "absolute",
-        "left": "250px" if visible else "0",  # Se mueve a la derecha cuando el menú está abierto
+        "left": (
+            "250px" if visible else "0"
+        ),  # Se mueve a la derecha cuando el menú está abierto
         "zIndex": 1060,
         "backgroundColor": egyptian_palette["secondary"],
         "borderRadius": "8px",
