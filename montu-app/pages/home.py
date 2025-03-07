@@ -1,32 +1,225 @@
-import dash 
+import dash
 from dash import dcc, html
+import dash_bootstrap_components as dbc
+from utils.theme import egyptian_palette
 
-# Paleta de colores egipcios
-egyptian_palette = {
-    'background': '#f5e2a1',  # Fondo amarillo claro
-    'text': '#000000',  # Texto en negro
-    'header': '#cda434',  # Encabezado en dorado egipcio
-    'accent': '#d97824',  # Acento en naranja oscuro
-}
+# Aseguramos que Font Awesome esté disponible
+external_stylesheets = [dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME]
 
-dash.register_page(__name__, path='/')
+dash.register_page(__name__, path="/")
 
-layout = html.Div(style={'background-color': egyptian_palette['background']}, children=[
-    html.Img(src='assets/Montu.png', className='center', style={'width': '300px'}),
-    html.Header(style={'background-color': egyptian_palette['header'], 'padding': '20px'}, children=[
-        html.H1("MontuPython - Ancient Astronomy", style={'color': egyptian_palette['text']}),
-    ]),
-    dcc.Markdown("""
+layout = html.Div(
+    style={
+        "background-color": egyptian_palette["background"],
+        "min-height": "100vh",
+        "font-family": "Roboto, sans-serif",
+    },
+    children=[
+        # Barra de navegación
+        # Contenido principal
+        html.Div(
+            style={"max-width": "1200px", "margin": "0 auto", "padding": "20px"},
+            children=[
+                # Sección de imagen grande
+                html.Div(
+                    style={
+                        "display": "flex",
+                        "flex-direction": "column",
+                        "align-items": "center",
+                        "text-align": "center",
+                        "margin-bottom": "40px",
+                        "padding": "40px 20px",
+                        "background": f"linear-gradient(rgba(205, 164, 52, 0.2), rgba(205, 164, 52, 0.1))",
+                        "border-radius": "10px",
+                    },
+                    children=[
+                        html.Img(
+                            src="assets/Montu.png",
+                            style={"width": "200px", "margin-bottom": "20px"},
+                        ),
+                        html.H1(
+                            "MontuPython - Ancient Astronomy",
+                            style={
+                                "color": egyptian_palette["text"],
+                                "margin-bottom": "20px",
+                                "font-size": "2.5rem",
+                            },
+                        ),
+                        html.H3(
+                            "Travel through time and explore the ancient skies",
+                            style={
+                                "color": egyptian_palette["secondary"],
+                                "margin-bottom": "30px",
+                                "font-weight": "normal",
+                            },
+                        ),
+                        dbc.Button(
+                            "Start exploration",
+                            style={
+                                "background-color": egyptian_palette["accent"],
+                                "border": "none",
+                                "padding": "10px 20px",
+                            },
+                            href="/moon",
+                        ),
+                    ],
+                ),
+                # Sección de características
+                html.Div(
+                    style={
+                        "display": "grid",
+                        "grid-template-columns": "repeat(auto-fit, minmax(300px, 1fr))",
+                        "gap": "30px",
+                        "margin-bottom": "40px",
+                    },
+                    children=[
+                        # Tarjeta 1
+                        dbc.Card(
+                            style={"background-color": "white", "border": "none"},
+                            children=[
+                                dbc.CardBody(
+                                    [
+                                        html.H4(
+                                            "Ancient Astronomy",
+                                            style={
+                                                "color": egyptian_palette["accent"],
+                                                "margin-bottom": "15px",
+                                            },
+                                        ),
+                                        html.P(
+                                            "Calculate precise astronomical positions for dates going back thousands of years, ideal for archaeological and cultural studies.",
+                                            style={"color": egyptian_palette["text"]},
+                                        ),
+                                    ]
+                                )
+                            ],
+                        ),
+                        # Tarjeta 2
+                        dbc.Card(
+                            style={"background-color": "white", "border": "none"},
+                            children=[
+                                dbc.CardBody(
+                                    [
+                                        html.H4(
+                                            "Egyptian Focus",
+                                            style={
+                                                "color": egyptian_palette["accent"],
+                                                "margin-bottom": "15px",
+                                            },
+                                        ),
+                                        html.P(
+                                            "Originally developed for the study of astronomy in ancient Egypt, with specific features for this civilization.",
+                                            style={"color": egyptian_palette["text"]},
+                                        ),
+                                    ]
+                                )
+                            ],
+                        ),
+                        # Tarjeta 3
+                        dbc.Card(
+                            style={"background-color": "white", "border": "none"},
+                            children=[
+                                dbc.CardBody(
+                                    [
+                                        html.H4(
+                                            "Universal Application",
+                                            style={
+                                                "color": egyptian_palette["accent"],
+                                                "margin-bottom": "15px",
+                                            },
+                                        ),
+                                        html.P(
+                                            "Applicable to any archaeoastronomical site or cultural study that requires precise historical astronomical calculations.",
+                                            style={"color": egyptian_palette["text"]},
+                                        ),
+                                    ]
+                                )
+                            ],
+                        ),
+                    ],
+                ),
+                # Sección de descripción
+                html.Div(
+                    style={
+                        "background-color": "white",
+                        "padding": "30px",
+                        "border-radius": "10px",
+                        "margin-bottom": "40px",
+                    },
+                    children=[
+                        dcc.Markdown(
+                            """
+            ## About MontuPython
 
-    Welcome to `MontuPython` (transliterated mnṯw ꜥꜣpp(y)), your gateway to ancient astronomy.
+            **MontuPython** (transliterated mnṯw ꜥꜣpp(y)) is your gateway to ancient astronomy.
 
-    *MontuPython* is a Python package designed to compute astronomical ephemerides thousands of years before the present day. It was originally developed to calculate ephemerides for ancient Egypt, but it can also be applied to the study of astronomical phenomena in other regions of cultural interest, such as archaeoastronomy sites.
+            *MontuPython* is a Python package designed to compute astronomical ephemerides thousands of years before the present day. It was originally developed to calculate ephemerides for ancient Egypt, but it can also be applied to the study of astronomical phenomena in other regions of cultural interest, such as archaeoastronomy sites.
 
-    Explore the ancient skies and unravel the mysteries of the past with MontuPython!
+            Explore the ancient skies and unravel the mysteries of the past with MontuPython!
+            """,
+                            style={"color": egyptian_palette["text"]},
+                        ),
+                        html.Div(
+                            style={
+                                "display": "flex",
+                                "justify-content": "center",
+                                "margin-top": "20px",
+                            },
+                            children=[
+                                dbc.Button(
+                                    [
+                                        "View on GitHub",
+                                        html.I(className="bi bi-github"),
+                                    ],
+                                    href="https://github.com/seap-udea/MontuPython",
+                                    target="_blank",
+                                    style={
+                                        "background-color": egyptian_palette[
+                                            "secondary"
+                                        ],
+                                        "border": "none",
+                                        "margin-right": "10px",
+                                        "display": "flex",
+                                        "gap": "8px",
+                                        "align-items": "center"
+                                    },
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                # Sección de créditos
+                html.Div(
+                    style={
+                        "background-color": "rgba(205, 164, 52, 0.1)",
+                        "padding": "20px",
+                        "border-radius": "10px",
+                        "text-align": "center",
+                    },
+                    children=[
+                        html.H4(
+                            "Developers",
+                            style={
+                                "color": egyptian_palette["secondary"],
+                                "margin-bottom": "15px",
+                            },
+                        ),
+                        html.P(
+                            [
+                                "This package has been primarily developed by ",
+                                html.Strong("Jorge I. Zuluaga"),
+                                ", with historical guidance from Egyptologist ",
+                                html.Strong('Francisco "Tito" Vivas'),
+                                " and contributions by ",
+                                html.Strong("Juanita Agudelo"),
+                                ".",
+                            ],
+                            style={"color": egyptian_palette["text"]},
+                        ),
+                    ],
+                ),
+            ],
+        ),
 
-    For more details, visit the [GitHub repository](https://github.com/seap-udea/MontuPython).
-
-    *This package has been primarily developed by Jorge I. Zuluaga, with historical guidance from Egyptologist Francisco "Tito" Vivas and contributions by Juanita Agudelo.*
-
-    """, style={'color': egyptian_palette['text'], 'padding': '20px'}),
-])
+    ],
+)

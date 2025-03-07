@@ -17,4 +17,4 @@ COPY app/ ./app/
 EXPOSE 8080
 
 # Especificamos el comando para iniciar la aplicación
-CMD ["python", "./app/app.py"]
+CMD ["python", "./montu-app/app.py"]
