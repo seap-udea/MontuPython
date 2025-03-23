@@ -18,3 +18,7 @@
     margin-right: auto;
     width: 40%;
   }
+
+.dash-dropdown .Select-control {
+    border: 2px solid rgb(217, 120, 36) !important;
+}

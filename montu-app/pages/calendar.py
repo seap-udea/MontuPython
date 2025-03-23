@@ -6,6 +6,26 @@ from utils.theme import egyptian_palette
 
 dash.register_page(__name__)
 
+# Agregar estilos consistentes al inicio del archivo
+style_input = {
+    'border': f'1px solid {egyptian_palette["accent"]}',
+    'width': '100%',
+    'borderRadius': '4px'
+}
+
+button_style = {
+    'backgroundColor': egyptian_palette["accent"],
+    'border': 'none',
+    'color': 'white',
+    'borderRadius': '4px',
+    'padding': '8px 16px'
+}
+
+table_style = {
+    'borderColor': egyptian_palette["accent"],
+    'backgroundColor': 'white',
+}
+
 layout = html.Div(
     children=[
         dbc.Card(
@@ -32,6 +52,7 @@ layout = html.Div(
                                                     active=True,
                                                     className="me-1",
                                                     n_clicks=0,
+                                                    style=button_style
                                                 ),
                                                 dbc.Button(
                                                     "Julian day",
@@ -40,6 +61,7 @@ layout = html.Div(
                                                     outline=True,
                                                     className="ms-1",
                                                     n_clicks=0,
+                                                    style=button_style
                                                 ),
                                             ],
                                             className="d-flex justify-content-center mb-4",
@@ -105,7 +127,7 @@ layout = html.Div(
     className="p-4",
 )
 
-# Componente de entrada de fecha
+# Actualizar el componente input_date
 input_date = html.Div(
     [
         dbc.Card(
@@ -128,6 +150,7 @@ input_date = html.Div(
                                                             value=-1321,
                                                             placeholder="Year",
                                                             className="mb-2",
+                                                            style=style_input
                                                         ),
                                                     ],
                                                     width=4,
@@ -143,6 +166,7 @@ input_date = html.Div(
                                                             value=7,
                                                             placeholder="Month",
                                                             className="mb-2",
+                                                            style=style_input
                                                         ),
                                                     ],
                                                     width=4,
@@ -159,6 +183,7 @@ input_date = html.Div(
                                                             max=31,
                                                             step=1,
                                                             className="mb-2",
+                                                            style=style_input
                                                         ),
                                                     ],
                                                     width=4,
@@ -186,6 +211,7 @@ input_date = html.Div(
                                                             max=24,
                                                             placeholder="Hour",
                                                             className="mb-2",
+                                                            style=style_input
                                                         ),
                                                     ],
                                                     width=4,
@@ -202,6 +228,7 @@ input_date = html.Div(
                                                             debounce=True,
                                                             placeholder="Min",
                                                             className="mb-2",
+                                                            style=style_input
                                                         ),
                                                     ],
                                                     width=4,
@@ -218,6 +245,7 @@ input_date = html.Div(
                                                             placeholder="Sec",
                                                             step=1,
                                                             className="mb-2",
+                                                            style=style_input
                                                         ),
                                                     ],
                                                     width=4,
@@ -235,6 +263,7 @@ input_date = html.Div(
                     ]
                 ),
             ],
+            style={"backgroundColor": egyptian_palette["background"]},
         ),
     ],
 )
@@ -264,6 +293,15 @@ def get_date_output_table(mtime):
     es = mtime.et
     delta_t = mtime.deltat
 
+    table_props = {
+        'bordered': True,
+        'hover': True,
+        'responsive': True,
+        'striped': True,
+        'className': "mb-4",
+        'style': table_style
+    }
+
     date_formats_table = dbc.Table(
         [
             html.Thead(
@@ -291,11 +329,7 @@ def get_date_output_table(mtime):
                 ]),
             ]),
         ],
-        bordered=True,
-        hover=True,
-        responsive=True,
-        striped=True,
-        className="mb-4",
+        **table_props
     )
 
     julian_info_table = dbc.Table(
@@ -325,10 +359,7 @@ def get_date_output_table(mtime):
                 ]),
             ]),
         ],
-        bordered=True,
-        hover=True,
-        responsive=True,
-        striped=True,
+        **table_props
     )
 
     return html.Div([

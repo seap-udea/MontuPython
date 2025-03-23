@@ -9,7 +9,7 @@ dash.register_page(__name__, path="/")
 
 layout = (
     html.Div(
-        style={"max-width": "1200px", "margin": "0 auto"},
+        style={"max-width": "1200px", "margin": "0 auto", "padding": "20px"},
         children=[
             html.Div(
                 style={
@@ -183,7 +183,6 @@ layout = (
                         "Developers",
                         style={
                             "color": egyptian_palette["secondary"],
-                            "margin-bottom": "15px",
                         },
                     ),
                     html.P(

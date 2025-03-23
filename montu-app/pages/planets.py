@@ -5,6 +5,8 @@ import plotly.express as px
 import pandas as pd
 import montu
 import numpy as np
+import dash_bootstrap_components as dbc
+from utils.theme import egyptian_palette
 
 ################################################################
 # Preliminary data
@@ -23,48 +25,100 @@ properties = ['RAJ2000', 'DecJ2000', 'RAEpoch', 'DecEpoch',
 ################################################################
 # Layout
 ################################################################
-dash.register_page(__name__) # Uncomment in production
-layout = html.Div([
-    html.H3(children='Planetary Ephemerides', style={'textAlign':'center'}),
-    html.Div([
-        " Initial date (format [-]CCYY-MM-DD): ",
-        dcc.Input(id='initial-date', value='-1500-01-01', type='text', style={
-            'border-radius': '15px', 'border': '2px solid gold'
-        }), 
-    ]),
-    html.Div([
-        " Time span (in years): ",
-        dcc.Input(id='time-span', value='10', type='text', style={
-            'border-radius': '15px', 'border': '2px solid gold'
-        }),
-    ]),
-    html.Div([
-        " Number of points: ",
-        dcc.Input(id='number-points', value='120', type='text', style={
-            'border-radius': '15px', 'border': '2px solid gold'
-        })
-    ]),
-    html.Div([
-        "Planet:",
-        dcc.Dropdown(planet_names, 'Mercury', id='dropdown-planet', multi=True, style={
-            'border-radius': '15px', 'border': '2px solid gold'
-        })
-    ]),
-    html.Div([
-        "Property:",
-        dcc.Dropdown(properties, 'DecEpoch', id='dropdown-property', style={
-            'border-radius': '15px', 'border': '2px solid gold'
-        })
-    ]),
-    html.Br(),
-    html.Div(id='check-output'),
-    dcc.Loading(
-        id="graph-loading",
-        children=[dcc.Graph(id='graph-content')],
-        type="default", fullscreen=False,
-    )
-], style={'backgroundColor': '#f5e2a1'})
+dash.register_page(__name__)
 
+layout = html.Div([
+    dbc.Card([
+        dbc.CardHeader(
+            html.H3(
+                "Planetary Ephemerides",
+                className="text-center",
+                style={"color": egyptian_palette["text"]},
+            )
+        ),
+        dbc.CardBody([
+            dbc.Row([
+                dbc.Col([
+                    dbc.Label("Initial date (format [-]CCYY-MM-DD):", className="me-2"),
+                    dbc.Input(
+                        id='initial-date',
+                        value='-1500-01-01',
+                        type='text',
+                        className="mb-3",
+                        style={'border': f'1px solid {egyptian_palette["accent"]}'}
+                    ),
+                ], width=12),
+            ]),
+
+            dbc.Row([
+                dbc.Col([
+                    dbc.Label("Time span (in years):", className="me-2"),
+                    dbc.Input(
+                        id='time-span',
+                        value='10',
+                        type='text',
+                        className="mb-3",
+                        style={'border': f'1px solid {egyptian_palette["accent"]}'}
+                    ),
+                ], width=12),
+            ]),
+
+            dbc.Row([
+                dbc.Col([
+                    dbc.Label("Number of points:", className="me-2"),
+                    dbc.Input(
+                        id='number-points',
+                        value='120',
+                        type='text',
+                        className="mb-3",
+                        style={'border': f'1px solid {egyptian_palette["accent"]}'}
+                    ),
+                ], width=12),
+            ]),
+
+            dbc.Row([
+                dbc.Col([
+                    dbc.Label("Planet:", className="me-2"),
+                    dcc.Dropdown(
+                        id='dropdown-planet',
+                        options=[{'label': name, 'value': name} for name in planet_names],
+                        value='Mercury',
+                        multi=True,
+                        style={
+                            'width': '100%',
+                        }
+                    ),
+                ], width=12, className="mb-3"),
+            ]),
+
+            dbc.Row([
+                dbc.Col([
+                    dbc.Label("Property:", className="me-2"),
+                    dbc.Select(
+                        id='dropdown-property',
+                        options=[{'label': prop, 'value': prop} for prop in properties],
+                        value='DecEpoch',
+                        style={
+                            'width': '100%',
+                            'border': f'1px solid {egyptian_palette["accent"]}'
+                        }
+                    ),
+                ], width=12, className="mb-3"),
+            ]),
+
+            dbc.Row([
+                dbc.Col([
+                    dcc.Loading(
+                        id="graph-loading",
+                        children=[dcc.Graph(id='graph-content')],
+                        type="default",
+                        fullscreen=False,
+                    ),
+                ], width=12),
+            ]),
+        ])
+    ], style={"backgroundColor": egyptian_palette["background"]}),
+], className="p-4")
 
 ################################################################
 # Compute ephemerides
