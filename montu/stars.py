@@ -21,7 +21,7 @@ import pymeeus.Coordinates as pymeeus_Coordinates
 ###############################################################
 # Module constants
 ###############################################################
-STELLAR_CATALOGUE = 'montu_stellar_catalogue_v37.csv'
+STELLAR_CATALOGUE = 'montu_stellar_catalogue_v38.csv' # Latest version: 2025/03/28
 PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
 SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
 
@@ -70,6 +70,7 @@ class Stars(object):
 
         else:
             # Load data from the database provided with package
+            print(f"Loading stellar catalogue {STELLAR_CATALOGUE}")
             self.data = pd.read_csv(montu.Util._data_path(STELLAR_CATALOGUE,check=True))
 
         self.number = len(self.data)

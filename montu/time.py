@@ -290,8 +290,8 @@ class Time(object):
         if self.bce and (style == 'calendar'):
             subs1 = lambda m:str(-(int(m.group(1))-1))
             subs2 = lambda m:str(-(int(m.group(1))-1))+'-'
-            self.readable.datepro = re.sub('^bce[a-z\s]*(\d+)',subs1,self.readable.datepro.lower())
-            self.readable.datepro = re.sub('(\d+)\s*b[\.]*c[\.]*e[\.]*\s*',subs2,self.readable.datepro.lower())
+            self.readable.datepro = re.sub(r'^bce[a-z\s]*(\d+)',subs1,self.readable.datepro.lower())
+            self.readable.datepro = re.sub(r'(\d+)\s*b[\.]*c[\.]*e[\.]*\s*',subs2,self.readable.datepro.lower())
 
         # Create calendar and datetime object
         self.readable.obj_datetime64 = np.datetime64(self.readable.datepro)
@@ -392,11 +392,11 @@ class Time(object):
         sub_ad = lambda m:f'{int(m.group(1)):04d}-{MONTH_ABREVS[m.group(2)]:02d}-'
         sub_nm = lambda m:f'-{MONTH_ABREVS[m.group(1)]:02d}-'
         if self.bce:
-            datestr = re.sub('(\d+)\s*B.C.\s*(\w+)\s*',sub_bc,datestr)
+            datestr = re.sub(r'(\d+)\s*B.C.\s*(\w+)\s*',sub_bc,datestr)
         elif 'A.D.' in datestr:
-            datestr = re.sub('(\d+)\s*A.D.\s*(\w+)\s*',sub_ad,datestr)
+            datestr = re.sub(r'(\d+)\s*A.D.\s*(\w+)\s*',sub_ad,datestr)
         else:
-            datestr = re.sub('\s+(\w+)\s+',sub_nm,datestr)
+            datestr = re.sub(r'\s+(\w+)\s+',sub_nm,datestr)
 
         # Convert to caniucular
         self.readable.datecan = Time._jed_to_caniucular(self.jed)
