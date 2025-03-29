@@ -306,7 +306,7 @@ class Stars(object):
         pass
     
     def plot_stars(self,coords=['RAJ2000','DecJ2000'],
-                   labels=True,pad=0,figargs=dict(),stargs=dict()):
+                   labels=True,label_mag=15,pad=0,figargs=dict(),stargs=dict()):
         """Plot all stars in data.
 
         Parameters:
@@ -352,12 +352,10 @@ class Stars(object):
         if labels:
             for index in self.data.index:
                 star = self.data.loc[index]
+                if star.Vmag>label_mag:
+                    continue
                 star.fillna('',inplace=True)
                 name = star.Name
-                """
-                axs.text(star[coords[0]],star[coords[1]],f'{name}',
-                         color='w',fontsize=fontsize(star.Vmag))
-                         """
                 axs.annotate(f'{name}',xy=[15*star[coords[0]],star[coords[1]]],xycoords='data',
                              xytext=[5,5],textcoords='offset points',
                              fontsize=fontsize(star.Vmag))

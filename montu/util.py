@@ -16,6 +16,10 @@ import numpy as np
 import spiceypy as spy
 from tabulate import tabulate
 
+from pymeeus.Epoch import Epoch as pymeeus_Epoch
+from pymeeus.Angle import Angle as pymeeus_Angle
+import pymeeus.Coordinates as pymeeus_Coordinates
+
 ###############################################################
 # Module constants
 ###############################################################
@@ -34,13 +38,14 @@ KERNELS_LOADED = dict()
 
 PLANETARY_DATAFILE = 'planets-jpl.csv'
 
+from tqdm import tqdm
 def GENERATOR():
     """This routine is intended to create a while True loop for tqdm 
     counter
     """
     while True:yield
-WHILE_TRUE = lambda:tqdm.tqdm(GENERATOR())
-PROGRESS = lambda iterable:tqdm.tqdm(iterable)
+WHILE_TRUE = lambda:tqdm(GENERATOR())
+PROGRESS = lambda iterable:tqdm(iterable)
 
 ###############################################################
 # Montu Python Util Class
@@ -273,6 +278,37 @@ class Util(object):
         planets['SynodicOrbit'] = abs(1/(1/planets.loc['Earth','SiderealOrbit']-1/planets['SiderealOrbit']))
 
         return planets
+
+    def where_in_sky(RA=0,Dec=0,at=None,observer=None):
+        # If at is not provide use present
+        if at is None:
+            at = montu.Time()
+
+        # Check inputs
+        if not isinstance(observer,montu.Observer):
+            raise ValueError("You must provide a valid montu.Observer")
+
+        # Create pymeeus epoch
+        epoch = pymeeus_Epoch(at.jed)
+
+        # Compute local true sidereal time
+        observer.site.date = at.jed - montu.PYEPHEM_JD_REF
+        ltst = observer.site.sidereal_time()*montu.RAD/15
+
+        
+        # Compute hour angle
+        HA = np.mod(ltst - RA,24)
+        
+        # Compute horizontal coordinates
+        lat = observer.lat
+        el = np.arcsin(np.sin(Dec*montu.DEG)*np.sin(lat*montu.DEG) + \
+                    np.cos(Dec*montu.DEG)*np.cos(lat*montu.DEG)*np.cos(HA*15*montu.DEG))*montu.RAD
+        az = np.arctan2(-np.sin(HA*15*montu.DEG)*np.cos(Dec*montu.DEG)/np.cos(el*montu.DEG),
+                        (np.sin(Dec*montu.DEG) - np.sin(lat*montu.DEG)*np.sin(el*montu.DEG))/\
+                            (np.cos(lat*montu.DEG)*np.cos(el*montu.DEG)))*montu.RAD
+        az = np.mod(az,360)
+        
+        return az,el
 
 class Dictobj(object):
     """Convert a dictionary to an object
