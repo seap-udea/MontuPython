@@ -4,6 +4,8 @@ from dash import Dash, html, dcc, callback, Output, Input, State
 import plotly.express as px
 import pandas as pd
 import numpy as np
+import dash_bootstrap_components as dbc
+from utils.theme import egyptian_palette
 
 ################################################################
 # Preliminary data
@@ -59,110 +61,240 @@ This is the date appearing in the first document with a perfect chronology, name
 The date falls in the third year of king Taharqa (see Lull, p.105, date there I-Peret-10).
 ''',
 }
-historical_dates_options = []
-for key,item in historical_dates.items():
-    historical_dates_options += [dict(label=key,value=key)]
+historical_dates_options = [dict(label=key,value=key) for key,item in historical_dates.items()]
 
 ################################################################
 # Layout
 ################################################################
 button_style = {
-    'background-color': '#007BFF',  # Este es el color azul estándar de Bootstrap
-    'color': 'white',               # Texto en color blanco
-    'border': 'none',               # Sin borde
-    'padding': '10px 24px',         # Ajusta el padding para cambiar el tamaño del botón
-    'border-radius': '4px',         # Bordes redondeados
-    'cursor': 'pointer',            # Cambia el cursor a un puntero
-    'font-size': '1em',             # Ajusta el tamaño de la fuente si es necesario
-    'margin-left': '1%',            # Ajusta el margen izquierdo si es necesario
-    'font-size': font_text,         # Utiliza la variable de tamaño de fuente ya definida
+    'backgroundColor': egyptian_palette["accent"],
+    'color': 'white',
+    'border': 'none',
+    'borderRadius': '4px',
+    'padding': '8px 16px'
 }
 
+input_style = {
+    'border': f'1px solid {egyptian_palette["accent"]}',
+    'borderRadius': '4px'
+}
 
 dash.register_page(__name__) # Uncomment in production
 layout = html.Div([
-    html.H3(children=f'Egyptian civil calendar', style={'textAlign':'center' , 'backgroundColor': '#f5e2a1'}),
-    html.Div([
-        dcc.Markdown(module_quickstart_doc),
-    ],style={'padding':'1%', 'backgroundColor': '#f5e2a1' }),
-    
-    html.Div([
-        html.Em("Julian/Gregorian date:",style={'margin':'0.1em','height': '10px'}),
+    dbc.Card([
+        dbc.CardHeader(
+            html.H3(
+                "Egyptian Civil Calendar",
+                className="text-center",
+                style={"color": egyptian_palette["text"]},
+            )
+        ),
+        dbc.CardBody([
+            dcc.Markdown(module_quickstart_doc),
+            
+            # Julian/Gregorian date section
+            dbc.Card([
+                dbc.CardHeader(html.H5("Julian/Gregorian Date", className="text-center")),
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.RadioItems(
+                                id="gdate-era",
+                                options=['bce','ce'],
+                                value='bce',
+                                inline=True,
+                                className="mb-2"
+                            ),
+                        ], width=2),
+                        dbc.Col([
+                            dbc.Input(
+                                id='gdate-year',
+                                value='2782',
+                                type='number',
+                                placeholder="Year",
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                        dbc.Col([
+                            dbc.Input(
+                                id='gdate-month',
+                                value='7',
+                                type='number',
+                                placeholder="Month",
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                        dbc.Col([
+                            dbc.Input(
+                                id='gdate-day',
+                                value='20',
+                                type='number',
+                                placeholder="Day", 
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Input(
+                                id='gdate-add',
+                                value='0',
+                                type='number',
+                                placeholder="Add value",
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=6),
+                        dbc.Col([
+                            dbc.Select(
+                                id='gdate-add-units',
+                                options=[
+                                    {'label': 'Days', 'value': 'days'},
+                                    {'label': 'Weeks', 'value': 'weeks'},
+                                    {'label': 'Months', 'value': 'months'},
+                                    {'label': 'Years', 'value': 'years'}
+                                ],
+                                value='days',
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=6),
+                    ]),
+                    dbc.Button(
+                        "Convert to Caniucular",
+                        id='button-to-caniucular',
+                        color="primary",
+                        className="w-100 mt-2",
+                        style=button_style
+                    ),
+                    dbc.Input(
+                        id="gdate-output",
+                        disabled=True,
+                        className="mt-3"
+                    ),
+                ])
+            ], className="mb-4"),
 
-        dcc.RadioItems(id="gdate-era",options=['bce','ce'],value='bce',inline=True,
-                       style={'width':'3em','display':'inline-block','align-items':'center','margin':'1%','height': '20px'}),
-        dcc.Input(id='gdate-year', value='2782', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'4em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),"-",
-        dcc.Input(id='gdate-month', value='7', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),"-",
-        dcc.Input(id='gdate-day', value='20', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
-        
-        #html.Em("And add:",style={'margin':'0.1em'}),
-        
-        dcc.Input(id='gdate-add', value='0', 
-                  type='number',
-                  style={'margin':'1%','font-size':font_input,'width':'5em','display':'inline-block','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
-        dcc.Dropdown(id='gdate-add-units',options=['days','weeks','months','years'],value='days',
-                     style={'width':'5em','display':'inline-block','margin':'0%','borderRadius': '10px', 'border': '2px solid gold'}),
+            # Caniucular date section
+            dbc.Card([
+                dbc.CardHeader(html.H5("Caniucular Date", className="text-center")),
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Input(
+                                id='cdate-hyear',
+                                value=0,
+                                type='number',
+                                placeholder="Horus Year",
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                        dbc.Col([
+                            dbc.Select(
+                                id='cdate-month',
+                                options=[
+                                    {'label': i, 'value': i} for i in ['I','II','III','IV']
+                                ],
+                                value='I',
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                        dbc.Col([
+                            dbc.Select(
+                                id='cdate-season',
+                                options=['Akhet','Peret','Shemu','Mesut'],
+                                value='Akhet',
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                        dbc.Col([
+                            dbc.Input(
+                                id='cdate-day',
+                                value='20',
+                                type='number',
+                                placeholder="Day",
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=3),
+                    ]),
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Input(
+                                id='cdate-add',
+                                value='0',
+                                type='number',
+                                placeholder="Add value",
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=6),
+                        dbc.Col([
+                            dbc.Select(
+                                id='cdate-add-units',
+                                options=[
+                                    {'label': 'Days', 'value': 'days'},
+                                    {'label': 'Weeks', 'value': 'weeks'},
+                                    {'label': 'Months', 'value': 'months'},
+                                    {'label': 'Years', 'value': 'years'}
+                                ],
+                                value='days',
+                                style=input_style,
+                                className="mb-2"
+                            ),
+                        ], width=6),
+                    ]),
+                    dbc.Button(
+                        "Convert to Julian",
+                        id='button-to-julian',
+                        color="primary",
+                        className="w-100 mt-2",
+                        style=button_style
+                    ),
+                    dbc.Input(
+                        id="cdate-output",
+                        disabled=True,
+                        className="mt-3"
+                    ),
+                ])
+            ], className="mb-4"),
 
-        # Button 
-        html.Button('Convert to caniucular',id='button-to-caniucular',value='Click',n_clicks=0,
-                    style= button_style),
-        
-        # Output
-        html.Br(),
-        html.Em("Calendar date:",style={'margin-left':'5em'}),
-        dcc.Input(id="gdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em', 'borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
-        
-    ],style={'padding':'1%','font-size':font_text , 'backgroundColor': '#f5e2a1'}),
-
-    html.Div([
-        html.Em("Caniucular date:",style={'margin':'0.1em'}),
-        
-        dcc.Input(id='cdate-hyear',  value = 0,
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'4em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),"-",
-        dcc.Dropdown(id='cdate-month',options=['I','II','III','IV'], value = 'I', 
-                     style={'width':'5em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),"-",
-        dcc.Dropdown(id='cdate-season',options=['Akhet','Peret','Shemu','Mesut'], value = 'Akhet', 
-                     style={'width':'6em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),"-",
-        dcc.Input(id='cdate-day', value='20', 
-                  type='number',style={'margin':'1%','font-size':font_input,'width':'3em','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
-        
-        html.Em("And add:",style={'margin':'0.1em'}),
-        
-        dcc.Input(id='cdate-add', value='0', 
-                  type='number',
-                  style={'margin':'1%','font-size':font_input,'width':'5em','display':'inline-block','borderRadius': '10px', 'border': '2px solid gold',     'padding': '10px'}),
-        dcc.Dropdown(id='cdate-add-units',options=['days','weeks','months','years'],value='days',
-                     style={'width':'5em','display':'inline-block','margin':'0%','borderRadius': '10px', 'border': '2px solid gold'}),
-        
-        html.Button('Convert to julian',id='button-to-julian',value='Click',n_clicks=0,
-                    style=button_style),
-
-        # Output
-        html.Br(),
-        html.Em("Caniucular date:",style={'margin-left':'5em'}),
-        dcc.Input(id="cdate-output",style={'margin':'1%','border':'0px','font-size':font_text,'width':'20em','borderRadius': '10px', 'border': '2px solid gold'}),
-
-    ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle', 'backgroundColor': '#f5e2a1'}),
-
-    html.Div([
-        html.Em("Historical dates:",style={'margin':'0.1em'}),
-        
-        dcc.Dropdown(
-            id='hdate',
-            options = historical_dates_options,
-            value = 'bce 2782-07-20', 
-            style={'width':'10em','display':'inline-block','margin':'1%','borderRadius': '10px', 'border': '2px solid gold'}),
-
-        html.Button('Convert',id='button-to-historical',value='Click',n_clicks=0,
-                    style = button_style),
-
-        html.Div(id='hdate-explanation'),
-
-    ],style={'padding':'1%','alignment':'center','font-size':font_text,'vertical-align': 'middle', 'backgroundColor': '#f5e2a1'}),
-])
+            # Historical dates section
+            dbc.Card([
+                dbc.CardHeader(html.H5("Historical Dates", className="text-center")),
+                dbc.CardBody([
+                    dbc.Row([
+                        dbc.Col([
+                            dbc.Select(
+                                id='hdate',
+                                options=historical_dates_options,
+                                value='bce 2782-07-20',
+                                className="mb-2",
+                                style=input_style
+                            ),
+                        ], width=8),
+                        dbc.Col([
+                            dbc.Button(
+                                "Convert",
+                                id='button-to-historical',
+                                color="primary",
+                                className="w-100",
+                                style=button_style
+                            ),
+                        ], width=4),
+                    ]),
+                    html.Div(id='hdate-explanation', className="mt-3")
+                ])
+            ])
+        ])
+    ], style={"backgroundColor": egyptian_palette["background"]})
+], className="p-4")
 
 ################################################################
 # Routines
@@ -192,7 +324,6 @@ layout = html.Div([
     prevent_initial_call=True
 )
 def convert_historical(button,hdate):
-
     # Convert date
     mtime = montu.Time(hdate,calendar='mixed')
 
@@ -212,13 +343,12 @@ def convert_historical(button,hdate):
     comps_can = mtime.readable.datecan.split(' ')
     comps_can = comps_can[1].split('-')
     
-    return_tuple = (
+    return (
         datemix, mtime.readable.datecan,
         comps_can[0], comps_can[1], comps_can[2], comps_can[3], 
         era, comps[0], comps[1], comps[2], 
         dcc.Markdown(historical_dates[hdate])
     )
-    return return_tuple
 
 @callback(
     # Outputs
