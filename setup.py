@@ -51,7 +51,8 @@ setuptools.setup(
     # ######################################################################
     install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem',
                       'pymeeus','regex','pandas','tabulate','numpy','spiceypy',
-                      'pyplanets','requests'],
+                      'pyplanets','requests',
+                      'dash','dash_bootstrap_components'],
 
     # ######################################################################
     # OPTIONS

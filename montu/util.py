@@ -34,14 +34,13 @@ KERNELS_LOADED = dict()
 
 PLANETARY_DATAFILE = 'planets-jpl.csv'
 
-from tqdm import tqdm
 def GENERATOR():
     """This routine is intended to create a while True loop for tqdm 
     counter
     """
     while True:yield
-WHILE_TRUE = lambda:tqdm(GENERATOR())
-PROGRESS = lambda iterable:tqdm(iterable)
+WHILE_TRUE = lambda:tqdm.tqdm(GENERATOR())
+PROGRESS = lambda iterable:tqdm.tqdm(iterable)
 
 ###############################################################
 # Montu Python Util Class
