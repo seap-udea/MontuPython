@@ -738,7 +738,9 @@ for dt in tqdm.tqdm(np.linspace(-20000*montu.YEAR,20000*montu.YEAR,1000)):
     df = pd.concat([df,pd.DataFrame([row])])
 ```
 
-      0%|          | 0/1000 [00:00<?, ?it/s]100%|██████████| 1000/1000 [00:06<00:00, 145.08it/s]
+      0%|          | 0/1000 [00:00<?, ?it/s]
+
+    100%|██████████| 1000/1000 [00:06<00:00, 145.08it/s]
 
 
 Now plot declinations as a function of time:
