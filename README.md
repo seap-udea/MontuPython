@@ -64,11 +64,7 @@ or for a safe import:
 
 ```python
 import montu
-
-# Use this for generating the README 
 plt.ioff()
-%load_ext autoreload
-%autoreload 2
 ```
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -824,4 +820,4 @@ MontuPython has benefited from the contributions and advice of several collabora
 
 ------------
 
-This package has been designed and written mostly by Jorge I. Zuluaga with the historical advise of egyptologist Francisco "Tito" Vivas, and contributions by Juanita Agudelo (C) 2023
+This package has been designed and written by Jorge I. Zuluaga (C) 2023-present
