@@ -29,34 +29,48 @@ SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
 # Stars Class
 ###############################################################
 class Stars(object):
-    """Stellar catalogue
+    """Stellar catalogue for an arbitrary epoch.
 
-    Initialization parameters:
+    Parameters
+    ----------
+    data : pandas.DataFrame, optional
+        Pre-loaded star data. If provided, the catalogue is built directly
+        from this DataFrame.
+    filename : str, optional
+        Path to a CSV file with star data. Takes precedence over the default
+        MontuPython catalogue when provided.
 
-        data: pandas.Dataframe, default = None:
-            Pandas dataframe containing the stars.
+    Attributes
+    ----------
+    data : pandas.DataFrame
+        Table of stars. Column names depend on the catalogue version but
+        typically include: ``Name``, ``RAJ2000`` (hours), ``DecJ2000`` (deg),
+        ``Vmag``, ``pmRA`` (mas/yr), ``pmDec`` (mas/yr).
+    number : int
+        Number of stars currently in ``data``.
 
-        filename: string, default = None:
-            File containing the database with stars.
-            If None it uses the official MontuCatalogue, namely 
-            montu_stellar_catalogue_x.csv (where x is the version of the catalogue)
+    Notes
+    -----
+    When neither *data* nor *filename* is given, the default MontuPython
+    stellar catalogue (``montu_stellar_catalogue_vXX.csv``) is loaded.
 
-    Attributes:
-        
-        data: pandas.DataFrame:
-            Data containing the information on stars.
+    Examples
+    --------
+    Load the full catalogue:
 
-        number: int:
-            Number of stars in data.
+    >>> import montu
+    >>> allstars = montu.Stars()
 
-    Methods:
-        get_stars:
-            Get a subset of the stars in catalogue.
+    Load only the visually brightest stars:
 
-        get_stars_around:
-            Get stars around a given position in the sky.
+    >>> bright = allstars.get_stars(Vmag=[-2, 2])
+    >>> bright.number
+    14
 
-            
+    Save the catalogue to a file and reload it:
+
+    >>> allstars.data.to_csv('my_catalogue.csv', index=False)
+    >>> reloaded = montu.Stars(filename='my_catalogue.csv')
     """
     def __init__(self,data=None,filename=None):
 
@@ -66,27 +80,55 @@ class Stars(object):
             
         elif filename:
             # Load data from a file
-            self.data = pd.read_csv(filename)
+            self.data = pd.read_csv(filename, low_memory=False)
 
         else:
             # Load data from the database provided with package
             print(f"Loading stellar catalogue {STELLAR_CATALOGUE}")
-            self.data = pd.read_csv(montu.Util._data_path(STELLAR_CATALOGUE,check=True))
+            self.data = pd.read_csv(
+                montu.Util._data_path(STELLAR_CATALOGUE,check=True),
+                low_memory=False,
+            )
 
         self.number = len(self.data)
 
     def get_stars(self,**args):
-        """Filter stars by criteria
+        """Filter the catalogue by one or more column criteria.
 
-        Examples:
-            # Get a single stars
-            aldebaran = allstars.get_stars(ProperName='Aldebaran')
+        Each keyword argument is matched against a column name in ``self.data``.
+        Scalars are matched exactly; two-element lists specify an inclusive
+        ``[min, max]`` range; tuples specify an OR condition.
 
-            # All visible stars in the sky
-            visible = allstars.get_stars(Mag=[-2,6.5])
+        Parameters
+        ----------
+        **args
+            Column filters. Keys must be valid column names. Values can be:
 
-            # All visible stars with declination less than 1 deg in absolute value
-            equator = allstars.get_stars(Mag=[-3,6.5],Dec=[-1,1])
+            * a **scalar** (str, int, float) for exact matching;
+            * a **list** ``[min, max]`` for a range filter;
+            * a **tuple** of scalars for OR matching.
+
+        Returns
+        -------
+        Stars
+            New :class:`Stars` object containing only the matching rows.
+
+        Examples
+        --------
+        >>> import montu
+        >>> allstars = montu.Stars()
+
+        Get a single star by name:
+
+        >>> aldebaran = allstars.get_stars(ProperName='Aldebaran')
+
+        Get all visually visible stars (limiting magnitude ~6.5):
+
+        >>> visible = allstars.get_stars(Vmag=[-2, 6.5])
+
+        Get bright stars near the celestial equator:
+
+        >>> equatorial = allstars.get_stars(Vmag=[-2, 4], DecJ2000=[-10, 10])
         """
 
         # If no args get all stars in data base
@@ -114,25 +156,39 @@ class Stars(object):
     def get_stars_around(self,
                          center=[0,0],radius=10,
                          coords=['RAJ2000','DecJ2000'],**kwargs):
-        """Get stars around a point in the sky
+        """Select stars within a rectangular region of the sky.
 
-        Parameters:
-            center: list, default = [0,0] 
-                Center around which the region will be extracted.
+        Parameters
+        ----------
+        center : list of two floats, optional
+            Centre of the region as ``[RA, Dec]`` expressed in the coordinate
+            system given by *coords*. Default is ``[0, 0]``.
+        radius : float, optional
+            Half-side of the bounding box in the same units as *center*.
+            Default is 10 (degrees for declination).
+        coords : list of str, optional
+            Column names for the two coordinates used to define the centre.
+            Default is ``['RAJ2000', 'DecJ2000']``.
+        **kwargs
+            Additional filters forwarded to :meth:`get_stars`.
 
-            radius: float, default = 10 [same units as center]:
-                Radius of the region
+        Returns
+        -------
+        Stars
+            Stars within the bounding box (and passing any extra filters).
 
-            coords: list of strings, default = ['RAJ2000','DecJ2000'];
-                Name of coordinates on which the center is calculated.
+        Examples
+        --------
+        >>> import montu
+        >>> allstars = montu.Stars()
+        >>> aldebaran = allstars.get_stars(ProperName='Aldebaran')
+        >>> ra0 = float(aldebaran.data.RAJ2000)
+        >>> dec0 = float(aldebaran.data.DecJ2000)
 
-        Return: 
-            stars: Stars:
-                Stars in area.
+        Get the Hyades cluster (bright stars within 15 deg of Aldebaran):
 
-        Examples:
-            # Get all stars around aldebaran in a radius of 5 degrees and with magnitudes between -1 and 4
-            hyades = stars.get_stars_around(center=[aldebaran.data.RAJ2000,aldebaran.data.DecJ2000],radius=15,Vmag=[-1,4])
+        >>> hyades = allstars.get_stars_around(
+        ...     center=[ra0, dec0], radius=15, Vmag=[-1, 4])
         """
         kwargs.update({
             coords[0]:[float(center[0]-radius/15),float(center[0]+radius/15)],
@@ -143,7 +199,24 @@ class Stars(object):
    
     @staticmethod
     def _precess_coordinates(seba,epoch):
-        """Precess coordinates of a celestial object
+        """Precess equatorial coordinates from J2000 to a target epoch.
+
+        Accounts for proper motion before precessing.
+
+        Parameters
+        ----------
+        seba : dict or pandas.Series
+            Row from the stars DataFrame. Must contain ``RAJ2000``,
+            ``DecJ2000``, ``pmRA``, ``pmDec``.
+        epoch : pymeeus.Epoch
+            Target epoch as a PyMeeus Epoch object.
+
+        Returns
+        -------
+        RAEpoch : float
+            Right ascension at target epoch [hours].
+        DecEpoch : float
+            Declination at target epoch [degrees].
         """
         RAEpoch,DecEpoch = pymeeus_Coordinates.precession_equatorial(
             montu.PYMEEUS_JED_2000,epoch,
@@ -161,25 +234,34 @@ class Stars(object):
         return RAEpoch,DecEpoch
 
     def where_in_space(self,at=None,inplace=False):
-        """Determine the stellar coordinates of a set of stars at a given epoch.
+        """Compute precessed equatorial coordinates of the stars at a given epoch.
 
-        Parameters:
-            at: montu.Time, default = None:
-                Epoch to determine position in sky.
-            
-            inplace: Boolean, default = False:
-                If True the DataFrame of the stars is updated.
-                If False a DataFrame with the updated positions is returned.
+        Applies proper motion correction and precesses coordinates from J2000
+        to the requested epoch.
 
-        Return:
-            data: pandas.DataFrame:
-                Positions of stars with additional fields:
-                    tt: Epoch in terrestrial time seconds.
-                    jed: Epoch in Julian days (utc).
-                    RAJ2000t, DecJ2000t: Positions updated to epoch.
-                    RAEpoch, DecEpoch: Positions precessed to epoch.
+        Parameters
+        ----------
+        at : montu.Time, optional
+            Target epoch. Defaults to the current time.
+        inplace : bool, optional
+            If ``True``, update ``self.data`` in place (no return value).
+            If ``False`` (default), return a copy of the updated DataFrame.
 
-            NOTE: If inplace = True, this columns are added to `data` of stars.
+        Returns
+        -------
+        pandas.DataFrame or None
+            A copy of the stellar DataFrame with the additional columns
+            ``tt``, ``jed``, ``RAJ2000t``, ``DecJ2000t``, ``RAEpoch``,
+            ``DecEpoch``.
+            Returns ``None`` when *inplace* is ``True``.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mtime = montu.Time('-2500-01-01 12:00:00')
+        >>> visible = montu.Stars().get_stars(Vmag=[-2, 6.5])
+        >>> precessed = visible.where_in_space(at=mtime)
+        >>> precessed[['Name', 'RAEpoch', 'DecEpoch']].head()
         """
         # If at is not provide use present
         if at is None:
@@ -207,24 +289,24 @@ class Stars(object):
 
     @staticmethod
     def _to_alt_az(seba,lat):
-        """Convert to altazimutal coordinates.
+        """Convert equatorial hour angle and declination to azimuth/elevation.
 
-        Parameters:
-            seba: dictionary|pandas.Series:
-                Celestial object. It must have the following attributes:
-                    HA: Hour angle [hours]
-                    DecEpoch: Declination at epoch [deg]
+        Parameters
+        ----------
+        seba : dict or pandas.Series
+            Row containing ``HA`` (hour angle, hours) and ``DecEpoch``
+            (declination at epoch, degrees).
+        lat : float
+            Geographic latitude of the observer [degrees].
 
-            lat: float [deg]:
-                Latitude of the observing site.
-
-        Return:
-            az: float [deg]:
-                Azimuth.
-            el: float [deg]:
-                Elevation.
-            zen: float [deg]:
-                Zenithal angle.
+        Returns
+        -------
+        az : float
+            Azimuth [degrees], north = 0, east = 90.
+        el : float
+            Elevation (altitude) above the horizon [degrees].
+        zen : float
+            Zenithal distance [degrees] (= 90 − el).
         """
         # Get coordinates
         HA = seba['HA']
@@ -241,30 +323,50 @@ class Stars(object):
         return az,el,zen
 
     def where_in_sky(self,at=None,observer=None,inplace=False):
-        """Determine the position in the sky a set of stars at a given epoch.
+        """Compute horizontal (azimuth/elevation) coordinates of each star.
 
-        Parameters:
-            at: montu.Time, default = None:
-                Epoch to determine position in sky.
-            
-            observer: montu.Observer, default = None:
-                    Observer which see the object.
+        Calls :meth:`where_in_space` internally if precessed coordinates are
+        not yet present in ``self.data``.
 
+        Parameters
+        ----------
+        at : montu.Time, optional
+            Epoch of the observation. Defaults to the current time.
+        observer : montu.Observer
+            Observing site. Must be a valid :class:`montu.Observer` instance.
+        inplace : bool, optional
+            If ``True``, add columns to ``self.data`` and return ``None``.
+            If ``False`` (default), return a copy of the updated DataFrame.
 
-            inplace: Boolean, default = False:
-                If True the DataFrame of the stars is updated.
-                If False a DataFrame with the updated positions is returned.
+        Returns
+        -------
+        pandas.DataFrame or None
+            DataFrame with additional columns ``HA`` (hour angle, hours),
+            ``az`` (azimuth, degrees), ``el`` (elevation, degrees),
+            ``zen`` (zenithal angle, degrees).
+            Returns ``None`` when *inplace* is ``True``.
 
-        Return:
-            data: pandas.DataFrame:
-                Positions of stars with additional fields:
-                    tt: Epoch in terrestrial time seconds.
-                    jed: Epoch in Julian days (utc).
-                    RAJ2000t, DecJ2000t: Positions updated to epoch.
-                    RAEpoch, DecEpoch: Positions precessed to epoch.
-                    az, el: azimuth and elevation at place and epoch.
+        Raises
+        ------
+        ValueError
+            If *observer* is not a :class:`montu.Observer` instance.
 
-            NOTE: If inplace = True, this columns are added to `data` of stars.
+        Examples
+        --------
+        >>> import montu
+        >>> rionegro = montu.Observer(lon=-75, lat=6, height=2.5)
+        >>> mtime = montu.Time('2024-05-01 19:00:00')
+        >>> visible = montu.Stars().get_stars(Vmag=[-2, 4])
+
+        Return a copy with sky coordinates:
+
+        >>> sky = visible.where_in_sky(at=mtime, observer=rionegro)
+        >>> sky[['Name', 'az', 'el']].head()
+
+        Update in place:
+
+        >>> visible.where_in_sky(at=mtime, observer=rionegro, inplace=True)
+        >>> visible.data[['Name', 'az', 'el']].head()
         """
         # If at is not provide use present
         if at is None:
@@ -283,7 +385,11 @@ class Stars(object):
         # Check if data has been precessed to epoch
         if 'RAEpoch' not in data.keys():
             # Precess stars if not precessed yet
-            self.where_in_space(at,inplace=True)
+            if inplace:
+                self.where_in_space(at, inplace=True)
+                data = self.data
+            else:
+                data = self.where_in_space(at, inplace=False)
 
         # Create pymeeus epoch
         epoch = pymeeus_Epoch(at.jed)
@@ -302,30 +408,55 @@ class Stars(object):
             return data
         
     def conditions_in_sky(self,at=None,site=None):
-        """Determine astronomical conditions in sky (rise time, set time, etc.)
+        """Determine rise, transit and set times for the stars.
+
+        .. note::
+            Not yet implemented.
         """
         pass
     
     def plot_stars(self,coords=['RAJ2000','DecJ2000'],
                    labels=True,label_mag=15,pad=0,figargs=dict(),stargs=dict()):
-        """Plot all stars in data.
+        """Plot the stars in equatorial or horizontal coordinates.
 
-        Parameters:
-            coords: list of strings, default = ['RAJ2000','DecJ2000']
-                Coordinates used in representation.
+        Parameters
+        ----------
+        coords : list of str, optional
+            Column names of the two coordinates to use, as
+            ``[x_column, y_column]``. Default is
+            ``['RAJ2000', 'DecJ2000']``.
+        labels : bool, optional
+            If ``True`` (default), annotate each star with its name.
+        label_mag : float, optional
+            Only label stars brighter (lower ``Vmag``) than this limit.
+            Default is 15.
+        pad : float, optional
+            Fractional margin added around the data range. Default is 0.
+        figargs : dict, optional
+            Extra keyword arguments forwarded to ``plt.subplots``.
+        stargs : dict, optional
+            Extra keyword arguments forwarded to ``ax.scatter``.
 
-            labels: Boolean, default = True:
-                Do you want to see stellar labels.
+        Returns
+        -------
+        fig : matplotlib.figure.Figure
+        axs : matplotlib.axes.Axes
 
-            figargs: dictionary:
-                Additional options for the figure.
-            
-            starargs: dictionary:
-                Additional options for the scatter.
+        Examples
+        --------
+        >>> import montu
+        >>> mtime = montu.Time('2024-05-01 19:00:00')
+        >>> rionegro = montu.Observer(lon=-75, lat=6, height=2.5)
+        >>> visible = montu.Stars().get_stars(Vmag=[-2, 4])
+        >>> visible.where_in_sky(at=mtime, observer=rionegro, inplace=True)
 
-        Return:
-            fig,axs: 
-                Figure and axes.
+        Plot in equatorial coordinates:
+
+        >>> fig, ax = visible.plot_stars()
+
+        Plot in horizontal coordinates:
+
+        >>> fig, ax = visible.plot_stars(coords=['az', 'el'])
         """
         # Black background
         plt.style.use('dark_background')

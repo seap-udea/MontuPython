@@ -87,6 +87,103 @@ JED_APOKATASTASIS = 705497.5 # bce 2782-07-20
 # Main class
 ###############################################################
 class Time(object):
+    """Represent an instant in time, supporting ancient astronomical calendars.
+
+    This is the central class of MontuPython.  It converts dates between the
+    proleptic Gregorian calendar, the mixed Julian/Gregorian calendar, the
+    ancient Egyptian civil (caniucular) calendar, and several numerical
+    time-scales used by the underlying ephemeris engines (SPICE, PyEphem,
+    PyMeeus, PyPlanets).
+
+    Parameters
+    ----------
+    date : str or float
+        The date/time to represent.
+
+        When ``format='iso'`` (default), accepted ISO-style strings are::
+
+            '-1000-03-21 06:00:00'          # proleptic BCE: 1001 BCE
+            'bce1001-03-21 06:00:00'        # calendar BCE notation
+            '1001 b.c.e. 03-21 06:00:00'   # verbose BCE notation
+            '2024-05-01 19:00:00'           # CE date
+
+        When ``format='caniucular'``, the Egyptian civil date format is::
+
+            '0-II-Akhet-1'                  # Year 0 (≈2782 BCE), I-Akhet-1
+
+        When ``format='jd'``, *date* should be a Julian Day number (float).
+        When ``format='tt'``, *date* should be ephemeris seconds past J2000.
+    format : {'iso', 'tt', 'jd', 'caniucular'}, optional
+        Format of *date*.  Default ``'iso'``.
+    scale : {'utc', 'tt'}, optional
+        Time scale of the input.  ``'utc'`` (default) treats *date* as a
+        UTC epoch; ``'tt'`` treats it as Terrestrial Time (TT).
+    calendar : {'proleptic', 'mixed', 'caniucular'}, optional
+        Calendar system for ISO strings. ``'proleptic'`` (default) extends the
+        Gregorian calendar before 1582; ``'mixed'`` uses the Julian calendar
+        before the Gregorian reform date.
+    full : bool, optional
+        If ``True``, compute and populate all ``readable`` attributes
+        immediately.  Default ``False``.
+
+    Attributes
+    ----------
+    tt : float
+        Ephemeris seconds past J2000 in TT (uniform scale).
+    et : float
+        Ephemeris seconds past J2000 in UTC.  ``et = tt - deltat``.
+    jed : float
+        Julian Day in UTC.
+    jtd : float
+        Julian Day in TT.
+    hed : float
+        Horus Day in UTC (days since the first apokatastasis, 2782 BCE).
+    htd : float
+        Horus Day in TT.
+    deltat : float
+        Difference TT − UTC in seconds.
+    bce : bool
+        ``True`` if the date is before the common era.
+    isjulian : bool
+        ``True`` if the date falls within the Julian calendar period.
+    readable : montu.Dictobj
+        Namespace populated by :meth:`get_readable` with human-readable
+        representations:
+
+        * ``datepro`` — proleptic Gregorian string (``'-1000-03-21 06:00:00'``)
+        * ``datemix`` — mixed calendar string
+        * ``datespice`` — SPICE-format date string
+        * ``datecan`` — Egyptian civil (caniucular) date string
+        * ``comps`` — tuple ``(sign, year, month, day, h, m, s, us)``
+        * ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``
+
+    Examples
+    --------
+    ISO string (proleptic Gregorian, BCE):
+
+    >>> import montu
+    >>> mtime = montu.Time('-2500-01-01 12:00:00.00')
+    >>> print(mtime.jed)
+    630823.0
+
+    Julian Day Number:
+
+    >>> mtime = montu.Time(807954.0, format='jd', scale='utc')
+
+    Terrestrial-time seconds (J2000 epoch):
+
+    >>> mtime = montu.Time(0, format='tt', scale='tt')
+    >>> print(mtime.readable.datepro)
+    '2000-01-01 11:58:56.0'
+
+    Arithmetic — add calendar days:
+
+    >>> mtime2 = mtime.add(365 * montu.DAY)
+
+    Arithmetic — add TT seconds (no leap-second correction):
+
+    >>> mtime3 = mtime + 365 * montu.DAY
+    """
 
     def __init__(self,
                  date=None,
@@ -94,7 +191,10 @@ class Time(object):
                  scale='utc',
                  calendar='proleptic',
                  full=False):
-        
+        """Initialise a Time object.
+
+        See class docstring for parameter and attribute descriptions.
+        """
         # Representation is a dictionary with the representation
         self.readable = montu.Dictobj()
 
@@ -249,26 +349,25 @@ class Time(object):
                 self.get_readable()
 
     def _parse_datestr(self,date):
-        """Parse date string
+        """Parse an ISO-like date string and populate ``self.readable``.
 
-        Parameters:
-            date: string:
-                Possible formats:
-                    2000-01-01
-                    2000-01-01 12:00:00
-                    2000-01-01 12:00:00.00
-                    -2500-01-01 12:00:00.00
-                    bce2501-01-01 12:00:00.00
-                    2501 bce 01-01 12:00:00.00 
+        Parameters
+        ----------
+        date : str
+            Accepted formats::
 
-        Update:
-            Update the following attributes:
-                bce: Is date before current era.
-                datepro: Date in gregorian proleptic
-                obj_datetime64: Object in datetime64
-                components: Components of date
-                year,month,day,hour,second,usecond: Components of date
-                datespice: Date in SPICE format.
+                '2000-01-01'
+                '2000-01-01 12:00:00'
+                '2000-01-01 12:00:00.00'
+                '-2500-01-01 12:00:00.00'   # proleptic BCE
+                'bce2501-01-01 12:00:00.00' # calendar BCE
+                '2501 bce 01-01 12:00:00.00'
+
+        Notes
+        -----
+        Populates ``self.readable`` with ``datepro``, ``obj_datetime64``,
+        ``comps``, ``year``, ``month``, ``day``, ``hour``, ``minute``,
+        ``second``, ``usecond``, and ``datespice``.
         """
 
         # Default format
@@ -317,9 +416,27 @@ class Time(object):
             self.readable.datespice = self.readable.datepro
     
     def update_time(self,time=None,format='tt',scale='tt'):
-        """Update time object according to terrestrial time.
-        
-        This is the most important method.
+        """Recompute all numeric time attributes from a single input value.
+
+        This is the core internal method called by ``__init__``, arithmetic
+        operators, and :meth:`get_readable`.
+
+        Parameters
+        ----------
+        time : float, optional
+            Numeric value in the scale given by *format*.  Defaults to
+            ``self.tt`` (re-synchronise from current TT).
+        format : {'tt', 'jd'}, optional
+            Interpretation of *time*: ``'tt'`` for ephemeris seconds past
+            J2000 (TT scale), ``'jd'`` for Julian Day number.
+        scale : {'tt', 'utc'}, optional
+            Whether *time* is in the TT or UTC scale.
+
+        Notes
+        -----
+        Sets ``tt``, ``et``, ``jed``, ``jtd``, ``hed``, ``htd``,
+        ``deltat``, ``bce``, ``isjulian``, ``obj_pyephem``, and
+        ``obj_pyplanet``.
         """
         # Use if you set the attribute tt manually
         if time is None:
@@ -367,7 +484,24 @@ class Time(object):
         self.htd = self.jtd - JED_APOKATASTASIS
     
     def get_readable(self):
-        """Fill the readable attribute according to information.
+        """Populate all human-readable string representations.
+
+        Converts the current numeric time attributes to strings in all
+        supported calendar systems and stores them in ``self.readable``.
+
+        Returns
+        -------
+        self : Time
+            Returns *self* so the call can be chained.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mtime = montu.Time('-1000-03-21 06:00:00').get_readable()
+        >>> print(mtime.readable.datepro)
+        '-1000-03-21 06:00:00.0'
+        >>> print(mtime.readable.datecan)
+        'hrw ...-...-...-...'
         """
 
         # Update time
@@ -409,11 +543,28 @@ class Time(object):
         return Time(self.tt)
 
     def __add__(self,dtt):
-        """Add terrestrial seconds without taking into accounts utc 
-        corrections. This is the correct way to do it
+        """Add a number of terrestrial seconds (TT scale, no leap corrections).
 
-        For example:
-            mtime + 365*DAY -> will add 365 days worth-of-seconds to TT
+        Parameters
+        ----------
+        dtt : float
+            Seconds to add in the TT scale.
+
+        Returns
+        -------
+        Time
+            New :class:`Time` object advanced by *dtt* seconds.
+
+        Notes
+        -----
+        Use :meth:`add` instead if you want the result to shift the calendar
+        date by exactly *dtt* seconds in UTC (accounting for ``deltat``).
+
+        Examples
+        --------
+        >>> import montu
+        >>> mtime = montu.Time('2000-01-01 00:00:00')
+        >>> mtime2 = mtime + 365 * montu.DAY  # add 365 TT-days
         """
         new = copy.copy(self)
         new.tt += dtt
@@ -421,33 +572,94 @@ class Time(object):
         return new
     
     def __sub__(self,dtt):
+        """Subtract a number of terrestrial seconds (TT scale, no leap corrections).
+
+        Parameters
+        ----------
+        dtt : float
+            Seconds to subtract in the TT scale.
+
+        Returns
+        -------
+        Time
+            New :class:`Time` object moved back by *dtt* seconds.
+
+        Examples
+        --------
+        >>> mtime2 = mtime - montu.DAY  # subtract one TT-day
+        """
         new = copy.copy(self)
         new.tt -= dtt
         new.update_time()
         return new
     
     def add(self,dtt):
-        """Add utc seconds. This is the way you should add
-        seconds if want a given change in date.
+        """Add a number of UTC seconds, preserving calendar accuracy.
 
-        For example:
-            mtime.add(365*DAY) -> will add 365 days to calendar
+        Unlike the ``+`` operator, this method shifts the Julian Day in UTC
+        and reconstructs the object, so the calendar date advances by the
+        exact requested interval.
+
+        Parameters
+        ----------
+        dtt : float
+            Seconds to add in the UTC scale.
+
+        Returns
+        -------
+        Time
+            New :class:`Time` object advanced by *dtt* UTC seconds.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mtime = montu.Time('-1000-01-01 00:00:00')
+        >>> mtime2 = mtime.add(365 * montu.DAY)  # advance exactly one year
         """
         new = Time(self.jed + dtt/DAY,format='jd')
         return new
     
     def sub(self,dtt):
-        """Substract utc seconds. This is the way you should substract
-        seconds if want a given change in date.
+        """Subtract a number of UTC seconds, preserving calendar accuracy.
 
-        For example:
-            mtime.add(365*DAY) -> will add 365 days to calendar
+        Parameters
+        ----------
+        dtt : float
+            Seconds to subtract in the UTC scale.
+
+        Returns
+        -------
+        Time
+            New :class:`Time` object moved back by *dtt* UTC seconds.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mtime2 = mtime.sub(30 * montu.DAY)  # go back 30 calendar days
         """
         new = Time(self.jed - dtt/DAY,format='jd')
         return new
     
     def diff(self,mtime):
-        """Compute difference between two dates in days
+        """Return the Julian-day difference between two :class:`Time` objects.
+
+        Parameters
+        ----------
+        mtime : Time
+            The other :class:`Time` instance to subtract from *self*.
+
+        Returns
+        -------
+        float
+            ``self.jed - mtime.jed`` in fractional days.
+
+        Examples
+        --------
+        >>> import montu
+        >>> t1 = montu.Time('2000-01-01')
+        >>> t2 = montu.Time('2000-03-01')
+        >>> t2.diff(t1)
+        60.0
         """
         difference = self.jed - mtime.jed
         return difference
@@ -493,6 +705,32 @@ Uniform scales:
         return str
 
     def strftime(self,timefmt='%Y'):
+        """Format the date as a string using ``strftime``-like codes.
+
+        Parameters
+        ----------
+        timefmt : str, optional
+            Format string with the following substitutions:
+
+            * ``%Y`` - four-digit year (with sign for BCE)
+            * ``%m`` - zero-padded month (01-12)
+            * ``%d`` - zero-padded day (01-31)
+            * ``%H`` - zero-padded hour (00-23)
+            * ``%M`` - zero-padded minute (00-59)
+            * ``%S`` - zero-padded second (00-59)
+
+        Returns
+        -------
+        str
+            Formatted date string.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mtime = montu.Time('-1000-03-21 06:00:00').get_readable()
+        >>> mtime.strftime('%Y-%m-%d')
+        '-1000-03-21'
+        """
         timefmt = timefmt.replace('%Y',f'{self.readable.year}')
         timefmt = timefmt.replace('%m',f'{self.readable.month:02d}')
         timefmt = timefmt.replace('%d',f'{self.readable.day:02d}')
@@ -503,6 +741,30 @@ Uniform scales:
     
     @staticmethod
     def get_date(jed,format='comps'):
+        """Return a date tuple or :class:`Time` object for a given Julian Day.
+
+        Parameters
+        ----------
+        jed : float
+            Julian Day (UTC scale).
+        format : {'comps', 'mtime'}, optional
+            ``'comps'`` (default) returns a raw PyEphem date tuple
+            ``(year, month, day, hour, minute, second)``.
+            ``'mtime'`` returns a :class:`Time` object.
+
+        Returns
+        -------
+        tuple or Time
+            Date components or :class:`Time` instance.
+
+        Examples
+        --------
+        >>> import montu
+        >>> montu.Time.get_date(2451545.0, format='comps')
+        (2000, 1, 1, 12, 0, 0.0)
+        >>> montu.Time.get_date(2451545.0, format='mtime')
+        Time('2000-01-01 12:00:00'...)
+        """
         comps = pyephem.Date(jed-montu.PYEPHEM_JD_REF).tuple()
         if format == 'comps':
             return comps
@@ -513,7 +775,26 @@ Uniform scales:
     
     @staticmethod
     def set_time_ticks(ax,format='tt',timefmt='%Y',**kwargs):
-        """Set xticks as Time objects
+        """Label the x-axis ticks of a Matplotlib axes with formatted dates.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes
+            The axes whose x-tick positions will be relabelled.
+        format : {'tt', 'jd'}, optional
+            Interpret the tick values as TT seconds (``'tt'``) or Julian Days
+            (``'jd'``).  Default ``'tt'``.
+        timefmt : str, optional
+            :meth:`strftime` format string for tick labels.  Default ``'%Y'``.
+        **kwargs
+            Extra keyword arguments forwarded to ``ax.set_xticklabels``.
+
+        Examples
+        --------
+        >>> import matplotlib.pyplot as plt, montu
+        >>> fig, ax = plt.subplots()
+        >>> # (assume ax has been plotted with tt values on the x-axis)
+        >>> montu.Time.set_time_ticks(ax, format='tt', timefmt='%Y-%m-%d')
         """
         tts = ax.get_xticks()
         xlabels = []
@@ -621,7 +902,18 @@ Uniform scales:
 
     @staticmethod
     def _mixed_to_caniucular(datemix):
-        """Convert a mixed date to caniucular
+        """Convert a mixed-calendar date string to a caniucular date string.
+
+        Parameters
+        ----------
+        datemix : str
+            Date in the mixed calendar (``'CCYY-MM-DD HH:MM:SS'``).
+
+        Returns
+        -------
+        str
+            Egyptian civil date in the caniucular format
+            (e.g. ``'hrw 300-II-Akhet-15'``).
         """
         # Create montu.Time object
         mtime = montu.Time(datemix,calendar='mixed')
@@ -630,7 +922,22 @@ Uniform scales:
     
     @staticmethod
     def _jed_to_caniucular(jed):
-        """Convert a mixed date to caniucular
+        """Convert a Julian Day (UTC) to a caniucular (Egyptian civil) date.
+
+        Parameters
+        ----------
+        jed : float
+            Julian Day in UTC.
+
+        Returns
+        -------
+        str
+            Egyptian civil date string (e.g. ``'hrw 300-II-Akhet-15'``).
+
+        Examples
+        --------
+        >>> montu.Time._jed_to_caniucular(705497.5)
+        'hrw 0-I-Akhet-1'
         """
         # Compute yhe horus day
         hd = jed - JED_APOKATASTASIS
@@ -639,89 +946,4 @@ Uniform scales:
         cdate = Time._horus_day_to_caniucular(hd)
         return cdate
 
-Time.__doc__ = """Create a time object
-    
-    This is one of the most important classes in the package, since
-    it manages times and dates.
-
-    Initialization parameters:
-        date: string | float:
-
-            Date provided. 
-            
-            When 'iso', possible formats are (all the same date):
-                -1000-01-01 12:00:00.00
-                bce1001-01-01 12:00:00.00
-                1001 b.c.e. 01-01 12:00:00.00
-
-            When 'sothic' (not implemented yet) the format is:
-                20-II-shemu
-            
-            With seasons given by 5 leter names: shemu,akhet,peret
-
-        format: string, default = 'iso':
-
-            Format of the input date. 
-            Possible values: 'iso', 'tt', 'jd', 'sothic'
-        
-        scale: string, default = 'utc':
-
-            Scale of the time.
-            Available: 'tt' (terrestrial time, uniform),  'utc' (coordinated, based on rotation).
-
-        calendar: string, default = 'proleptic':
-
-            Type of calendar of date. Proleptic gregorian correspond to the case when the Gregorian calendar
-            is extended before the adoption date at 1582-10-15. When calendar = 'mixed' 
-            the Julian calendar is used before the adoption date.
-
-    Attributes:
-
-        Time as strings:
-        
-            datepro: string:
-                Date in gregorian prolectic, with format '[-]CCYY-MM-DD HH:MM:SS.fff'
-
-            datemix: string:
-                Date in gregorian mixed, with format '[-]CCYY-MM-DD HH:MM:SS.fff'
-
-            datespice: string:
-                Date in gregorian prolectic, with SPICE format.
-
-        Time in uniform scales:
-            deltat: float [seconds]
-                Difference Dt = TT - UTC. 
-            tt: float [seconds]
-                Ephemeris time in tt. 
-            et: float [seconds]
-                Ephemeris time in utc. et = tt - deltat 
-            jtd: float [days]
-                Julian day in terrestrial time.
-            jed: float [days]
-                Julian day in UTC. jed = jtd - deltat/86400
-
-        Time as special objects:
-
-            obj_pyplanet: pyplanets.Epoch:
-                Date in pyplanets format.
-
-            obj_pyephem: pyephem.Date:
-            
-        datepro: string
-            Date in gregorian prolectic but in astronomical format '[-]CCYY-MM-DD HH:MM:SS.fff'
-
-        datemix: string
-            Date in a mixed style (non-prolectic), with format '[bce]CCYY-MM-DD HH:MM:SS.fff', 
-            meaning that when date is previous to 1582-10-15 the date is given in Julian 
-            Calendar.
-
-    Other attributes (related to frame of reference)
-
-    Examples:
-
-        Initialization using a string:
-
-        
-        Initialization using a float:
-
-    """
+# (docstring moved into class body above)

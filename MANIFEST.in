@@ -1,0 +1,8 @@
+include README.md
+include requirements.txt
+include requirements-test.txt
+include montu/bin/imontu
+recursive-include montu/tests *.py
+recursive-include examples *.ipynb
+recursive-include montu/data *
+prune docs/_build

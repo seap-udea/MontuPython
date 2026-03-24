@@ -10,6 +10,14 @@
 
 `MontuPython` (transileterated mnṯw ꜥꜣpp(y)) is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
+## MontuPython App
+
+An interactive web application for `MontuPython` is available online at:
+
+**[https://montupython-production.up.railway.app/](https://montupython-production.up.railway.app/)**
+
+The app allows you to explore astronomical ephemerides for the ancient world directly from your browser, without any local installation.
+
 ## Download and install
 
 Describe here how the package can be downloaded and install it in
@@ -802,58 +810,17 @@ Fully-fledged working examples:
 ## What's new
 
 
-Versions 0.9.*:
-- Major refactoring of inner machinery.
-- After many tests we decide to work with the algorithms in `PyEphem` with some support of `PyMeeus/PyPlanets` and minor usage of `spiceypy`.
-- Improvements on class Time to make it faster.
-- Generic class Sebau for celestial objects.
-- New classes Sun, Moon. 
-- Complete example of Montunctions adapted to the new package architectures.
-- The general design of the package is maintained.
-- New functions for calculating Twilight time.
-- Juanita Agudelo has created a basic Dash app for interacting with the package that it is now included in repo (not in public package yet).
-- MontuApp has been developed in depth.
-- Lunar phases added.
-- Conversion gregorian/julian <-> civil egyptian has been implemented.
+Release notes are now maintained in [WHATSNEW.md](WHATSNEW.md).
 
-Versions 0.8.*:
-- Major refactoring of classes.
-- New class Heka, intended to perform calculations.
-- New plot of positions in a stereographic projection with respect to the Horizon.
-- Now horizontal coordinates of planet and star can be computed.
-- New stellar catalogue incorporated to the planet.
-- Classes were divided in modules (stars, planets, observer, etc.)
-- README has been converted into a notebook.
+The upcoming 0.10.x series is documented there as well.
 
-Versions 0.7.*:
-- A Google Drive repository with examples was created.
-- More interesting examples added.
-- A new class SkyCoordinates allows to precess coordinates of any set of objects.
-- Star catalogue coordinates are now given in J2000.
-- Some improvements in the `plot_stars`` method.
-- A new `sid_to_tai` for `MonTime` class for calculating the ratio of sidereal to TAI time.
+## Acknowledgements
 
-Versions 0.6.*:
-- Refactor of MonTime class.
-- Corrected a problem with tt during the years 300-1582.
-- General cleaning of the package.
-- Kernels are separated into basic kernels (which are automatically loaded).
-- Julian day dates are rounded-up to 7 figures to avoid representation artifacts.
-- Package now load ALL_STARS from import.
+MontuPython has benefited from the contributions and advice of several collaborators:
 
-Versions 0.5.*:
-- New properties (distances, phase angle, magnituded) added to PlanetaryBody class method.
-- Solved the DEBUG problem.
-- First fully-fledge working script, yay!
-- MonTime class is now able to produce dates in all relevant calendars and formats.
-- Verified ephemerides calculations for planets.
-- Major improvements of all functionalities.
-
-Version 0.1.*:
-
-- First classes created and tested with study case.
-- A proper identifying image of the project has been found.
-- The project is started!
+- Francisco "Tito" Vivas provided scientific, archaeoastronomical, and Egyptological advice.
+- Juanita Agudelo developed the first versions of the MontuPython web app.
+- Luis Arroyo developed the version of the web app currently available online at [https://montupython-production.up.railway.app/](https://montupython-production.up.railway.app/).
 
 ------------
 

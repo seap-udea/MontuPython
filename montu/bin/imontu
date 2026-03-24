@@ -1,0 +1,109 @@
+#!/usr/bin/env python3
+
+import argparse
+import os
+import subprocess
+import sys
+
+
+def verify_installation():
+    """Verify that MontuPython and its packaged tests are installed."""
+    print("Verifying MontuPython installation...")
+
+    try:
+        import montu
+    except ImportError:
+        print("FAIL: MontuPython package not found.")
+        print("Install it first with: pip install montu")
+        return 1
+
+    package_dir = os.path.dirname(montu.__file__)
+    tests_dir = os.path.join(package_dir, "tests")
+
+    print(f"OK: MontuPython package found: {montu.__file__}")
+
+    if not os.path.isdir(tests_dir):
+        print(f"FAIL: Packaged tests directory not found: {tests_dir}")
+        return 1
+
+    test_files = sorted(
+        name for name in os.listdir(tests_dir) if name.startswith("test_") and name.endswith(".py")
+    )
+    if not test_files:
+        print(f"FAIL: No packaged tests were found in: {tests_dir}")
+        return 1
+
+    print(f"OK: Packaged tests found in: {tests_dir}")
+    print(f"OK: Detected {len(test_files)} test modules")
+    return 0
+
+
+def run_tests(verbose=False):
+    """Run the tests shipped with the installed MontuPython package."""
+    try:
+        import montu
+    except ImportError:
+        print("FAIL: MontuPython package not found.")
+        print("Install it first with: pip install montu[test]")
+        return 1
+
+    tests_dir = os.path.join(os.path.dirname(montu.__file__), "tests")
+    if not os.path.isdir(tests_dir):
+        print(f"FAIL: Packaged tests directory not found: {tests_dir}")
+        return 1
+
+    print("=" * 60)
+    print("Running MontuPython packaged tests")
+    print("=" * 60)
+    print(f"Tests directory: {tests_dir}")
+
+    cmd = [sys.executable, "-m", "pytest", tests_dir, "-v" if verbose else "-q"]
+    result = subprocess.run(cmd)
+    if result.returncode == 0:
+        print("=" * 60)
+        print("OK: All packaged tests passed")
+        print("=" * 60)
+    else:
+        print("=" * 60)
+        print("FAIL: Some packaged tests failed")
+        print("=" * 60)
+    return result.returncode
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Verify a MontuPython installation and run its packaged tests.",
+    )
+    parser.add_argument(
+        "--check-installation",
+        action="store_true",
+        help="verify that MontuPython and its packaged tests are installed",
+    )
+    parser.add_argument(
+        "--run-tests",
+        action="store_true",
+        help="run the tests bundled with the installed MontuPython package",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="run pytest in verbose mode",
+    )
+    args = parser.parse_args()
+
+    if not args.check_installation and not args.run_tests:
+        args.check_installation = True
+
+    status = 0
+    if args.check_installation:
+        status = verify_installation()
+
+    if status == 0 and args.run_tests:
+        status = run_tests(verbose=args.verbose)
+
+    raise SystemExit(status)
+
+
+if __name__ == "__main__":
+    main()

@@ -50,29 +50,129 @@ PYMEEUS_QUARTERS = ['new','first','full','last']
 # Class Sebau
 ###############################################################
 class Sebau(object):
-    """Class of celestial object
+    """Base class for a solar-system celestial body (Sun, Moon, planet).
+
+    The name *sebau* (Egyptian: *sbꜣw*, 'star') is used here as a generic
+    term for any bright celestial object tracked across the sky.
+
+    This class is not intended to be instantiated directly; use the
+    subclasses :class:`Sun`, :class:`Moon`, and :class:`Planet` instead.
+
+    Attributes
+    ----------
+    position : list or montu.Dictobj
+        When ``store=False`` (single call), a :class:`montu.Dictobj` with
+        the latest equatorial and horizontal coordinates.  When
+        ``store=True`` (accumulating calls), a list of position dicts that
+        can be converted to a DataFrame with :meth:`tabulate_positions`.
+    condition : list or montu.Dictobj
+        Same accumulation pattern as *position* but containing
+        observational conditions (rise/set/transit times, elongation, etc.).
     """
 
     def __init__(self):
         # Basic attributes
         self.reset_store()
 
+    @staticmethod
+    def _observer_copy(observer, date=None):
+        """Create a fresh PyEphem observer with the same site properties."""
+        site = pyephem.Observer()
+        site.lon = observer.site.lon
+        site.lat = observer.site.lat
+        site.pressure = observer.site.pressure
+        site.temp = observer.site.temp
+        site.elevation = observer.site.elevation
+        if date is not None:
+            site.date = date
+        else:
+            site.date = observer.site.date
+        return site
+
+    def _observer_events(self, observer):
+        """Compute rise/set/transit event data without deprecated body attrs."""
+        event_site = self._observer_copy(observer)
+        is_circumpolar = False
+        is_neverup = False
+
+        rise_time = 0
+        rise_az = 2 * np.pi
+        set_time = 0
+        set_az = 2 * np.pi
+        transit_time = 0
+        transit_alt = 2 * np.pi
+
+        try:
+            rise_date = event_site.next_rising(self.seba)
+            rise_time = float(rise_date)
+            rise_site = self._observer_copy(observer, rise_date)
+            self.seba.compute(rise_site)
+            rise_az = float(self.seba.az)
+        except pyephem.AlwaysUpError:
+            is_circumpolar = True
+        except pyephem.NeverUpError:
+            is_neverup = True
+
+        try:
+            set_date = event_site.next_setting(self.seba)
+            set_time = float(set_date)
+            set_site = self._observer_copy(observer, set_date)
+            self.seba.compute(set_site)
+            set_az = float(self.seba.az)
+        except pyephem.AlwaysUpError:
+            is_circumpolar = True
+        except pyephem.NeverUpError:
+            is_neverup = True
+
+        try:
+            transit_date = event_site.next_transit(self.seba)
+            transit_time = float(transit_date)
+            transit_site = self._observer_copy(observer, transit_date)
+            self.seba.compute(transit_site)
+            transit_alt = float(self.seba.alt)
+        except (pyephem.AlwaysUpError, pyephem.NeverUpError):
+            pass
+
+        # Restore body to the original observer epoch after temporary event computations.
+        self.seba.compute(observer.site)
+
+        return dict(
+            rise_time=rise_time,
+            rise_az=rise_az,
+            set_time=set_time,
+            set_az=set_az,
+            transit_time=transit_time,
+            transit_alt=transit_alt,
+            is_circumpolar=is_circumpolar,
+            is_neverup=is_neverup,
+        )
+
     def where_in_sky(self,at=None,observer=None,store=False):
-        """Compute position in the sky of seba
+        """Compute the current position of the body in the sky.
 
-        Parameters:
-            at: montu.Time, default = None:
-                Time at which the position should be computed.
+        Updates ``self.position`` with equatorial (J2000 and epoch) and
+        horizontal coordinates at the requested time and place.
 
-            observer: montu.Observer, default = None:
-                Observer which see the object.
+        Parameters
+        ----------
+        at : montu.Time
+            Epoch of the observation.
+        observer : montu.Observer
+            Observing site.
+        store : bool, optional
+            If ``False`` (default), ``self.position`` is replaced with a
+            :class:`montu.Dictobj` containing the latest result.
+            If ``True``, the result is appended to ``self.position`` (a list)
+            for later bulk conversion with :meth:`tabulate_positions`.
 
-            store: boolean, default = False:
-                If true, store positions in sucessive calls.
-
-        Update:
-            Once this routine is called the position of the 
-            object is updated.
+        Examples
+        --------
+        >>> import montu
+        >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+        >>> mtime = montu.Time('-1000-03-21 06:00:00')
+        >>> sun = montu.Sun()
+        >>> sun.where_in_sky(at=mtime, observer=giza)
+        >>> print(sun.position.az, sun.position.el)
         """
         self._compute_ephemerides(at.jed,observer)
 
@@ -93,11 +193,34 @@ class Sebau(object):
             self.position = montu.Dictobj(dict=position)
     
     def conditions_in_sky(self,at=None,observer=None,store=False):
- 
-        """Calculate full conditions in the sky
+        """Compute full observational conditions for the body.
+
+        Extends :meth:`where_in_sky` with rise/set/transit times, elongation,
+        angular size, phase, heliocentric coordinates, and more.
+
+        Parameters
+        ----------
+        at : montu.Time
+            Epoch of the observation.
+        observer : montu.Observer
+            Observing site.
+        store : bool, optional
+            If ``False`` (default), replace ``self.condition`` with a fresh
+            :class:`montu.Dictobj`.  If ``True``, append to ``self.condition``
+            list for later batch conversion.
+
+        Examples
+        --------
+        >>> import montu
+        >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+        >>> mtime = montu.Time('-1000-03-21 18:00:00')
+        >>> mars = montu.Planet('Mars')
+        >>> mars.conditions_in_sky(at=mtime, observer=giza)
+        >>> print(mars.condition.rise_time, mars.condition.set_time)
         """
         # First compute
         self.where_in_sky(at,observer,store)
+        events = self._observer_events(observer)
         
         # Store
         condition = {
@@ -105,15 +228,15 @@ class Sebau(object):
             'Name':self.seba.name,
             'ha':self.seba.ha*montu.RAD/15,
             'Vmag':self.seba.mag,
-            'rise_time':(self.seba.rise_time or 0) + montu.PYEPHEM_JD_REF,
-            'rise_az':(self.seba.rise_az or 2*np.pi)*montu.RAD,
-            'set_time':(self.seba.set_time or 0) + montu.PYEPHEM_JD_REF,
-            'set_az':self.seba.set_az*montu.RAD,
-            'transit_time':(self.seba.transit_time or 0) + montu.PYEPHEM_JD_REF,
-            'transit_el':(self.seba.transit_alt or 2*np.pi)*montu.RAD,
+            'rise_time':events['rise_time'] + montu.PYEPHEM_JD_REF,
+            'rise_az':events['rise_az']*montu.RAD,
+            'set_time':events['set_time'] + montu.PYEPHEM_JD_REF,
+            'set_az':events['set_az']*montu.RAD,
+            'transit_time':events['transit_time'] + montu.PYEPHEM_JD_REF,
+            'transit_el':events['transit_alt']*montu.RAD,
             'elongation':self.seba.elong*montu.RAD,'earth_distance':self.seba.earth_distance,
-            'sun_distance':self.seba.sun_distance,'is_circumpolar':self.seba.circumpolar,
-            'is_neverup':self.seba.neverup,'angsize':self.seba.size,
+            'sun_distance':self.seba.sun_distance,'is_circumpolar':events['is_circumpolar'],
+            'is_neverup':events['is_neverup'],'angsize':self.seba.size,
             'phase':self.seba.phase,'hlat':self.seba.hlat*montu.RAD,'hlon':self.seba.hlon*montu.RAD,
             'hlong':self.seba.hlong*montu.RAD,
         }
@@ -125,8 +248,20 @@ class Sebau(object):
             self.condition = montu.Dictobj(dict=condition)
 
     def _compute_ephemerides(self,jed=None,observer=None):
-        
-        # Check inputs
+        """Call PyEphem to compute ephemerides for the body.
+
+        Parameters
+        ----------
+        jed : float, optional
+            Julian Ephemeris Day (UTC scale). Defaults to current time.
+        observer : montu.Observer
+            Observing site used as the reference frame.
+
+        Raises
+        ------
+        ValueError
+            If *observer* is not a :class:`montu.Observer` instance.
+        """
         if not isinstance(observer,montu.Observer):
             raise ValueError("You must provide a valid montu.Observer")
 
@@ -140,8 +275,10 @@ class Sebau(object):
         self.seba.compute(observer.site)
 
     def when_it_appears(self,at=None,observer=None):
-        """Compute the time at a given date and place when the body
-        appears in the night sky.
+        """Compute the time when the body first appears in the night sky.
+
+        .. note::
+            Not yet implemented.
         """
         pass
 
@@ -169,26 +306,80 @@ class Sebau(object):
         return self.__str__()
 
     def reset_store(self):
+        """Reset accumulated position and condition lists to empty.
+
+        Call this before starting a new set of accumulating
+        ``store=True`` calls.
+
+        Examples
+        --------
+        >>> sun = montu.Sun()
+        >>> sun.reset_store()
+        """
         self.position = []
         self.position_store = False
         self.condition = []
         self.condition_store = False
 
     def tabulate_store(self):
+        """Convert accumulated position/condition lists to DataFrames in place.
+
+        Converts ``self.position`` and/or ``self.condition`` from lists of
+        dicts into :class:`pandas.DataFrame` objects.
+        Call this after finishing a series of ``store=True`` computations.
+
+        Examples
+        --------
+        >>> import montu
+        >>> giza = montu.Observer(lon=31.134, lat=29.979)
+        >>> sun = montu.Sun()
+        >>> times = [montu.Time('-1000-01-01') + i * montu.DAY for i in range(30)]
+        >>> for t in times:
+        ...     sun.where_in_sky(at=t, observer=giza, store=True)
+        >>> sun.tabulate_store()
+        >>> sun.position.head()  # now a DataFrame
+        """
         if self.position_store:
             self.position = pd.DataFrame(self.position)
         if self.condition_store:
             self.condition = pd.DataFrame(self.condition)
 
     def tabulate_positions(self):
+        """Convert the position list to a :class:`pandas.DataFrame`.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame with one row per :meth:`where_in_sky` call made with
+            ``store=True``.
+        """
         return pd.DataFrame(self.position)
     
     def tabulate_conditions(self):
+        """Convert the condition list to a :class:`pandas.DataFrame`.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame with one row per :meth:`conditions_in_sky` call made
+            with ``store=True``.
+        """
         return pd.DataFrame(self.condition)
     
     def tabulate_ephemerides(self):
-        # Tabulate all
+        """Merge position and condition DataFrames into one ephemerides table.
+
+        Calls :meth:`tabulate_store` first; then merges ``self.position``
+        and ``self.condition`` on ``['tt', 'jed', 'Name']`` and stores the
+        result in ``self.ephemerides``.
+
+        Examples
+        --------
+        >>> sun.tabulate_ephemerides()
+        >>> sun.ephemerides.head()
+        """
         self.tabulate_store()
+
         # Create a unique ephemerides pandas object
         self.ephemerides = self.position
         if self.condition_store:
@@ -204,7 +395,19 @@ class Sebau(object):
 # Sun Class
 ###############################################################
 class Sun(Sebau):
-    """
+    """The Sun as a celestial body.
+
+    Inherits all methods from :class:`Sebau`. Provides additional static
+    methods for computing solstices, equinoxes, and twilight times.
+
+    Examples
+    --------
+    >>> import montu
+    >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+    >>> mtime = montu.Time('-1000-03-21 06:00:00')
+    >>> sun = montu.Sun()
+    >>> sun.where_in_sky(at=mtime, observer=giza)
+    >>> print(f"Az={sun.position.az:.2f} deg, El={sun.position.el:.2f} deg")
     """
     def __init__(self):
         super().__init__()
@@ -219,6 +422,31 @@ class Sun(Sebau):
         
     @staticmethod
     def next_seasons(at=None):
+        """Return the Julian days of the four upcoming astronomical seasons.
+
+        Parameters
+        ----------
+        at : montu.Time
+            Reference date from which to search forward.
+
+        Returns
+        -------
+        vernal_jed : float
+            Julian day of the next vernal equinox.
+        summer_jed : float
+            Julian day of the next summer solstice.
+        autumnal_jed : float
+            Julian day of the next autumnal equinox.
+        winter_jed : float
+            Julian day of the next winter solstice.
+
+        Examples
+        --------
+        >>> import montu
+        >>> ve, ss, ae, ws = montu.Sun.next_seasons(at=montu.Time('-1000-01-01'))
+        >>> montu.Time(ve, format='jd').get_readable().readable.datepro
+        '-1000-03-...'
+        """
         date = pyephem.Date(at.jed - montu.PYEPHEM_JD_REF)
         vernal_jed = pyephem.next_vernal_equinox(date) + montu.PYEPHEM_JD_REF
         summer_jed = pyephem.next_summer_solstice(date) + montu.PYEPHEM_JD_REF
@@ -228,6 +456,31 @@ class Sun(Sebau):
     
     @staticmethod
     def previous_seasons(at=None):
+        """Return the Julian days of the four most recent astronomical seasons.
+
+        Parameters
+        ----------
+        at : montu.Time
+            Reference date from which to search backward.
+
+        Returns
+        -------
+        vernal_jed : float
+            Julian day of the preceding vernal equinox.
+        summer_jed : float
+            Julian day of the preceding summer solstice.
+        autumnal_jed : float
+            Julian day of the preceding autumnal equinox.
+        winter_jed : float
+            Julian day of the preceding winter solstice.
+
+        Examples
+        --------
+        >>> import montu
+        >>> ve, ss, ae, ws = montu.Sun.previous_seasons(at=montu.Time('-1000-06-01'))
+        >>> montu.Time(ve, format='jd').get_readable().readable.datepro
+        '-1000-03-...'
+        """
         date = pyephem.Date(at.jed - montu.PYEPHEM_JD_REF)
         vernal_jed = pyephem.previous_vernal_equinox(date) + montu.PYEPHEM_JD_REF
         summer_jed = pyephem.previous_summer_solstice(date) + montu.PYEPHEM_JD_REF
@@ -292,7 +545,19 @@ class Sun(Sebau):
 # Moon Class
 ###############################################################
 class Moon(Sebau):
-    """
+    """The Moon as a celestial body.
+
+    Inherits all methods from :class:`Sebau`. Provides additional static
+    methods for computing moon phases and quarters.
+
+    Examples
+    --------
+    >>> import montu
+    >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+    >>> mtime = montu.Time('-1000-03-21 20:00:00')
+    >>> moon = montu.Moon()
+    >>> moon.conditions_in_sky(at=mtime, observer=giza)
+    >>> print(f"Phase: {moon.condition.moon_phase:.2f}")
     """
     def __init__(self):
         super().__init__()
@@ -427,7 +692,39 @@ class Moon(Sebau):
 # Planet Class
 ###############################################################
 class Planet(Sebau):
-    """
+    """A solar-system planet (Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune).
+
+    Parameters
+    ----------
+    name : str
+        Planet name or NAIF/PyEphem integer ID. Case-insensitive.
+        Accepted names: ``'Mercury'``, ``'Venus'``, ``'Mars'``,
+        ``'Jupiter'``, ``'Saturn'``, ``'Uranus'``, ``'Neptune'``.
+
+    Raises
+    ------
+    ValueError
+        If *name* is not a recognised planet.
+
+    Attributes
+    ----------
+    name : str
+        Capitalised planet name (e.g. ``'Mars'``).
+    name_upper : str
+        Upper-case planet name (e.g. ``'MARS'``).
+    id : str
+        NAIF body ID as a string (e.g. ``'4'`` for Mars).
+    planet_class : type
+        Corresponding PyMeeus planet class.
+
+    Examples
+    --------
+    >>> import montu
+    >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+    >>> mtime = montu.Time('-1000-03-21 20:00:00')
+    >>> mars = montu.Planet('Mars')
+    >>> mars.where_in_sky(at=mtime, observer=giza)
+    >>> print(f"Mars: Az={mars.position.az:.2f}, El={mars.position.el:.2f}")
     """
     def __init__(self,name):
         super().__init__()
@@ -460,7 +757,31 @@ class Planet(Sebau):
         super().conditions_in_sky(at, observer, store)
 
     def next_planesticies(self,at=None):
-        """Compute the closest stations in longitude
+        """Compute the two upcoming stations in ecliptic longitude.
+
+        A *planesticio* (Spanish for *stationary point*) is the moment when
+        a planet reverses its apparent east--west motion relative to the
+        background stars.
+
+        Parameters
+        ----------
+        at : montu.Time
+            Reference epoch from which to search forward.
+
+        Returns
+        -------
+        jed_station1 : float
+            Julian day (UTC) of the first (direct-to-retrograde) station.
+        jed_station2 : float
+            Julian day (UTC) of the second (retrograde-to-direct) station.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mars = montu.Planet('Mars')
+        >>> s1, s2 = mars.next_planesticies(at=montu.Time('-500-01-01'))
+        >>> montu.Time(s1, format='jd').get_readable().readable.datepro
+        '-500-...-...'
         """
         epoch = montu.pymeeus_Epoch(at.jed)
         
