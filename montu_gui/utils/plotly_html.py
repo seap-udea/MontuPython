@@ -35,13 +35,15 @@ def figure_to_html(fig: go.Figure) -> str:
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 100%;
-      overflow: hidden;
+      min-height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
       background: #ffffff;
     }}
     .plotly-graph-div {{
       width: 100% !important;
-      height: 100vh !important;
+      min-height: 560px !important;
+      height: 560px !important;
     }}
     /* Keep modebar off the title — park it above the rangeslider */
     .js-plotly-plot .plotly .modebar {{

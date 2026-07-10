@@ -215,6 +215,52 @@
       }
     }
   },
+  "alignments": {
+    "input": {
+      "location": {
+        "title": "Observer location",
+        "body": "<p>The observer's geographic <b>latitude</b> is the only location parameter that affects the target declination calculation. Longitude is not relevant for this module.</p><p>Set the location in the <b>🧭 Observer Location</b> module, or choose a <b>Famous alignment</b> preset above — presets fill coordinates automatically.</p>"
+      },
+      "famous_alignments": {
+        "title": "Famous alignments",
+        "body": "<p>Load a documented archaeological sky alignment from <code>assets/alignments.json</code>. Selecting a preset fills the observer site, azimuth, elevation, date range, limiting magnitude, and declination tolerance.</p><p>Presets include:</p><ul><li><b>Khufu north/south shafts</b> — Great Pyramid of Giza (Old Kingdom)</li><li><b>Djoser serdab</b> — Step Pyramid at Saqqara (3rd Dynasty)</li><li><b>Senenmut TT353</b> — tomb-temple entrance at Deir el-Bahari (1472–1457 BCE)</li></ul>"
+      },
+      "azimuth": {
+        "title": "Azimuth",
+        "body": "<p>Horizontal compass bearing of the alignment direction, measured <b>clockwise from true North</b>.</p><ul><li>0° = North (e.g. the northern shafts of the Great Pyramid)</li><li>90° = East (objects rise due East only on the celestial equator)</li><li>180° = South (southern shafts of the Great Pyramid point here)</li><li>270° = West</li></ul><p>The azimuth, together with the elevation and the observer latitude, uniquely determines the <b>target declination</b> shown below the inputs.</p>"
+      },
+      "elevation": {
+        "title": "Elevation (altitude)",
+        "body": "<p>Angle above the horizon [degrees] of the alignment direction.</p><p>Examples from the Great Pyramid of Khufu:</p><ul><li><b>King's Chamber northern shaft</b> — elevation ≈ 31.7°</li><li><b>King's Chamber southern shaft</b> — elevation ≈ 44.5°</li><li><b>Queen's Chamber northern shaft</b> — elevation ≈ 39.6°</li><li><b>Queen's Chamber southern shaft</b> — elevation ≈ 39.6°</li></ul><p>Horizontal (0°) points to the horizon; vertical (90°) points to the zenith.</p>"
+      },
+      "year_start": {
+        "title": "From (year)",
+        "body": "<p>Start of the search interval. Enter a positive year and select <b>BCE</b> or <b>CE</b>.</p><p>The module will sample the stellar catalogue at several epochs between the start and end years, precessing each star's coordinates to the epoch-of-date system.</p><p>Default: 2620 BCE — slightly before the accepted construction date of the Great Pyramid (~2 560 BCE).</p>"
+      },
+      "year_end": {
+        "title": "To (year)",
+        "body": "<p>End of the search interval. Enter a positive year and select <b>BCE</b> or <b>CE</b>.</p><p>Default: 2420 BCE — about 140 years after the nominal construction date. Widening this range increases the chance of catching stars whose alignment window overlaps the range.</p>"
+      },
+      "mag_limit": {
+        "title": "Limiting magnitude (V)",
+        "body": "<p>Only stars with a Johnson V-band visual magnitude <b>brighter than or equal to</b> this value are included.</p><p>Examples of reference magnitudes:</p><ul><li>Sirius (brightest star) — V = −1.46</li><li>Thuban (α Draconis, Great Pyramid alignment) — V ≈ 3.65</li><li>Naked-eye limit under dark skies — V ≈ 6.5</li></ul><p>Lower values (e.g. 2) restrict the search to the very brightest stars; higher values (e.g. 6) include fainter ones but slow computation.</p>"
+      },
+      "dec_tolerance": {
+        "title": "Declination tolerance",
+        "body": "<p>Half-width of the declination band around the target [degrees]. A star is reported as <em>aligned</em> when its epoch-of-date declination falls within <code>target ± tolerance</code>.</p><p>Rule of thumb:</p><ul><li>0.5° ≈ 30 arcminutes — tight constraint, exact alignments only</li><li>1° — default in famous-alignment presets</li><li>2°+ — wider margin for shaft width and measurement uncertainty</li></ul>"
+      }
+    },
+    "chart": {
+      "table": {
+        "title": "Results table",
+        "body": "<p>Lists every star whose precessed declination falls within ±tolerance of the target declination at any sampled epoch.</p><p><b>Columns:</b></p><ul><li><b>Star</b> — proper name (e.g. Thuban) or catalogue name</li><li><b>V mag</b> — Johnson V visual magnitude</li><li><b>RA at best epoch</b> — right ascension at the year of closest approach, in h m s</li><li><b>Dec at best epoch</b> — declination at the year of closest approach</li><li><b>Δ Dec</b> — absolute difference between star declination and target</li><li><b>Best year</b> — the sampled epoch at which the star was closest to the target declination</li></ul>"
+      },
+      "map": {
+        "title": "Sky map",
+        "body": "<p>Mercator sky map at the <b>midpoint epoch</b> of the search range (RA vs declination).</p><p><b>Elements:</b></p><ul><li><b>White circles</b> — bright stars in their precessed positions</li><li><b>Gold stars ★</b> — aligned stars</li><li><b>Gold dashed line</b> — target declination</li><li><b>Gold shaded band</b> — declination tolerance</li><li><b>Blue dotted line</b> — <b>circumpolar limit</b>: stars beyond this declination never set at the observer latitude (northern sites: dec ≥ limit; southern sites: dec ≤ limit).</li></ul><p><b>Hover</b> over any star for name, coordinates, magnitude, and alignment details.</p>"
+      }
+    }
+  },
   "location": {
     "input": {
       "predefined": {

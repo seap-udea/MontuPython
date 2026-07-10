@@ -140,3 +140,112 @@ class StepSpinBox(QWidget):
             return
         self.setValue(self._value - self._step)
         self.valueChanged.emit(self._value)
+
+
+class StepDoubleSpinBox(QWidget):
+    """Decimal field with visible ▲/▼ step buttons (macOS QDoubleSpinBox arrows break)."""
+
+    valueChanged = Signal(float)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._min = 0.0
+        self._max = 99.0
+        self._step = 1.0
+        self._decimals = 1
+        self._suffix = ""
+        self._syncing = False
+        self._value = 0.0
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.edit = QLineEdit()
+        self.edit.setFixedHeight(32)
+        layout.addWidget(self.edit, stretch=1, alignment=Qt.AlignmentFlag.AlignTop)
+
+        btn_up, btn_down = attach_step_buttons(layout)
+        btn_up.clicked.connect(self._step_up)
+        btn_down.clicked.connect(self._step_down)
+        self.edit.editingFinished.connect(self._commit_text)
+        self.edit.returnPressed.connect(self._commit_text)
+
+    def setRange(self, minimum: float, maximum: float):
+        self._min = float(minimum)
+        self._max = float(maximum)
+        self.setValue(self._value)
+
+    def setSingleStep(self, step: float):
+        self._step = max(1e-9, float(step))
+
+    def setDecimals(self, decimals: int):
+        self._decimals = max(0, int(decimals))
+
+    def setSuffix(self, suffix: str):
+        self._suffix = suffix
+        self._refresh_display(self._value)
+
+    def setMinimumWidth(self, width: int):
+        self.edit.setMinimumWidth(width)
+
+    def value(self) -> float:
+        return self._value
+
+    def setValue(self, value: float):
+        clamped = max(self._min, min(self._max, float(value)))
+        if self._decimals > 0:
+            clamped = round(clamped, self._decimals)
+        self._value = clamped
+        self._syncing = True
+        try:
+            self._refresh_display(clamped)
+        finally:
+            self._syncing = False
+
+    def _format(self, value: float) -> str:
+        text = f"{value:.{self._decimals}f}"
+        return f"{text}{self._suffix}"
+
+    def _parse_text(self, text: str) -> float | None:
+        raw = text.strip()
+        suffix = self._suffix.strip()
+        if suffix and raw.endswith(suffix):
+            raw = raw[: -len(suffix)].strip()
+        if not raw:
+            return None
+        locale = QLocale()
+        value, ok = locale.toDouble(raw)
+        if ok:
+            return value
+        cleaned = raw.replace(",", ".").replace(" ", "")
+        try:
+            return float(cleaned)
+        except ValueError:
+            return None
+
+    def _refresh_display(self, value: float):
+        self.edit.setText(self._format(value))
+
+    def _commit_text(self):
+        if self._syncing:
+            return
+        parsed = self._parse_text(self.edit.text())
+        if parsed is not None:
+            self.setValue(parsed)
+        else:
+            self._refresh_display(self._value)
+        self.valueChanged.emit(self._value)
+
+    def _step_up(self):
+        if self._syncing:
+            return
+        self.setValue(self._value + self._step)
+        self.valueChanged.emit(self._value)
+
+    def _step_down(self):
+        if self._syncing:
+            return
+        self.setValue(self._value - self._step)
+        self.valueChanged.emit(self._value)

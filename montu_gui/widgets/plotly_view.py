@@ -29,7 +29,11 @@ class PlotlyView(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._html_path: Path | None = None
+        # Each instance gets a unique temp file so multiple PlotlyViews on
+        # the same page do not overwrite each other's HTML.
+        self._html_path: Path = (
+            Path(tempfile.gettempdir()) / f"montu_gui_plotly_{id(self)}.html"
+        )
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setMinimumHeight(320)
@@ -57,10 +61,8 @@ class PlotlyView(QWidget):
         if self._view is None:
             return
 
-        path = Path(tempfile.gettempdir()) / "montu_gui_plotly.html"
-        path.write_text(html, encoding="utf-8")
-        self._html_path = path
-        self._view.load(QUrl.fromLocalFile(str(path.resolve())))
+        self._html_path.write_text(html, encoding="utf-8")
+        self._view.load(QUrl.fromLocalFile(str(self._html_path.resolve())))
 
     def clear(self):
         if self._view is not None:
