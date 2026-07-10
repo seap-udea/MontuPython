@@ -26,6 +26,22 @@ PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
 SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
 
 ###############################################################
+# Module helpers
+###############################################################
+def _scalar_float(value):
+    """Coerce a scalar, 0-d array, or one-element Series to ``float``."""
+    if isinstance(value, (int, float, np.floating, np.integer)):
+        return float(value)
+    if isinstance(value, pd.Series):
+        if len(value) != 1:
+            raise ValueError(f"Expected one coordinate value, got {len(value)}")
+        return float(value.iloc[0])
+    arr = np.asarray(value, dtype=float).ravel()
+    if arr.size != 1:
+        raise ValueError(f"Expected one coordinate value, got {value!r}")
+    return float(arr[0])
+
+###############################################################
 # Stars Class
 ###############################################################
 class Stars(object):
@@ -153,6 +169,61 @@ class Stars(object):
     
         return Stars(self.data[cond])
     
+    def value_for(self, proper_name, column):
+        """Return a single scalar column value for one star by proper name.
+
+        Parameters
+        ----------
+        proper_name : str
+            Value of the ``ProperName`` column to match.
+        column : str
+            Column name to retrieve (e.g. ``'DecEpoch'``, ``'RAEpoch'``).
+
+        Returns
+        -------
+        float
+            Scalar value for the matching star.
+
+        Examples
+        --------
+        >>> import montu
+        >>> stars = montu.Stars().get_stars(ProperName='Polaris')
+        >>> mtime = montu.Time('-2500-01-01 12:00:00')
+        >>> precessed = stars.where_in_space(at=mtime)
+        >>> precessed.value_for('Polaris', 'DecEpoch')
+        """
+        mask = self.data.ProperName == proper_name
+        if not mask.any():
+            raise KeyError(f"No star with ProperName={proper_name!r}")
+        return _scalar_float(self.data.loc[mask, column])
+
+    def scalar(self, column):
+        """Return a scalar column value when this subset has exactly one star.
+
+        Parameters
+        ----------
+        column : str
+            Column name (e.g. ``'DecJ2000t'``, ``'RAJ2000t'``).
+
+        Returns
+        -------
+        float
+            Scalar value from the single row in ``self.data``.
+
+        Examples
+        --------
+        >>> import montu
+        >>> aldebaran = montu.Stars().get_stars(ProperName='Aldebaran')
+        >>> mtime = montu.Time('-700-01-01 00:00:00')
+        >>> aldebaran.where_in_space(at=mtime, inplace=True)
+        >>> aldebaran.scalar('DecJ2000t')
+        """
+        if self.number != 1:
+            raise ValueError(
+                f"scalar() requires exactly one star, got {self.number}"
+            )
+        return _scalar_float(self.data[column])
+    
     def get_stars_around(self,
                          center=[0,0],radius=10,
                          coords=['RAJ2000','DecJ2000'],**kwargs):
@@ -162,7 +233,9 @@ class Stars(object):
         ----------
         center : list of two floats, optional
             Centre of the region as ``[RA, Dec]`` expressed in the coordinate
-            system given by *coords*. Default is ``[0, 0]``.
+            system given by *coords*. Each entry may be a scalar or a
+            one-element :class:`~pandas.Series` (e.g. from
+            ``star.data.RAJ2000``). Default is ``[0, 0]``.
         radius : float, optional
             Half-side of the bounding box in the same units as *center*.
             Default is 10 (degrees for declination).
@@ -182,17 +255,15 @@ class Stars(object):
         >>> import montu
         >>> allstars = montu.Stars()
         >>> aldebaran = allstars.get_stars(ProperName='Aldebaran')
-        >>> ra0 = float(aldebaran.data.RAJ2000)
-        >>> dec0 = float(aldebaran.data.DecJ2000)
-
-        Get the Hyades cluster (bright stars within 15 deg of Aldebaran):
-
         >>> hyades = allstars.get_stars_around(
-        ...     center=[ra0, dec0], radius=15, Vmag=[-1, 4])
+        ...     center=[aldebaran.data.RAJ2000, aldebaran.data.DecJ2000],
+        ...     radius=15, Vmag=[-1, 4])
         """
+        ra = _scalar_float(center[0])
+        dec = _scalar_float(center[1])
         kwargs.update({
-            coords[0]:[float(center[0]-radius/15),float(center[0]+radius/15)],
-            coords[1]:[float(center[1]-radius),float(center[1]+radius)],
+            coords[0]: [ra - radius / 15, ra + radius / 15],
+            coords[1]: [dec - radius, dec + radius],
         })
         stars = self.get_stars(**kwargs)
         return stars
@@ -249,8 +320,8 @@ class Stars(object):
 
         Returns
         -------
-        pandas.DataFrame or None
-            A copy of the stellar DataFrame with the additional columns
+        Stars or None
+            A :class:`Stars` subset with the additional columns
             ``tt``, ``jed``, ``RAJ2000t``, ``DecJ2000t``, ``RAEpoch``,
             ``DecEpoch``.
             Returns ``None`` when *inplace* is ``True``.
@@ -261,7 +332,7 @@ class Stars(object):
         >>> mtime = montu.Time('-2500-01-01 12:00:00')
         >>> visible = montu.Stars().get_stars(Vmag=[-2, 6.5])
         >>> precessed = visible.where_in_space(at=mtime)
-        >>> precessed[['Name', 'RAEpoch', 'DecEpoch']].head()
+        >>> precessed.data[['Name', 'RAEpoch', 'DecEpoch']].head()
         """
         # If at is not provide use present
         if at is None:
@@ -285,7 +356,7 @@ class Stars(object):
         data['RAEpoch'],data['DecEpoch'] = zip(*np.array(data.apply(lambda seba:Stars._precess_coordinates(seba,epoch),axis=1)))    
 
         if not inplace:
-            return data
+            return Stars(data)
 
     @staticmethod
     def _to_alt_az(seba,lat):
@@ -389,7 +460,7 @@ class Stars(object):
                 self.where_in_space(at, inplace=True)
                 data = self.data
             else:
-                data = self.where_in_space(at, inplace=False)
+                data = self.where_in_space(at, inplace=False).data
 
         # Create pymeeus epoch
         epoch = pymeeus_Epoch(at.jed)

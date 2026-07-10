@@ -514,9 +514,9 @@ class Util(object):
         >>> f(0.5)
         50.0
         """
-        b = observed[0] - a*mapped[0]
-        map = lambda x:a*x+b
-        return map
+        a = (observed[1] - observed[0]) / (mapped[1] - mapped[0])
+        b = observed[0] - a * mapped[0]
+        return lambda x: a * x + b
 
     def load_planets():
         """Load the planetary data table shipped with the package.

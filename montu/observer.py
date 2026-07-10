@@ -120,5 +120,9 @@ class Observer(object):
         >>> giza.get_local_time(mtime, hms=False)
         8.075666...
         """
-        hour = (comps[3]+comps[4]/60.0+comps[5]/3600.0) + self.lon/15
+        if not isinstance(mtime, montu.Time):
+            mtime = montu.Time(mtime, format='jd', scale='utc')
+        mtime.get_readable()
+        comps = mtime.readable.comps
+        hour = (comps[4] + comps[5] / 60.0 + comps[6] / 3600.0) + self.lon / 15
         return montu.D2H(hour) if hms else hour

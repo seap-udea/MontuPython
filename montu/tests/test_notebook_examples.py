@@ -93,3 +93,39 @@ def test_montunctions_notebook_smoke(egypt_observer):
 
     assert np.isfinite(mars.condition.Vmag)
     assert np.isfinite(aldebaran.data.az.iloc[0])
+
+
+def test_get_stars_around_accepts_series_center():
+    allstars = montu.Stars()
+    aldebaran = allstars.get_stars(ProperName="Aldebaran")
+    hyades = allstars.get_stars_around(
+        center=[aldebaran.data.RAJ2000, aldebaran.data.DecJ2000],
+        radius=5.5,
+        Vmag=[-1, 5],
+    )
+
+    assert len(hyades.data) > 0
+    assert (hyades.data.Vmag <= 5).all()
+
+
+def test_where_in_space_value_for_polar_stars():
+    star_names = ("Polaris", "Vega", "Thuban", "Deneb", "Alderamin", "Kochab")
+    stars = montu.Stars().get_stars(ProperName=star_names)
+    past = montu.Time() + (-5000 * montu.YEAR)
+    pstars = stars.where_in_space(at=past)
+
+    assert isinstance(pstars, montu.Stars)
+    for star in star_names:
+        dec = pstars.value_for(star, "DecEpoch")
+        assert np.isfinite(dec)
+        assert -90 <= dec <= 90
+
+
+def test_stars_scalar_after_where_in_space():
+    aldebaran = montu.Stars().get_stars(ProperName="Aldebaran")
+    mtime = montu.Time("-700-01-01 00:00:00")
+    aldebaran.where_in_space(at=mtime, inplace=True)
+    dec = aldebaran.scalar("DecJ2000t")
+    ra = aldebaran.scalar("RAJ2000t")
+    assert np.isfinite(dec)
+    assert np.isfinite(ra)
