@@ -1,0 +1,37 @@
+{
+  "title": "MontuPython Desktop",
+  "tagline": "Astronomical ephemerides for the ancient world",
+  "fonts": {
+    "title": 40,
+    "tagline": 21,
+    "version": 19,
+    "body": 19,
+    "credits": 19,
+    "contact": 19,
+    "links": 19
+  },
+  "paragraphs": [
+    "<b>MontuPython</b> (<i>mnṯw 'app(y)</i>) is a Python package to compute astronomical ephemerides in the ancient world — thousands of years before the present. It was developed for ancient Egypt and applies equally to other sites of cultural and archaeoastronomical interest.",
+    "<b>MontuPython Desktop</b> is the graphical front-end to that library. It offers pre-built tools for users who do not wish to program at the Python level, or who want quick access to core functionality. Open a module from the sidebar — for example, <b>Calendar Calculator</b> to convert among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), and Julian Day formats."
+  ],
+  "people": {
+    "author": "Jorge I. Zuluaga © 2023–present",
+    "contributors": "Juanita Agudelo (early web app), Luis Arroyo (online web app)",
+    "advisors": "Francisco \"Tito\" Vivas (archaeoastronomy & Egyptology)"
+  },
+  "license": {
+    "name": "MIT License",
+    "url": "https://github.com/seap-udea/MontuPython/blob/main/LICENSE"
+  },
+  "links": [
+    {
+      "label": "GitHub repository",
+      "url": "https://github.com/seap-udea/MontuPython"
+    },
+    {
+      "label": "Documentation (Read the Docs)",
+      "url": "https://montupython.readthedocs.io/en/latest/"
+    }
+  ],
+  "contact_email": "montupythonizer@gmail.com"
+}

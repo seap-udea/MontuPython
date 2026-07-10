@@ -58,6 +58,21 @@ from montu_gui.modules.date_converter import (
 from montu_gui.utils.debug import dbg, log_ui_event
 from montu_gui.widgets.format_cell import FormatCell
 from montu_gui.widgets.help_link import HelpLink
+from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+
+_CALENDAR_EXAMPLE = LetsPythonExample(
+    source_path=Path(__file__).parent / "examples" / "calendar_conversion.py",
+    download_name="montu_calendar_conversion.py",
+    window_title="Let's Python!  —  Calendar Conversion Code",
+    heading="Calendar conversion with MontuPython",
+    subtitle=(
+        "Copy or download the script below to reproduce the conversions shown "
+        "in the Calendar Calculator. Example 1 converts <b>today</b> to the "
+        "Egyptian civil calendar; Example 2 recovers the Gregorian date of the "
+        "<b>First Apokatastasis</b> (epoch of the caniucular calendar, "
+        "Horus year 0, <code>hrw 0-I-Akhet-1</code>)."
+    ),
+)
 
 HELP_MODULE = "calendar"
 
@@ -119,7 +134,9 @@ def _form_row_help(label_text: str, help_key: str, widget: QWidget) -> QHBoxLayo
     return row
 
 
-def _input_mode_row(text: str, help_key: str) -> tuple[QRadioButton, QHBoxLayout]:
+def _input_mode_row(
+    text: str, help_key: str, *, block: str = "input"
+) -> tuple[QRadioButton, QHBoxLayout]:
     """Radio indicator + clickable help link for an input mode."""
     row = QHBoxLayout()
     row.setSpacing(6)
@@ -127,7 +144,7 @@ def _input_mode_row(text: str, help_key: str) -> tuple[QRadioButton, QHBoxLayout
     rb.setFixedWidth(18)
     row.addWidget(rb, alignment=Qt.AlignmentFlag.AlignTop)
     row.addWidget(
-        HelpLink(text, HELP_MODULE, "input", help_key),
+        HelpLink(text, HELP_MODULE, block, help_key),
         stretch=1,
         alignment=Qt.AlignmentFlag.AlignTop,
     )
@@ -838,6 +855,88 @@ class JDForm(QWidget):
             self._syncing = False
 
 
+# ── Historical dates input form ────────────────────────────────────────────────
+def _format_historical_description(data: dict) -> str:
+    """Build justified HTML for the selected historical date."""
+    parts: list[str] = []
+    for key in ("description", "details"):
+        text = data.get(key, "").strip()
+        if text:
+            parts.append(text)
+    source = data.get("source", "").strip()
+    if source:
+        parts.append(f"<i>Source: {source}</i>")
+    if not parts:
+        return ""
+    body = "".join(f"<p style='margin: 0 0 8px 0;'>{p}</p>" for p in parts)
+    return (
+        f"<div style='text-align: justify; font-family: Georgia;'>"
+        f"{body}</div>"
+    )
+
+
+class HistoricalDatesForm(QWidget):
+    """Preset dates from Egyptology / astronomy literature."""
+
+    changed = Signal()
+
+    def __init__(self, historical: dict, parent=None):
+        super().__init__(parent)
+        self._historical = historical
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        box = QGroupBox()
+        box_layout = QVBoxLayout(box)
+        box_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        box_layout.addWidget(
+            HelpLink(
+                "Historical Date",
+                HELP_MODULE,
+                "historical",
+                "historical_dates",
+                bold=True,
+            ),
+            alignment=Qt.AlignmentFlag.AlignTop,
+        )
+
+        self.combo = QComboBox()
+        self.combo.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
+        for key, data in historical.items():
+            self.combo.addItem(data.get("label", key), key)
+        box_layout.addWidget(self.combo)
+
+        self.desc = QLabel("")
+        self.desc.setWordWrap(True)
+        self.desc.setObjectName("hist_desc_label")
+        self.desc.setTextFormat(Qt.TextFormat.RichText)
+        self.desc.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
+        self.desc.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
+        box_layout.addWidget(self.desc, alignment=Qt.AlignmentFlag.AlignTop)
+
+        layout.addWidget(box, alignment=Qt.AlignmentFlag.AlignTop)
+
+        self.combo.currentIndexChanged.connect(self._update_desc)
+        self.combo.currentIndexChanged.connect(lambda: self.changed.emit())
+        self._update_desc()
+
+    def _update_desc(self):
+        key = self.current_key()
+        data = self._historical.get(key, {})
+        self.desc.setText(_format_historical_description(data))
+
+    def current_key(self) -> str | None:
+        return self.combo.currentData()
+
+
 # ── main page widget ───────────────────────────────────────────────────────────
 class CalendarPage(QWidget):
     """
@@ -865,7 +964,7 @@ class CalendarPage(QWidget):
         root.setSpacing(10)
 
         # title
-        title = _label("Ancient Dates", bold=True, size=16)
+        title = _label("Calendar Calculator", bold=True, size=16)
         title.setObjectName("section_title")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(title)
@@ -899,24 +998,30 @@ class CalendarPage(QWidget):
         self.rb_mode_jg, row_jg = _input_mode_row("Julian / Gregorian", "julian_gregorian")
         self.rb_mode_can, row_can = _input_mode_row("Caniucular", "caniucular")
         self.rb_mode_jd, row_jd = _input_mode_row("Julian Day Number", "julian_day")
+        self.rb_mode_hist, row_hist = _input_mode_row(
+            "Historical dates", "historical_dates", block="historical"
+        )
         self.rb_mode_jg.setChecked(True)
-        for row in (row_jg, row_can, row_jd):
+        for row in (row_jg, row_can, row_jd, row_hist):
             left_layout.addLayout(row)
 
         self.mode_group.addButton(self.rb_mode_jg)
         self.mode_group.addButton(self.rb_mode_can)
         self.mode_group.addButton(self.rb_mode_jd)
+        self.mode_group.addButton(self.rb_mode_hist)
 
         left_layout.addWidget(_hline())
 
         self.form_jg = JulGregForm()
         self.form_can = CaniucularForm()
         self.form_jd = JDForm()
+        self.form_hist = HistoricalDatesForm(self._historical)
 
         self.form_stack = QStackedWidget()
         self.form_stack.addWidget(self.form_jg)
         self.form_stack.addWidget(self.form_can)
         self.form_stack.addWidget(self.form_jd)
+        self.form_stack.addWidget(self.form_hist)
         left_layout.addWidget(self.form_stack, alignment=Qt.AlignmentFlag.AlignTop)
 
         left.setMinimumWidth(420)
@@ -939,6 +1044,20 @@ class CalendarPage(QWidget):
         self.result_table = ResultTable()
         right_layout.addWidget(self.result_table)
 
+        # "Let's Python!" button — opens code-viewer dialog
+        lets_python_row = QHBoxLayout()
+        lets_python_row.setContentsMargins(0, 6, 0, 0)
+        self._lets_python_btn = QPushButton("🐍  Let's Python!")
+        self._lets_python_btn.setObjectName("lets_python_btn")
+        self._lets_python_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._lets_python_btn.setToolTip(
+            "Show runnable Python code for this calendar conversion"
+        )
+        self._lets_python_btn.clicked.connect(self._show_lets_python)
+        lets_python_row.addWidget(self._lets_python_btn)
+        lets_python_row.addStretch()
+        right_layout.addLayout(lets_python_row)
+
         splitter.addWidget(right)
         splitter.setStretchFactor(0, 3)
         splitter.setStretchFactor(1, 2)
@@ -946,86 +1065,44 @@ class CalendarPage(QWidget):
 
         root.addWidget(splitter, stretch=1)
 
-        root.addWidget(_hline())
-
-        # ── historical dates (bottom) ─────────────────────────────────────────
-        hist_box = QGroupBox()
-        hist_layout = QVBoxLayout(hist_box)
-
-        hist_header = QHBoxLayout()
-        hist_header.addWidget(
-            HelpLink(
-                "Historical Dates",
-                HELP_MODULE,
-                "historical",
-                "historical_dates",
-                bold=True,
-            )
-        )
-        hist_header.addStretch()
-        hist_layout.addLayout(hist_header)
-
-        top_row = QHBoxLayout()
-        self.hist_combo = QComboBox()
-        self.hist_combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        for key, data in self._historical.items():
-            self.hist_combo.addItem(data.get("label", key), key)
-        top_row.addWidget(self.hist_combo)
-        hist_layout.addLayout(top_row)
-
-        self.hist_desc = QLabel("")
-        self.hist_desc.setWordWrap(True)
-        self.hist_desc.setObjectName("result_label")
-        self.hist_desc.setTextFormat(Qt.TextFormat.RichText)
-        hist_layout.addWidget(self.hist_desc)
-
-        root.addWidget(hist_box)
-
-        # ── connect signals ────────────────────────────────────────────────────
-        self.hist_combo.activated.connect(self._on_load_historical)
-        self.hist_combo.currentIndexChanged.connect(self._update_hist_desc)
-
-        self._update_hist_desc()
-
     def _connect_auto_convert(self):
         """Wire all input widgets to trigger conversion on change."""
         self.form_jg.changed.connect(self._on_convert)
         self.form_can.changed.connect(self._on_convert)
         self.form_can.day_step.stepRequested.connect(self._on_can_step_day)
         self.form_jd.changed.connect(self._on_convert)
+        self.form_hist.changed.connect(self._on_historical_selected)
 
         self.rb_mode_jg.toggled.connect(self._on_mode_changed)
         self.rb_mode_can.toggled.connect(self._on_mode_changed)
         self.rb_mode_jd.toggled.connect(self._on_mode_changed)
+        self.rb_mode_hist.toggled.connect(self._on_mode_changed)
 
     # ── slots ──────────────────────────────────────────────────────────────────
     def _on_mode_changed(self):
-        mode = (
-            "julian_gregorian" if self.rb_mode_jg.isChecked()
-            else "caniucular" if self.rb_mode_can.isChecked()
-            else "julian_day"
-        )
-        log_ui_event("input mode changed", mode=mode)
         if self.rb_mode_jg.isChecked():
+            mode = "julian_gregorian"
             self.form_stack.setCurrentIndex(0)
         elif self.rb_mode_can.isChecked():
+            mode = "caniucular"
             self.form_stack.setCurrentIndex(1)
-        else:
+        elif self.rb_mode_jd.isChecked():
+            mode = "julian_day"
             self.form_stack.setCurrentIndex(2)
-        self._on_convert()
+        else:
+            mode = "historical_dates"
+            self.form_stack.setCurrentIndex(3)
+        log_ui_event("input mode changed", mode=mode)
+        if self.rb_mode_hist.isChecked():
+            self._load_historical(self.form_hist.current_key())
+        else:
+            self._on_convert()
 
-    def _update_hist_desc(self):
-        key = self.hist_combo.currentData()
-        data = self._historical.get(key, {})
-        desc = data.get("description", "")
-        source = data.get("source", "")
-        text = desc
-        if source:
-            text += f" <i>({source})</i>"
-        self.hist_desc.setText(text)
+    def _on_historical_selected(self):
+        if self.rb_mode_hist.isChecked():
+            self._load_historical(self.form_hist.current_key())
 
-    def _on_load_historical(self):
-        key = self.hist_combo.currentData()
+    def _load_historical(self, key: str | None):
         if not key:
             return
         data = self._historical.get(key, {})
@@ -1109,6 +1186,8 @@ class CalendarPage(QWidget):
     def _on_convert(self):
         if self._block_auto:
             return
+        if self.rb_mode_hist.isChecked():
+            return
 
         self.status_message.emit("Converting …")
 
@@ -1152,13 +1231,15 @@ class CalendarPage(QWidget):
                 season=f.season_combo.currentText(),
                 day=f.day_spin.value(),
             )
-        else:
+        elif self.rb_mode_jd.isChecked():
             log_ui_event(
                 "auto convert",
                 mode="julian_day",
                 jd=self.form_jd.jd,
             )
             result = julian_day_to_all(self.form_jd.jd)
+        else:
+            return
 
         self.result_table.update_result(result)
 
@@ -1169,3 +1250,9 @@ class CalendarPage(QWidget):
         else:
             log_ui_event("conversion failed", ok=False, error=result.error)
             self.status_message.emit(f"Error: {result.error}")
+
+    def _show_lets_python(self):
+        """Open the Let's Python! code-viewer dialog."""
+        log_ui_event("open lets_python dialog")
+        dlg = LetsPythonDialog(_CALENDAR_EXAMPLE, self.window())
+        dlg.exec()

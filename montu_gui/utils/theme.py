@@ -131,6 +131,23 @@ QLabel#help_link {{
 QLabel#help_link:hover {{
     color: {PALETTE['accent_hover']};
 }}
+QLabel#home_title, QLabel#home_tagline, QLabel#home_version,
+QLabel#home_body, QLabel#home_credits, QLabel#home_contact {{
+    background: transparent;
+}}
+QPushButton#home_link_btn {{
+    background-color: transparent;
+    color: {PALETTE['accent']};
+    border: 1px solid {PALETTE['accent']};
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-weight: 600;
+    min-height: 0;
+}}
+QPushButton#home_link_btn:hover {{
+    background-color: {PALETTE['accent']};
+    color: white;
+}}
 QPushButton#nav_btn {{
     background-color: transparent;
     border: none;
@@ -279,6 +296,13 @@ QLabel#result_label {{
     padding: 8px 12px;
     color: {PALETTE['text_secondary']};
 }}
+QLabel#hist_desc_label {{
+    background-color: {PALETTE['surface_secondary']};
+    border: 1px solid {PALETTE['border_light']};
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: {PALETTE['text']};
+}}
 
 QRadioButton {{
     spacing: 8px;
@@ -300,6 +324,26 @@ QRadioButton::indicator:checked {{
         stop:0.43 {PALETTE['surface']},
         stop:1 {PALETTE['surface']}
     );
+}}
+
+QPushButton#lets_python_btn {{
+    background-color: transparent;
+    color: {PALETTE['success']};
+    border: 1.5px solid {PALETTE['success']};
+    border-radius: 7px;
+    padding: 6px 16px;
+    font-weight: 600;
+    font-size: 13px;
+    min-height: 0;
+}}
+QPushButton#lets_python_btn:hover {{
+    background-color: {PALETTE['success']};
+    color: white;
+}}
+QPushButton#lets_python_btn:pressed {{
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
 }}
 
 QLabel {{

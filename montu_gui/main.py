@@ -43,14 +43,16 @@ from montu_gui.pages.home_page import HomePage
 from montu_gui.pages.calendar_page import CalendarPage
 
 
+from montu.version import version as MONTU_VERSION
+
 SIDEBAR_FULL = 220
 SIDEBAR_COMPACT = 52
-VERSION_LABEL = "v0.1 — refactor branch"
+VERSION_LABEL = f"v{MONTU_VERSION}"
 
 # icon, full label, page key
 NAV_ITEMS = [
     ("🏠", "Home", "home"),
-    ("📅", "Calendar & Caniucular", "calendar"),
+    ("📅", "Calendar calculator", "calendar"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),

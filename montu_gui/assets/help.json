@@ -47,6 +47,10 @@
         "title": "Julian Day Number",
         "body": "Enter a Julian Day Number (UTC scale), optionally with a fractional part for the time of day. Example: <code>2461231.5</code> is noon on that Julian day."
       },
+      "historical_dates": {
+        "title": "Historical dates",
+        "body": "Select a preset date from Egyptology and astronomy literature. See also the full help under <b>Historical dates</b> (input mode) or <b>Historical Date</b> above the preset list for sources, including José Lull’s <i>La astronomía en el antiguo Egipto</i>."
+      },
       "bce": {
         "title": "BCE",
         "body": "Before Common Era. Years are counted historically (1 BCE is followed by 1 CE). MontuPython converts internally to the astronomical year numbering used by the library."

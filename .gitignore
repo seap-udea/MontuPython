@@ -1,5 +1,8 @@
 .vscode
 .montuenv
+
+# macOS
+.DS_Store
 __pycache__.fargopyenv
 # Byte-compiled / optimized / DLL files
 __pycache__/
