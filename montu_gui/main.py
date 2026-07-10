@@ -41,6 +41,7 @@ from montu_gui.utils.theme import STYLESHEET, PALETTE
 from montu_gui.utils.debug import enable_debug, log_startup, log_navigation, dbg
 from montu_gui.pages.home_page import HomePage
 from montu_gui.pages.calendar_page import CalendarPage
+from montu_gui.pages.seasons_page import SeasonsPage
 
 
 from montu.version import version as MONTU_VERSION
@@ -53,6 +54,7 @@ VERSION_LABEL = f"v{MONTU_VERSION}"
 NAV_ITEMS = [
     ("🏠", "Home", "home"),
     ("📅", "Calendar calculator", "calendar"),
+    ("🎑", "Seasons & Lunar Phases", "seasons"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -173,6 +175,9 @@ class MainWindow(QMainWindow):
         cal_page = CalendarPage()
         cal_page.status_message.connect(self._show_status)
         self._add_page("calendar", cal_page)
+        seasons_page = SeasonsPage()
+        seasons_page.status_message.connect(self._show_status)
+        self._add_page("seasons", seasons_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
@@ -216,7 +221,8 @@ class MainWindow(QMainWindow):
                 btn.setVisible(True)
             else:
                 btn.set_compact(True)
-                btn.setVisible(btn.page_key == key)
+                # show all module buttons (skip home — it's the logo click)
+                btn.setVisible(btn.page_key != "home")
 
     def _navigate(self, key: str):
         if key not in self._page_map:

@@ -326,6 +326,12 @@ QRadioButton::indicator:checked {{
     );
 }}
 
+QFrame#season_card {{
+    background-color: {PALETTE['surface']};
+    border: 1px solid {PALETTE['border_light']};
+    border-radius: 8px;
+}}
+
 QPushButton#lets_python_btn {{
     background-color: transparent;
     color: {PALETTE['success']};

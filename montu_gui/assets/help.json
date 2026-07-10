@@ -98,5 +98,75 @@
         "body": "<p>Preset <b>historical dates</b> from the past whose instant is known in more than one calendar system — typically as a Julian/Gregorian date <i>and</i> as an Egyptian civil (caniucular) date, and sometimes with a lunar or documentary context. Select an entry to load it into all input forms and the results table.</p><p>Most entries come from the astronomy of ancient Egypt as discussed by the Egyptologist <b>José Lull</b> in <i>La astronomía en el antiguo Egipto</i> (<i>Astronomy in Ancient Egypt</i>, Universitat de València). Page references below are to that book unless noted otherwise.</p><p><b>Presets and sources</b></p><ul><li><b>BCE 2782-07-20</b> — First <i>apokatastasis</i> (caniucular datum <code>hrw 0-I-Akhet-1</code>); Lull, calendar chapter</li><li><b>BCE 1322-07-20</b> — Second <i>apokatastasis</i>; Lull</li><li><b>CE 139-07-20</b> — Third <i>apokatastasis</i> (Censorinus); Lull, p.&nbsp;95</li><li><b>BCE 559-10-19</b> — Papyrus Louvre 7848 (civil + lunar dates); Lull, p.&nbsp;94</li><li><b>BCE 238-03-07</b> — Canopus decree; Lull, p.&nbsp;76</li><li><b>BCE 237-08-23</b> / <b>BCE 212-08-17</b> — Edfu temple inscriptions (25-year lunar cycle); Lull, p.&nbsp;92</li><li><b>CE 384-07-23</b> — Theon of Alexandria, heliacal rise of Sirius; Lull, p.&nbsp;98</li><li><b>BCE 688-06-11</b> — Papyrus Louvre E3228d (Taharqa, year 3); Lull, p.&nbsp;105</li><li><b>BCE 46-01-01</b> — Julian calendar reform (Sosigenes); Suetonius, <i>Divus Julius</i></li></ul>"
       }
     }
+  },
+  "seasons": {
+    "seasons": {
+      "northward_equinox": {
+        "title": "Northward equinox",
+        "body": "<p>The <b>northward (vernal) equinox</b>: the instant when the Sun crosses the celestial equator moving northward. Day and night are nearly equal in length.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>spring</b> (primavera)</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>autumn</b> (otoño)</li></ul><p>Computed with <code>Sun.next_seasons()</code> via PyEphem.</p>"
+      },
+      "northern_solstice": {
+        "title": "Northern solstice",
+        "body": "<p>The <b>northern (summer) solstice</b>: the instant when the Sun reaches its maximum declination north of the celestial equator.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>summer</b> (verano) — longest day of the year</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>winter</b> (invierno) — shortest day of the year</li></ul>"
+      },
+      "southward_equinox": {
+        "title": "Southward equinox",
+        "body": "<p>The <b>southward (autumnal) equinox</b>: the instant when the Sun crosses the celestial equator moving southward. Day and night are nearly equal in length.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>autumn</b> (otoño)</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>spring</b> (primavera)</li></ul>"
+      },
+      "southern_solstice": {
+        "title": "Southern solstice",
+        "body": "<p>The <b>southern (winter) solstice</b>: the instant when the Sun reaches its maximum declination south of the celestial equator.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>winter</b> (invierno) — shortest day of the year</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>summer</b> (verano) — longest day of the year</li></ul>"
+      }
+    },
+    "phases": {
+      "new_moon": {
+        "title": "🌑 New Moon",
+        "body": "<p><b>New Moon</b> (<code>new</code>): the Moon is between Earth and the Sun; the illuminated hemisphere faces away from us. The Moon is invisible or barely visible as a thin crescent at dusk/dawn.</p><p>One synodic month ≈ 29.5 days from new moon to new moon.</p>"
+      },
+      "first_quarter": {
+        "title": "🌓 First Quarter",
+        "body": "<p><b>First Quarter</b> (<code>first</code>): the Moon has completed one quarter of its orbit since the last new moon. The eastern half of the disc is illuminated — a half-moon visible in the afternoon and evening sky.</p>"
+      },
+      "full_moon": {
+        "title": "🌕 Full Moon",
+        "body": "<p><b>Full Moon</b> (<code>full</code>): the Moon is opposite the Sun in the sky; the entire near-side disc is illuminated. Rises at sunset, sets at sunrise.</p>"
+      },
+      "last_quarter": {
+        "title": "🌗 Last Quarter",
+        "body": "<p><b>Last Quarter</b> (<code>last</code>): the Moon has completed three quarters of its orbit since the last new moon. The western half of the disc is illuminated — a half-moon visible in the late night and morning sky.</p>"
+      }
+    },
+    "input": {
+      "bce": {
+        "title": "BCE",
+        "body": "Before Common Era. Enter the historical year as a positive integer (e.g. 1450 for 1450 BCE)."
+      },
+      "ce": {
+        "title": "CE",
+        "body": "Common Era. Enter the year as a positive integer (e.g. 2026 for 2026 CE)."
+      }
+    },
+    "fields": {
+      "gregorian_proleptic": {
+        "title": "Gregorian proleptic",
+        "body": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>).</p><p><b>Format:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code> (CE) or <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (BCE).</p>"
+      },
+      "mixed": {
+        "title": "Mixed Julian/Gregorian",
+        "body": "<p>Date in the <b>mixed</b> calendar convention (<code>Time.readable.datemix</code>): Julian before 1582-10-15, Gregorian afterward.</p><p><b>Format:</b> <code>YYYY-MM-DD HH:MM:SS</code> (CE) or <code>-YYYY-MM-DD HH:MM:SS</code> (BCE, astronomical year).</p>"
+      },
+      "caniucular": {
+        "title": "Caniucular",
+        "body": "<p>Egyptian civil calendar date (<code>Time.readable.datecan</code>).</p><p><b>Format:</b> <code>hrw HYEAR-MONTH-SEASON-DAY</code></p>"
+      },
+      "season_delta_t": {
+        "title": "ΔT (days after previous season)",
+        "body": "<p>Elapsed time in <b>days</b> since the previous astronomical season event.</p><ul><li>For the <b>Northward equinox</b>, counted from the previous <b>Southern solstice</b>.</li><li>For subsequent seasons, counted from the immediately preceding season in the same year.</li></ul><p>Based on the difference of Julian Day numbers returned by MontuPython.</p>"
+      },
+      "quarter_delta_t": {
+        "title": "ΔT (since last quarter)",
+        "body": "<p>Elapsed time in <b>days</b> since the previous lunar quarter phase (new, first, full, or last).</p><p>For the first quarter listed in the year, counted from the last quarter before 1 January.</p><p>Typical values: ~7 days (new → first), ~7 days (first → full), ~7 days (full → last), ~7 days (last → new).</p>"
+      }
+    }
   }
 }

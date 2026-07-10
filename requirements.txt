@@ -8,3 +8,7 @@ pandas
 scipy
 gunicorn
 Montu
+
+# MontuPython Desktop (montu_gui)
+PySide6
+Pygments

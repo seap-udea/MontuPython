@@ -97,25 +97,39 @@ def log_conversion(
         dbg(f"{key} = {value!r}", indent=1)
     dbg(f"elapsed: {elapsed:.4f}s")
 
+    def _get(attr: str, default: str = "—") -> str:
+        v = getattr(result, attr, None)
+        return str(v) if v is not None else default
+
     if result.ok:
         dbg("output:")
-        dbg(f"mixed:       {result.mixed}", indent=1)
-        dbg(f"caniucular:  {result.caniucular}", indent=1)
-        dbg(f"proleptic:   {result.proleptic}", indent=1)
-        dbg(f"spice:       {result.spice}", indent=1)
-        dbg(f"JD (UTC):    {result.jd_utc}", indent=1)
-        dbg(f"JD (TT):     {result.jd_tt}", indent=1)
-        dbg(f"ET:          {result.et} s", indent=1)
-        dbg(f"ΔT:          {result.delta_t} s", indent=1)
-        dbg(
-            f"parsed J/G:  {result.era.upper()} "
-            f"{result.year:04d}-{result.month:02d}-{result.day:02d}",
-            indent=1,
-        )
-        dbg(
-            f"parsed can:  hrw {result.can_hyear}-"
-            f"{result.can_month}-{result.can_season}-{result.can_day}",
-            indent=1,
-        )
+        for attr in ("mixed", "caniucular", "proleptic", "spice", "jd_utc", "jd_tt", "et", "delta_t"):
+            val = getattr(result, attr, None)
+            if val is not None:
+                dbg(f"{attr:<12} {val}", indent=1)
+        # ConversionResult-specific parsed fields
+        if hasattr(result, "era") and hasattr(result, "year"):
+            try:
+                dbg(
+                    f"parsed J/G:  {result.era.upper()} "
+                    f"{result.year:04d}-{result.month:02d}-{result.day:02d}",
+                    indent=1,
+                )
+            except Exception:
+                pass
+        if hasattr(result, "can_hyear"):
+            try:
+                dbg(
+                    f"parsed can:  hrw {result.can_hyear}-"
+                    f"{result.can_month}-{result.can_season}-{result.can_day}",
+                    indent=1,
+                )
+            except Exception:
+                pass
+        # Generic: log seasons/quarters count if present
+        if hasattr(result, "seasons"):
+            dbg(f"seasons:     {len(result.seasons)} entries", indent=1)
+        if hasattr(result, "quarters"):
+            dbg(f"quarters:    {len(result.quarters)} entries", indent=1)
     else:
         dbg(f"ERROR: {result.error}", indent=1)
