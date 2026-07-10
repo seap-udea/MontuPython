@@ -13,7 +13,28 @@ def plotly_js_path() -> Path:
     return Path(plotly.__file__).parent / "package_data" / "plotly.min.js"
 
 
-def figure_to_html(fig: go.Figure) -> str:
+_PLOTLY_RESIZE_SCRIPT = """
+<script>
+function montuResizePlotly() {
+  if (!window.Plotly) return;
+  document.querySelectorAll('.plotly-graph-div').forEach(function(el) {
+    Plotly.Plots.resize(el);
+  });
+}
+window.addEventListener('load', function() {
+  montuResizePlotly();
+  setTimeout(montuResizePlotly, 100);
+  setTimeout(montuResizePlotly, 400);
+});
+window.addEventListener('resize', montuResizePlotly);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(montuResizePlotly).observe(document.body);
+}
+</script>
+"""
+
+
+def figure_to_html(fig: go.Figure, *, min_height: int = 400) -> str:
     """Return a small standalone HTML page for a Plotly figure.
 
     QWebEngineView.setHtml() fails on multi-megabyte inline plotly.js bundles.
@@ -25,6 +46,7 @@ def figure_to_html(fig: go.Figure) -> str:
         "displayModeBar": True,
     })
     js_url = plotly_js_path().as_uri()
+    h = max(320, int(min_height))
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -35,15 +57,14 @@ def figure_to_html(fig: go.Figure) -> str:
       margin: 0;
       padding: 0;
       width: 100%;
-      min-height: 100%;
-      overflow-x: hidden;
-      overflow-y: auto;
+      height: 100%;
+      overflow: hidden;
       background: #ffffff;
     }}
     .plotly-graph-div {{
       width: 100% !important;
-      min-height: 560px !important;
-      height: 560px !important;
+      min-height: {h}px !important;
+      height: 100% !important;
     }}
     /* Keep modebar off the title — park it above the rangeslider */
     .js-plotly-plot .plotly .modebar {{
@@ -61,5 +82,6 @@ def figure_to_html(fig: go.Figure) -> str:
 </head>
 <body>
 {div}
+{_PLOTLY_RESIZE_SCRIPT}
 </body>
 </html>"""

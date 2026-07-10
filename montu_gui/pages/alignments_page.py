@@ -228,18 +228,6 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         self._build_ui()
         self._location_state.changed.connect(self._on_location_changed)
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        self._sync_map_width()
-
-    def _sync_map_width(self) -> None:
-        if not hasattr(self, "_map_scroll"):
-            return
-        w = self._map_scroll.viewport().width()
-        if w > 0:
-            self._map_holder.setFixedWidth(w)
-            self._map_view.setFixedWidth(w)
-
     # ── lazy activation ───────────────────────────────────────────────────────
 
     def _activate_page(self) -> None:
@@ -438,33 +426,24 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         results_lay.addWidget(self._results_table)
 
         map_box = QGroupBox()
+        map_box.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
         map_lay = QVBoxLayout(map_box)
         map_lay.setContentsMargins(8, 12, 8, 8)
         map_lay.setSpacing(8)
         map_lay.addWidget(
             HelpLink("Sky map", HELP_MODULE, "chart", "map", bold=True),
         )
-        self._map_scroll = QScrollArea()
-        self._map_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self._map_scroll.setWidgetResizable(False)
-        self._map_scroll.setHorizontalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAlwaysOff,
-        )
-        self._map_scroll.setVerticalScrollBarPolicy(
-            Qt.ScrollBarPolicy.ScrollBarAsNeeded,
-        )
-        map_holder = QWidget()
-        map_holder_lay = QVBoxLayout(map_holder)
-        map_holder_lay.setContentsMargins(0, 0, 0, 0)
         self._map_view = PlotlyView()
-        self._map_view.setMinimumHeight(560)
+        self._map_view.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
+        self._map_view.setMinimumHeight(400)
         self._map_view.clear()
-        map_holder_lay.addWidget(self._map_view)
-        map_holder.setFixedHeight(560)
-        self._map_scroll.setWidget(map_holder)
-        self._map_holder = map_holder
-        map_lay.addWidget(self._map_scroll)
-        right_split.splitterMoved.connect(lambda *_: self._sync_map_width())
+        map_lay.addWidget(self._map_view, stretch=1)
 
         right_split.addWidget(results_box)
         right_split.addWidget(map_box)

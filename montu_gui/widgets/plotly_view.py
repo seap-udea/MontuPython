@@ -44,6 +44,7 @@ class PlotlyView(QWidget):
                 QSizePolicy.Policy.Expanding,
                 QSizePolicy.Policy.Expanding,
             )
+            self._view.loadFinished.connect(self._on_load_finished)
             layout.addWidget(self._view)
             self._fallback: QLabel | None = None
         else:
@@ -55,6 +56,24 @@ class PlotlyView(QWidget):
             self._fallback.setAlignment(Qt.AlignmentFlag.AlignCenter)
             self._fallback.setWordWrap(True)
             layout.addWidget(self._fallback)
+
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        if self._view is not None:
+            self._view.page().runJavaScript(
+                "if (typeof montuResizePlotly === 'function') montuResizePlotly();"
+            )
+
+    def _on_load_finished(self, ok: bool) -> None:
+        if ok and self._view is not None:
+            self._view.page().runJavaScript(
+                "if (typeof montuResizePlotly === 'function') montuResizePlotly();"
+            )
 
     def set_html(self, html: str):
         """Load Plotly HTML from a temp file (reliable for large pages)."""

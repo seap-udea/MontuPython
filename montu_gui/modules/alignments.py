@@ -561,5 +561,6 @@ def _build_alignment_sky_map(
             font=dict(size=13),
         ),
         margin=dict(l=60, r=40, t=110, b=60),
+        autosize=True,
     )
     return fig

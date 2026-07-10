@@ -379,6 +379,7 @@ def mercator_sky_map(
         ),
         margin=dict(l=60, r=40, t=60, b=60),
         height=520,
+        autosize=True,
     )
     if layout:
         for key, val in layout.items():

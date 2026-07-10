@@ -45,6 +45,7 @@ from montu_gui.pages.calendar_page import CalendarPage
 from montu_gui.pages.seasons_page import SeasonsPage
 from montu_gui.pages.planets_page import PlanetsPage
 from montu_gui.pages.alignments_page import AlignmentsPage
+from montu_gui.pages.orientation_disk_page import OrientationDiskPage
 from montu_gui.utils.location_state import LocationState
 
 
@@ -62,6 +63,7 @@ NAV_ITEMS = [
     ("🎑", "Seasons & Lunar Phases", "seasons"),
     ("🪐", "Planetary Ephemerides", "planets"),
     ("📐", "Star Alignments", "alignments"),
+    ("⭕", "Orientation disk", "orient_disk"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -195,6 +197,9 @@ class MainWindow(QMainWindow):
         alignments_page = AlignmentsPage(self._location_state)
         alignments_page.status_message.connect(self._show_status)
         self._add_page("alignments", alignments_page)
+        orient_disk_page = OrientationDiskPage(self._location_state)
+        orient_disk_page.status_message.connect(self._show_status)
+        self._add_page("orient_disk", orient_disk_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
