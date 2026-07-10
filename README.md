@@ -3,12 +3,18 @@
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/raw/main/montu/data/montu-python-logo-complete.png" width="300" alt="MontuPython logo"/></p>
 
-[![PyPI](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/) [![Downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue)](https://www.python.org/) [![Documentation](https://readthedocs.org/projects/montupythob/badge/?version=latest)](https://montupythob.readthedocs.io/en/latest/) [![GitHub](https://img.shields.io/badge/GitHub-seap--udea%2FMontuPython-blue?logo=github)](https://github.com/seap-udea/MontuPython) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21298063.svg)](https://doi.org/10.5281/zenodo.21298063) [![arXiv](https://img.shields.io/badge/arXiv-preprint%20forthcoming-b31b1b)](#) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/README.ipynb)
+[![PyPI](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/) [![Downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue)](https://www.python.org/) [![GitHub](https://img.shields.io/badge/GitHub-seap--udea%2FMontuPython-blue?logo=github)](https://github.com/seap-udea/MontuPython) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21298063.svg)](https://doi.org/10.5281/zenodo.21298063) [![arXiv](https://img.shields.io/badge/arXiv-preprint%20forthcoming-b31b1b)](#) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/README.ipynb)
 [![Powered by PyEphem](https://img.shields.io/badge/powered%20by-PyEphem-blue)](https://pypi.org/project/ephem/) [![Powered by PyMeeus](https://img.shields.io/badge/powered%20by-PyMeeus-blue)](https://pypi.org/project/pymeeus/) [![Powered by spiceypy](https://img.shields.io/badge/powered%20by-spiceypy-blue)](https://pypi.org/project/spiceypy/) [![Powered by pyplanets](https://img.shields.io/badge/powered%20by-pyplanets-blue)](https://pypi.org/project/pyplanets/)
 
 `MontuPython` (transileterated mnṯw ꜥꜣpp(y)) is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
-## MontuPython App
+## Useful Resources 
+
+### MontuPython documentation
+
+The full documentation of the package is available at [https://montupythob.readthedocs.io](https://montupythob.readthedocs.io/en/latest/).
+
+### MontuPython App
 
 An interactive web application for `MontuPython` is available online at:
 
@@ -16,7 +22,7 @@ An interactive web application for `MontuPython` is available online at:
 
 The app allows you to explore astronomical ephemerides for the ancient world directly from your browser, without any local installation.
 
-## MontuPython Desktop
+### MontuPython Desktop
 
 **MontuPython Desktop** is the graphical front-end to the library, built with PySide6. It offers pre-built tools for users who prefer not to program at the Python level, or who want quick access to core functionality — including a **Calendar Calculator** and **Seasons & Lunar Phases** module.
 

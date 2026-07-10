@@ -168,5 +168,29 @@
         "body": "<p>Elapsed time in <b>days</b> since the previous lunar quarter phase (new, first, full, or last).</p><p>For the first quarter listed in the year, counted from the last quarter before 1 January.</p><p>Typical values: ~7 days (new → first), ~7 days (first → full), ~7 days (full → last), ~7 days (last → new).</p>"
       }
     }
+  },
+  "planets": {
+    "input": {
+      "initial_date": {
+        "title": "Initial date",
+        "body": "<p>Start of the ephemeris interval in mixed Julian/Gregorian format.</p><p><b>Format:</b> <code>[-]CCYY-MM-DD</code> — e.g. <code>-1500-01-01</code> for 1500 BCE, or <code>2026-01-01</code> for 2026 CE.</p>"
+      },
+      "time_span": {
+        "title": "Time span (years)",
+        "body": "<p>Duration of the sample interval in <b>years</b> (not days or months). The module builds an evenly spaced grid from the initial date through this span.</p><p>Example: initial date <code>-1500-01-01</code> and span <code>10</code> covers roughly 1500 BCE to 1490 BCE.</p>"
+      },
+      "num_points": {
+        "title": "Number of points",
+        "body": "<p>How many evenly spaced time steps to compute along the interval. More points give a smoother curve but take longer to calculate.</p><p>Minimum: 2. Default in Montu App: 120.</p>"
+      },
+      "planets": {
+        "title": "Planets",
+        "body": "<p>Select one or more classical planets to plot. Sun, Moon, and Earth are excluded.</p><p>Available: Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune.</p><p>Each selected planet appears as a separate coloured line.</p>"
+      },
+      "property": {
+        "title": "Property",
+        "body": "<p>Ephemeris column to plot on the Y-axis. Includes equatorial coordinates (<code>RAJ2000</code>, <code>DecEpoch</code>, …), horizontal coordinates (<code>el</code>, <code>az</code>), magnitudes (<code>Vmag</code>), rise/set/transit times, distances, phase, heliocentric lat/lon, and more.</p><p>Default: <code>DecEpoch</code> (declination at epoch).</p>"
+      }
+    }
   }
 }

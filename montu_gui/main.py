@@ -42,6 +42,7 @@ from montu_gui.utils.debug import enable_debug, log_startup, log_navigation, dbg
 from montu_gui.pages.home_page import HomePage
 from montu_gui.pages.calendar_page import CalendarPage
 from montu_gui.pages.seasons_page import SeasonsPage
+from montu_gui.pages.planets_page import PlanetsPage
 
 
 from montu.version import version as MONTU_VERSION
@@ -55,6 +56,7 @@ NAV_ITEMS = [
     ("🏠", "Home", "home"),
     ("📅", "Calendar calculator", "calendar"),
     ("🎑", "Seasons & Lunar Phases", "seasons"),
+    ("🪐", "Planetary Ephemerides", "planets"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -178,6 +180,9 @@ class MainWindow(QMainWindow):
         seasons_page = SeasonsPage()
         seasons_page.status_message.connect(self._show_status)
         self._add_page("seasons", seasons_page)
+        planets_page = PlanetsPage()
+        planets_page.status_message.connect(self._show_status)
+        self._add_page("planets", planets_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
@@ -290,7 +295,7 @@ def main(argv: list[str] | None = None):
         dbg("debug mode ON — operations will log to this terminal")
 
     win = MainWindow()
-    win.show()
+    win.showMaximized()
     sys.exit(app.exec())
 
 
