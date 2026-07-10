@@ -25,6 +25,10 @@ def load_help() -> dict:
 
 def get_help_entry(module: str, block: str, key: str) -> dict:
     """Return {title, body} for module/block/key, or empty dict."""
+    if module == "planets" and block == "input" and key == "property":
+        from montu_gui.modules.planets import property_help_entry
+        return property_help_entry()
+
     tree = load_help()
     return (
         tree.get(module, {})

@@ -2,7 +2,8 @@
 PlanetsPage — planetary ephemerides line chart (Plotly).
 
 Mirrors montu-app/pages/planets.py: plot one ephemeris property for one or
-more planets over a configurable time span from Thebes (lon 33°, lat 24°).
+more planets over a configurable time span from the observer location set in
+the Location module.
 """
 
 from __future__ import annotations
@@ -11,11 +12,12 @@ import sys
 from pathlib import Path
 from typing import Optional
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QComboBox, QListWidget, QListWidgetItem,
+    QLineEdit, QComboBox, QCheckBox, QGridLayout,
     QSizePolicy, QFrame, QSplitter, QGroupBox, QScrollArea,
+    QRadioButton, QButtonGroup,
 )
 
 _HERE = Path(__file__).parent.parent
@@ -24,6 +26,9 @@ sys.path.insert(0, str(_HERE.parent))
 from montu_gui.modules.planets import (
     build_planets_plot,
     get_planet_names,
+    parse_montu_date,
+    format_montu_date,
+    load_planet_properties,
     EPHEMERIS_PROPERTIES,
     DEFAULT_INITIAL_DATE,
     DEFAULT_TIME_SPAN,
@@ -32,12 +37,22 @@ from montu_gui.modules.planets import (
     DEFAULT_PROPERTY,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.location_state import LocationState
+from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox
 
 HELP_MODULE = "planets"
+_PARAMS_MIN_WIDTH = 260
+_PARAMS_MAX_WIDTH = 320
+_PLOT_DEBOUNCE_MS = 450
+
+_MONTH_NAMES = (
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+)
 
 _PLANETS_EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "planets_ephemerides.py",
@@ -72,26 +87,152 @@ def _hline() -> QFrame:
     return ln
 
 
-def _form_row_help(label_text: str, help_key: str, widget: QWidget) -> QHBoxLayout:
+def _field_stack(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout:
+    """Label on top, input widget below."""
+    col = QVBoxLayout()
+    col.setSpacing(4)
+    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(widget)
+    return col
+
+
+def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
+    rb.setText("")
     row = QHBoxLayout()
-    row.setAlignment(Qt.AlignmentFlag.AlignTop)
-    link = HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True)
-    link.setMinimumWidth(160)
-    link.setContentsMargins(0, 6, 0, 0)
-    row.addWidget(link, alignment=Qt.AlignmentFlag.AlignTop)
-    row.addWidget(widget, stretch=1, alignment=Qt.AlignmentFlag.AlignTop)
+    row.setSpacing(4)
+    row.addWidget(rb)
+    row.addWidget(HelpLink(label, HELP_MODULE, "input", help_key))
     return row
 
 
-class PlanetsPage(QWidget):
+class _DateInput(QWidget):
+    """BCE/CE era + year, month, day (Gregorian style)."""
+
+    changed = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        era, year, month, day = parse_montu_date(DEFAULT_INITIAL_DATE)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+
+        era_row = QHBoxLayout()
+        era_row.setSpacing(12)
+        self._era_group = QButtonGroup(self)
+        self._rb_bce = QRadioButton()
+        self._rb_ce = QRadioButton()
+        self._era_group.addButton(self._rb_bce)
+        self._era_group.addButton(self._rb_ce)
+        era_row.addLayout(_option_row(self._rb_bce, "BCE", "bce"))
+        era_row.addLayout(_option_row(self._rb_ce, "CE", "ce"))
+        era_row.addStretch()
+        layout.addLayout(era_row)
+
+        self._year_spin = StepSpinBox()
+        self._year_spin.setRange(1, 9999)
+        self._year_spin.setValue(year)
+        year_col = QVBoxLayout()
+        year_col.setSpacing(4)
+        year_col.addWidget(_label("Year:", bold=True))
+        year_col.addWidget(self._year_spin)
+        layout.addLayout(year_col)
+
+        self._month_combo = QComboBox()
+        self._month_combo.addItems(_MONTH_NAMES)
+        self._month_combo.setCurrentIndex(max(0, month - 1))
+        month_col = QVBoxLayout()
+        month_col.setSpacing(4)
+        month_col.addWidget(_label("Month:", bold=True))
+        month_col.addWidget(self._month_combo)
+        layout.addLayout(month_col)
+
+        self._day_spin = StepSpinBox()
+        self._day_spin.setRange(1, 31)
+        self._day_spin.setValue(day)
+        day_col = QVBoxLayout()
+        day_col.setSpacing(4)
+        day_col.addWidget(_label("Day:", bold=True))
+        day_col.addWidget(self._day_spin)
+        layout.addLayout(day_col)
+
+        self._rb_bce.setChecked(era == "bce")
+        self._rb_ce.setChecked(era == "ce")
+        self._rb_bce.toggled.connect(lambda _: self.changed.emit())
+        self._rb_ce.toggled.connect(lambda _: self.changed.emit())
+        self._year_spin.valueChanged.connect(lambda _: self.changed.emit())
+        self._month_combo.currentIndexChanged.connect(lambda _: self.changed.emit())
+        self._day_spin.valueChanged.connect(lambda _: self.changed.emit())
+
+    @property
+    def era(self) -> str:
+        return "bce" if self._rb_bce.isChecked() else "ce"
+
+    def montu_date(self) -> str:
+        return format_montu_date(
+            self.era,
+            self._year_spin.value(),
+            self._month_combo.currentIndex() + 1,
+            self._day_spin.value(),
+        )
+
+
+class _PlanetPicker(QWidget):
+    """Planet checkboxes in a compact horizontal grid (not a vertical list)."""
+
+    changed = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._boxes: dict[str, QCheckBox] = {}
+        grid = QGridLayout(self)
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setHorizontalSpacing(14)
+        grid.setVerticalSpacing(6)
+        cols = 4
+        for i, name in enumerate(get_planet_names()):
+            cb = QCheckBox(name)
+            cb.setChecked(name in DEFAULT_PLANETS)
+            cb.toggled.connect(lambda *_: self.changed.emit())
+            self._boxes[name] = cb
+            grid.addWidget(cb, i // cols, i % cols)
+
+    def selected(self) -> list[str]:
+        return [name for name, cb in self._boxes.items() if cb.isChecked()]
+
+
+class PlanetsPage(LazyPageMixin, QWidget):
     """Planetary ephemerides chart page."""
 
     status_message = Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, location_state: LocationState, parent=None):
         super().__init__(parent)
+        self._location_state = location_state
+        self._plotting = False
+        self._plot_pending = False
+        self._plot_timer = QTimer(self)
+        self._plot_timer.setSingleShot(True)
+        self._plot_timer.setInterval(_PLOT_DEBOUNCE_MS)
+        self._plot_timer.timeout.connect(self._plot)
         self._build_ui()
-        self._plot()
+        self._location_state.changed.connect(self._schedule_plot)
+        self._location_state.changed.connect(self._update_intro)
+
+    def _update_intro(self, _coords=None):
+        obs = self._location_state.coords
+        self._intro.setText(
+            "Plot one sky-condition property for one or more planets over a "
+            "time span, as seen from "
+            f"<b>{obs.label_with_coords()}</b>. "
+            "The chart updates automatically when you change any parameter. "
+            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
+            "opens a help window."
+        )
+
+    def _activate_page(self) -> None:
+        self._schedule_plot()
 
     def _build_ui(self):
         root = QVBoxLayout(self)
@@ -103,27 +244,22 @@ class PlanetsPage(QWidget):
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         root.addWidget(title)
 
-        intro = QLabel(
-            "Plot one sky-condition property for one or more planets over a "
-            "time span, as seen from Thebes (lon 33°, lat 24°). "
-            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
-            "opens a help window."
-        )
-        intro.setWordWrap(True)
-        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        intro.setTextFormat(Qt.TextFormat.RichText)
-        root.addWidget(intro)
+        self._intro = QLabel()
+        self._intro.setWordWrap(True)
+        self._intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._intro.setTextFormat(Qt.TextFormat.RichText)
+        root.addWidget(self._intro)
+        self._update_intro()
         root.addWidget(_hline())
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # ── left: parameters ──
         left_scroll = QScrollArea()
         left_scroll.setFrameShape(QFrame.Shape.NoFrame)
         left_scroll.setWidgetResizable(True)
         left_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        left_scroll.setMinimumWidth(280)
-        left_scroll.setMaximumWidth(360)
+        left_scroll.setMinimumWidth(_PARAMS_MIN_WIDTH)
+        left_scroll.setMaximumWidth(_PARAMS_MAX_WIDTH)
 
         left_inner = QWidget()
         left_lay = QVBoxLayout(left_inner)
@@ -134,15 +270,16 @@ class PlanetsPage(QWidget):
         params_lay = QVBoxLayout(params_box)
         params_lay.setSpacing(12)
 
-        self._initial_date = QLineEdit(DEFAULT_INITIAL_DATE)
-        self._initial_date.setPlaceholderText("[-]CCYY-MM-DD")
-        params_lay.addLayout(_form_row_help(
-            "Initial date:", "initial_date", self._initial_date,
+        self._date_input = _DateInput()
+        params_lay.addLayout(_field_stack(
+            "Initial date (proleptic Gregorian):", "initial_date", self._date_input,
         ))
 
-        self._time_span = QLineEdit(str(DEFAULT_TIME_SPAN))
-        self._time_span.setPlaceholderText("years")
-        params_lay.addLayout(_form_row_help(
+        self._time_span = StepSpinBox()
+        self._time_span.setRange(1, 10000)
+        self._time_span.setSingleStep(1)
+        self._time_span.setValue(int(DEFAULT_TIME_SPAN))
+        params_lay.addLayout(_field_stack(
             "Time span (years):", "time_span", self._time_span,
         ))
 
@@ -150,50 +287,36 @@ class PlanetsPage(QWidget):
         self._num_points.setRange(2, 10000)
         self._num_points.setSingleStep(10)
         self._num_points.setValue(DEFAULT_NUM_POINTS)
-        params_lay.addLayout(_form_row_help(
+        params_lay.addLayout(_field_stack(
             "Number of points:", "num_points", self._num_points,
         ))
 
-        planet_lbl = HelpLink("Planets:", HELP_MODULE, "input", "planets", bold=True)
-        params_lay.addWidget(planet_lbl)
-
-        self._planet_list = QListWidget()
-        self._planet_list.setSelectionMode(QListWidget.SelectionMode.NoSelection)
-        self._planet_list.setMinimumHeight(160)
-        for name in get_planet_names():
-            item = QListWidgetItem(name)
-            item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-            item.setCheckState(
-                Qt.CheckState.Checked if name in DEFAULT_PLANETS
-                else Qt.CheckState.Unchecked
-            )
-            self._planet_list.addItem(item)
-        params_lay.addWidget(self._planet_list)
-
-        self._property = QComboBox()
-        self._property.addItems(EPHEMERIS_PROPERTIES)
-        idx = EPHEMERIS_PROPERTIES.index(DEFAULT_PROPERTY)
-        self._property.setCurrentIndex(idx)
-        params_lay.addLayout(_form_row_help(
-            "Property:", "property", self._property,
+        self._planet_picker = _PlanetPicker()
+        params_lay.addLayout(_field_stack(
+            "Planets (classic):", "planets", self._planet_picker,
         ))
 
-        self._plot_btn = QPushButton("Plot")
-        self._plot_btn.setObjectName("primary")
-        self._plot_btn.setFixedHeight(36)
-        self._plot_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._plot_btn.clicked.connect(self._plot)
-        params_lay.addWidget(self._plot_btn)
+        self._property = QComboBox()
+        for prop in load_planet_properties():
+            self._property.addItem(prop["quantname"], prop["varname"])
+        idx = self._property.findData(DEFAULT_PROPERTY)
+        self._property.setCurrentIndex(idx if idx >= 0 else 0)
+        params_lay.addLayout(_field_stack(
+            "Property:", "property", self._property,
+        ))
 
         left_lay.addWidget(params_box)
         left_lay.addStretch()
         left_scroll.setWidget(left_inner)
         splitter.addWidget(left_scroll)
 
-        # ── right: chart ──
-        chart_box = QGroupBox("Chart")
+        chart_box = QGroupBox()
         chart_lay = QVBoxLayout(chart_box)
         chart_lay.setContentsMargins(8, 12, 8, 8)
+        chart_lay.setSpacing(8)
+        chart_lay.addWidget(
+            HelpLink("Chart", HELP_MODULE, "chart", "chart", bold=True),
+        )
         self._chart = PlotlyView()
         self._chart.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -205,7 +328,7 @@ class PlanetsPage(QWidget):
 
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
-        splitter.setSizes([320, 700])
+        splitter.setSizes([300, 900])
         root.addWidget(splitter, stretch=1)
 
         lp_row = QHBoxLayout()
@@ -218,24 +341,28 @@ class PlanetsPage(QWidget):
         lp_row.addStretch()
         root.addLayout(lp_row)
 
-    def _selected_planets(self) -> list[str]:
-        names = []
-        for i in range(self._planet_list.count()):
-            item = self._planet_list.item(i)
-            if item.checkState() == Qt.CheckState.Checked:
-                names.append(item.text())
-        return names
+        self._date_input.changed.connect(self._schedule_plot)
+        self._time_span.valueChanged.connect(self._schedule_plot)
+        self._num_points.valueChanged.connect(self._schedule_plot)
+        self._planet_picker.changed.connect(self._schedule_plot)
+        self._property.currentIndexChanged.connect(self._schedule_plot)
+
+    def _schedule_plot(self):
+        if self._plotting:
+            self._plot_pending = True
+            return
+        self._plot_timer.start()
 
     def _plot(self):
-        initial = self._initial_date.text().strip() or DEFAULT_INITIAL_DATE
-        try:
-            timespan = float(self._time_span.text().strip() or DEFAULT_TIME_SPAN)
-        except ValueError:
-            self.status_message.emit("Error: time span must be a number (years).")
+        if self._plotting:
+            self._plot_pending = True
             return
+
+        initial = self._date_input.montu_date()
+        timespan = float(self._time_span.value())
         numpoints = int(self._num_points.value())
-        planets = self._selected_planets()
-        prop = self._property.currentText()
+        planets = self._planet_picker.selected()
+        prop = self._property.currentData()
 
         log_ui_event(
             "planets plot",
@@ -246,17 +373,22 @@ class PlanetsPage(QWidget):
             property=prop,
         )
         self.status_message.emit("Computing planetary ephemerides …")
-        self._plot_btn.setEnabled(False)
+        self._plotting = True
 
+        obs = self._location_state.coords
         result = build_planets_plot(
             initial=initial,
             timespan=timespan,
             numpoints=numpoints,
             planets=planets,
             property=prop,
+            lon=obs.lon,
+            lat=obs.lat,
+            height_km=obs.height_km(),
+            observer_name=obs.name,
         )
 
-        self._plot_btn.setEnabled(True)
+        self._plotting = False
         if result.ok:
             self._chart.set_html(result.html)
             self.status_message.emit(
@@ -264,6 +396,10 @@ class PlanetsPage(QWidget):
             )
         else:
             self.status_message.emit(f"Error: {result.error}")
+
+        if self._plot_pending:
+            self._plot_pending = False
+            self._schedule_plot()
 
     def _show_lets_python(self):
         log_ui_event("open lets_python dialog", module="planets")

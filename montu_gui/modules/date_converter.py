@@ -18,6 +18,7 @@ import re
 import sys
 import time
 from dataclasses import dataclass, field
+from datetime import date as greg_date
 from pathlib import Path
 from typing import Optional
 
@@ -50,6 +51,7 @@ class ConversionResult:
     jd_tt: str = ""       # TT ephemeris seconds since J2000 (Time.tt)
     et: str = ""          # UTC ephemeris seconds since J2000 (Time.et)
     delta_t: str = ""     # Delta-T (seconds)
+    weekday: str = ""     # Day of week (Montu: Sunday=1 … Saturday=7)
     # parsed components from mixed/proleptic for back-filling the form
     era: str = "bce"      # 'bce' | 'ce'
     year: int = 1
@@ -116,6 +118,16 @@ def _parse_datecan(datecan_str: str) -> tuple[int, str, str, int]:
         return 0, "I", "Akhet", 1
 
 
+def _format_weekday(mtime) -> str:
+    """Format weekday from a montu.Time (Sunday=1 … Saturday=7)."""
+    r = mtime.readable
+    name = getattr(r, "weekday_name", "") or ""
+    number = getattr(r, "weekday", 0)
+    if name and number:
+        return f"{name.capitalize()} ({number})"
+    return "—"
+
+
 def _build_result_from_mtime(mtime) -> ConversionResult:
     """Build a ConversionResult from a montu.Time object."""
     r = mtime.readable
@@ -132,6 +144,7 @@ def _build_result_from_mtime(mtime) -> ConversionResult:
         jd_tt=f"{mtime.tt:.6f}",
         et=f"{mtime.et:.3f}",
         delta_t=f"{mtime.deltat:.3f}",
+        weekday=_format_weekday(mtime),
         era=era,
         year=year,
         month=month,
@@ -158,12 +171,58 @@ CANIUCULAR_SEASONS = ["Akhet", "Peret", "Shemu", "Mesut"]
 CANIUCULAR_MONTHS = ["I", "II", "III", "IV"]
 
 
+def _montu_weekday_mon0(jed: float) -> int:
+    """Monday=0 … Sunday=6 from a Julian Day."""
+    return int((jed + 1.5) % 7)
+
+
+def qcalendar_proxy_page(
+    era: str,
+    year: int,
+    month: int,
+    calendar: str = CALENDAR_PROLEPTIC,
+    day: int = 1,
+) -> int:
+    """
+    Return a positive CE year whose month grid matches the true weekday layout.
+
+    QCalendarWidget only supports proleptic CE years. For CE dates the human year
+    is used directly. For BCE, find the closest CE year whose 1st and selected
+    day weekdays match MontuPython for the chosen calendar.
+    """
+    if era == "ce":
+        return year
+
+    montu = _import_montu()
+    day = max(1, day)
+    t_first = montu.Time(f"bce {year}-{month:02d}-01 12:00:00", calendar=calendar)
+    t_pick = montu.Time(f"bce {year}-{month:02d}-{day:02d} 12:00:00", calendar=calendar)
+    target_wd_first = _montu_weekday_mon0(t_first.jed)
+    target_wd_day = _montu_weekday_mon0(t_pick.jed)
+
+    best_year = year
+    best_dist = 10_000
+    for page_year in range(1, 10_000):
+        try:
+            if greg_date(page_year, month, 1).weekday() != target_wd_first:
+                continue
+            if greg_date(page_year, month, day).weekday() != target_wd_day:
+                continue
+        except ValueError:
+            continue
+        dist = abs(page_year - year)
+        if dist < best_dist:
+            best_dist = dist
+            best_year = page_year
+    return best_year
+
+
 def julian_gregorian_to_caniucular(
     era: str,
     year: int,
     month: int,
     day: int,
-    calendar: str = CALENDAR_MIXED,
+    calendar: str = CALENDAR_PROLEPTIC,
     hour: int = 0,
     minute: int = 0,
     second: int = 0,
@@ -183,14 +242,17 @@ def julian_gregorian_to_caniucular(
         t0 = time.perf_counter()
         montu = _import_montu()
 
-        # Build montu date string
-        bce_prefix = "bce " if era == "bce" else ""
-        # montu uses astronomical convention: 1 BCE = year 0 internally
-        astro_year = year - 1 if era == "bce" else year
-        date_str = (
-            f"{bce_prefix}{astro_year}-{month:02d}-{day:02d} "
-            f"{hour:02d}:{minute:02d}:{second:02d}"
-        )
+        # Historical BCE years use the ``bce YYYY`` prefix (not astronomical).
+        if era == "bce":
+            date_str = (
+                f"bce {year}-{month:02d}-{day:02d} "
+                f"{hour:02d}:{minute:02d}:{second:02d}"
+            )
+        else:
+            date_str = (
+                f"{year}-{month:02d}-{day:02d} "
+                f"{hour:02d}:{minute:02d}:{second:02d}"
+            )
 
         mtime = montu.Time(date_str, calendar=calendar)
 

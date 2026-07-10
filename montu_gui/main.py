@@ -40,9 +40,11 @@ sys.path.insert(0, str(_REPO))
 from montu_gui.utils.theme import STYLESHEET, PALETTE
 from montu_gui.utils.debug import enable_debug, log_startup, log_navigation, dbg
 from montu_gui.pages.home_page import HomePage
+from montu_gui.pages.location_page import LocationPage
 from montu_gui.pages.calendar_page import CalendarPage
 from montu_gui.pages.seasons_page import SeasonsPage
 from montu_gui.pages.planets_page import PlanetsPage
+from montu_gui.utils.location_state import LocationState
 
 
 from montu.version import version as MONTU_VERSION
@@ -53,6 +55,7 @@ VERSION_LABEL = f"v{MONTU_VERSION}"
 
 # icon, full label, page key
 NAV_ITEMS = [
+    ("🧭", "Observer Location", "location"),
     ("🏠", "Home", "home"),
     ("📅", "Calendar calculator", "calendar"),
     ("🎑", "Seasons & Lunar Phases", "seasons"),
@@ -123,6 +126,7 @@ class MainWindow(QMainWindow):
         self._nav_buttons: list[NavButton] = []
         self._page_map: dict[str, int] = {}
         self._current_page = "home"
+        self._location_state = LocationState.instance()
         self._build_ui()
         self._navigate("home")
 
@@ -173,6 +177,9 @@ class MainWindow(QMainWindow):
         self._stack = QStackedWidget()
         root.addWidget(self._stack, stretch=1)
 
+        loc_page = LocationPage(self._location_state)
+        loc_page.status_message.connect(self._show_status)
+        self._add_page("location", loc_page)
         self._add_page("home", HomePage())
         cal_page = CalendarPage()
         cal_page.status_message.connect(self._show_status)
@@ -180,7 +187,7 @@ class MainWindow(QMainWindow):
         seasons_page = SeasonsPage()
         seasons_page.status_message.connect(self._show_status)
         self._add_page("seasons", seasons_page)
-        planets_page = PlanetsPage()
+        planets_page = PlanetsPage(self._location_state)
         planets_page.status_message.connect(self._show_status)
         self._add_page("planets", planets_page)
 
@@ -235,6 +242,9 @@ class MainWindow(QMainWindow):
         self._current_page = key
         log_navigation(key, NAV_LABELS.get(key, key))
         self._stack.setCurrentIndex(self._page_map[key])
+        widget = self._stack.currentWidget()
+        if hasattr(widget, "ensure_activated"):
+            widget.ensure_activated()
         self._update_sidebar(key)
 
         for btn in self._nav_buttons:

@@ -49,6 +49,7 @@ from montu_gui.modules.date_converter import (
     historical_date_to_all,
     julian_day_to_all,
     load_historical_dates,
+    qcalendar_proxy_page,
     ConversionResult,
     CANIUCULAR_SEASONS,
     CANIUCULAR_MONTHS,
@@ -56,6 +57,7 @@ from montu_gui.modules.date_converter import (
     CALENDAR_PROLEPTIC,
 )
 from montu_gui.utils.debug import dbg, log_ui_event
+from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.format_cell import FormatCell
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
@@ -287,6 +289,7 @@ class ResultTable(QTableWidget):
 
     # label, result attribute, help.json key
     ROWS = [
+        ("Weekday", "weekday", "weekday"),
         ("Gregorian proleptic (human)", "spice", "spice"),
         ("Gregorian proleptic (astronomical)", "proleptic", "proleptic"),
         ("Mixed Julian/Gregorian", "mixed", "mixed"),
@@ -358,6 +361,8 @@ class JulGregForm(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._syncing = False
+        self._last_era: str | None = None
+        self._last_calendar: str | None = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(8)
@@ -383,19 +388,24 @@ class JulGregForm(QWidget):
         cal_layout = QHBoxLayout()
         cal_layout.addWidget(_label("Calendar:", bold=True))
         self.cal_group = QButtonGroup(self)
-        self.rb_mixed = QRadioButton("Mixed")
         self.rb_proleptic = QRadioButton("Proleptic")
-        self.rb_mixed.setChecked(True)
-        self.cal_group.addButton(self.rb_mixed)
+        self.rb_mixed = QRadioButton("Mixed")
+        self.rb_proleptic.setChecked(True)
         self.cal_group.addButton(self.rb_proleptic)
-        cal_layout.addLayout(_option_row(self.rb_mixed, "Mixed", "mixed"))
+        self.cal_group.addButton(self.rb_mixed)
         cal_layout.addLayout(_option_row(self.rb_proleptic, "Proleptic", "proleptic"))
+        cal_layout.addLayout(_option_row(self.rb_mixed, "Mixed", "mixed"))
         cal_layout.addStretch()
         layout.addLayout(cal_layout)
 
-        date_box = QGroupBox("Date (gregorian style)")
+        date_box = QGroupBox()
         date_layout = QVBoxLayout(date_box)
         date_layout.setSpacing(6)
+        date_layout.addWidget(HelpLink(
+            "Date (gregorian style, proleptic weekdays)",
+            HELP_MODULE, "input", "date_grid_weekdays",
+            bold=True,
+        ))
 
         # Mac-style month/year navigation (replaces broken calendar dropdown)
         nav = QHBoxLayout()
@@ -479,10 +489,8 @@ class JulGregForm(QWidget):
         self.year_spin.valueChanged.connect(self._on_year_changed)
         self.calendar.selectionChanged.connect(self._emit_changed)
         self.calendar.currentPageChanged.connect(self._page_changed)
-        self.rb_bce.toggled.connect(self._emit_changed)
-        self.rb_ce.toggled.connect(self._emit_changed)
-        self.rb_mixed.toggled.connect(self._emit_changed)
-        self.rb_proleptic.toggled.connect(self._emit_changed)
+        self.era_group.buttonClicked.connect(self._on_era_or_calendar_clicked)
+        self.cal_group.buttonClicked.connect(self._on_era_or_calendar_clicked)
         self.hour_spin.valueChanged.connect(self._emit_changed)
         self.minute_spin.valueChanged.connect(self._emit_changed)
         self.second_spin.valueChanged.connect(self._emit_changed)
@@ -492,12 +500,53 @@ class JulGregForm(QWidget):
         if not self._syncing:
             self.changed.emit()
 
+    def _on_era_or_calendar_clicked(self, _button):
+        if self._syncing:
+            return
+        self._sync_calendar_page(force=True)
+        self._emit_changed()
+
+    def _sync_calendar_page(self, *, day: int | None = None, force: bool = False):
+        """Align the Qt calendar grid with the true weekday layout for era/calendar."""
+        month = self.month_combo.currentIndex() + 1
+        selected_day = day if day is not None else self.calendar.selectedDate().day()
+        era = self.era
+        calendar_type = self.calendar_type
+        page_year = qcalendar_proxy_page(
+            era,
+            self.year_spin.value(),
+            month,
+            calendar_type,
+            day=selected_day,
+        )
+        max_day = QDate(page_year, month, 1).daysInMonth()
+        selected_day = max(1, min(selected_day, max_day))
+
+        era_changed = era != self._last_era
+        cal_changed = calendar_type != self._last_calendar
+        self._last_era = era
+        self._last_calendar = calendar_type
+
+        self._syncing = True
+        try:
+            self.calendar.blockSignals(True)
+            if force or era_changed or cal_changed:
+                nudge_month = month - 1 if month > 1 else min(12, month + 1)
+                self.calendar.setCurrentPage(page_year, nudge_month)
+            self.calendar.setCurrentPage(page_year, month)
+            cal_date = QDate(page_year, month, selected_day)
+            if cal_date.isValid():
+                self.calendar.setSelectedDate(cal_date)
+            self.calendar.update()
+        finally:
+            self.calendar.blockSignals(False)
+            self._syncing = False
+
     def _page_changed(self, year: int, month: int):
         if self._syncing:
             return
         self._syncing = True
         self.month_combo.setCurrentIndex(month - 1)
-        self.year_spin.setValue(year)
         self._syncing = False
         self.changed.emit()
 
@@ -510,17 +559,8 @@ class JulGregForm(QWidget):
     def _nav_changed(self):
         if self._syncing:
             return
-        self._syncing = True
-        try:
-            self.calendar.blockSignals(True)
-            self.calendar.setCurrentPage(
-                self.year_spin.value(),
-                self.month_combo.currentIndex() + 1,
-            )
-        finally:
-            self.calendar.blockSignals(False)
-            self._syncing = False
-        self.changed.emit()
+        self._sync_calendar_page()
+        self._emit_changed()
 
     def _prev_month(self):
         self.calendar.showPreviousMonth()
@@ -539,7 +579,7 @@ class JulGregForm(QWidget):
 
     @property
     def calendar_type(self) -> str:
-        return CALENDAR_MIXED if self.rb_mixed.isChecked() else CALENDAR_PROLEPTIC
+        return CALENDAR_PROLEPTIC if self.rb_proleptic.isChecked() else CALENDAR_MIXED
 
     @property
     def year(self) -> int:
@@ -585,13 +625,8 @@ class JulGregForm(QWidget):
             self.hour_spin.setValue(hour)
             self.minute_spin.setValue(minute)
             self.second_spin.setValue(second)
-            self.calendar.blockSignals(True)
-            self.calendar.setCurrentPage(cal_year, month)
-            cal_date = QDate(cal_year, month, day)
-            if cal_date.isValid():
-                self.calendar.setSelectedDate(cal_date)
+            self._sync_calendar_page(day=day)
         finally:
-            self.calendar.blockSignals(False)
             self._syncing = False
 
 
@@ -805,7 +840,7 @@ class HistoricalDatesForm(QWidget):
 
 
 # ── main page widget ───────────────────────────────────────────────────────────
-class CalendarPage(QWidget):
+class CalendarPage(LazyPageMixin, QWidget):
     """
     Unified calendar / caniucular conversion page.
 
@@ -822,6 +857,8 @@ class CalendarPage(QWidget):
         dbg(f"loaded {len(self._historical)} historical dates from JSON")
         self._build_ui()
         self._connect_auto_convert()
+
+    def _activate_page(self) -> None:
         self._on_convert()
 
     # ── UI construction ────────────────────────────────────────────────────────
@@ -1113,6 +1150,8 @@ class CalendarPage(QWidget):
         if result.ok:
             log_ui_event("conversion complete", ok=True)
             self._fill_forms_from_result(result)
+            if self.rb_mode_jg.isChecked():
+                self.form_jg._sync_calendar_page(day=self.form_jg.day, force=True)
             self.status_message.emit("Conversion complete.")
         else:
             log_ui_event("conversion failed", ok=False, error=result.error)

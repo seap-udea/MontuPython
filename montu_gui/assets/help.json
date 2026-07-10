@@ -1,6 +1,10 @@
 {
   "calendar": {
     "result": {
+      "weekday": {
+        "title": "Weekday",
+        "body": "<p>Day of the week for the converted instant (<code>Time.readable.weekday</code> and <code>weekday_name</code>).</p><p><b>Format:</b> English name + number in parentheses. MontuPython convention: <b>1 = Sunday</b> … <b>7 = Saturday</b>.</p><p><b>Examples:</b> <code>Friday (6)</code>, <code>Wednesday (4)</code>.</p>"
+      },
       "spice": {
         "title": "Gregorian proleptic (human)",
         "body": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — caniucular datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>"
@@ -66,6 +70,10 @@
       "proleptic": {
         "title": "Proleptic",
         "body": "Extend Gregorian calendar rules backward for the entire timeline. No Julian–Gregorian switch — useful for uniform astronomical or mathematical dating."
+      },
+      "date_grid_weekdays": {
+        "title": "Date (gregorian style, proleptic weekdays)",
+        "body": "<p>The month grid is a <b>date picker</b> in Gregorian style. Its weekday columns follow the <b>proleptic Gregorian</b> layout because Qt’s calendar widget and the desktop UI use that convention internally — not necessarily the weekday of your chosen <b>Mixed</b> or <b>BCE</b> calendar rules.</p><p>To know the true day of the week for the converted instant, read the <b>Weekday</b> row in the conversion results (from MontuPython).</p><p><b>Example:</b> <code>1582-10-04</code> in <b>Mixed</b> (still Julian) was a <b>Thursday</b> — output shows <code>Thursday (5)</code> — but the grid for October 1582 places the 4th under <b>Monday</b>, because the grid uses the proleptic Gregorian alignment for that civil date.</p>"
       },
       "horus_year": {
         "title": "Horus Year",
@@ -172,8 +180,8 @@
   "planets": {
     "input": {
       "initial_date": {
-        "title": "Initial date",
-        "body": "<p>Start of the ephemeris interval. Choose <b>BCE</b> or <b>CE</b>, then year, month, and day in Gregorian style (mixed calendar rules apply inside MontuPython).</p><p>Converted internally to <code>[-]YYYY-MM-DD</code> — e.g. 1500 BCE → <code>-1500-01-01</code>.</p>"
+        "title": "Initial date (proleptic Gregorian)",
+        "body": "<p>Start of the ephemeris interval in the <b>proleptic Gregorian</b> calendar using <b>historical</b> BCE/CE years.</p><p>Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. Example: <b>1500 BCE</b>, 1 January is year&nbsp;1500 before the Common Era — internally converted to astronomical year&nbsp;−1499 for computation.</p><p>The chart axis shows astronomical proleptic dates (<code>datepro</code>); the title uses the human-readable SPICE-style form (<code>1500 B.C. 01-01</code>).</p>"
       },
       "bce": {
         "title": "BCE",
@@ -192,12 +200,50 @@
         "body": "<p>How many evenly spaced time steps to compute along the interval. More points give a smoother curve but take longer to calculate.</p><p>Minimum: 2. Default in Montu App: 120.</p>"
       },
       "planets": {
-        "title": "Planets",
-        "body": "<p>Select one or more classical planets to plot. Sun, Moon, and Earth are excluded.</p><p>Available: Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune.</p><p>Each selected planet appears as a separate coloured line.</p>"
+        "title": "Planets (classic)",
+        "body": "<p>Select one or more <b>classical wanderers</b> to plot. In antiquity the word <i>planet</i> (Greek <i>planētēs</i>, “wanderer”) included the <b>Sun</b> and <b>Moon</b> along with Mercury, Venus, Mars, Jupiter, and Saturn — seven bodies that move against the fixed stars.</p><p>Available here: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn. Each selection appears as a separate coloured line. Uranus, Neptune, and Earth are excluded.</p>"
       },
       "property": {
         "title": "Property",
-        "body": "<p>Ephemeris column to plot on the Y-axis. Includes equatorial coordinates (<code>RAJ2000</code>, <code>DecEpoch</code>, …), horizontal coordinates (<code>el</code>, <code>az</code>), magnitudes (<code>Vmag</code>), rise/set/transit times, distances, phase, heliocentric lat/lon, and more.</p><p>Default: <code>DecEpoch</code> (declination at epoch).</p>"
+        "body": "<p>Ephemeris quantity plotted on the Y-axis. The dropdown shows friendly quantity names; the full catalogue is loaded from <code>assets/planet_properties.json</code>.</p>"
+      }
+    },
+    "chart": {
+      "chart": {
+        "title": "Chart",
+        "body": "<p>The <b>initial date</b> in Parameters uses the <b>proleptic Gregorian</b> calendar with <b>historical</b> BCE/CE years — e.g. entering <b>1500 BCE</b> means the year 1500 before the Common Era.</p><p>The chart <b>X-axis</b> and the <b>hover tooltip</b> <code>datestr</code> show <b>proleptic Gregorian</b> dates in <b>astronomical</b> year numbering (e.g. <code>May 12, -1499</code> = 12 May 1500 BCE; there is no year&nbsp;0, so 1&nbsp;BCE = year&nbsp;0).</p><p>The plot <b>title</b> uses the human-readable proleptic form (e.g. <code>1500 B.C. 01-01</code>).</p><p><b>Hover</b> over any point on the curve to read <code>datestr</code> (proleptic Gregorian, astronomical), Julian day (JD), and the selected property value. Use the rangeslider below the plot to zoom the time axis.</p>"
+      }
+    }
+  },
+  "location": {
+    "input": {
+      "predefined": {
+        "title": "Predefined site",
+        "body": "<p>Search or select an ancient-world location from <code>assets/locations.json</code>. Choosing a site fills latitude, longitude, and altitude automatically.</p><p>Default at startup: <b>Thebes (Luxor)</b>, capital of ancient Upper Egypt.</p>"
+      },
+      "decimal": {
+        "title": "Decimal degrees",
+        "body": "<p>Enter coordinates as decimal degrees (DD.dddddd°). Positive latitude = north, negative = south. Positive longitude = east, negative = west.</p><p>Example: Luxor → lat <code>25.6967</code>, lon <code>32.6422</code>.</p>"
+      },
+      "sexagesimal": {
+        "title": "Sexagesimal (DMS)",
+        "body": "<p>Enter coordinates as degrees, arcminutes, and arcseconds with a hemisphere letter (N/S for latitude, E/W for longitude). Altitude remains in metres.</p><p>Example: <code>25°41'48.1\"N</code>, <code>32°38'32.0\"E</code>.</p>"
+      },
+      "latitude": {
+        "title": "Latitude",
+        "body": "<p>Geodetic latitude of the observing site [degrees]. North positive, south negative. Range: −90° … +90°.</p>"
+      },
+      "longitude": {
+        "title": "Longitude",
+        "body": "<p>Geodetic longitude of the observing site [degrees]. East positive, west negative. Range: −180° … +180°.</p>"
+      },
+      "altitude": {
+        "title": "Altitude",
+        "body": "<p>Elevation above mean sea level in <b>metres</b>. Converted internally to kilometres for <code>montu.Observer</code>. When you click the map, MontuPython queries the free <a href=\"https://open-elevation.com/\">Open-Elevation</a> service.</p>"
+      },
+      "map_labels": {
+        "title": "Map labels",
+        "body": "<p>Choose how place names appear on the map tiles.</p><ul><li><b>Local names</b> — standard OpenStreetMap tiles (e.g. Arabic in Egypt).</li><li><b>English names</b> — Wikimedia internationalized tiles that prefer <code>name:en</code> where available.</li></ul><p>Switching reloads the map. Your choice is remembered for future sessions.</p>"
       }
     }
   }

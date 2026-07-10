@@ -27,6 +27,7 @@ from montu_gui.modules.seasons_lunar import (
     SeasonResult, LunarResult,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
 from montu_gui.widgets.step_spinbox import StepSpinBox
@@ -231,7 +232,7 @@ def _phase_legend_row() -> QHBoxLayout:
 
 # ── page ─────────────────────────────────────────────────────────────────────
 
-class SeasonsPage(QWidget):
+class SeasonsPage(LazyPageMixin, QWidget):
     """Seasons & lunar phases calculator page."""
 
     status_message = Signal(str)
@@ -240,6 +241,8 @@ class SeasonsPage(QWidget):
         super().__init__(parent)
         self._season_cards: list[QFrame] = []
         self._build_ui()
+
+    def _activate_page(self) -> None:
         self._calculate()
 
     def _build_ui(self):

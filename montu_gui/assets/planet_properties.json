@@ -1,0 +1,166 @@
+{
+  "properties": [
+    {
+      "varname": "RAJ2000",
+      "quantname": "Right ascension (J2000)",
+      "explanation": "Right ascension referred to the J2000 equinox.",
+      "unit": "h"
+    },
+    {
+      "varname": "DecJ2000",
+      "quantname": "Declination (J2000)",
+      "explanation": "Declination referred to the J2000 equinox.",
+      "unit": "°"
+    },
+    {
+      "varname": "RAEpoch",
+      "quantname": "Right ascension (epoch)",
+      "explanation": "Right ascension of date, including precession to the epoch.",
+      "unit": "h"
+    },
+    {
+      "varname": "DecEpoch",
+      "quantname": "Declination (epoch)",
+      "explanation": "Declination of date, including precession to the epoch.",
+      "unit": "°"
+    },
+    {
+      "varname": "RAGeo",
+      "quantname": "Right ascension (geocentric)",
+      "explanation": "Geocentric right ascension at the epoch.",
+      "unit": "h"
+    },
+    {
+      "varname": "DecGeo",
+      "quantname": "Declination (geocentric)",
+      "explanation": "Geocentric declination at the epoch.",
+      "unit": "°"
+    },
+    {
+      "varname": "el",
+      "quantname": "Elevation",
+      "explanation": "Altitude above the observer horizon (true altitude).",
+      "unit": "°"
+    },
+    {
+      "varname": "az",
+      "quantname": "Azimuth",
+      "explanation": "Compass bearing measured eastward from north along the horizon.",
+      "unit": "°"
+    },
+    {
+      "varname": "ha",
+      "quantname": "Hour angle",
+      "explanation": "Hour angle of the body west of the meridian.",
+      "unit": "h"
+    },
+    {
+      "varname": "Vmag",
+      "quantname": "Visual magnitude",
+      "explanation": "Approximate visual magnitude at the epoch.",
+      "unit": "mag"
+    },
+    {
+      "varname": "rise_time",
+      "quantname": "Rise time",
+      "explanation": "Local time of day when the body rises above the horizon (plotted as decimal hours from midnight; hover shows hh:mm:ss).",
+      "unit": "h"
+    },
+    {
+      "varname": "rise_az",
+      "quantname": "Rise azimuth",
+      "explanation": "Azimuth at horizon rise.",
+      "unit": "°"
+    },
+    {
+      "varname": "set_time",
+      "quantname": "Set time",
+      "explanation": "Local time of day when the body sets below the horizon (plotted as decimal hours from midnight; hover shows hh:mm:ss).",
+      "unit": "h"
+    },
+    {
+      "varname": "set_az",
+      "quantname": "Set azimuth",
+      "explanation": "Azimuth at horizon set.",
+      "unit": "°"
+    },
+    {
+      "varname": "transit_time",
+      "quantname": "Transit time",
+      "explanation": "Local time of day at upper culmination (meridian transit); plotted as decimal hours from midnight, hover shows hh:mm:ss.",
+      "unit": "h"
+    },
+    {
+      "varname": "transit_el",
+      "quantname": "Elevation at transit",
+      "explanation": "Maximum elevation reached at upper transit.",
+      "unit": "°"
+    },
+    {
+      "varname": "elongation",
+      "quantname": "Elongation",
+      "explanation": "Angular separation from the Sun as seen from Earth.",
+      "unit": "°"
+    },
+    {
+      "varname": "earth_distance",
+      "quantname": "Distance from Earth",
+      "explanation": "Geocentric distance from the centre of the Earth.",
+      "unit": "AU"
+    },
+    {
+      "varname": "sun_distance",
+      "quantname": "Distance from Sun",
+      "explanation": "Heliocentric distance from the centre of the Sun.",
+      "unit": "AU"
+    },
+    {
+      "varname": "is_circumpolar",
+      "quantname": "Circumpolar flag",
+      "explanation": "1 if the body never sets at the observer latitude, else 0.",
+      "unit": "N/A"
+    },
+    {
+      "varname": "is_neverup",
+      "quantname": "Never-up flag",
+      "explanation": "1 if the body never rises at the observer latitude, else 0.",
+      "unit": "N/A"
+    },
+    {
+      "varname": "angsize",
+      "quantname": "Angular size",
+      "explanation": "Apparent angular diameter of the disc.",
+      "unit": "arcsec"
+    },
+    {
+      "varname": "phase",
+      "quantname": "Illuminated fraction",
+      "explanation": "Fraction of the disc illuminated (0% = new, 100% = full).",
+      "unit": "%"
+    },
+    {
+      "varname": "hlat",
+      "quantname": "Heliocentric latitude",
+      "explanation": "Ecliptic latitude in a heliocentric frame.",
+      "unit": "°"
+    },
+    {
+      "varname": "hlon",
+      "quantname": "Heliocentric longitude",
+      "explanation": "Ecliptic longitude in a heliocentric frame.",
+      "unit": "°"
+    },
+    {
+      "varname": "hlong",
+      "quantname": "Heliocentric longitude (alternative)",
+      "explanation": "Heliocentric ecliptic longitude (PyEphem convention).",
+      "unit": "°"
+    },
+    {
+      "varname": "datestr",
+      "quantname": "Date string",
+      "explanation": "Sample date label (proleptic Gregorian, astronomical) — normally used on the X-axis.",
+      "unit": "N/A"
+    }
+  ]
+}

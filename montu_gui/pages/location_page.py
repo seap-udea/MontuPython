@@ -1,0 +1,517 @@
+"""
+LocationPage — observer site picker with OpenStreetMap and predefined ancient sites.
+"""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+from typing import Optional
+
+from PySide6.QtCore import Qt, Signal, QTimer
+from PySide6.QtGui import QShowEvent, QResizeEvent
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
+    QLineEdit, QComboBox, QSizePolicy, QFrame, QSplitter,
+    QGroupBox, QScrollArea, QRadioButton, QButtonGroup, QCompleter,
+    QStackedWidget, QGridLayout,
+)
+
+_HERE = Path(__file__).parent.parent
+sys.path.insert(0, str(_HERE.parent))
+
+from montu_gui.modules.location import (
+    load_locations,
+    find_location,
+    location_to_coords,
+    decimal_to_dms,
+    dms_to_decimal,
+    format_dms,
+    fetch_elevation_m,
+    ObserverCoords,
+)
+from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.location_state import LocationState
+from montu_gui.utils.lazy_page import LazyPageMixin
+from montu_gui.utils.map_consent import (
+    request_map_consent, get_map_label_lang, save_map_label_lang,
+)
+from montu_gui.widgets.map_view import ObserverMapView
+from montu_gui.widgets.help_link import HelpLink
+from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+
+HELP_MODULE = "location"
+_COORDS_PANEL_RATIO = 0.30
+_PARAMS_MIN_WIDTH = 200
+_APPLY_DEBOUNCE_MS = 350
+
+_LOCATION_EXAMPLE = LetsPythonExample(
+    source_path=Path(__file__).parent / "examples" / "observer_location.py",
+    download_name="montu_observer_location.py",
+    window_title="Let's Python!  —  Observer Location Code",
+    heading="Defining an observer site with MontuPython",
+    subtitle=(
+        "Copy or download the script to see how the Observer Location module "
+        "builds a <code>montu.Observer</code> from decimal coordinates, from "
+        "<code>assets/locations.json</code>, and how to use that observer in "
+        "sky calculations (local time, planet altitude and azimuth)."
+    ),
+)
+
+
+def _label(text: str, bold=False, size: Optional[int] = None) -> QLabel:
+    lbl = QLabel(text)
+    f = lbl.font()
+    if bold:
+        f.setBold(True)
+    if size:
+        f.setPointSize(size)
+    lbl.setFont(f)
+    return lbl
+
+
+def _hline() -> QFrame:
+    ln = QFrame()
+    ln.setFrameShape(QFrame.Shape.HLine)
+    ln.setFrameShadow(QFrame.Shadow.Sunken)
+    return ln
+
+
+def _field_stack(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout:
+    col = QVBoxLayout()
+    col.setSpacing(4)
+    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(widget)
+    return col
+
+
+class _DmsRow(QWidget):
+    """Degrees / minutes / seconds + hemisphere selector."""
+
+    def __init__(self, is_lat: bool, parent=None):
+        super().__init__(parent)
+        self._is_lat = is_lat
+        grid = QGridLayout(self)
+        grid.setContentsMargins(0, 0, 0, 0)
+        grid.setHorizontalSpacing(6)
+
+        self._deg = QLineEdit()
+        self._deg.setPlaceholderText("°")
+        self._deg.setMaximumWidth(52)
+        self._min = QLineEdit()
+        self._min.setPlaceholderText("'")
+        self._min.setMaximumWidth(44)
+        self._sec = QLineEdit()
+        self._sec.setPlaceholderText('"')
+        self._sec.setMaximumWidth(72)
+
+        self._hemi = QComboBox()
+        if is_lat:
+            self._hemi.addItems(["N", "S"])
+        else:
+            self._hemi.addItems(["E", "W"])
+
+        grid.addWidget(self._deg, 0, 0)
+        grid.addWidget(QLabel("°"), 0, 1)
+        grid.addWidget(self._min, 0, 2)
+        grid.addWidget(QLabel("'"), 0, 3)
+        grid.addWidget(self._sec, 0, 4)
+        grid.addWidget(QLabel('"'), 0, 5)
+        grid.addWidget(self._hemi, 0, 6)
+
+    def set_decimal(self, angle: float):
+        d, m, s = decimal_to_dms(angle)
+        self._deg.setText(str(abs(d)))
+        self._min.setText(f"{m:02d}")
+        self._sec.setText(f"{s:06.3f}")
+        if self._is_lat:
+            self._hemi.setCurrentText("N" if d >= 0 else "S")
+        else:
+            self._hemi.setCurrentText("E" if d >= 0 else "W")
+
+    def decimal_value(self) -> float:
+        d = int(self._deg.text().strip() or "0")
+        m = int(self._min.text().strip() or "0")
+        s = float(self._sec.text().strip() or "0")
+        positive = self._hemi.currentText() in ("N", "E")
+        return dms_to_decimal(d, m, s, positive)
+
+
+class LocationPage(LazyPageMixin, QWidget):
+    """Observer location picker — global for all MontuPython modules."""
+
+    status_message = Signal(str)
+
+    def __init__(self, location_state: LocationState, parent=None):
+        super().__init__(parent)
+        self._state = location_state
+        self._locations = load_locations()
+        self._syncing = False
+        self._custom_name = ""
+        self._apply_timer = QTimer(self)
+        self._apply_timer.setSingleShot(True)
+        self._apply_timer.setInterval(_APPLY_DEBOUNCE_MS)
+        self._apply_timer.timeout.connect(self._apply_location)
+        self._map_online = False
+        self._build_ui()
+        self._map.set_label_lang(get_map_label_lang())
+        self._load_from_state(self._state.coords)
+
+    def _activate_page(self) -> None:
+        if not self._map_online:
+            if request_map_consent(self.window()):
+                self._map_online = True
+                self._map.set_online_enabled(True)
+                self.status_message.emit(
+                    "Loading OpenStreetMap — click the map to pick a site."
+                )
+            else:
+                self.status_message.emit(
+                    "Map disabled — choose a predefined site or enter coordinates."
+                )
+        if self._map_online:
+            self._map.set_label_lang(self._map_lang.currentData())
+            self._map.set_location(self._state.coords.lat, self._state.coords.lon)
+
+    def showEvent(self, event: QShowEvent) -> None:
+        super().showEvent(event)
+        self._apply_splitter_ratio()
+
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        super().resizeEvent(event)
+        self._apply_splitter_ratio()
+
+    def _apply_splitter_ratio(self):
+        if not hasattr(self, "_splitter"):
+            return
+        total = self._splitter.width()
+        if total < 100:
+            return
+        left = max(_PARAMS_MIN_WIDTH, int(total * _COORDS_PANEL_RATIO))
+        right = max(200, total - left)
+        self._splitter.setSizes([left, right])
+
+    def _build_ui(self):
+        root = QVBoxLayout(self)
+        root.setContentsMargins(12, 12, 12, 12)
+        root.setSpacing(10)
+
+        title = _label("🧭  Observer Location", bold=True, size=16)
+        title.setObjectName("section_title")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        root.addWidget(title)
+
+        intro = QLabel(
+            "Choose where on Earth you observe the sky. Pick a predefined ancient "
+            "site, click the OpenStreetMap (first visit asks for online consent), "
+            "or enter latitude, longitude, and altitude. "
+            "This location is shared by all modules. "
+            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
+            "opens a help window."
+        )
+        intro.setWordWrap(True)
+        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        intro.setTextFormat(Qt.TextFormat.RichText)
+        root.addWidget(intro)
+        root.addWidget(_hline())
+
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        left_scroll = QScrollArea()
+        left_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        left_scroll.setWidgetResizable(True)
+        left_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        left_scroll.setMinimumWidth(_PARAMS_MIN_WIDTH)
+
+        left_inner = QWidget()
+        left_lay = QVBoxLayout(left_inner)
+        left_lay.setContentsMargins(0, 0, 8, 0)
+        left_lay.setSpacing(10)
+
+        params_box = QGroupBox("Coordinates")
+        params_lay = QVBoxLayout(params_box)
+        params_lay.setSpacing(12)
+
+        self._loc_combo = QComboBox()
+        self._loc_combo.setEditable(True)
+        names = [loc.name for loc in self._locations]
+        self._loc_combo.addItems(names)
+        completer = QCompleter(names, self)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        self._loc_combo.setCompleter(completer)
+        params_lay.addLayout(_field_stack(
+            "Predefined site:", "predefined", self._loc_combo,
+        ))
+
+        format_row = QHBoxLayout()
+        format_row.setSpacing(12)
+        self._fmt_group = QButtonGroup(self)
+        self._fmt_decimal = QRadioButton()
+        self._fmt_sexagesimal = QRadioButton()
+        self._fmt_decimal.setChecked(True)
+        self._fmt_group.addButton(self._fmt_decimal, 0)
+        self._fmt_group.addButton(self._fmt_sexagesimal, 1)
+        format_row.addWidget(self._fmt_decimal)
+        format_row.addWidget(HelpLink("Decimal", HELP_MODULE, "input", "decimal"))
+        format_row.addSpacing(8)
+        format_row.addWidget(self._fmt_sexagesimal)
+        format_row.addWidget(HelpLink("Sexagesimal", HELP_MODULE, "input", "sexagesimal"))
+        format_row.addStretch()
+        params_lay.addLayout(format_row)
+
+        self._coord_stack = QStackedWidget()
+
+        dec_widget = QWidget()
+        dec_lay = QVBoxLayout(dec_widget)
+        dec_lay.setContentsMargins(0, 0, 0, 0)
+        dec_lay.setSpacing(8)
+        self._lat_dec = QLineEdit()
+        self._lat_dec.setPlaceholderText("e.g. 25.6967")
+        dec_lay.addLayout(_field_stack("Latitude (°):", "latitude", self._lat_dec))
+        self._lon_dec = QLineEdit()
+        self._lon_dec.setPlaceholderText("e.g. 32.6422")
+        dec_lay.addLayout(_field_stack("Longitude (°):", "longitude", self._lon_dec))
+        self._coord_stack.addWidget(dec_widget)
+
+        sex_widget = QWidget()
+        sex_lay = QVBoxLayout(sex_widget)
+        sex_lay.setContentsMargins(0, 0, 0, 0)
+        sex_lay.setSpacing(8)
+        self._lat_dms = _DmsRow(is_lat=True)
+        sex_lay.addLayout(_field_stack("Latitude:", "latitude", self._lat_dms))
+        self._lon_dms = _DmsRow(is_lat=False)
+        sex_lay.addLayout(_field_stack("Longitude:", "longitude", self._lon_dms))
+        self._coord_stack.addWidget(sex_widget)
+
+        params_lay.addWidget(self._coord_stack)
+
+        self._alt = QLineEdit()
+        self._alt.setPlaceholderText("metres above sea level")
+        params_lay.addLayout(_field_stack("Altitude (m):", "altitude", self._alt))
+
+        self._summary = QLabel()
+        self._summary.setWordWrap(True)
+        self._summary.setObjectName("location_summary")
+        params_lay.addWidget(self._summary)
+
+        left_lay.addWidget(params_box)
+        left_lay.addStretch()
+        left_scroll.setWidget(left_inner)
+        splitter.addWidget(left_scroll)
+
+        map_box = QGroupBox("Map")
+        map_lay = QVBoxLayout(map_box)
+        map_lay.setSpacing(8)
+        map_lay.setContentsMargins(8, 12, 8, 8)
+
+        lang_row = QHBoxLayout()
+        lang_row.setSpacing(8)
+        self._map_lang = QComboBox()
+        self._map_lang.addItem("Local names", "local")
+        self._map_lang.addItem("English names", "english")
+        saved_lang = get_map_label_lang()
+        lang_idx = self._map_lang.findData(saved_lang)
+        self._map_lang.setCurrentIndex(lang_idx if lang_idx >= 0 else 0)
+        lang_row.addWidget(HelpLink("Map labels:", HELP_MODULE, "input", "map_labels", bold=True))
+        lang_row.addWidget(self._map_lang, stretch=1)
+        map_lay.addLayout(lang_row)
+
+        self._map = ObserverMapView()
+        self._map.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
+        map_lay.addWidget(self._map)
+        splitter.addWidget(map_box)
+
+        self._splitter = splitter
+        splitter.setStretchFactor(0, 3)
+        splitter.setStretchFactor(1, 7)
+        splitter.setSizes([300, 700])
+        root.addWidget(splitter, stretch=1)
+
+        lp_row = QHBoxLayout()
+        lp_row.setContentsMargins(0, 4, 0, 0)
+        self._lp_btn = QPushButton("🐍  Let's Python!")
+        self._lp_btn.setObjectName("lets_python_btn")
+        self._lp_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._lp_btn.clicked.connect(self._show_lets_python)
+        lp_row.addWidget(self._lp_btn)
+        lp_row.addStretch()
+        root.addLayout(lp_row)
+
+        self._loc_combo.currentTextChanged.connect(self._on_preset_selected)
+        self._fmt_group.idClicked.connect(self._on_format_changed)
+        self._lat_dec.textChanged.connect(self._schedule_apply)
+        self._lon_dec.textChanged.connect(self._schedule_apply)
+        self._alt.textChanged.connect(self._schedule_apply)
+        for w in (self._lat_dms._deg, self._lat_dms._min, self._lat_dms._sec):
+            w.textChanged.connect(self._schedule_apply)
+        self._lat_dms._hemi.currentIndexChanged.connect(self._schedule_apply)
+        for w in (self._lon_dms._deg, self._lon_dms._min, self._lon_dms._sec):
+            w.textChanged.connect(self._schedule_apply)
+        self._lon_dms._hemi.currentIndexChanged.connect(self._schedule_apply)
+        self._map.map_clicked.connect(self._on_map_click)
+        self._map_lang.currentIndexChanged.connect(self._on_map_lang_changed)
+        self._state.changed.connect(self._on_external_change)
+
+    def _on_map_lang_changed(self):
+        lang = self._map_lang.currentData()
+        save_map_label_lang(lang)
+        if self._map_online:
+            self._map.set_label_lang(lang)
+            self._map.reload_map()
+            label = "English" if lang == "english" else "Local"
+            self.status_message.emit(f"Map labels: {label}.")
+
+    def _on_format_changed(self, fmt_id: int):
+        if self._syncing:
+            return
+        try:
+            lat, lon = self._read_decimal_coords()
+        except ValueError:
+            lat, lon = self._state.coords.lat, self._state.coords.lon
+        self._syncing = True
+        if fmt_id == 0:
+            self._lat_dec.setText(f"{lat:.6f}")
+            self._lon_dec.setText(f"{lon:.6f}")
+        else:
+            self._lat_dms.set_decimal(lat)
+            self._lon_dms.set_decimal(lon)
+        self._coord_stack.setCurrentIndex(fmt_id)
+        self._syncing = False
+
+    def _on_preset_selected(self, name: str):
+        if self._syncing:
+            return
+        entry = self._find_by_name(name.strip())
+        if entry is None:
+            return
+        self._syncing = True
+        self._custom_name = ""
+        self._fill_fields(entry.lat, entry.lon, entry.alt_m, entry.name, entry.id)
+        self._syncing = False
+        self._apply_location()
+
+    def _find_by_name(self, name: str):
+        for loc in self._locations:
+            if loc.name == name:
+                return loc
+        return None
+
+    def _fill_fields(
+        self,
+        lat: float,
+        lon: float,
+        alt_m: float,
+        name: str,
+        location_id: str = "",
+    ):
+        self._lat_dec.setText(f"{lat:.6f}")
+        self._lon_dec.setText(f"{lon:.6f}")
+        self._lat_dms.set_decimal(lat)
+        self._lon_dms.set_decimal(lon)
+        self._alt.setText(f"{alt_m:.1f}")
+        self._summary.setText(
+            f"<b>{name}</b><br>"
+            f"Lat {format_dms(lat, True)} · Lon {format_dms(lon, False)} · "
+            f"{alt_m:.0f} m"
+        )
+        self._map.update_marker(lat, lon)
+
+    def _read_decimal_coords(self) -> tuple[float, float]:
+        if self._fmt_decimal.isChecked():
+            lat = float(self._lat_dec.text().strip())
+            lon = float(self._lon_dec.text().strip())
+        else:
+            lat = self._lat_dms.decimal_value()
+            lon = self._lon_dms.decimal_value()
+        return lat, lon
+
+    def _schedule_apply(self):
+        if self._syncing:
+            return
+        self._apply_timer.start()
+
+    def _apply_location(self):
+        if self._syncing:
+            return
+        try:
+            lat, lon = self._read_decimal_coords()
+            alt_m = float(self._alt.text().strip())
+        except ValueError:
+            self.status_message.emit("Error: invalid coordinate values.")
+            return
+
+        preset = self._find_by_name(self._loc_combo.currentText().strip())
+        if preset and abs(preset.lat - lat) < 1e-4 and abs(preset.lon - lon) < 1e-4:
+            name = preset.name
+            loc_id = preset.id
+        else:
+            name = self._custom_name or f"Custom ({lat:.4f}°, {lon:.4f}°)"
+            loc_id = ""
+
+        coords = ObserverCoords(name=name, lat=lat, lon=lon, alt_m=alt_m, location_id=loc_id)
+        self._syncing = True
+        err = self._state.set_coords(coords)
+        if err:
+            self._syncing = False
+            self.status_message.emit(f"Error: {err}")
+            return
+
+        self._fill_fields(lat, lon, alt_m, name, loc_id)
+        self._syncing = False
+
+        log_ui_event("location set", name=name, lat=lat, lon=lon, alt_m=alt_m)
+        self.status_message.emit(f"Observer location: {self._state.summary()}")
+
+    def _on_map_click(self, lat: float, lon: float):
+        if self._syncing:
+            return
+        alt_m = fetch_elevation_m(lat, lon)
+        elevation_ok = alt_m is not None
+        if not elevation_ok:
+            try:
+                alt_m = float(self._alt.text().strip())
+            except ValueError:
+                alt_m = 0.0
+        self._syncing = True
+        self._custom_name = f"Map ({lat:.4f}°, {lon:.4f}°)"
+        idx = self._loc_combo.findText(self._custom_name)
+        if idx < 0:
+            self._loc_combo.addItem(self._custom_name)
+            idx = self._loc_combo.count() - 1
+        self._loc_combo.setCurrentIndex(idx)
+        self._fill_fields(lat, lon, alt_m, self._custom_name)
+        self._syncing = False
+        self._apply_location()
+        if elevation_ok:
+            self.status_message.emit(
+                f"Map click: {lat:.4f}°, {lon:.4f}°, {alt_m:.0f} m (Open-Elevation)."
+            )
+        else:
+            self.status_message.emit(
+                "Map click: coordinates set (Open-Elevation unavailable — altitude kept)."
+            )
+
+    def _load_from_state(self, coords: ObserverCoords):
+        self._syncing = True
+        if coords.location_id:
+            entry = find_location(coords.location_id)
+            if entry:
+                idx = self._loc_combo.findText(entry.name)
+                if idx >= 0:
+                    self._loc_combo.setCurrentIndex(idx)
+        self._fill_fields(coords.lat, coords.lon, coords.alt_m, coords.name, coords.location_id)
+        self._syncing = False
+
+    def _on_external_change(self, coords: ObserverCoords):
+        if self._syncing:
+            return
+        self._load_from_state(coords)
+
+    def _show_lets_python(self):
+        log_ui_event("open lets_python dialog", module="location")
+        dlg = LetsPythonDialog(_LOCATION_EXAMPLE, self.window())
+        dlg.exec()

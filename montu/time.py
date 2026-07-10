@@ -56,6 +56,10 @@ MILLENIUM = 10*YEAR # s
 MONTH_ABREVS = dict(JAN=1,FEB=2,MAR=3,APR=4,MAY=5,JUN=6,
                     JUL=7,AUG=8,SEP=9,OCT=10,NOV=11,DEC=12)
 
+# Day of week (Sunday=1 … Saturday=7); index 0 = Sunday for jed_to_weekday
+WEEKDAY_NAMES = ('sunday', 'monday', 'tuesday', 'wednesday',
+                 'thursday', 'friday', 'saturday')
+
 # Rounding behavior of time in seconds
 """
 Rounding errors may produce strange figures when dealing with 
@@ -156,6 +160,8 @@ class Time(object):
         * ``datecan`` — Egyptian civil (caniucular) date string
         * ``comps`` — tuple ``(sign, year, month, day, h, m, s, us)``
         * ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``
+        * ``weekday`` — day of week as int (1 = Sunday … 7 = Saturday)
+        * ``weekday_name`` — English name (``'sunday'``, ``'monday'``, …)
 
     Examples
     --------
@@ -482,7 +488,47 @@ class Time(object):
         # Horus day (days since bce 2782-07-20 00:00:00)
         self.hed = self.jed - JED_APOKATASTASIS
         self.htd = self.jtd - JED_APOKATASTASIS
+
+        self._set_weekday()
     
+    def _set_weekday(self):
+        """Set ``readable.weekday`` and ``readable.weekday_name`` from ``jed``."""
+        index = int(self.jed + 1.5) % 7
+        self.readable.weekday = index + 1
+        self.readable.weekday_name = WEEKDAY_NAMES[index]
+
+    @staticmethod
+    def jed_to_weekday(jed, name=False):
+        """Return the day of week for a Julian Day (UTC).
+
+        Neither PyEphem nor PyMeeus expose weekday routines; this uses the
+        standard integer-JD formula (same convention as the mixed calendar).
+
+        Parameters
+        ----------
+        jed : float
+            Julian Day in UTC.
+        name : bool, optional
+            If ``True``, return the English name (lowercase).  Otherwise
+            return an integer with Sunday = 1 and Saturday = 7.
+
+        Returns
+        -------
+        int or str
+
+        Examples
+        --------
+        >>> import montu
+        >>> montu.Time.jed_to_weekday(2451544.5)
+        7
+        >>> montu.Time.jed_to_weekday(2451545.5, name=True)
+        'sunday'
+        """
+        index = int(jed + 1.5) % 7
+        if name:
+            return WEEKDAY_NAMES[index]
+        return index + 1
+
     def get_readable(self):
         """Populate all human-readable string representations.
 
@@ -676,6 +722,7 @@ Readable:
     Date in mixed UTC: {self.readable.datemix}
     Date in SPICE format: {self.readable.datespice}
     Date in caniucular format: {self.readable.datecan}
+    Weekday: {self.readable.weekday} ({self.readable.weekday_name})
     Components: {self.readable.comps}
 Objects:
     Date in datetime64 format: {self.readable.obj_datetime64}
