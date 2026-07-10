@@ -2,6 +2,18 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.20.0
+
+- Version bump to **0.20.0** with updated README, badges, AI assistance disclosure, and Zenodo/Citation metadata.
+- **MontuPython Desktop** (`montu_gui/`) — PySide6 GUI with Calendar Calculator and Seasons & Lunar Phases modules.
+- Refactored and standardized example notebooks; cleaned outdated development artefacts.
+- Expanded pytest coverage for notebook workflows and docstring examples.
+- Fixed `Stars.get_stars_around` to accept one-element pandas Series as centre coordinates.
+- Fixed `Util._linear_map` (missing slope) affecting `Stars.plot_stars`.
+- Fixed `Observer.get_local_time` and Julian-day inputs from `Sun.when_is_twilight`.
+- Added `Stars.value_for` and `Stars.scalar` for robust scalar access from star catalogues.
+- `where_in_space` now returns a `Stars` object for API consistency.
+
 ## Version 0.10.*
 
 - Expanded and cleaned the API documentation for the core modules with improved NumPy-style docstrings.
