@@ -13,6 +13,7 @@ This file collects the release notes and the main changes in MontuPython.
 - Fixed `Observer.get_local_time` and Julian-day inputs from `Sun.when_is_twilight`.
 - Added `Stars.value_for` and `Stars.scalar` for robust scalar access from star catalogues.
 - `where_in_space` now returns a `Stars` object for API consistency.
+- `Stars.mercator_sky_map` layout now sets `autosize=True` so sky maps resize correctly when embedded in the Desktop GUI.
 
 ## Version 0.10.*
 
