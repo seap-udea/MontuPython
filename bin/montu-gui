@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Launch MontuPython Desktop GUI
+#
+# Usage:
+#   ./bin/montu-gui
+#   ./bin/montu-gui --debug    # print conversion/UI debug to terminal
+set -euo pipefail
+
+REPO="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$REPO"
+
+if [[ -f "$REPO/.venv/bin/activate" ]]; then
+    # shellcheck source=/dev/null
+    source "$REPO/.venv/bin/activate"
+fi
+
+exec python "$REPO/montu_gui/main.py" "$@"

@@ -1,0 +1,98 @@
+{
+  "calendar": {
+    "result": {
+      "spice": {
+        "title": "Gregorian proleptic (human)",
+        "body": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — caniucular datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>"
+      },
+      "proleptic": {
+        "title": "Gregorian proleptic (astronomical)",
+        "body": "<p>Proleptic Gregorian date in the <b>astronomical year convention</b> (<code>Time.readable.datepro</code>): year&nbsp;0 = 1&nbsp;BCE, year&nbsp;−1 = 2&nbsp;BCE, etc. Useful for continuous calculations without a gap at year&nbsp;1.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS.ffff</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS.ffff</code> for BCE dates (leading minus on the astronomical year)</li><li>ISO-like ordering: year, month, day, then 24-hour time</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:00.0000</code> — 7 March 2026 CE</li><li><code>-2780-06-27 00:00:00.0000</code> — astronomical year −2780 (= 2781 BCE)</li><li><code>-0001-01-01 00:00:00.0000</code> — 1 BCE (astronomical year 0 is 1 BCE in historical terms)</li></ul>"
+      },
+      "mixed": {
+        "title": "Mixed Julian/Gregorian",
+        "body": "<p>Calendar date in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward. This is the usual choice for real historical dates.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates (minus prefix on astronomical year)</li><li>Month lengths follow the active calendar (Julian or Gregorian) for that date</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:30</code> — modern date (Gregorian rules)</li><li><code>1582-10-04 00:00:00</code> — last Julian day before the 1582 reform (in affected countries)</li><li><code>-2780-07-20 00:00:00</code> — ancient date under Julian rules (near the caniucular datum)</li></ul>"
+      },
+      "caniucular": {
+        "title": "Caniucular (Egyptian civil)",
+        "body": "<p>Date in the Egyptian <b>civil (caniucular)</b> calendar (<code>Time.readable.datecan</code>): Horus year, month, season, and day. The year begins with the heliacal rise of Sirius (Sothis); the epoch is <code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20.</p><p><b>Format</b></p><ul><li><code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — Akhet, Peret, Shemu, or Mesut (intercalary)</li><li><b>DAY</b> — 1–30</li></ul><p><b>Examples</b></p><ul><li><code>hrw 0-I-Akhet-1</code> — caniucular epoch (datum)</li><li><code>hrw 1-I-Akhet-2</code> — day after the datum in Horus year 1</li><li><code>hrw 4809-III-Shemu-25</code> — 7 March 2026 CE in civil form</li></ul>"
+      },
+      "jd_utc": {
+        "title": "Julian Day — UTC",
+        "body": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch (1&nbsp;January&nbsp;4713&nbsp;BCE, 12:00&nbsp;TT). A pure number — not a calendar string.</p><p><b>Format</b></p><ul><li>Decimal number: <code>integer.fraction</code></li><li>Fraction 0.0 = noon at the beginning of that JD; 0.5 = midnight; add 0.5 to move from noon-based JD to midnight-based conventions if needed</li><li>Typically shown with 6 decimal places in this table</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 (2000-01-01 12:00 TT ≈ standard epoch)</li><li><code>2461231.5</code> — noon on a modern Julian day</li><li><code>705863.500000</code> — caniucular datum region (BCE 2782-07-20)</li></ul>"
+      },
+      "tt": {
+        "title": "TT ephemeris seconds (J2000)",
+        "body": "<p>Ephemeris seconds on the <b>TT (Terrestrial Time)</b> scale, measured from <b>J2000.0</b> (2000-01-01 12:00 TT). Corresponds to <code>Time.tt</code>. <b>Not a Julian Day</b> — it is a uniform atomic-time-style count used by SPICE and many ephemerides.</p><p><b>Format</b></p><ul><li>Decimal seconds (may be negative for dates before J2000)</li><li>Uniform scale — no leap seconds</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 epoch</li><li><code>86400.0</code> — one TT day after J2000.0</li><li>Large negative values for ancient dates (e.g. near BCE&nbsp;2782)</li></ul>"
+      },
+      "et": {
+        "title": "UTC ephemeris seconds (J2000)",
+        "body": "<p>Ephemeris seconds on the <b>UTC</b> scale, measured from J2000.0. Corresponds to <code>Time.et</code>. In MontuPython: <code>et = tt − deltat</code>.</p><p><b>Format</b></p><ul><li>Decimal seconds from J2000.0 (UTC)</li><li>Differs from TT by Delta-T (Earth rotation effects)</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 (UTC ephemeris time origin)</li><li>For any date, typically a few tens of seconds less than the TT value at the same instant (see Delta-T)</li></ul>"
+      },
+      "delta_t": {
+        "title": "Delta-T (seconds)",
+        "body": "<p>Difference <b>TT − UTC</b> in seconds (<code>Time.deltat</code>). Accounts for irregular Earth rotation (tidal braking and leap seconds). Required to convert between civil UTC and uniform TT.</p><p><b>Format</b></p><ul><li>Decimal seconds (positive in the modern era: TT runs ahead of UTC)</li><li>Tabulated internally by MontuPython for historical dates</li></ul><p><b>Examples</b></p><ul><li><code>67.184</code> — approximate value near 2020 CE</li><li><code>67692.000</code> — much larger for ancient dates (e.g. BCE&nbsp;2782), where extrapolation uncertainty is high</li></ul>"
+      }
+    },
+    "input": {
+      "julian_gregorian": {
+        "title": "Julian / Gregorian",
+        "body": "Enter a date in the familiar Gregorian-style calendar. Choose BCE or CE, Mixed or Proleptic calendar type, then pick the date and time. Results update automatically as you change any field."
+      },
+      "caniucular": {
+        "title": "Caniucular",
+        "body": "Enter a date in the Egyptian civil calendar: Horus year, month (I–IV within the season), season name, and day (1–30). Each season has four months of 30 days."
+      },
+      "julian_day": {
+        "title": "Julian Day Number",
+        "body": "Enter a Julian Day Number (UTC scale), optionally with a fractional part for the time of day. Example: <code>2461231.5</code> is noon on that Julian day."
+      },
+      "bce": {
+        "title": "BCE",
+        "body": "Before Common Era. Years are counted historically (1 BCE is followed by 1 CE). MontuPython converts internally to the astronomical year numbering used by the library."
+      },
+      "ce": {
+        "title": "CE",
+        "body": "Common Era (historically “AD”). Use for dates from 1 CE onward in the Julian/Gregorian input form."
+      },
+      "mixed": {
+        "title": "Mixed",
+        "body": "Use the historically correct calendar rules: Julian calendar before the 1582 reform, Gregorian calendar afterward. Recommended for real historical dates."
+      },
+      "proleptic": {
+        "title": "Proleptic",
+        "body": "Extend Gregorian calendar rules backward for the entire timeline. No Julian–Gregorian switch — useful for uniform astronomical or mathematical dating."
+      },
+      "horus_year": {
+        "title": "Horus Year",
+        "body": "<p>Year in the Egyptian civil calendar counted from the <b>Horus</b> (caniucular) epoch. Year&nbsp;0 is anchored at the first <i>apokatastasis</i> (<code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20).</p><p><b>Format</b></p><ul><li>Integer (may be negative for years before the epoch in some displays)</li><li>Appears as the first number in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>0</code> — epoch year (datum)</li><li><code>1</code> — one civil year after the datum</li><li><code>4809</code> — modern date in Horus years (e.g. 2026 CE)</li></ul>"
+      },
+      "caniucular_month": {
+        "title": "Month",
+        "body": "<p>Month within the current <b>season</b> in the Egyptian civil calendar. Each season has four months, numbered with Roman numerals I–IV (not the 12 Gregorian months).</p><p><b>Format</b></p><ul><li>One of: <code>I</code>, <code>II</code>, <code>III</code>, <code>IV</code></li><li>Third field in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>I</code> — first month of the season (days 1–30)</li><li><code>IV</code> — fourth and last month of the season</li><li><code>hrw 0-I-Akhet-1</code> — month I of season Akhet at the datum</li></ul>"
+      },
+      "caniucular_season": {
+        "title": "Season",
+        "body": "<p>Season name in the Egyptian civil calendar. The year is divided into three seasons of 120 days (Akhet, Peret, Shemu), plus an optional intercalary period (Mesut).</p><p><b>Format</b></p><ul><li>One of: <code>Akhet</code>, <code>Peret</code>, <code>Shemu</code>, <code>Mesut</code></li><li>Akhet — inundation; Peret — emergence; Shemu — harvest; Mesut — epagomenal days (5 days after Shemu IV-30)</li></ul><p><b>Examples</b></p><ul><li><code>Akhet</code> — first season; contains <code>hrw 0-I-Akhet-1</code></li><li><code>Shemu</code> — e.g. <code>hrw 4809-III-Shemu-25</code> for a modern March date</li><li><code>Mesut</code> — epagomenal days 1–5; e.g. day after <code>IV-Shemu-30</code> is <code>I-Mesut-1</code></li></ul>"
+      },
+      "caniucular_day": {
+        "title": "Day",
+        "body": "<p>Day within the current month and season. Regular seasons use days 1–30; the intercalary season <b>Mesut</b> uses days 1–5 only.</p><p><b>Format</b></p><ul><li>Integer day in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li>Range 1–30 (Akhet, Peret, Shemu) or 1–5 (Mesut)</li></ul><p><b>Examples</b></p><ul><li><code>1</code> — first day of the month/season block</li><li><code>30</code> — last day of a regular month (e.g. <code>IV-Shemu-30</code>)</li><li><code>3</code> on Mesut — third epagomenal day before the new year</li></ul>"
+      },
+      "caniucular_offset": {
+        "title": "Step day",
+        "body": "<p>Use <b>−</b> and <b>+</b> to move one civil day backward or forward from the current caniucular date. All input forms and the results table update immediately.</p><p><b>Examples</b></p><ul><li><code>IV-Shemu-30</code> then <b>+</b> → <code>I-Mesut-1</code></li><li><code>I-Mesut-5</code> then <b>+</b> → <code>I-Akhet-1</code> of the next Horus year</li><li><b>−</b> reverses the same transitions</li></ul>"
+      },
+      "julian_day_utc": {
+        "title": "Julian Day (UTC)",
+        "body": "<p>Julian Day Number on the <b>UTC</b> scale (<code>Time.jed</code>). Enter days and an optional fractional part for the time of day. This is the primary numeric input when converting from JD to all calendar formats.</p><p><b>Format</b></p><ul><li>Decimal: <code>integer.fraction</code></li><li>Fraction .0 = noon at the start of that JD; .5 = midnight in common conventions</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 epoch</li><li><code>2461231.5</code> — noon on that Julian day</li><li><code>625307.5</code> — default sample value in this form</li></ul>"
+      }
+    },
+    "historical": {
+      "historical_dates": {
+        "title": "Historical Dates",
+        "body": "<p>Preset <b>historical dates</b> from the past whose instant is known in more than one calendar system — typically as a Julian/Gregorian date <i>and</i> as an Egyptian civil (caniucular) date, and sometimes with a lunar or documentary context. Select an entry to load it into all input forms and the results table.</p><p>Most entries come from the astronomy of ancient Egypt as discussed by the Egyptologist <b>José Lull</b> in <i>La astronomía en el antiguo Egipto</i> (<i>Astronomy in Ancient Egypt</i>, Universitat de València). Page references below are to that book unless noted otherwise.</p><p><b>Presets and sources</b></p><ul><li><b>BCE 2782-07-20</b> — First <i>apokatastasis</i> (caniucular datum <code>hrw 0-I-Akhet-1</code>); Lull, calendar chapter</li><li><b>BCE 1322-07-20</b> — Second <i>apokatastasis</i>; Lull</li><li><b>CE 139-07-20</b> — Third <i>apokatastasis</i> (Censorinus); Lull, p.&nbsp;95</li><li><b>BCE 559-10-19</b> — Papyrus Louvre 7848 (civil + lunar dates); Lull, p.&nbsp;94</li><li><b>BCE 238-03-07</b> — Canopus decree; Lull, p.&nbsp;76</li><li><b>BCE 237-08-23</b> / <b>BCE 212-08-17</b> — Edfu temple inscriptions (25-year lunar cycle); Lull, p.&nbsp;92</li><li><b>CE 384-07-23</b> — Theon of Alexandria, heliacal rise of Sirius; Lull, p.&nbsp;98</li><li><b>BCE 688-06-11</b> — Papyrus Louvre E3228d (Taharqa, year 3); Lull, p.&nbsp;105</li><li><b>BCE 46-01-01</b> — Julian calendar reform (Sosigenes); Suetonius, <i>Divus Julius</i></li></ul>"
+      }
+    }
+  }
+}

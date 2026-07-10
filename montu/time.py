@@ -853,15 +853,32 @@ Uniform scales:
         # Adjust ranges
         comps[0] = int(comps[0].strip('hHrw ')) # Horus year
         comps[1] = comps[1].upper() # Month (I, II, III, IV)
-        comps[2] = comps[2].upper() # Season (akhet,peret,shemu)
-        comps[3] = int(comps[3]) # Day (1..30)
+        comps[2] = comps[2].upper() # Season (Akhet, Peret, Shemu, Mesut)
+        comps[3] = int(comps[3]) # Day (1..30, or 1..5 for Mesut)
+
+        if comps[2] == 'MESUT':
+            if comps[3] < 1 or comps[3] > 5:
+                raise ValueError(
+                    f"Day '{comps[3]}' out of range for Mesut in '{caniucular_date}'. "
+                    "Epagomenal days must be between 1 and 5."
+                )
+            return int(comps[0]) * 365 + 360 + (comps[3] - 1)
 
         if comps[1] not in HORUS_MONTH.keys():
-            raise ValueError(f"Month '{comps[1]}' not recognized in '{date}', it must be among {tuple(HORUS_MONTH.keys())}")
+            raise ValueError(
+                f"Month '{comps[1]}' not recognized in '{caniucular_date}', "
+                f"it must be among {tuple(HORUS_MONTH.keys())}"
+            )
         if comps[2] not in HORUS_SEASON.keys():
-            raise ValueError(f"Season '{comps[2]}' not recognized in '{date}', it must be among {tuple(HORUS_SEASON.keys())}")
+            raise ValueError(
+                f"Season '{comps[2]}' not recognized in '{caniucular_date}', "
+                f"it must be among {tuple(HORUS_SEASON.keys())} or Mesut"
+            )
         if (int(comps[3])>30) or (int(comps[3])<1):
-            raise ValueError(f"Day '{comps[3]}' out of range. It must be between [1,30]")
+            raise ValueError(
+                f"Day '{comps[3]}' out of range in '{caniucular_date}'. "
+                "It must be between 1 and 30."
+            )
 
         return Time._horus_days(*comps)
 
