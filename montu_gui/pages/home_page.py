@@ -2,12 +2,13 @@
 HomePage — splash / welcome panel shown at startup.
 
 Copy and font sizes: montu_gui/assets/home.json
-Version number/date: montu/version.py
+Library version/date: montu/version.py
+Desktop version/date: montu_gui/version.py (mtime)
 """
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QUrl
@@ -17,8 +18,10 @@ from PySide6.QtWidgets import (
 )
 
 from montu.version import version as MONTU_VERSION, release_date as MONTU_RELEASE_DATE
+import montu_gui.version as desktop_version
 from montu_gui.utils.home_content import load_home_content
 from montu_gui.utils.theme import PALETTE
+from montu_gui.widgets.version_link import VersionLink
 
 
 def _rich_label(
@@ -63,6 +66,48 @@ def _format_release_date(iso_date: str) -> str:
         return d.strftime("%d %B %Y")
     except ValueError:
         return iso_date
+
+
+def _desktop_release_date() -> str:
+    """ISO date from montu_gui/version.py last modification."""
+    try:
+        mtime = Path(desktop_version.__file__).stat().st_mtime
+    except (OSError, TypeError):
+        return ""
+    return datetime.fromtimestamp(mtime).date().isoformat()
+
+
+def _version_row(
+    prefix: str,
+    version: str,
+    release_iso: str,
+    kind: str,
+    *,
+    point_size: int,
+) -> QHBoxLayout:
+    row = QHBoxLayout()
+    row.setSpacing(0)
+    row.setContentsMargins(0, 0, 0, 0)
+
+    prefix_lbl = QLabel(f"{prefix} ")
+    prefix_lbl.setStyleSheet(
+        _plain_label_style(point_size, color=PALETTE["text_secondary"])
+    )
+    row.addWidget(prefix_lbl)
+
+    row.addWidget(
+        VersionLink(version, kind, point_size=point_size),
+    )
+
+    if release_iso:
+        date_lbl = QLabel(f" ({_format_release_date(release_iso)})")
+        date_lbl.setStyleSheet(
+            _plain_label_style(point_size, color=PALETTE["text_secondary"])
+        )
+        row.addWidget(date_lbl)
+
+    row.addStretch()
+    return row
 
 
 class HomePage(QWidget):
@@ -152,18 +197,25 @@ class HomePage(QWidget):
         )
         root.addWidget(tagline)
 
-        release = _format_release_date(MONTU_RELEASE_DATE)
-        version = QLabel(
-            f"MontuPython library version {MONTU_VERSION} ({release})"
-        )
-        version.setObjectName("home_version")
-        version.setStyleSheet(
-            _plain_label_style(
-                self._font_size("version", 13),
-                color=PALETTE["text_secondary"],
+        version_size = self._font_size("version", 13)
+        root.addLayout(
+            _version_row(
+                "MontuPython library version",
+                MONTU_VERSION,
+                MONTU_RELEASE_DATE,
+                "library",
+                point_size=version_size,
             )
         )
-        root.addWidget(version)
+        root.addLayout(
+            _version_row(
+                "MontuPython Desktop version",
+                desktop_version.version,
+                _desktop_release_date(),
+                "desktop",
+                point_size=version_size,
+            )
+        )
 
         root.addSpacing(6)
 

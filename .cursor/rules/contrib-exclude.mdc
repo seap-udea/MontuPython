@@ -6,8 +6,9 @@ alwaysApply: true
 # contrib/ off-limits
 
 `contrib/` = symlinks to external repos. Many files exceed 50MB (notebooks, catalogues).
+Symlinked repos may nest another `contrib/` (e.g. `contrib/fargopy/contrib/fargopy/`).
 
-- Do not read, search, grep, or @-mention paths under `contrib/`
+- Do not read, search, grep, or @-mention paths under `contrib/` or nested `contrib/**`
 - Do not open notebooks or CSV/XLSX there
 - If contrib code needed: ask user for specific small file or work in sibling repo directly
 

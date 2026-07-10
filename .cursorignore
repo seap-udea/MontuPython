@@ -1,3 +1,11 @@
 # Symlinks to sibling repos (fargopy, pymcel, multimin, MontuCatalogue).
-# Contain notebooks >50MB and large catalogues — block from Agent + indexing.
+# Contain notebooks >50MB and large catalogues — block from Agent + @-mentions.
 contrib/
+contrib/**
+**/contrib/**
+
+# Nested contrib/ inside symlinked fargopy (contrib/fargopy/contrib/fargopy/...)
+contrib/fargopy/contrib/**
+
+# Known oversized notebooks (>50 MB Cursor limit)
+**/fargopy-tutorial-interpolation.ipynb

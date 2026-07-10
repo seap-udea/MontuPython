@@ -12,7 +12,7 @@
   },
   "paragraphs": [
     "<b>MontuPython</b> (<i>mnṯw 'app(y)</i>) is a Python package to compute astronomical ephemerides in the ancient world — thousands of years before the present. It was developed for ancient Egypt and applies equally to other sites of cultural and archaeoastronomical interest.",
-    "<b>MontuPython Desktop</b> is the graphical front-end to that library. It offers pre-built tools for users who do not wish to program at the Python level, or who want quick access to core functionality. Open a module from the sidebar — for example, <b>Calendar Calculator</b> to convert among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), and Julian Day formats."
+    "<b>MontuPython Desktop</b> is the graphical front-end to that library. It offers pre-built tools for users who do not wish to program at the Python level, or who want quick access to core functionality. Open a module from the sidebar to run predefined calculations — for example, <b>Calendar Calculator</b> to convert among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), and Julian Day formats.  In each module, you will find python code, related to the task performed using that module, that you can copy and paste into your own projects or to learn from."
   ],
   "people": {
     "author": "Jorge I. Zuluaga © 2023–present",

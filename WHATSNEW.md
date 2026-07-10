@@ -2,7 +2,7 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.10.x (in preparation)
+## Version 0.10.*
 
 - Expanded and cleaned the API documentation for the core modules with improved NumPy-style docstrings.
 - Stabilized the Read the Docs and Sphinx build, including autodoc imports and rendered examples.

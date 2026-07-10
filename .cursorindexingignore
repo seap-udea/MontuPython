@@ -1,0 +1,11 @@
+# Symlinks to sibling repos — large notebooks (>50MB) and catalogues.
+# Excluded from background indexing / codebase search.
+contrib/
+contrib/**
+**/contrib/**
+
+# Nested contrib/ inside symlinked fargopy
+contrib/fargopy/contrib/**
+
+# Known oversized notebooks (>50 MB Cursor limit)
+**/fargopy-tutorial-interpolation.ipynb

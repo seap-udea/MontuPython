@@ -1,0 +1,9 @@
+{
+  "exclude": [
+    "contrib",
+    "contrib/**",
+    "**/contrib/**",
+    "contrib/fargopy/contrib/**",
+    "**/fargopy-tutorial-interpolation.ipynb"
+  ]
+}
