@@ -1,0 +1,3 @@
+# Symlinks to sibling repos (fargopy, pymcel, multimin, MontuCatalogue).
+# Contain notebooks >50MB and large catalogues — block from Agent + indexing.
+contrib/

@@ -1,0 +1,14 @@
+---
+description: Skip contrib/ symlinks and large vendored assets unless user asks
+alwaysApply: true
+---
+
+# contrib/ off-limits
+
+`contrib/` = symlinks to external repos. Many files exceed 50MB (notebooks, catalogues).
+
+- Do not read, search, grep, or @-mention paths under `contrib/`
+- Do not open notebooks or CSV/XLSX there
+- If contrib code needed: ask user for specific small file or work in sibling repo directly
+
+MontuPython refactor scope = `montu/`, `montu-app/`, root config/docs — not vendored deps in `contrib/`.
