@@ -173,7 +173,15 @@
     "input": {
       "initial_date": {
         "title": "Initial date",
-        "body": "<p>Start of the ephemeris interval in mixed Julian/Gregorian format.</p><p><b>Format:</b> <code>[-]CCYY-MM-DD</code> — e.g. <code>-1500-01-01</code> for 1500 BCE, or <code>2026-01-01</code> for 2026 CE.</p>"
+        "body": "<p>Start of the ephemeris interval. Choose <b>BCE</b> or <b>CE</b>, then year, month, and day in Gregorian style (mixed calendar rules apply inside MontuPython).</p><p>Converted internally to <code>[-]YYYY-MM-DD</code> — e.g. 1500 BCE → <code>-1500-01-01</code>.</p>"
+      },
+      "bce": {
+        "title": "BCE",
+        "body": "Before Common Era. Enter the historical year as a positive integer (e.g. 1500 for 1500 BCE)."
+      },
+      "ce": {
+        "title": "CE",
+        "body": "Common Era. Enter the year as a positive integer (e.g. 2026 for 2026 CE)."
       },
       "time_span": {
         "title": "Time span (years)",
