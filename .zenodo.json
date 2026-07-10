@@ -1,0 +1,63 @@
+{
+  "title": "MontuPython v0.10.0: astronomical ephemerides for the ancient world",
+  "upload_type": "software",
+  "access_right": "open",
+  "license": "mit",
+  "version": "0.10.0",
+  "language": "eng",
+  "description": "<p><strong>MontuPython</strong> (<em>mnṯw ꜥꜣpp(y)</em>) is a Python package to compute astronomical ephemerides in the ancient world — thousands of years before the present. It was developed for ancient Egypt and applies equally to other sites of cultural and archaeoastronomical interest.</p><p>Version 0.10.0 highlights: expanded API documentation, stabilized Read the Docs / Sphinx build, standardized example notebooks, pytest-based test suite, and packaging improvements. See <code>WHATSNEW.md</code> in the repository for full release notes.</p><p>Ephemeris calculations rely primarily on <a href=\"https://pypi.org/project/ephem/\">PyEphem</a>, with support from <a href=\"https://pypi.org/project/pymeeus/\">PyMeeus</a>, <a href=\"https://pypi.org/project/spiceypy/\">spiceypy</a>, and <a href=\"https://pypi.org/project/pyplanets/\">pyplanets</a>.</p>",
+  "creators": [
+    {
+      "name": "Zuluaga, Jorge I.",
+      "affiliation": "Universidad de Antioquia",
+      "orcid": "0000-0002-6140-3116"
+    },
+    {
+      "name": "Vivas, Francisco",
+      "affiliation": "Universidad de Antioquia"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Agudelo, Juanita",
+      "affiliation": "Universidad de Antioquia",
+      "type": "ProjectMember"
+    },
+    {
+      "name": "Arroyo, Luis",
+      "affiliation": "Universidad de Antioquia",
+      "type": "ProjectMember"
+    }
+  ],
+  "keywords": [
+    "astronomy",
+    "archaeoastronomy",
+    "ancient Egypt",
+    "ephemerides",
+    "cultural astronomy",
+    "Python",
+    "PyEphem"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/seap-udea/MontuPython",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://pypi.org/project/montu/",
+      "relation": "isVersionOf",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://montupythob.readthedocs.io/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://montupython-production.up.railway.app/",
+      "relation": "isSupplementedBy",
+      "scheme": "url"
+    }
+  ]
+}

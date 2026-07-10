@@ -1,0 +1,54 @@
+cff-version: 1.2.0
+title: "MontuPython: astronomical ephemerides for the ancient world"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Zuluaga
+    given-names: "Jorge I."
+    affiliation: Universidad de Antioquia
+    email: jorge.zuluaga@udea.edu.co
+    orcid: https://orcid.org/0000-0002-6140-3116
+  - family-names: Vivas
+    given-names: Francisco
+    affiliation: Universidad de Antioquia
+contributors:
+  - family-names: Agudelo
+    given-names: Juanita
+    affiliation: Universidad de Antioquia
+  - family-names: Arroyo
+    given-names: Luis
+    affiliation: Universidad de Antioquia
+version: 0.10.0
+date-released: "2026-07-10"
+url: "https://github.com/seap-udea/MontuPython"
+repository-code: "https://github.com/seap-udea/MontuPython"
+license: MIT
+abstract: >
+  MontuPython (mnṯw ꜥꜣpp(y)) is a Python package to compute astronomical
+  ephemerides in the ancient world — thousands of years before the present.
+  It was developed for ancient Egypt and applies equally to other sites of
+  cultural and archaeoastronomical interest.
+keywords:
+  - astronomy
+  - archaeoastronomy
+  - ancient Egypt
+  - ephemerides
+  - cultural astronomy
+  - Python
+identifiers:
+  - type: url
+    value: "https://pypi.org/project/montu/"
+  - type: url
+    value: "https://montupythob.readthedocs.io/"
+# After publishing on Zenodo, uncomment and fill in:
+# doi: 10.5281/zenodo.XXXXXXX
+# preferred-citation:
+#   type: software
+#   authors:
+#     - family-names: Zuluaga
+#       given-names: "Jorge I."
+#   title: "MontuPython: astronomical ephemerides for the ancient world"
+#   version: 0.10.0
+#   doi: 10.5281/zenodo.XXXXXXX
+#   url: "https://doi.org/10.5281/zenodo.XXXXXXX"
+#   year: 2026
