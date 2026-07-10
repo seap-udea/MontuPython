@@ -40,15 +40,16 @@ identifiers:
     value: "https://pypi.org/project/montu/"
   - type: url
     value: "https://montupythob.readthedocs.io/"
-# After publishing on Zenodo, uncomment and fill in:
-# doi: 10.5281/zenodo.XXXXXXX
-# preferred-citation:
-#   type: software
-#   authors:
-#     - family-names: Zuluaga
-#       given-names: "Jorge I."
-#   title: "MontuPython: astronomical ephemerides for the ancient world"
-#   version: 0.20.0
-#   doi: 10.5281/zenodo.XXXXXXX
-#   url: "https://doi.org/10.5281/zenodo.XXXXXXX"
-#   year: 2026
+  - type: doi
+    value: 10.5281/zenodo.21298063
+doi: 10.5281/zenodo.21298063
+preferred-citation:
+  type: software
+  authors:
+    - family-names: Zuluaga
+      given-names: "Jorge I."
+  title: "MontuPython: astronomical ephemerides for the ancient world"
+  version: 0.20.0
+  doi: 10.5281/zenodo.21298063
+  url: "https://doi.org/10.5281/zenodo.21298063"
+  year: 2026
