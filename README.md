@@ -1,26 +1,10 @@
 # Montu Python /mnṯw ꜥꜣpp(y)/
 ## Astronomical ephemerides for the ancient world
 
-<!-- Package badges -->
-[![PyPI](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/)
-[![Downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue)](https://www.python.org/)
-[![Documentation](https://readthedocs.org/projects/montupythob/badge/?version=latest)](https://montupythob.readthedocs.io/en/latest/)
-[![GitHub](https://img.shields.io/badge/GitHub-seap--udea%2FMontuPython-blue?logo=github)](https://github.com/seap-udea/MontuPython)
-[![DOI](https://img.shields.io/badge/DOI-Zenodo%20(release%20pending)-blue)](https://zenodo.org/)
-[![arXiv](https://img.shields.io/badge/arXiv-preprint%20forthcoming-b31b1b)](#)
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/raw/main/montu/data/montu-python-logo-complete.png" width="300" alt="MontuPython logo"/></p>
 
-<!-- Ephemeris engines -->
-[![Powered by PyEphem](https://img.shields.io/badge/powered%20by-PyEphem-blue)](https://pypi.org/project/ephem/)
-[![Powered by PyMeeus](https://img.shields.io/badge/powered%20by-PyMeeus-blue)](https://pypi.org/project/pymeeus/)
-[![Powered by spiceypy](https://img.shields.io/badge/powered%20by-spiceypy-blue)](https://pypi.org/project/spiceypy/)
-[![Powered by pyplanets](https://img.shields.io/badge/powered%20by-pyplanets-blue)](https://pypi.org/project/pyplanets/)
-
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/README.ipynb)
-
-<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/montu/data/montu-python-logo-complete.png?raw=true" alt="Logo""/></p>
-<!-- Fuente: https://symbolikon.com/downloads/montu-egyptian-god/-->
+[![PyPI](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/) [![Downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue)](https://www.python.org/) [![Documentation](https://readthedocs.org/projects/montupythob/badge/?version=latest)](https://montupythob.readthedocs.io/en/latest/) [![GitHub](https://img.shields.io/badge/GitHub-seap--udea%2FMontuPython-blue?logo=github)](https://github.com/seap-udea/MontuPython) [![DOI](https://img.shields.io/badge/DOI-Zenodo%20(release%20pending)-blue)](https://zenodo.org/) [![arXiv](https://img.shields.io/badge/arXiv-preprint%20forthcoming-b31b1b)](#) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/README.ipynb)
+[![Powered by PyEphem](https://img.shields.io/badge/powered%20by-PyEphem-blue)](https://pypi.org/project/ephem/) [![Powered by PyMeeus](https://img.shields.io/badge/powered%20by-PyMeeus-blue)](https://pypi.org/project/pymeeus/) [![Powered by spiceypy](https://img.shields.io/badge/powered%20by-spiceypy-blue)](https://pypi.org/project/spiceypy/) [![Powered by pyplanets](https://img.shields.io/badge/powered%20by-pyplanets-blue)](https://pypi.org/project/pyplanets/)
 
 `MontuPython` (transileterated mnṯw ꜥꜣpp(y)) is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
@@ -830,11 +814,9 @@ Fully-fledged working examples:
 
 Release notes are now maintained in [WHATSNEW.md](WHATSNEW.md).
 
-The upcoming 0.10.x series is documented there as well.
-
 ## AI assistance disclosure
 
-Portions of the code, inline documentation, code review, and debugging in this repository were assisted by AI language models, including **Google Gemini Pro** and **Anthropic Claude Sonnet 4.6**.
+Starting with version *0.20.0*, portions of the code, inline documentation, code review, and debugging in this repository were assisted by AI language models, including **Cursor Composer 2.5**, **Anthropic Claude Sonnet 4.6**.
 
 The human authors maintain that all scientific ideas, the overall project conception, the package and notebook architecture, the design of the numerical and scientific workflows, and their interpretation remain original contributions of the human authors. AI tools were used exclusively as coding and writing assistants — analogous to a spell-checker or a compiler — and bear no authorship over the scientific content of this project. AI models also assisted with translating text from Spanish (the native language of the human authors) into English, and with English spelling and grammar review.
 
