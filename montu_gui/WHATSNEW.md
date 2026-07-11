@@ -2,6 +2,16 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.1.2
+
+- **Desktop distribution** — PyInstaller packaging (`montu_gui/montu-desktop.spec`), local build scripts (`bin/build-desktop.sh`, `bin/build-desktop.ps1`), and GitHub Actions CI for macOS and Windows releases (tag `desktop-v*`).
+- **README** — download section for Desktop builds from [GitHub Releases](https://github.com/seap-udea/MontuPython/releases).
+- **DEVELOPER.md** — `make` targets for `desktop-build`, `desktop-package`, `desktop-release`, and `desktop-ci`.
+- **Let's Python!** — new **Copy and Test in Colab** button copies the example script and opens `examples/MontuPython-TestCode.ipynb`.
+- Let's Python! button moved to the left sidebar column (compact layout) on Calendar, Location, Planets, Seasons, Star Alignments, and Orientation Disk pages.
+- Colab-friendly example scripts for all six modules in `montu_gui/pages/examples/`; bundled in the PyInstaller build.
+- Examples updated for MontuPython **0.20.1**: `dec2sex` / `sex2dec` naming and explicit `mercator_sky_map` import in Star Alignments.
+
 ## Version 0.1.1
 
 - **Orientation Disk (⭕)** — new module for the northernmost and southernmost rise and set azimuths of celestial bodies on a polar disk.

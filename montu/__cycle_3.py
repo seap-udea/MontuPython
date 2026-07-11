@@ -386,7 +386,7 @@ class Util(object):
         """
         print(tabulate(df,headers='keys',tablefmt=format))
 
-    def dec2hex(dec,string=True):
+    def dec2sex(dec,string=True):
 
         dec = float(dec)
         sgn = np.sign(dec)
@@ -497,7 +497,7 @@ class Util(object):
         return map
 
 # Aliases
-D2H = Util.dec2hex
+D2H = Util.dec2sex
 PRINTDF = Util.print_df
 TABLEDF = Util.table_df
 # Correction for JED

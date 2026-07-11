@@ -11,7 +11,8 @@ from montu.sebau import *
 ###############################################################
 # Aliases
 ###############################################################
-D2H = Util.dec2hex
+D2H = Util.dec2sex
+S2D = Util.sex2dec
 VPRINT = Util.vprint
 PRINTDF = Util.print_df
 TABLEDF = Util.table_df
@@ -44,4 +45,10 @@ Util.load_kernels()
 ALLPLANETS = Util.load_planets()
 
 # Showing version 
-print(f"Running MontuPython version {version}")
+def welcome_version():
+    print(f"MontuPython version {version}. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (Ii-ti em hotep, HkAx Hn'-k)")
+
+def welcome_translate():
+    print(f"𓋹 𓍘 𓋴 (Ii-ti em hotep = Welcome in peace) 𓎛 𓂡 𓁘 (HkAx Hn'-k = May Heka (magic) be with you)")
+
+welcome_version()

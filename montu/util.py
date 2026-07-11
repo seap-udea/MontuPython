@@ -58,9 +58,9 @@ class Util(object):
     Examples
     --------
     >>> import montu
-    >>> montu.Util.dec2hex(15.5)
+    >>> montu.Util.dec2sex(15.5)
     '15:30:00.000'
-    >>> montu.Util.dec2hex(15.5, string=False)
+    >>> montu.Util.dec2sex(15.5, string=False)
     (15.0, 30, 0.0)
     """
 
@@ -265,7 +265,7 @@ class Util(object):
             spy.furnsh(kernel_path)
             KERNELS_LOADED[kernel] = True
 
-    def dec2hex(dec,string=True):
+    def dec2sex(dec,string=True):
         """Convert a decimal angle or hour to sexagesimal (DMS / HMS) notation.
 
         Parameters
@@ -285,14 +285,14 @@ class Util(object):
         Examples
         --------
         >>> import montu
-        >>> montu.Util.dec2hex(15.5)
+        >>> montu.Util.dec2sex(15.5)
         '15:30:00.000'
-        >>> montu.Util.dec2hex(-7.25, string=False)
+        >>> montu.Util.dec2sex(-7.25, string=False)
         (-7, 15, 0.0)
         >>> az, el = montu.Util.where_in_sky(RA=6.77, Dec=-16.75,
         ...     at=montu.Time('2024-05-01 19:00:00'),
         ...     observer=montu.Observer(lon=-75, lat=6, height=2.5))
-        >>> montu.Util.dec2hex(az)
+        >>> montu.Util.dec2sex(az)
         '...'    # azimuth formatted as degrees:minutes:seconds
         """
         sgn = np.sign(dec)
@@ -306,6 +306,51 @@ class Util(object):
         else:
             ret = sgn*h,m,s
         return ret
+
+    def sex2dec(sex):
+        """Convert sexagesimal DMS/HMS notation to a decimal angle or hour.
+
+        Parameters
+        ----------
+        sex : str or tuple
+            Sexagesimal value as ``DD:MM:SS.sss`` string or
+            ``(degrees, minutes, seconds)`` tuple (as returned by
+            :meth:`dec2sex` with ``string=False``).
+
+        Returns
+        -------
+        float
+            Decimal value [degrees or hours].
+
+        Examples
+        --------
+        >>> import montu
+        >>> montu.Util.sex2dec('15:30:00.000')
+        15.5
+        >>> montu.Util.sex2dec((-7, 15, 0.0))
+        -7.25
+        """
+        if isinstance(sex, str):
+            s = sex.strip()
+            sign = -1 if s.startswith("-") else 1
+            if s[0] in "+-":
+                s = s[1:]
+            parts = s.split(":")
+            d = float(parts[0]) if parts else 0.0
+            m = float(parts[1]) if len(parts) > 1 else 0.0
+            sec = float(parts[2]) if len(parts) > 2 else 0.0
+            d = abs(d)
+        elif isinstance(sex, (tuple, list)) and len(sex) == 3:
+            d, m, sec = sex
+            sign = np.sign(d) if d != 0 else 1
+            d = abs(float(d))
+            m = float(m)
+            sec = float(sec)
+        else:
+            raise ValueError(
+                "sex must be a 'DD:MM:SS' string or (deg, min, sec) tuple"
+            )
+        return float(sign * (d + m / 60 + sec / 3600))
 
     def string_difference(string1, string2):
         """Return the symmetric word-level difference between two strings.
@@ -583,7 +628,7 @@ class Util(object):
         >>> az, el = montu.Util.where_in_sky(
         ...     RA=6.770358, Dec=-16.751203,
         ...     at=mtime, observer=rionegro)
-        >>> montu.Util.dec2hex(az), montu.Util.dec2hex(el)
+        >>> montu.Util.dec2sex(az), montu.Util.dec2sex(el)
         ('...', '...')
         """
         if at is None:

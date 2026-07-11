@@ -2,6 +2,13 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.20.1
+
+- Renamed **`Util.dec2hex`** to **`Util.dec2sex`** (decimal → sexagesimal DMS/HMS); added inverse **`Util.sex2dec`**.
+- Removed the old `dec2hex` / `hex2dec` aliases; updated tests, notebooks, and examples to the new names.
+- New top-level alias **`S2D`** for sexagesimal-to-decimal conversion; **`D2H`** now points to `dec2sex`.
+- **`mercator_sky_map`** exported at package level (`montu.mercator_sky_map` and `from montu.stars import mercator_sky_map`) for notebooks and Colab workflows.
+
 ## Version 0.20.0
 
 - Version bump to **0.20.0** with updated README, badges, AI assistance disclosure, and Zenodo/Citation metadata.

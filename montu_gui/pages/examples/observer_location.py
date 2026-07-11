@@ -8,7 +8,7 @@ observer = montu.Observer(lon=32.6422, lat=25.6967, height=0.076)
 
 print(f"Site: Thebes  ·  lat {observer.site.lat}°  ·  lon {observer.site.lon}°")
 ## Convert decimal degrees to sexagesimal notation
-print(f"Sexagesimal: {montu.Util.dec2hex(observer.site.lat)}, {montu.Util.dec2hex(observer.site.lon)}")
+print(f"Sexagesimal: {montu.Util.dec2sex(observer.site.lat)}, {montu.Util.dec2sex(observer.site.lon)}")
 
 # Sky at summer solstice, 1500 BCE
 ## Parse a date string into a Montu time object

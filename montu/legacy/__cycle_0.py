@@ -102,7 +102,7 @@ class Montu(object):
         """
         return os.path.join(os.path.dirname(__file__),'data',filename);
 
-    def dec2hex(dec):
+    def dec2sex(dec):
         sgn = np.sign(dec)
         dec = abs(dec)
         h = int(dec)
@@ -486,12 +486,12 @@ class PlanetaryBody(object):
         # AltAz Coordinates at body
         self.az_epoch = self.eq_J2000.transform_to(location.frame)
         Montu.vprint(verbose,"AltAz @ Epoch: ",self.az_epoch.az.value,self.az_epoch.alt.value)
-        Montu.vprint(verbose,"AltAz @ Epoch: ",Montu.dec2hex(self.az_epoch.az.value),Montu.dec2hex(self.az_epoch.alt.value))
+        Montu.vprint(verbose,"AltAz @ Epoch: ",Montu.dec2sex(self.az_epoch.az.value),Montu.dec2sex(self.az_epoch.alt.value))
 
         # AltAz Coordinates at body (using SPICE)
         location.update_site(self.epochs)
         az,el = location.to_local(self.eq_epoch.ra.value,self.eq_epoch.dec.value)
-        Montu.vprint(verbose,"AltAz @ Epoch (SPICE): ",Montu.dec2hex(az),Montu.dec2hex(el))
+        Montu.vprint(verbose,"AltAz @ Epoch (SPICE): ",Montu.dec2sex(az),Montu.dec2sex(el))
     
     def __str__(self):
         str = f"""

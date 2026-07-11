@@ -280,7 +280,7 @@ class Montu(object):
         from IPython.display import display,HTML
         display(HTML(df.to_html()))
 
-    def dec2hex(dec,string=True):
+    def dec2sex(dec,string=True):
 
         dec = float(dec)
         sgn = np.sign(dec)
@@ -391,7 +391,7 @@ class Montu(object):
         return map
 
 # Aliases
-D2H = Montu.dec2hex
+D2H = Montu.dec2sex
 
 ###############################################################
 # Configuration class

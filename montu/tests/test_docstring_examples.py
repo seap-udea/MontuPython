@@ -11,8 +11,10 @@ pytestmark = pytest.mark.docstrings
 
 
 def test_util_examples_match_docstrings():
-    assert montu.Util.dec2hex(15.5) == "15:30:00.000"
-    assert montu.Util.dec2hex(15.5, string=False) == (15.0, 30, 0.0)
+    assert montu.Util.dec2sex(15.5) == "15:30:00.000"
+    assert montu.Util.dec2sex(15.5, string=False) == (15.0, 30, 0.0)
+    assert montu.Util.sex2dec("15:30:00.000") == 15.5
+    assert montu.Util.sex2dec((-7, 15, 0.0)) == -7.25
     assert np.allclose(montu.Util.arange(0, 1, 0.25), [0.0, 0.25, 0.5, 0.75, 1.0])
 
 

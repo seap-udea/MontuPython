@@ -37,8 +37,6 @@ Pre-built installers for **macOS** and **Windows** are published on **[GitHub Re
 
 No Python installation is required. Most features work offline; the observer map (OpenStreetMap) needs an internet connection.
 
-Developers who need to build or publish a new desktop release should see [DEVELOPER.md](DEVELOPER.md).
-
 ## Download and install
 
 Describe here how the package can be downloaded and install it in

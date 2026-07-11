@@ -276,7 +276,7 @@ class Montu(object):
         map = lambda x:a*x+b
         return map
     
-    def dec2hex(dec,string=True):
+    def dec2sex(dec,string=True):
         sgn = np.sign(dec)
         dec = abs(dec)
         h = int(dec)
@@ -339,7 +339,7 @@ class Montu(object):
         return text
 
 # Aliases
-D2H = Montu.dec2hex
+D2H = Montu.dec2sex
 
 ###############################################################
 # Configuration class
