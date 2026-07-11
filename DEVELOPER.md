@@ -59,6 +59,17 @@ Lanzar la app de escritorio en desarrollo:
 ./bin/montu-gui --debug
 ```
 
+Tras `pip install montu`, los mismos comandos están disponibles como binarios del paquete:
+
+```bash
+imontu                 # IPython con MontuPython precargado (~/.montupy/imontu.py)
+imontu --verify        # verificar instalación
+imontu --tests         # correr tests empaquetados (requiere pytest: pip install montu[test])
+
+montu-gui              # Desktop: descarga montu_gui a ~/.montupy/MontuPython si hace falta
+montu-gui --update     # volver a descargar fuentes desde GitHub
+```
+
 ---
 
 ## Limpieza

@@ -63,5 +63,5 @@ setuptools.setup(
     # ######################################################################
     include_package_data=True,
     package_data={'': ['data/*.*', 'tests/*.*']},
-    scripts=['montu/bin/imontu'],
+    scripts=['montu/bin/imontu', 'montu/bin/montu-gui'],
 )
