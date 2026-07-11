@@ -37,7 +37,7 @@ def test_example_notebooks_use_standard_header_and_footer():
         footer = "\n".join(cells[-1]["source"])
 
         assert "Open In Colab" in first, path.name
-        assert "montu-python-logo-complete.png" in second, path.name
+        assert "montu-python-logo-complete.webp" in second, path.name
         assert "git+https://github.com/seap-udea/MontuPython" in third, path.name
         assert "Powered by MontuPython" in footer, path.name
         assert "Jorge I. Zuluaga © 2023-present" in footer, path.name
