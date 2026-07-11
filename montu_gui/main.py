@@ -34,8 +34,11 @@ from PySide6.QtWidgets import (
 )
 
 # ── ensure repo root is on sys.path so 'montu' and 'montu_gui' are importable ─
-_REPO = Path(__file__).parent.parent
-sys.path.insert(0, str(_REPO))
+if getattr(sys, "frozen", False):
+    _REPO = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+else:
+    _REPO = Path(__file__).parent.parent
+    sys.path.insert(0, str(_REPO))
 
 from montu_gui.utils.theme import STYLESHEET, PALETTE
 from montu_gui.utils.debug import enable_debug, log_startup, log_navigation, dbg

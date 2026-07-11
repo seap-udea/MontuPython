@@ -1,0 +1,5 @@
+# Build-time dependencies for MontuPython Desktop distributables.
+# Runtime deps (montu, PySide6, plotly, etc.) come from requirements.txt
+# and setup.py when you `pip install -e .` in the build venv.
+pyinstaller>=6.10,<7
+pyinstaller-hooks-contrib>=2024.8

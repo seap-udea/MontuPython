@@ -1,5 +1,6 @@
 .vscode
 .montuenv
+.desktop-build
 
 # macOS
 .DS_Store
@@ -37,6 +38,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+!montu_gui/montu-desktop.spec
 
 # Installer logs
 pip-log.txt

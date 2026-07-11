@@ -1,7 +1,9 @@
 .PHONY: help show status clean cleanall cleancrap cleanout cleandist \
 	install install-dev build env addall commit pull push release readme import \
 	docs docs-install docs-prepare docs-build docs-clean \
-	test-install test test-docstrings test-notebooks test-structure
+	test-install test test-docstrings test-notebooks test-structure \
+	desktop-show desktop-install-build desktop-build desktop-clean \
+	desktop-package desktop-release desktop-ci
 
 ##################################################################
 # VARIABLES
@@ -15,6 +17,7 @@ PYTHON ?= python3
 PIP ?= pip3
 PACKNAME := montu
 SPHINXOPTS ?=
+DESKTOP_VERSION := $(shell grep '^version' montu_gui/version.py | head -1 | sed "s/.*['\"]\\(.*\\)['\"].*/\\1/")
 
 help:
 	@echo "MontuPython Development Makefile"
@@ -41,6 +44,15 @@ help:
 	@echo "  test-docstrings - Run tests derived from docstring examples"
 	@echo "  test-notebooks  - Run tests derived from example notebooks"
 	@echo "  test-structure  - Validate example notebook structure"
+	@echo ""
+	@echo "MontuPython Desktop ($(DESKTOP_VERSION)):"
+	@echo "  desktop-show          - Show desktop app version"
+	@echo "  desktop-install-build - Install PyInstaller build deps in .desktop-build"
+	@echo "  desktop-build         - Build .app (macOS) or onedir bundle"
+	@echo "  desktop-clean         - Remove desktop build artifacts"
+	@echo "  desktop-package       - Build and create zip/dmg (macOS) or zip (Windows)"
+	@echo "  desktop-release       - Bump version + build (make desktop-release VERSION=0.1.2)"
+	@echo "  desktop-ci            - Trigger GitHub CI build (make desktop-ci TAG=desktop-v0.1.2)"
 
 show:
 	@echo "Version: $(VERSION)"
@@ -88,6 +100,7 @@ cleandist:
 	@-rm -rf dist/
 	@-rm -rf build/
 	@-rm -rf $(PACKNAME)-*/
+	@-rm -rf "dist/MontuPython Desktop.app" dist/MontuPython-Desktop dist/desktop
 
 ##################################################################
 # PACKAGE RULES
@@ -203,3 +216,43 @@ test-notebooks:
 test-structure:
 	@echo "Validating example notebook structure..."
 	@$(PYTHON) -m pytest -m structure
+
+##################################################################
+# MONTUPYTHON DESKTOP
+##################################################################
+desktop-show:
+	@echo "Desktop version: $(DESKTOP_VERSION)"
+
+desktop-install-build:
+	@test -d .desktop-build || $(PYTHON) -m venv .desktop-build
+	@. .desktop-build/bin/activate && pip install -q --upgrade pip
+	@. .desktop-build/bin/activate && pip install -q -e .
+	@. .desktop-build/bin/activate && pip install -q -r requirements.txt
+	@. .desktop-build/bin/activate && pip install -q -r requirements-desktop-build.txt
+	@echo "Desktop build environment ready (.desktop-build)."
+
+desktop-build:
+	@bash bin/build-desktop.sh --no-package
+
+desktop-clean:
+	@echo "Cleaning desktop build artifacts..."
+	@-rm -rf dist/desktop dist/MontuPython-Desktop "dist/MontuPython Desktop.app" build/montu-desktop
+
+desktop-package:
+	@bash bin/build-desktop.sh
+
+desktop-release:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Usage: make desktop-release VERSION=x.y.z"; \
+		exit 1; \
+	fi
+	@bash bin/desktop-release.sh "$(VERSION)"
+
+# Push a desktop tag to trigger GitHub Actions (Mac + Windows builds).
+# Example: make desktop-ci TAG=desktop-v0.1.2
+desktop-ci:
+	@if [ -z "$(TAG)" ]; then \
+		echo "Usage: make desktop-ci TAG=desktop-v0.1.2"; \
+		exit 1; \
+	fi
+	@git push origin "$(TAG)"
