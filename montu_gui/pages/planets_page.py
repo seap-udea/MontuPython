@@ -40,7 +40,9 @@ from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
-from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+from montu_gui.widgets.lets_python_dialog import (
+    LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
+)
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox
 
@@ -306,6 +308,7 @@ class PlanetsPage(LazyPageMixin, QWidget):
         ))
 
         left_lay.addWidget(params_box)
+        left_lay.addLayout(make_lets_python_button_row(self._show_lets_python))
         left_lay.addStretch()
         left_scroll.setWidget(left_inner)
         splitter.addWidget(left_scroll)
@@ -330,16 +333,6 @@ class PlanetsPage(LazyPageMixin, QWidget):
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([300, 900])
         root.addWidget(splitter, stretch=1)
-
-        lp_row = QHBoxLayout()
-        lp_row.setContentsMargins(0, 4, 0, 0)
-        self._lp_btn = QPushButton("🐍  Let's Python!")
-        self._lp_btn.setObjectName("lets_python_btn")
-        self._lp_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._lp_btn.clicked.connect(self._show_lets_python)
-        lp_row.addWidget(self._lp_btn)
-        lp_row.addStretch()
-        root.addLayout(lp_row)
 
         self._date_input.changed.connect(self._schedule_plot)
         self._time_span.valueChanged.connect(self._schedule_plot)

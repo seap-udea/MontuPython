@@ -60,7 +60,9 @@ from montu_gui.utils.debug import dbg, log_ui_event
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.format_cell import FormatCell
 from montu_gui.widgets.help_link import HelpLink
-from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+from montu_gui.widgets.lets_python_dialog import (
+    LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
+)
 from montu_gui.widgets.step_spinbox import StepSpinBox, attach_step_buttons as _attach_step_buttons
 
 _CALENDAR_EXAMPLE = LetsPythonExample(
@@ -928,6 +930,11 @@ class CalendarPage(LazyPageMixin, QWidget):
         self.form_stack.addWidget(self.form_hist)
         left_layout.addWidget(self.form_stack, alignment=Qt.AlignmentFlag.AlignTop)
 
+        left_layout.addLayout(make_lets_python_button_row(
+            self._show_lets_python,
+            tooltip="Show runnable Python code for this calendar conversion",
+        ))
+
         left.setMinimumWidth(420)
         left_scroll = QScrollArea()
         left_scroll.setWidget(left)
@@ -947,20 +954,6 @@ class CalendarPage(LazyPageMixin, QWidget):
 
         self.result_table = ResultTable()
         right_layout.addWidget(self.result_table)
-
-        # "Let's Python!" button — opens code-viewer dialog
-        lets_python_row = QHBoxLayout()
-        lets_python_row.setContentsMargins(0, 6, 0, 0)
-        self._lets_python_btn = QPushButton("🐍  Let's Python!")
-        self._lets_python_btn.setObjectName("lets_python_btn")
-        self._lets_python_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._lets_python_btn.setToolTip(
-            "Show runnable Python code for this calendar conversion"
-        )
-        self._lets_python_btn.clicked.connect(self._show_lets_python)
-        lets_python_row.addWidget(self._lets_python_btn)
-        lets_python_row.addStretch()
-        right_layout.addLayout(lets_python_row)
 
         splitter.addWidget(right)
         splitter.setStretchFactor(0, 3)

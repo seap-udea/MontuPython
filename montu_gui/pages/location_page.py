@@ -38,7 +38,9 @@ from montu_gui.utils.map_consent import (
 )
 from montu_gui.widgets.map_view import ObserverMapView
 from montu_gui.widgets.help_link import HelpLink
-from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+from montu_gui.widgets.lets_python_dialog import (
+    LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
+)
 
 HELP_MODULE = "location"
 _COORDS_PANEL_RATIO = 0.30
@@ -52,9 +54,9 @@ _LOCATION_EXAMPLE = LetsPythonExample(
     heading="Defining an observer site with MontuPython",
     subtitle=(
         "Copy or download the script to see how the Observer Location module "
-        "builds a <code>montu.Observer</code> from decimal coordinates, from "
-        "<code>assets/locations.json</code>, and how to use that observer in "
-        "sky calculations (local time, planet altitude and azimuth)."
+        "builds a <code>montu.Observer</code> from decimal coordinates and "
+        "uses it in sky calculations (local time, planet altitude and azimuth). "
+        "Use <b>Copy and Test in Colab</b> to run it in the test notebook."
     ),
 )
 
@@ -296,6 +298,7 @@ class LocationPage(LazyPageMixin, QWidget):
         params_lay.addWidget(self._summary)
 
         left_lay.addWidget(params_box)
+        left_lay.addLayout(make_lets_python_button_row(self._show_lets_python))
         left_lay.addStretch()
         left_scroll.setWidget(left_inner)
         splitter.addWidget(left_scroll)
@@ -330,16 +333,6 @@ class LocationPage(LazyPageMixin, QWidget):
         splitter.setStretchFactor(1, 7)
         splitter.setSizes([300, 700])
         root.addWidget(splitter, stretch=1)
-
-        lp_row = QHBoxLayout()
-        lp_row.setContentsMargins(0, 4, 0, 0)
-        self._lp_btn = QPushButton("🐍  Let's Python!")
-        self._lp_btn.setObjectName("lets_python_btn")
-        self._lp_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._lp_btn.clicked.connect(self._show_lets_python)
-        lp_row.addWidget(self._lp_btn)
-        lp_row.addStretch()
-        root.addLayout(lp_row)
 
         self._loc_combo.currentTextChanged.connect(self._on_preset_selected)
         self._fmt_group.idClicked.connect(self._on_format_changed)

@@ -29,7 +29,9 @@ from montu_gui.modules.seasons_lunar import (
 from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
-from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+from montu_gui.widgets.lets_python_dialog import (
+    LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
+)
 from montu_gui.widgets.step_spinbox import StepSpinBox
 
 HELP_MODULE = "seasons"
@@ -309,6 +311,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
             self._season_cards.append(card)
             self._seasons_box_lay.addWidget(card)
         self._seasons_layout.addWidget(seasons_box)
+        self._seasons_layout.addLayout(make_lets_python_button_row(self._show_lets_python))
         self._seasons_layout.addStretch()
         left_scroll.setWidget(left_inner)
         splitter.addWidget(left_scroll)
@@ -362,16 +365,6 @@ class SeasonsPage(LazyPageMixin, QWidget):
         splitter.setStretchFactor(1, 3)
         splitter.setSizes([460, 540])
         root.addWidget(splitter, stretch=1)
-
-        lp_row = QHBoxLayout()
-        lp_row.setContentsMargins(0, 4, 0, 0)
-        self._lp_btn = QPushButton("🐍  Let's Python!")
-        self._lp_btn.setObjectName("lets_python_btn")
-        self._lp_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._lp_btn.clicked.connect(self._show_lets_python)
-        lp_row.addWidget(self._lp_btn)
-        lp_row.addStretch()
-        root.addLayout(lp_row)
 
         self._year_input.changed.connect(self._calculate)
 

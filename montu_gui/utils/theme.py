@@ -341,6 +341,8 @@ QPushButton#lets_python_btn {{
     font-weight: 600;
     font-size: 13px;
     min-height: 0;
+    max-width: 220px;
+    text-align: left;
 }}
 QPushButton#lets_python_btn:hover {{
     background-color: {PALETTE['success']};

@@ -53,7 +53,9 @@ from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
-from montu_gui.widgets.lets_python_dialog import LetsPythonDialog, LetsPythonExample
+from montu_gui.widgets.lets_python_dialog import (
+    LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
+)
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox, StepDoubleSpinBox
 
@@ -394,13 +396,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         )
 
         left_lay.addWidget(filt_box)
-
-        self._lp_btn = QPushButton("🐍  Let's Python!")
-        self._lp_btn.setObjectName("lets_python_btn")
-        self._lp_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._lp_btn.clicked.connect(self._show_lets_python)
-        left_lay.addWidget(self._lp_btn)
-
+        left_lay.addLayout(make_lets_python_button_row(self._show_lets_python))
         left_lay.addStretch()
 
         left_scroll.setWidget(left_inner)

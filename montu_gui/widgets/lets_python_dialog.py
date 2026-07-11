@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+from importlib import resources
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QFont, QGuiApplication
+from PySide6.QtCore import Qt, QTimer, QUrl
+from PySide6.QtGui import QDesktopServices, QFont, QGuiApplication
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTextBrowser, QFrame, QFileDialog, QMessageBox,
+    QTextBrowser, QFrame, QFileDialog, QMessageBox, QSizePolicy,
 )
 
 try:
@@ -19,6 +21,31 @@ try:
     _PYGMENTS = True
 except ImportError:
     _PYGMENTS = False
+
+
+COLAB_TEST_NOTEBOOK_URL = (
+    "https://colab.research.google.com/github/seap-udea/MontuPython/"
+    "blob/main/examples/MontuPython-TestCode.ipynb"
+)
+
+
+def make_lets_python_button_row(
+    callback,
+    *,
+    tooltip: str = "Show runnable MontuPython example code",
+) -> QHBoxLayout:
+    """Compact left-aligned row for the Let's Python! button."""
+    row = QHBoxLayout()
+    row.setContentsMargins(0, 6, 0, 0)
+    btn = QPushButton("🐍  Let's Python!")
+    btn.setObjectName("lets_python_btn")
+    btn.setCursor(Qt.CursorShape.PointingHandCursor)
+    btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+    btn.setToolTip(tooltip)
+    btn.clicked.connect(callback)
+    row.addWidget(btn, alignment=Qt.AlignmentFlag.AlignLeft)
+    row.addStretch()
+    return row
 
 
 @dataclass(frozen=True)
@@ -33,8 +60,32 @@ class LetsPythonExample:
 
 
 def load_example_code(example: LetsPythonExample) -> str:
-    """Read example script text from disk."""
-    return example.source_path.read_text(encoding="utf-8")
+    """Read example script text from disk or the frozen app bundle."""
+    path = example.source_path
+    if path.is_file():
+        return path.read_text(encoding="utf-8")
+
+    if getattr(sys, "frozen", False):
+        bundled = (
+            Path(getattr(sys, "_MEIPASS", ""))
+            / "montu_gui"
+            / "pages"
+            / "examples"
+            / path.name
+        )
+        if bundled.is_file():
+            return bundled.read_text(encoding="utf-8")
+
+    try:
+        return (
+            resources.files("montu_gui.pages.examples")
+            .joinpath(path.name)
+            .read_text(encoding="utf-8")
+        )
+    except (FileNotFoundError, ModuleNotFoundError, TypeError, OSError):
+        pass
+
+    raise FileNotFoundError(path)
 
 
 # ── Pygments HTML rendering ───────────────────────────────────────────────────
@@ -150,6 +201,17 @@ class LetsPythonDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
+        self._colab_btn = QPushButton("🧪  Copy and Test in Colab")
+        self._colab_btn.setMinimumHeight(36)
+        self._colab_btn.setToolTip(
+            "Copy the code to the clipboard and open the MontuPython "
+            "test notebook in Google Colab"
+        )
+        self._colab_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._colab_btn.clicked.connect(self._copy_and_test_in_colab)
+        self._colab_btn.setEnabled(not self._load_error)
+        btn_row.addWidget(self._colab_btn)
+
         self._download_btn = QPushButton("⬇  Download .py")
         self._download_btn.setMinimumHeight(36)
         self._download_btn.setToolTip(
@@ -183,6 +245,15 @@ class LetsPythonDialog(QDialog):
         QTimer.singleShot(
             2200,
             lambda: self._copy_btn.setText("📋  Copy to clipboard"),
+        )
+
+    def _copy_and_test_in_colab(self):
+        QGuiApplication.clipboard().setText(self._code)
+        QDesktopServices.openUrl(QUrl(COLAB_TEST_NOTEBOOK_URL))
+        self._colab_btn.setText("✓  Copied — paste in Colab")
+        QTimer.singleShot(
+            3200,
+            lambda: self._colab_btn.setText("🧪  Copy and Test in Colab"),
         )
 
     def _download_code(self):

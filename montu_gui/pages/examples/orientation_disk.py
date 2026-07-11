@@ -1,65 +1,37 @@
-"""
-MontuPython orientation disk example.
+# %pip install montu plotly
 
-Reproduces the logic of the Orientation Disk module using only the
-``montu`` package: extreme rise and set azimuths for celestial bodies
-over a multi-year window.
-
-Run:
-    python montu_orientation_disk.py
-"""
+import math
 
 import montu
-import math
-import numpy as np
+import plotly.graph_objects as go
 
-try:
-    import plotly.graph_objects as go
-except ImportError:
-    go = None
-
-# ─── Parameters (edit as needed) ─────────────────────────────────────────────
-
-YEAR = 2560
-ERA = "bce"          # "bce" or "ce"
-SPAN_YEARS = 3
-STEP_DAYS = 5
-HORIZON_EL = 0.0     # effective horizon altitude [°]
-
-OBSERVER = montu.Observer(lon=31.1342, lat=29.9792, height=0.075)  # Giza
+YEAR, ERA = 2560, "bce"
+SPAN_YEARS, STEP_DAYS, HORIZON_EL = 3, 5, 0.0
+## Observer at Giza (lon/lat in degrees, height in km)
+observer = montu.Observer(lon=31.1342, lat=29.9792, height=0.075)
 BODIES = ["Sun", "Moon", "Venus"]
 
 
-# ─── Helpers ─────────────────────────────────────────────────────────────────
-
-def year_to_jed(year: int, era: str) -> float:
-    y = max(1, int(year))
-    if era.lower() == "bce":
-        date_str = f"bce {y:04d}-01-01 00:00:00"
-    else:
-        date_str = f"{y:04d}-01-01 00:00:00"
-    return montu.Time(date_str, calendar="proleptic").jed
-
-
-def make_body(name: str):
+def make_body(name):
     if name.lower() == "sun":
+        ## Solar disk for rise/set calculations
         return montu.Sun()
     if name.lower() == "moon":
+        ## Lunar disk for rise/set calculations
         return montu.Moon()
+    ## Planet instance by name
     return montu.Planet(name)
 
 
-def rise_set_az(body, observer, jed: float, horizon_el: float = 0.0):
-    """Return (rise_az°, set_az°) at one epoch, or (None, None) on failure."""
+def rise_set_az(body, jed):
+    """Rise and set azimuths at one Julian day (uses PyEphem via montu)."""
     import ephem as pyephem
 
     site = pyephem.Observer()
     site.lon = observer.site.lon
     site.lat = observer.site.lat
     site.elevation = observer.site.elevation
-    site.pressure = observer.site.pressure
-    site.temp = observer.site.temp
-    site.horizon = str(horizon_el)
+    site.horizon = str(HORIZON_EL)
     site.date = float(jed) - montu.PYEPHEM_JD_REF
 
     rise_az = set_az = None
@@ -67,8 +39,8 @@ def rise_set_az(body, observer, jed: float, horizon_el: float = 0.0):
         rd = site.next_rising(body.seba)
         rs = pyephem.Observer()
         rs.lon, rs.lat = site.lon, site.lat
-        rs.elevation, rs.pressure, rs.temp = site.elevation, site.pressure, site.temp
-        rs.horizon = str(horizon_el)
+        rs.elevation = site.elevation
+        rs.horizon = str(HORIZON_EL)
         rs.date = rd
         body.seba.compute(rs)
         rise_az = math.degrees(float(body.seba.az))
@@ -76,16 +48,12 @@ def rise_set_az(body, observer, jed: float, horizon_el: float = 0.0):
         pass
 
     try:
-        site2 = pyephem.Observer()
-        site2.lon, site2.lat = site.lon, site.lat
-        site2.elevation, site2.pressure, site2.temp = site.elevation, site.pressure, site.temp
-        site2.horizon = str(horizon_el)
-        site2.date = site.date
-        sd = site2.next_setting(body.seba)
+        site.date = float(jed) - montu.PYEPHEM_JD_REF
+        sd = site.next_setting(body.seba)
         ss = pyephem.Observer()
         ss.lon, ss.lat = site.lon, site.lat
-        ss.elevation, ss.pressure, ss.temp = site.elevation, site.pressure, site.temp
-        ss.horizon = str(horizon_el)
+        ss.elevation = site.elevation
+        ss.horizon = str(HORIZON_EL)
         ss.date = sd
         body.seba.compute(ss)
         set_az = math.degrees(float(body.seba.az))
@@ -95,75 +63,57 @@ def rise_set_az(body, observer, jed: float, horizon_el: float = 0.0):
     return rise_az, set_az
 
 
-# ─── 1. Sweep azimuths ───────────────────────────────────────────────────────
-
-jed_start = year_to_jed(YEAR, ERA)
+date_str = f"bce {YEAR:04d}-01-01 00:00:00" if ERA == "bce" else f"{YEAR:04d}-01-01 00:00:00"
+## Julian day at the start of the reference year
+jed_start = montu.Time(date_str, calendar="proleptic").jed
 jed_end = jed_start + SPAN_YEARS * 365.25
-jed_steps = np.arange(jed_start, jed_end, STEP_DAYS)
 
-print(f"\nOrientation disk  ·  {YEAR} {ERA.upper()}  ·  {OBSERVER.site.lat}°N")
-print(f"Window: {SPAN_YEARS} years  ·  step {STEP_DAYS} days\n")
+print(f"Orientation disk  ·  {YEAR} {ERA.upper()}  ·  Giza")
 
 for name in BODIES:
     body = make_body(name)
     rise_azs, set_azs = [], []
-
-    for jed in jed_steps:
-        body.seba.compute(OBSERVER.site)
-        r_az, s_az = rise_set_az(body, OBSERVER, jed, HORIZON_EL)
+    jed = jed_start
+    while jed < jed_end:
+        ## Update the body's ephemeris for the observer site
+        body.seba.compute(observer.site)
+        r_az, s_az = rise_set_az(body, jed)
         if r_az is not None:
             rise_azs.append(r_az)
         if s_az is not None:
             set_azs.append(s_az)
+        jed += STEP_DAYS
 
-    if not rise_azs and not set_azs:
-        print(f"{name:8s}  — no rise/set events in window")
+    if rise_azs or set_azs:
+        print(
+            f"{name:8s}  rise {min(rise_azs, default=0):6.1f}°–{max(rise_azs, default=0):6.1f}°   "
+            f"set {min(set_azs, default=0):6.1f}°–{max(set_azs, default=0):6.1f}°"
+        )
+
+# Polar plot of extreme azimuths
+fig = go.Figure()
+colors = {"Sun": "#B71C1C", "Moon": "#1565C0", "Venus": "#C62828"}
+for name in BODIES:
+    body = make_body(name)
+    rise_azs = []
+    jed = jed_start
+    while jed < jed_end:
+        r_az, _ = rise_set_az(body, jed)
+        if r_az is not None:
+            rise_azs.append(r_az)
+        jed += STEP_DAYS
+    if not rise_azs:
         continue
+    color = colors.get(name, "#5eb3ff")
+    for az in (min(rise_azs), max(rise_azs)):
+        fig.add_trace(go.Scatterpolar(
+            r=[0, 0.9], theta=[az, az], mode="lines",
+            line=dict(color=color, width=2), name=f"{name}",
+        ))
 
-    rise_n = min(rise_azs) if rise_azs else float("nan")
-    rise_s = max(rise_azs) if rise_azs else float("nan")
-    set_s  = min(set_azs)  if set_azs  else float("nan")
-    set_n  = max(set_azs)  if set_azs  else float("nan")
-    print(
-        f"{name:8s}  rise {rise_n:6.1f}°–{rise_s:6.1f}°   "
-        f"set {set_s:6.1f}°–{set_n:6.1f}°"
-    )
-
-# ─── 2. Optional polar plot ──────────────────────────────────────────────────
-
-if go is not None:
-    fig = go.Figure()
-    colors = {"Sun": "#B71C1C", "Moon": "#1565C0", "Venus": "#C62828"}
-
-    for name in BODIES:
-        body = make_body(name)
-        rise_azs, set_azs = [], []
-        for jed in jed_steps:
-            r_az, s_az = rise_set_az(body, OBSERVER, jed, HORIZON_EL)
-            if r_az is not None:
-                rise_azs.append(r_az)
-            if s_az is not None:
-                set_azs.append(s_az)
-        if not rise_azs:
-            continue
-        color = colors.get(name, "#5eb3ff")
-        for az in sorted(set([min(rise_azs), max(rise_azs)])):
-            fig.add_trace(go.Scatterpolar(
-                r=[0, 0.9], theta=[az, az], mode="lines",
-                line=dict(color=color, width=2), name=f"{name} rise",
-            ))
-            fig.add_trace(go.Scatterpolar(
-                r=[0.95], theta=[az], mode="markers",
-                marker=dict(symbol="triangle-up", size=10, color=color),
-                showlegend=False,
-            ))
-
-    fig.update_layout(
-        polar=dict(
-            angularaxis=dict(direction="clockwise", rotation=90),
-            radialaxis=dict(visible=False, range=[0, 1.2]),
-        ),
-        title=f"Orientation disk — {YEAR} {ERA.upper()} — Giza",
-        height=640,
-    )
-    fig.show()
+fig.update_layout(
+    polar=dict(angularaxis=dict(direction="clockwise", rotation=90), radialaxis=dict(visible=False)),
+    title=f"Orientation disk — {YEAR} {ERA.upper()}",
+    height=640,
+)
+fig.show()
