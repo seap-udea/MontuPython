@@ -4,6 +4,8 @@
 
 # macOS
 .DS_Store
+*:Zone.Identifier
+**/*:Zone.Identifier
 __pycache__.fargopyenv
 # Byte-compiled / optimized / DLL files
 __pycache__/
