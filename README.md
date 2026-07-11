@@ -26,9 +26,18 @@ The app allows you to explore astronomical ephemerides for the ancient world dir
 
 **MontuPython Desktop** is the graphical front-end to the library, built with PySide6. It offers pre-built tools for users who prefer not to program at the Python level, or who want quick access to core functionality — including a **Calendar Calculator** and **Seasons & Lunar Phases** module.
 
-<!-- TBD: download and run instructions will be added here. -->
+#### Download
 
-*Download and installation instructions — coming soon.*
+Pre-built installers for **macOS** and **Windows** are published on **[GitHub Releases](https://github.com/seap-udea/MontuPython/releases)**. Open that page and look for a release whose tag starts with `desktop-v` (for example, `desktop-v0.1.1`). Download the file that matches your operating system:
+
+| Platform | File to download | How to run |
+|----------|------------------|------------|
+| **macOS** | `*-macos.dmg` or `*-macos.zip` | Open the `.dmg` and drag **MontuPython Desktop** to Applications, or unzip the `.zip` and open `MontuPython Desktop.app`. If macOS shows a security warning the first time, right-click the app and choose **Open**. |
+| **Windows** | `*-windows.zip` | Unzip the archive, open the `MontuPython-Desktop` folder, and double-click `MontuPython-Desktop.exe`. If SmartScreen warns you, choose **More info** → **Run anyway**. |
+
+No Python installation is required. Most features work offline; the observer map (OpenStreetMap) needs an internet connection.
+
+Developers who need to build or publish a new desktop release should see [DEVELOPER.md](DEVELOPER.md).
 
 ## Download and install
 
