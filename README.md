@@ -1,7 +1,7 @@
 # Montu Python /mnṯw ꜥꜣpp(y)/
 ## Astronomical ephemerides for the ancient world
 
-<p align="center"><img src="https://github.com/seap-udea/MontuPython/raw/main/montu/data/montu-python-logo-complete.png" width="300" alt="MontuPython logo"/></p>
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/raw/main/montu/data/montu-python-logo-complete.webp" width="300" alt="MontuPython logo"/></p>
 
 [![PyPI](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/) [![Downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue)](https://www.python.org/) [![GitHub](https://img.shields.io/badge/GitHub-seap--udea%2FMontuPython-blue?logo=github)](https://github.com/seap-udea/MontuPython) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21298063.svg)](https://doi.org/10.5281/zenodo.21298063) [![arXiv](https://img.shields.io/badge/arXiv-preprint%20forthcoming-b31b1b)](#) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/README.ipynb)
 [![Powered by PyEphem](https://img.shields.io/badge/powered%20by-PyEphem-blue)](https://pypi.org/project/ephem/) [![Powered by PyMeeus](https://img.shields.io/badge/powered%20by-PyMeeus-blue)](https://pypi.org/project/pymeeus/) [![Powered by spiceypy](https://img.shields.io/badge/powered%20by-spiceypy-blue)](https://pypi.org/project/spiceypy/) [![Powered by pyplanets](https://img.shields.io/badge/powered%20by-pyplanets-blue)](https://pypi.org/project/pyplanets/)
