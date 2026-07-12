@@ -1,12 +1,21 @@
 Examples
 ========
 
+Tutorial by example notebooks
+-----------------------------
+
 .. toctree::
    :maxdepth: 2
-   :caption: Examples
 
-   Time: Basic functionalities <examples/MontuPython-BasicFunctions>
+   Basic functionalities <examples/MontuPython-BasicFunctions>
    Time: Basic time functionalities <examples/MontuPython-MonTime>
-   Example: Compute *Montunctions* <examples/MontuPython-Montunctions>
    Test code <examples/MontuPython-TestCode>
+
+Advanced examples
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   Montunctions <examples/MontuPython-Montunctions>
    Example: Venus Azimutal Distributions <examples/MontuPython-VenusAzimuths>
