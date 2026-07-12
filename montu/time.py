@@ -11,7 +11,6 @@ import re
 import copy 
 
 import numpy as np
-import spiceypy as spy
 from datetime import datetime
 import ephem as pyephem
 
@@ -87,6 +86,31 @@ SEASON_HORUS = {'0':'Mesut','1':'Akhet','2':'Peret','3':'Shemu'}
 # Julian day of the first apokatastasis (coincidence heliakal rise of sopedet and I-Akhet-1)
 JED_APOKATASTASIS = 705497.5 # bce 2782-07-20
 
+MJD_EPOCH = np.datetime64('1858-11-17T00:00:00')
+
+def _jed_from_datetime64(dt64):
+    """Julian Day (UTC) from a proleptic-Gregorian ``datetime64``."""
+    mjd = (dt64 - MJD_EPOCH) / np.timedelta64(1, 'D')
+    return float(mjd) + 2400000.5
+
+def _et_from_jed(jed):
+    """Ephemeris seconds past J2000 from a Julian Day."""
+    return ROUND_SECONDS((jed - JED_2000) * DAY)
+
+def _jed_from_et(et):
+    """Julian Day from ephemeris seconds past J2000."""
+    return ROUND_JULIANDAYS(JED_2000 + et / DAY)
+
+def _datetime64_from_jed(jed):
+    """Proleptic-Gregorian ``datetime64`` from a Julian Day (UTC)."""
+    mjd = jed - 2400000.5
+    us = int(round(mjd * DAY * 1e6))
+    return MJD_EPOCH + np.timedelta64(us, 'us')
+
+def _datestr_from_datetime64(dt64):
+    """ISO-like string from a ``datetime64`` timestamp."""
+    return str(dt64).replace('T', ' ')
+
 ###############################################################
 # Main class
 ###############################################################
@@ -96,7 +120,7 @@ class Time(object):
     This is the central class of MontuPython.  It converts dates between the
     proleptic Gregorian calendar, the mixed Julian/Gregorian calendar, the
     ancient Egyptian civil (caniucular) calendar, and several numerical
-    time-scales used by the underlying ephemeris engines (SPICE, PyEphem,
+    time-scales used by the underlying ephemeris engines (PyEphem,
     PyMeeus, PyPlanets).
 
     Parameters
@@ -243,27 +267,22 @@ class Time(object):
                     self.readable.comps[2])
                 )
 
-                # Convert to terrestrial time as if date was given in TT scale
-                et = spy.utc2et(self.readable.datespice)
-                deltat_leaps = spy.deltet(et,'ET')
-                et -= deltat_leaps
-                
-                # Round et: we don't need precision below 1 second
-                et = ROUND_SECONDS(et)
-                
-                # According to scale, add or remove deltat
-                if scale == 'tt':
-                    # et is terrestrial time
-                    tt = et
-                    et = et - deltat
-                else:
-                    # et is utc time
-                    tt = et + deltat
-                    et = et
+                # Proleptic Gregorian Julian day from parsed civil date
+                jd = ROUND_JULIANDAYS(
+                    _jed_from_datetime64(self.readable.obj_datetime64)
+                )
 
-                # Get Julian day
-                jed = ROUND_JULIANDAYS(spy.unitim(et,'ET','JED'))
-                jtd = ROUND_JULIANDAYS(spy.unitim(tt,'ET','JED'))
+                # According to scale, derive TT and UTC ephemeris seconds
+                if scale == 'tt':
+                    jtd = jd
+                    tt = _et_from_jed(jtd)
+                    et = tt - deltat
+                    jed = ROUND_JULIANDAYS(jtd - deltat / DAY)
+                else:
+                    jed = jd
+                    et = _et_from_jed(jed)
+                    tt = et + deltat
+                    jtd = ROUND_JULIANDAYS(jed + deltat / DAY)
 
                 # Correct tt according to year interval
                 year = self.readable.comps[0]*self.readable.comps[1]
@@ -298,7 +317,7 @@ class Time(object):
                         self.readable.comps[7]/(24*60*60*1e6))
                 pymeeus_epoch = pymeeus_Epoch(*args)
                 jd = pymeeus_epoch.jde()
-                et = ROUND_SECONDS(spy.unitim(jd,'JED','ET'))
+                et = _et_from_jed(ROUND_JULIANDAYS(jd))
                 
                 # According to scale choose terrestrial time
                 if scale == 'tt':
@@ -455,7 +474,7 @@ class Time(object):
             jd = time
         elif format == 'tt':
             et = time
-            jd = ROUND_JULIANDAYS(spy.unitim(et,'ET','JED'))
+            jd = _jed_from_et(et)
         else:
             raise AssertionError(f"Format '{format}' not recognized (valid 'iso', 'tt', 'jd')")
 
@@ -467,7 +486,7 @@ class Time(object):
         self.bce = True if year<=0 else False
         
         # Get terrestrial time
-        et = ROUND_SECONDS(spy.unitim(jd,'JED','ET'))
+        et = _et_from_jed(jd)
         if scale == 'tt':
             self.jtd = ROUND_JULIANDAYS(jd)
             self.tt = et
@@ -562,21 +581,17 @@ class Time(object):
             cals[0] -= 1
             cals[0] *= -1
         self.readable.datemix = f'{cals[0]}-{cals[1]:02d}-{cals[2]:02d} {cals[3]:02d}:{cals[4]:02d}:{cals[4]:02d}'
-        
-        # Set string from terrestrial time
-        self.readable.datespice = spy.et2utc(self.et+spy.deltet(self.et,'ET'),'C',4)
-        datestr = self.readable.datespice
 
-        # Converting from 
-        sub_bc = lambda m:f'-{int(m.group(1))-1:04d}-{MONTH_ABREVS[m.group(2)]:02d}-'
-        sub_ad = lambda m:f'{int(m.group(1)):04d}-{MONTH_ABREVS[m.group(2)]:02d}-'
-        sub_nm = lambda m:f'-{MONTH_ABREVS[m.group(1)]:02d}-'
-        if self.bce:
-            datestr = re.sub(r'(\d+)\s*B.C.\s*(\w+)\s*',sub_bc,datestr)
-        elif 'A.D.' in datestr:
-            datestr = re.sub(r'(\d+)\s*A.D.\s*(\w+)\s*',sub_ad,datestr)
+        # Human-readable civil date for the active calendar
+        if self.calendar == 'proleptic':
+            datestr = _datestr_from_datetime64(_datetime64_from_jed(self.jed))
         else:
-            datestr = re.sub(r'\s+(\w+)\s+',sub_nm,datestr)
+            pymeeus_epoch = pymeeus_Epoch(self.jtd)
+            year, month, day, hour, minute, second = pymeeus_epoch.get_full_date()
+            datestr = (
+                f'{year}-{int(month):02d}-{int(day):02d} '
+                f'{int(hour):02d}:{int(minute):02d}:{second:04.1f}'
+            )
 
         # Convert to caniucular
         self.readable.datecan = Time._jed_to_caniucular(self.jed)
@@ -710,46 +725,50 @@ class Time(object):
         difference = self.jed - mtime.jed
         return difference
 
+    def _ensure_readable(self):
+        """Populate human-readable fields when only partial data exist (e.g. weekday)."""
+        if not hasattr(self.readable, "datepro"):
+            self.get_readable()
+
     def __str__(self):
 
-        if len(self.readable.__dict__.keys()) == 0:
-            self.get_readable()
+        self._ensure_readable()
 
         str = f"""Montu Time Object:
 -------------------------- 
 Readable:
-    Date in proleptic UTC: {self.readable.datepro}
-    Date in mixed UTC: {self.readable.datemix}
-    Date in SPICE format: {self.readable.datespice}
-    Date in caniucular format: {self.readable.datecan}
-    Weekday: {self.readable.weekday} ({self.readable.weekday_name})
-    Components: {self.readable.comps}
+    Date in proleptic UTC (.readable.datepro): {self.readable.datepro}
+    Date in mixed UTC (.readable.datemix): {self.readable.datemix}
+    Date in SPICE format (.readable.datespice): {self.readable.datespice}
+    Date in caniucular format (.readable.datecan): {self.readable.datecan}
+    Weekday (.readable.weekday): {self.readable.weekday} ({self.readable.weekday_name})
+    Components (.readable.comps): {self.readable.comps}
 Objects:
-    Date in datetime64 format: {self.readable.obj_datetime64}
-    Date in PyPlanet Epoch: {self.obj_pyplanet}
-    Date in PyEphem Epoch: {self.obj_pyephem}
+    Date in datetime64 format (.readable.obj_datetime64): {self.readable.obj_datetime64}
+    Date in PyPlanet Epoch (.obj_pyplanet): {self.obj_pyplanet}
+    Date in PyEphem Epoch (.obj_pyephem): {self.obj_pyephem}
 General:
-    Is bce: {self.bce}
-    Is Julian: {self.isjulian}
+    Is bce (.bce): {self.bce}
+    Is Julian (.isjulian): {self.isjulian}
 Uniform scales:
     Terrestrial time:
-        tt: {self.tt}
-        jtd: {self.jtd}
-        htd: {self.htd}
+        tt (.tt): {self.tt}
+        jtd (.jtd): {self.jtd}
+        htd (.htd): {self.htd}
     UTC time:
-        et: {self.et}
-        jed: {self.jed}
-        hed: {self.hed}
-    Delta-t = TT - UTC = {self.deltat}
+        et (.et): {self.et}
+        jed (.jed): {self.jed}
+        hed (.hed): {self.hed}
+    Delta-t = TT - UTC (.deltat): {self.deltat}
 """
         return str
     
     def __repr__(self) -> str:
-        if len(self.readable.__dict__.keys()) == 0:
-            str=f"Time(JED {self.jed}/JTD {self.jtd})"    
-        else:
-            str = f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/'{self.readable.datecan}'/JED {self.jed}/JTD {self.jtd})"
-        return str
+        self._ensure_readable()
+        return (
+            f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/"
+            f"'{self.readable.datecan}'/JED {self.jed}/JTD {self.jtd})"
+        )
 
     def strftime(self,timefmt='%Y'):
         """Format the date as a string using ``strftime``-like codes.

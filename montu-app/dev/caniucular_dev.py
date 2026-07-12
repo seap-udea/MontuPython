@@ -24,44 +24,24 @@ module_field_doc = """
 font_text = '1.2em'
 font_input = '1em'
 
-historical_dates = {
-'bce 2782-07-20':'''
-This is the first *apokatastais*, ie. the date when I-Akhet-1 coincides with the heliacal rise of sopedet (Sirius).
-''',
-'bce 1322-07-20':'''
-The second *apokatastais*, ie. the date when I-Akhet-1 coincides with the heliacal rise of sopedet (Sirius), happens 
-in the middle of the new Reign.
-''',
-'139-07-20':'''
-This is the third *apokatastais*, ie. the date when I-Akhet-1 coincides with the heliacal rise of sopedet (Sirius), and it 
-was identified in the writings by Censorino (Lull, p.95)
-''',
-'bce 559-10-19':'''
-This is a date appearing in the Papyrus Louvre 7848 where we have both, the civil date and the lunar date
-(see Lull, p. 94, date there III-Shemu-13)
-''',
-'bce 237-08-23':'''
-This date comes from an inscription in the Edfu ptolemaic temple where it is evident that egyptians know the 25 years lunar cycle
-(see Lull, p.92, date there III-Shemu-7).
-''',
-'bce 212-08-17':'''
-This date comes from an inscription in the Edfu ptolemaic temple where it is evident that egyptians know the 25 years lunar cycle
-(see Lull, p.92, date there III-Shemu-7).
-''',
-'bce 238-03-07':'''
-This is the date of the Canopus decree (see Lull, p.76, date there I-Peret-17).
-''',
-'384-07-23':'''
-Heliacal rise of sopedet (Sirius) according to computation of Theon (see Lull, p.98, date there I-Akhet-1).
-''',
-'bce 688-06-11':'''
-This is the date appearing in the first document with a perfect chronology, namely the hieratical papyrus Louvre E3228d.
-The date falls in the third year of king Taharqa (see Lull, p.105, date there I-Peret-10).
-''',
-}
-historical_dates_options = []
-for key,item in historical_dates.items():
-    historical_dates_options += [dict(label=key,value=key)]
+
+def _historical_markdown(entry: dict) -> str:
+    parts = []
+    for key in ("description", "details"):
+        text = entry.get(key, "").strip()
+        if text:
+            parts.append(text)
+    source = entry.get("source", "").strip()
+    if source:
+        parts.append(f"*Source: {source}*")
+    return "\n\n".join(parts)
+
+
+historical_dates = montu.load_historical_dates()
+historical_dates_options = [
+    dict(label=item.get("label", key), value=key)
+    for key, item in historical_dates.items()
+]
 
 ################################################################
 # Layout
@@ -203,7 +183,7 @@ def convert_historical(button,hdate):
         datemix, mtime.readable.datecan,
         comps_can[0], comps_can[1], comps_can[2], comps_can[3], 
         era, comps[0], comps[1], comps[2], 
-        dcc.Markdown(historical_dates[hdate])
+        dcc.Markdown(_historical_markdown(historical_dates[hdate]))
     )
     return return_tuple
 

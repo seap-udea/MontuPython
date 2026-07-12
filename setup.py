@@ -32,7 +32,7 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         ],
-    version='0.20.3',
+    version='0.20.5',
 
     # ######################################################################
     # FILES
@@ -50,7 +50,7 @@ setuptools.setup(
     # DEPENDENCIES
     # ######################################################################
     install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem',
-                      'pymeeus','regex','pandas','tabulate','spiceypy',
+                      'pymeeus','regex','pandas','tabulate',
                       'pyplanets','requests',
                       'dash','dash_bootstrap_components'],
 

@@ -41,10 +41,6 @@ examples_dir = GUI / "pages" / "examples"
 for example_py in sorted(examples_dir.glob("*.py")):
     datas.append((str(example_py), "montu_gui/pages/examples"))
 
-historical_dates = ROOT / "montu-app" / "data" / "historical_dates.json"
-if historical_dates.is_file():
-    datas.append((str(historical_dates), "montu-app/data"))
-
 hiddenimports = collect_submodules("montu")
 hiddenimports += collect_submodules("montu_gui")
 hiddenimports += [

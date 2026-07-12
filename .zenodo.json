@@ -11,13 +11,14 @@
       "name": "Zuluaga, Jorge I.",
       "affiliation": "Universidad de Antioquia",
       "orcid": "0000-0002-6140-3116"
-    },
-    {
-      "name": "Vivas, Francisco",
-      "affiliation": "Universidad de Antioquia"
     }
   ],
   "contributors": [
+    {
+      "name": "Vivas Fernández, Francisco",
+      "affiliation": "Universitat Autònoma de Barcelona",
+      "type": "Other"
+    },
     {
       "name": "Agudelo, Juanita",
       "affiliation": "Universidad de Antioquia",
@@ -50,7 +51,7 @@
       "scheme": "url"
     },
     {
-      "identifier": "https://montupythob.readthedocs.io/",
+      "identifier": "https://montupython.readthedocs.io/",
       "relation": "isDocumentedBy",
       "scheme": "url"
     },

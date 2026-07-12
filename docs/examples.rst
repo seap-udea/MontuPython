@@ -9,6 +9,7 @@ Tutorial by example notebooks
 
    Basic functionalities <examples/MontuPython-BasicFunctions>
    Time: Basic time functionalities <examples/MontuPython-MonTime>
+   Egyptian civil calendar: historical cross-checks <examples/MontuPython-EgyptianCalendar>
    Test code <examples/MontuPython-TestCode>
 
 Advanced examples

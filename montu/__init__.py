@@ -38,9 +38,6 @@ MARCSEC = 1e-3/3600 # milliarcsec in degrees
 # Avoid warnings
 warnings.filterwarnings("ignore")
 
-# Load basic SPICE kernels
-Util.load_kernels()
-
 # Load planetary data
 ALLPLANETS = Util.load_planets()
 

@@ -19,3 +19,15 @@ print(t)
 t = montu.Time("hrw 0-I-Akhet-1", calendar="caniucular")
 print(f"\nhrw 0-I-Akhet-1")
 print(t)
+
+# Historical date (Canopus Decree)
+## Preset dates ship with MontuPython — same catalogue as Calendar → Historical dates
+historical_dates = montu.load_historical_dates()
+date_key = "bce 238-03-07"
+entry = historical_dates[date_key]
+t = montu.Time(date_key, calendar="mixed")
+print(f"\n{entry['label']}")
+print(f"  Julian/Gregorian (mixed): {date_key}")
+print(f"  Known civil date: {entry['egyptian_date']}")
+print(f"  Computed civil date: {t.readable.datecan}")
+print(t)

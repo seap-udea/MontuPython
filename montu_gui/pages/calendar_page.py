@@ -75,7 +75,9 @@ _CALENDAR_EXAMPLE = LetsPythonExample(
         "in the Calendar Calculator. Example 1 converts <b>today</b> to the "
         "Egyptian civil calendar; Example 2 recovers the Gregorian date of the "
         "<b>First Apokatastasis</b> (epoch of the caniucular calendar, "
-        "Horus year 0, <code>hrw 0-I-Akhet-1</code>)."
+        "Horus year 0, <code>hrw 0-I-Akhet-1</code>); Example 3 loads the "
+        "<b>Canopus Decree</b> from the historical-dates catalogue and compares "
+        "its known civil date with MontuPython's conversion."
     ),
 )
 

@@ -28,11 +28,12 @@ help:
 	@echo "  install     - Install the package"
 	@echo "  install-dev - Install in development mode"
 	@echo "  build       - Build distribution packages"
-	@echo "  env         - Create local dev environment (.montuenv)"
+	@echo "  env         - Create local dev environment (.venv)"
 	@echo "  clean       - Remove cache files"
 	@echo "  cleanall    - Deep clean (build + caches)"
 	@echo "  push        - Commit and push current branch"
 	@echo "  release     - Release a new version (make release RELMODE=release VERSION=x.y.z)"
+	@echo "  release-pipeline - Full release workflow (./release-pipeline.sh --version x.y.z [--tag a.b.c])"
 	@echo "  readme      - Convert README.ipynb to README.md"
 	@echo "  docs         - Prepare examples and build Sphinx HTML (prepare + build)"
 	@echo "  docs-install - Install documentation dependencies (sphinx, myst-parser, nbsphinx, etc.)"
@@ -114,14 +115,14 @@ install-dev:
 
 env:
 	@echo "Creating local development environment..."
-	@test -d .montuenv || $(PYTHON) -m venv .montuenv
+	@test -d .venv || $(PYTHON) -m venv .venv
 	@echo "Installing dependencies from setup.py..."
-	@. .montuenv/bin/activate && pip install --upgrade pip
-	@. .montuenv/bin/activate && pip install -e .
+	@. .venv/bin/activate && pip install --upgrade pip
+	@. .venv/bin/activate && pip install -e .
 	@echo "______________________________________________________________________"
 	@echo "Environment setup complete."
 	@echo "To activate the environment, run:"
-	@echo "source .montuenv/bin/activate"
+	@echo "source .venv/bin/activate"
 
 build: clean
 	$(PYTHON) -m build

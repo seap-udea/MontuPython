@@ -2,15 +2,25 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.20.1
+## Version 0.21.x
+
+- **SPICE removed from the active package** — kernels are no longer loaded on import; time conversions use NumPy and PyMeeus instead of `spiceypy`. `spiceypy` was dropped from install dependencies.
+- **Archived SPICE code** — earlier cycle modules (`__cycle_*.py`) and NAIF kernels moved to `contrib/montu-deprecated/` (outside the installable package).
+- **`load_historical_dates()`** — historical event catalogue shipped in `montu/data/historical_dates.json`; shared by the library, Desktop, and MontuApp.
+- **New example** — `examples/MontuPython-EgyptianCalendar.ipynb` compares known Egyptian civil dates from historical events against MontuPython.
+- **`Time.__str__`** — clearer readable output with attribute paths (e.g. `.readable.datepro`) and weekday merged into the components line.
+- **CLI module renamed** — `montu/imontu_cli.py` → `montu/cli.py` (entry points `imontu` and `montu-gui` unchanged).
+- **Release pipeline** — `release-pipeline.sh` at the repository root automates version bump, notebook execution, docs, PyPI upload, and optional Desktop tagging.
+- **Developer environment** — standard virtualenv directory is now `.venv` (was `.montuenv`).
+- **Documentation** — corrected Read the Docs URL (`montupython.readthedocs.io`); README examples split into tutorial and advanced sections; logo images use WebP.
+- **Metadata** — CITATION.cff and `.zenodo.json` authorship updates.
+
+## Version 0.20.x
 
 - Renamed **`Util.dec2hex`** to **`Util.dec2sex`** (decimal → sexagesimal DMS/HMS); added inverse **`Util.sex2dec`**.
 - Removed the old `dec2hex` / `hex2dec` aliases; updated tests, notebooks, and examples to the new names.
 - New top-level alias **`S2D`** for sexagesimal-to-decimal conversion; **`D2H`** now points to `dec2sex`.
 - **`mercator_sky_map`** exported at package level (`montu.mercator_sky_map` and `from montu.stars import mercator_sky_map`) for notebooks and Colab workflows.
-
-## Version 0.20.0
-
 - Version bump to **0.20.0** with updated README, badges, AI assistance disclosure, and Zenodo/Citation metadata.
 - **MontuPython Desktop** (`montu_gui/`) — PySide6 GUI with Calendar Calculator and Seasons & Lunar Phases modules.
 - Refactored and standardized example notebooks; cleaned outdated development artefacts.

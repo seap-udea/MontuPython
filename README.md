@@ -12,7 +12,7 @@
 
 ### MontuPython documentation
 
-The full documentation of the package is available at [https://montupythob.readthedocs.io](https://montupythob.readthedocs.io/en/latest/).
+The full documentation of the package is available at [https://montupython.readthedocs.io](https://montupython.readthedocs.io/en/latest/).
 
 ### MontuPython App
 

@@ -7,13 +7,12 @@ import montu
 # Required packages
 ###############################################################
 import inspect
+import json
 import os
-import requests
 import tqdm
 
 import pandas as pd
 import numpy as np
-import spiceypy as spy
 from tabulate import tabulate
 
 from pymeeus.Epoch import Epoch as pymeeus_Epoch
@@ -23,19 +22,6 @@ import pymeeus.Coordinates as pymeeus_Coordinates
 ###############################################################
 # Module constants
 ###############################################################
-BASIC_KERNELS = {
-    'naif0012.tls':'',
-    'frame.tk':'',
-    'pck00011.tpc':'',
-    'earth_assoc_itrf93.tf':''
-}
-PRECISION_KERNELS = {
-    'latest_leapseconds.tls':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
-    'de441_part-1.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-1.bsp',
-    'de441_part-2.bsp':'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de441_part-2.bsp',
-}
-KERNELS_LOADED = dict()
-
 PLANETARY_DATAFILE = 'planets-jpl.csv'
 
 def GENERATOR():
@@ -200,70 +186,6 @@ class Util(object):
         out = [int(o) for o in out]
         out = [-1]+out if bce else [1]+out
         return out
-
-    def load_kernels(kernels=BASIC_KERNELS,dir='montmp/',verbose=False):
-        """Load SPICE kernels required by MontuPython.
-
-        Basic kernels (leap seconds, reference frames, planetary constants) are
-        bundled with the package and loaded by default on import. Precision
-        kernels (JPL DE441 ephemerides) must be downloaded the first time.
-
-        Parameters
-        ----------
-        kernels : dict, optional
-            Mapping of ``{filename: url}`` pairs. An empty URL string means the
-            kernel is shipped with the package. Defaults to ``BASIC_KERNELS``.
-        dir : str, optional
-            Directory where remote kernels are cached. Default is ``'montmp/'``.
-        verbose : bool, optional
-            If ``True``, print progress messages. Default is ``False``.
-
-        Examples
-        --------
-        Load only the bundled basic kernels (done automatically on import):
-
-        >>> import montu
-        >>> montu.Util.load_kernels(verbose=True)
-
-        Download and load high-precision DE441 ephemerides:
-
-        >>> montu.Util.load_kernels(kernels=montu.Util.PRECISION_KERNELS,
-        ...                         dir='montmp/', verbose=True)
-        """
-        if not os.path.exists(dir):
-            os.system(f"mkdir -p {dir}")
-
-        # Load kernel
-        for kernel,item in kernels.items():
-
-            #
-            if kernel in KERNELS_LOADED.keys():
-                Util.vprint(verbose,f"Kernel {kernel} already loaded, skipping")
-                continue
-
-            # Local kernel
-            if len(item) == 0:
-                if verbose:print(f"Loading local kernel {kernel}")
-                kernel_file = Util._data_path(kernel)
-                if os.path.isfile(kernel_file):
-                    spy.furnsh(kernel_file)
-                else:
-                    raise AssertionError(f"Kernel file '{kernel}' not found in data directory")
-                KERNELS_LOADED[kernel] = True
-                continue
-
-            # Remote kernel
-            kernel_path = dir+"/"+kernel
-            
-            if not os.path.exists(kernel_path):
-                # Download kernel if it is not yet downloaded
-                if verbose:print(f"Downloading '{kernel}'...")
-                Util._wget(item,kernel_path)
-            
-            # Once downloaded furnish kernel
-            if verbose:print(f"Loading kernel {kernel}")
-            spy.furnsh(kernel_path)
-            KERNELS_LOADED[kernel] = True
 
     def dec2sex(dec,string=True):
         """Convert a decimal angle or hour to sexagesimal (DMS / HMS) notation.
@@ -496,46 +418,13 @@ class Util(object):
         Examples
         --------
         >>> import montu
-        >>> montu.Util._data_path('naif0012.tls')
-        '/path/to/montu/data/naif0012.tls'
+        >>> montu.Util._data_path('historical_dates.json')
+        '/path/to/montu/data/historical_dates.json'
         """
         file_path = os.path.join(os.path.dirname(__file__),'data',filename)
         if check and (not os.path.isfile(file_path)):
             raise ValueError(f"File '{filename}' does not exist in data directory")
         return file_path
-
-    def _wget(url, filename, verbose=False):
-        """Download a file from *url* and save it to *filename* with a progress bar.
-
-        Parameters
-        ----------
-        url : str
-            Remote URL of the file to download.
-        filename : str
-            Local path where the file will be saved.
-        verbose : bool, optional
-            If ``True``, print download metadata. Default is ``False``.
-
-        Examples
-        --------
-        >>> montu.Util._wget(
-        ...     'https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/latest_leapseconds.tls',
-        ...     'montmp/latest_leapseconds.tls'
-        ... )
-        """
-        response = requests.get(url, stream=True)
-        total_size = int(response.headers.get('content-length', 0))
-        Util.vprint(verbose,f"Downloading {filename} from {url} [size = {total_size}]")
-
-        # Initialize the progress bar
-        progress_bar = tqdm.tqdm(total=total_size, unit='B', unit_scale=True)
-
-        with open(filename, 'wb') as file:
-            for data in response.iter_content(chunk_size=1024):
-                file.write(data)
-                progress_bar.update(len(data))
-
-        progress_bar.close()
 
     def _linear_map(mapped,observed):
         """Build a linear mapping function from one interval to another.
@@ -696,3 +585,17 @@ class Dictobj(object):
 
     def __repr__(self):
         return self.__str__()
+
+
+def load_historical_dates() -> dict:
+    """Load the historical-dates catalogue shipped with MontuPython.
+
+    Returns
+    -------
+    dict
+        Mixed-calendar date keys mapped to event metadata (``label``,
+        ``description``, ``details``, ``source``, ``egyptian_date``, ...).
+    """
+    path = Util._data_path("historical_dates.json", check=True)
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)

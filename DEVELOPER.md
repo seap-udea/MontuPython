@@ -37,7 +37,7 @@ El paquete y la app de escritorio tienen **versiones independientes**.
 
 | Comando | Descripción |
 |---------|-------------|
-| `make env` | Crea el entorno virtual `.montuenv` e instala `montu` en modo editable |
+| `make env` | Crea el entorno virtual `.venv` e instala `montu` en modo editable |
 | `make install` | Instala el paquete (`pip install .`) |
 | `make install-dev` | Instala en modo editable (`pip install -e .`) + `requirements.txt` |
 | `make build` | Limpia artefactos viejos y construye sdist/wheel en `dist/` (`python -m build`) |
@@ -49,7 +49,7 @@ Activar el entorno de desarrollo:
 
 ```bash
 make env
-source .montuenv/bin/activate
+source .venv/bin/activate
 ```
 
 Lanzar la app de escritorio en desarrollo:

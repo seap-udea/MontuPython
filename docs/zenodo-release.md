@@ -155,4 +155,4 @@ Each new version needs:
 
 ## Suggested citation (after DOI is assigned)
 
-> Zuluaga, J. I., & Vivas, F. (2026). *MontuPython v0.10.0: astronomical ephemerides for the ancient world* (Version 0.10.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.XXXXXXX
+> Zuluaga, J. I. (2026). *MontuPython v0.10.0: astronomical ephemerides for the ancient world* (Version 0.10.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.XXXXXXX

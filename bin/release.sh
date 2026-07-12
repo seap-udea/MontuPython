@@ -38,10 +38,10 @@ PY="$(python_bin)" || die "Could not find 'python' nor 'python3' in PATH."
 have git || die "Could not find 'git' in PATH."
 
 # Auto-activate local venv if present
-if [[ -f ".montuenv/bin/activate" ]]; then
-  log "Activating local environment (.montuenv)..."
+if [[ -f ".venv/bin/activate" ]]; then
+  log "Activating local environment (.venv)..."
   # shellcheck disable=SC1091
-  source .montuenv/bin/activate
+  source .venv/bin/activate
   PY="python3"
 fi
 
@@ -79,21 +79,26 @@ Examples:
   bash bin/release.sh test 0.9.11
   bash bin/release.sh release 1.0.0
   bash bin/release.sh test 1.0.0 --dry-run
+  bash bin/release.sh release 1.0.0 --skip-bump
 
 Notes:
-  - Requires a clean working tree (no uncommitted changes).
+  - Requires a clean working tree (no uncommitted changes), unless --skip-bump
+    is used after the version was already bumped elsewhere.
   - If anything fails in build/check/upload, it restores the previous version.
   - With --dry-run/--no-upload, it runs build + twine check, but does NOT upload.
+  - With --skip-bump, the repository must already be at VERSION_NEW.
 EOF
 }
 
 TYPE="${1:-}"
 VERSION_NEW="${2:-}"
 NO_UPLOAD=0
+SKIP_BUMP=0
 
 for arg in "${@:3}"; do
   case "$arg" in
     --dry-run|--no-upload) NO_UPLOAD=1 ;;
+    --skip-bump) SKIP_BUMP=1 ;;
     *) die "Unknown argument: $arg (use --help)" ;;
   esac
 done
@@ -111,8 +116,10 @@ esac
 if [[ ! -f "$SETUP_PY" ]]; then die "Missing file: $SETUP_PY"; fi
 if [[ ! -f "$VERSION_PY" ]]; then die "Missing file: $VERSION_PY"; fi
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
-  die "Working tree is not clean. Commit or stash your changes before releasing."
+if [[ $SKIP_BUMP -eq 0 ]]; then
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    die "Working tree is not clean. Commit or stash your changes before releasing."
+  fi
 fi
 
 CURRENT_VERSIONS="$($PY - <<'PY'
@@ -158,17 +165,23 @@ if ! printf '%s' "$VERSION_NEW" | grep -Eq '^[0-9]+(\.[0-9]+)+([a-zA-Z0-9\.\-]+)
   die "Invalid version '$VERSION_NEW'. Use something like 0.9.11 or 1.0.0."
 fi
 
-if [[ "$VERSION_NEW" == "$CURRENT_SETUP" ]]; then
+if [[ $SKIP_BUMP -eq 0 && "$VERSION_NEW" == "$CURRENT_SETUP" ]]; then
   die "New version ($VERSION_NEW) must be different from current ($CURRENT_SETUP)."
+fi
+
+if [[ $SKIP_BUMP -eq 1 && "$VERSION_NEW" != "$CURRENT_SETUP" ]]; then
+  die "With --skip-bump, repository must already be at $VERSION_NEW (current: $CURRENT_SETUP)."
 fi
 
 log "Releasing MontuPython $VERSION_NEW (current: $CURRENT_SETUP) in '$TYPE' mode..."
 
 BACKUP_DIR="$(mktemp -d -t montu-release.XXXXXX)"
-cp -f "$SETUP_PY" "${BACKUP_DIR}/setup.py"
-cp -f "$VERSION_PY" "${BACKUP_DIR}/version.py"
-if [[ -f "$VERSIONS_LOG" ]]; then
-  cp -f "$VERSIONS_LOG" "${BACKUP_DIR}/versions"
+if [[ $SKIP_BUMP -eq 0 ]]; then
+  cp -f "$SETUP_PY" "${BACKUP_DIR}/setup.py"
+  cp -f "$VERSION_PY" "${BACKUP_DIR}/version.py"
+  if [[ -f "$VERSIONS_LOG" ]]; then
+    cp -f "$VERSIONS_LOG" "${BACKUP_DIR}/versions"
+  fi
 fi
 
 update_file() {
@@ -193,15 +206,19 @@ p.write_text(new_text, encoding='utf-8')
 PY
 }
 
-log "Updating version in setup.py and montu/version.py..."
-update_file "$SETUP_PY" '^(\s*version\s*=\s*)["'"'"']([^"'"'"']+)["'"'"'](\s*,?\s*)$' "\\1'${VERSION_NEW}'\\3"
-update_file "$VERSION_PY" '^(\s*version\s*=\s*)["'"'"']([^"'"'"']+)["'"'"'](\s*)$' "\\1'${VERSION_NEW}'\\3"
+if [[ $SKIP_BUMP -eq 0 ]]; then
+  log "Updating version in setup.py and montu/version.py..."
+  update_file "$SETUP_PY" '^(\s*version\s*=\s*)["'"'"']([^"'"'"']+)["'"'"'](\s*,?\s*)$' "\\1'${VERSION_NEW}'\\3"
+  update_file "$VERSION_PY" '^(\s*version\s*=\s*)["'"'"']([^"'"'"']+)["'"'"'](\s*)$' "\\1'${VERSION_NEW}'\\3"
 
-if [[ -f "$VERSIONS_LOG" ]]; then
-  LAST_VER="$(tail -n 1 "$VERSIONS_LOG" 2>/dev/null || true)"
-  if [[ "$LAST_VER" != "$VERSION_NEW" ]]; then
-    echo "$VERSION_NEW" >> "$VERSIONS_LOG"
+  if [[ -f "$VERSIONS_LOG" ]]; then
+    LAST_VER="$(tail -n 1 "$VERSIONS_LOG" 2>/dev/null || true)"
+    if [[ "$LAST_VER" != "$VERSION_NEW" ]]; then
+      echo "$VERSION_NEW" >> "$VERSIONS_LOG"
+    fi
   fi
+else
+  log "Skipping version bump (already at $VERSION_NEW)."
 fi
 
 log "Cleaning previous build artifacts..."

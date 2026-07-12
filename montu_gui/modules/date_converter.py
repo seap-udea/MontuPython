@@ -13,7 +13,6 @@ from montu internals.
 
 from __future__ import annotations
 
-import json
 import re
 import sys
 import time
@@ -24,18 +23,7 @@ from typing import Optional
 
 from montu_gui.utils.debug import log_conversion
 
-# ── locate historical_dates.json ──────────────────────────────────────────────
-_DATA_DIR = Path(__file__).parent.parent.parent / "montu-app" / "data"
-HISTORICAL_DATES_FILE = _DATA_DIR / "historical_dates.json"
-
-
-def load_historical_dates() -> dict:
-    """Return historical dates dict from JSON file."""
-    try:
-        with open(HISTORICAL_DATES_FILE, encoding="utf-8") as fh:
-            return json.load(fh)
-    except FileNotFoundError:
-        return {}
+from montu import load_historical_dates
 
 
 # ── result dataclass ──────────────────────────────────────────────────────────
