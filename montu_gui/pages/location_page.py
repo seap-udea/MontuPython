@@ -41,6 +41,7 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 
 HELP_MODULE = "location"
 _COORDS_PANEL_RATIO = 0.30
@@ -198,25 +199,6 @@ class LocationPage(LazyPageMixin, QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        title = _label("🧭  Observer Location", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        intro = QLabel(
-            "Choose where on Earth you observe the sky. Pick a predefined ancient "
-            "site, click the OpenStreetMap (first visit asks for online consent), "
-            "or enter latitude, longitude, and altitude. "
-            "This location is shared by all modules. "
-            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
-            "opens a help window."
-        )
-        intro.setWordWrap(True)
-        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        intro.setTextFormat(Qt.TextFormat.RichText)
-        root.addWidget(intro)
-        root.addWidget(_hline())
-
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
         left_scroll = QScrollArea()
@@ -229,6 +211,8 @@ class LocationPage(LazyPageMixin, QWidget):
         left_lay = QVBoxLayout(left_inner)
         left_lay.setContentsMargins(0, 0, 8, 0)
         left_lay.setSpacing(10)
+
+        left_lay.addWidget(module_brand("location"))
 
         params_box = QGroupBox("Coordinates")
         params_lay = QVBoxLayout(params_box)

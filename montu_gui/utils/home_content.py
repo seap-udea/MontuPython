@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
-_HOME_FILE = Path(__file__).parent.parent / "assets" / "home.json"
+from montu_gui.utils.bundle_paths import gui_asset
 
 _DEFAULT: dict = {
     "title": "MontuPython Desktop",
@@ -35,9 +34,9 @@ _DEFAULT: dict = {
 def load_home_content() -> dict:
     """Load home page text (re-reads each call so edits apply on restart)."""
     try:
-        with open(_HOME_FILE, encoding="utf-8") as fh:
+        with open(gui_asset("home.json"), encoding="utf-8") as fh:
             data = json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError):
         return dict(_DEFAULT)
     merged = dict(_DEFAULT)
     merged.update(data)

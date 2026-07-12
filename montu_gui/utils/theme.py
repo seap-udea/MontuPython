@@ -332,6 +332,27 @@ QFrame#season_card {{
     border-radius: 8px;
 }}
 
+QFrame#module_brand {{
+    background-color: {PALETTE['surface_secondary']};
+    border: 1px solid {PALETTE['border_light']};
+    border-radius: 8px;
+}}
+QFrame#module_brand_icon {{
+    background-color: {PALETTE['surface']};
+    border: 1px solid {PALETTE['border_light']};
+    border-radius: 8px;
+}}
+QLabel#module_brand_title {{
+    font-size: 14px;
+    font-weight: 700;
+    color: {PALETTE['text']};
+}}
+QLabel#module_brand_desc {{
+    font-size: 11px;
+    color: {PALETTE['text_secondary']};
+    line-height: 1.3;
+}}
+
 QPushButton#lets_python_btn {{
     background-color: transparent;
     color: {PALETTE['success']};

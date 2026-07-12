@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 
 from montu.version import version as MONTU_VERSION, release_date as MONTU_RELEASE_DATE
 import montu_gui.version as desktop_version
+from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.home_content import load_home_content
 from montu_gui.utils.theme import PALETTE
 from montu_gui.widgets.version_link import VersionLink
@@ -147,9 +148,7 @@ def _module_row(
 class HomePage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._content_path = (
-            Path(__file__).parent.parent / "assets" / "home.json"
-        )
+        self._content_path = gui_asset("home.json")
         self._content_mtime: float = 0.0
         self._scroll: QScrollArea | None = None
         self._root: QVBoxLayout | None = None

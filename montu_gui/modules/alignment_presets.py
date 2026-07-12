@@ -8,11 +8,10 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from pathlib import Path
-
 from montu_gui.modules.location import ObserverCoords
+from montu_gui.utils.bundle_paths import gui_asset
 
-_PRESETS_FILE = Path(__file__).parent.parent / "assets" / "alignments.json"
+_PRESETS_FILE = gui_asset("alignments.json")
 
 
 @dataclass(frozen=True)

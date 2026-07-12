@@ -9,16 +9,15 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
 import plotly.express as px
 
+from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.debug import timed_block
 from montu_gui.utils.plotly_html import figure_to_html
 
-_PROPERTIES_FILE = Path(__file__).parent.parent / "assets" / "planet_properties.json"
+_PROPERTIES_FILE = gui_asset("planet_properties.json")
 
 _FALLBACK_PROPERTIES = [
     {"varname": v, "quantname": v, "explanation": "", "unit": "N/A"}

@@ -63,6 +63,7 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.step_spinbox import StepSpinBox, attach_step_buttons as _attach_step_buttons
 
 _CALENDAR_EXAMPLE = LetsPythonExample(
@@ -883,25 +884,6 @@ class CalendarPage(LazyPageMixin, QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        # title
-        title = _label("Calendar Calculator", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        # description
-        intro = QLabel(
-            "Find all common representations of any date in history. "
-            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
-            "opens a help window."
-        )
-        intro.setWordWrap(True)
-        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        intro.setTextFormat(Qt.TextFormat.RichText)
-        root.addWidget(intro)
-
-        root.addWidget(_hline())
-
         # ── main splitter: input | output ─────────────────────────────────────
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -910,6 +892,8 @@ class CalendarPage(LazyPageMixin, QWidget):
         left_layout = QVBoxLayout(left)
         left_layout.setContentsMargins(0, 0, 6, 0)
         left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        left_layout.addWidget(module_brand("calendar"))
 
         mode_label = _label("Input mode:", bold=True)
         left_layout.addWidget(mode_label, alignment=Qt.AlignmentFlag.AlignTop)

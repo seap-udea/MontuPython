@@ -43,6 +43,7 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox
 
@@ -252,18 +253,6 @@ class PlanetsPage(LazyPageMixin, QWidget):
         self._plot_timer.timeout.connect(self._plot)
         self._build_ui()
         self._location_state.changed.connect(self._schedule_plot)
-        self._location_state.changed.connect(self._update_intro)
-
-    def _update_intro(self, _coords=None):
-        obs = self._location_state.coords
-        self._intro.setText(
-            "Plot one sky-condition property for one or more planets over a "
-            "time span, as seen from "
-            f"<b>{obs.label_with_coords()}</b>. "
-            "The chart updates automatically when you change any parameter. "
-            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
-            "opens a help window."
-        )
 
     def _activate_page(self) -> None:
         self._schedule_plot()
@@ -272,19 +261,6 @@ class PlanetsPage(LazyPageMixin, QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
-
-        title = _label("🪐  Planetary Ephemerides", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        self._intro = QLabel()
-        self._intro.setWordWrap(True)
-        self._intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._intro.setTextFormat(Qt.TextFormat.RichText)
-        root.addWidget(self._intro)
-        self._update_intro()
-        root.addWidget(_hline())
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -299,6 +275,8 @@ class PlanetsPage(LazyPageMixin, QWidget):
         left_lay = QVBoxLayout(left_inner)
         left_lay.setContentsMargins(0, 0, 8, 0)
         left_lay.setSpacing(10)
+
+        left_lay.addWidget(module_brand("planets"))
 
         params_box = QGroupBox("Parameters")
         params_lay = QVBoxLayout(params_box)

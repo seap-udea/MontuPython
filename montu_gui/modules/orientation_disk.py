@@ -454,51 +454,9 @@ def build_disk_plot(result: DiskResult, *, plot_height: int = 640) -> DiskPlotRe
 
 def _figure_to_disk_html(fig: go.Figure, height_px: int) -> str:
     """Embed Plotly HTML sized to fill the available panel height."""
-    from montu_gui.utils.plotly_html import plotly_js_path, _PLOTLY_RESIZE_SCRIPT
+    from montu_gui.utils.plotly_html import figure_to_html
 
-    div = fig.to_html(include_plotlyjs=False, full_html=False, config={
-        "responsive": True,
-        "displayModeBar": True,
-    })
-    js_url = plotly_js_path().as_uri()
-    h = max(320, int(height_px))
-    return f"""<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <script src="{js_url}"></script>
-  <style>
-    html, body {{
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #ffffff;
-    }}
-    .plotly-graph-div {{
-      width: 100% !important;
-      min-height: {h}px !important;
-      height: {h}px !important;
-    }}
-    .js-plotly-plot .plotly .modebar {{
-      top: auto !important;
-      left: auto !important;
-      right: 12px !important;
-      bottom: 12px !important;
-    }}
-    .js-plotly-plot .plotly .modebar-group {{
-      background: rgba(255, 255, 255, 0.85) !important;
-      border-radius: 4px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-    }}
-  </style>
-</head>
-<body>
-{div}
-{_PLOTLY_RESIZE_SCRIPT}
-</body>
-</html>"""
+    return figure_to_html(fig, min_height=height_px, fill_viewport=True)
 
 
 def _az_label(name: str, suffix: str) -> str:

@@ -1297,7 +1297,7 @@ def polar_sky_map_figure(
                 linecolor="#2a3648",
             ),
         ),
-        height=700,
+        autosize=True,
     )
     return fig
 

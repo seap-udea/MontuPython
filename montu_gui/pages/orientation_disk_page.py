@@ -50,6 +50,7 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox, StepDoubleSpinBox
 
@@ -321,23 +322,6 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        # title
-        title = _label("⭕  Orientation Disk", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        # intro
-        intro = QLabel(
-            "Compute the northernmost and southernmost azimuths at which "
-            "each body rises (△) and sets (▽) over a 3-year window. "
-            "Arrows are drawn on an azimuth disk with N at the top."
-        )
-        intro.setWordWrap(True)
-        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(intro)
-        root.addWidget(_hline())
-
         # ── splitter ──────────────────────────────────────────────────────────
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -353,6 +337,8 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         left_lay = QVBoxLayout(left_inner)
         left_lay.setContentsMargins(0, 0, 8, 0)
         left_lay.setSpacing(10)
+
+        left_lay.addWidget(module_brand("orient_disk"))
 
         # ── reference year ────────────────────────────────────────────────────
         year_box = QGroupBox("Reference year")

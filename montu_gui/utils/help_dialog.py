@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -11,16 +10,18 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel, QPushButton, QTextBrowser, QHBoxLayout,
 )
 
-_HELP_FILE = Path(__file__).parent.parent / "assets" / "help.json"
+from montu_gui.utils.bundle_paths import gui_asset
+
 _COMMON_MODULE = "_common"
 
 
 def load_help() -> dict:
     """Load the full help tree from JSON (re-reads each call so edits apply live)."""
+    path = gui_asset("help.json")
     try:
-        with open(_HELP_FILE, encoding="utf-8") as fh:
+        with open(path, encoding="utf-8") as fh:
             return json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (OSError, json.JSONDecodeError):
         return {}
 
 

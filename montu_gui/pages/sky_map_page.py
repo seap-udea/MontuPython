@@ -61,6 +61,7 @@ from montu_gui.widgets.lets_python_dialog import (
     LetsPythonExample,
     make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
 
@@ -69,6 +70,7 @@ _COMMON_MODULE = "_common"
 
 _PARAMS_MIN_WIDTH = 340
 _PARAMS_MAX_WIDTH = 420
+_MAP_MIN_HEIGHT = 560  # floor for scroll on short panels; viewport fill when taller
 _PLOT_DEBOUNCE_MS = 450
 
 _EXAMPLE = LetsPythonExample(
@@ -436,22 +438,6 @@ class SkyMapPage(LazyPageMixin, QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        title = _label("🌌  Sky Map", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        intro = QLabel(
-            "Azimuthal celestial maps with stars up to a limiting magnitude, "
-            "IAU asterism lines, and selected solar-system bodies at local "
-            "observation time. Coordinates are precessed to the selected date. "
-            "Use the tabs above the map to switch between hemispheres."
-        )
-        intro.setWordWrap(True)
-        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(intro)
-        root.addWidget(_hline())
-
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
         # Left panel: inputs
@@ -466,6 +452,8 @@ class SkyMapPage(LazyPageMixin, QWidget):
         left_lay = QVBoxLayout(left_inner)
         left_lay.setContentsMargins(0, 0, 8, 0)
         left_lay.setSpacing(10)
+
+        left_lay.addWidget(module_brand("sky_map"))
 
         loc_box = QGroupBox("Observer")
         loc_lay = QVBoxLayout(loc_box)
@@ -565,6 +553,10 @@ class SkyMapPage(LazyPageMixin, QWidget):
 
         # Right panel: tabbed maps (north / south calculated separately)
         map_box = QGroupBox()
+        map_box.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding,
+        )
         map_lay = QVBoxLayout(map_box)
         map_lay.setContentsMargins(8, 12, 8, 8)
         map_lay.setSpacing(4)
@@ -588,7 +580,7 @@ class SkyMapPage(LazyPageMixin, QWidget):
             QSizePolicy.Policy.Expanding,
         )
         self._map_tabs.currentChanged.connect(self._on_map_tab_changed)
-        map_lay.addWidget(self._map_tabs)
+        map_lay.addWidget(self._map_tabs, stretch=1)
         splitter.addWidget(map_box)
         self._map_box = map_box
 
@@ -610,6 +602,11 @@ class SkyMapPage(LazyPageMixin, QWidget):
     def _on_map_tab_changed(self, _index: int):
         view = self._map_tabs.currentWidget()
         if isinstance(view, PlotlyView):
+            view.refresh_layout()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        for view in (self._map_north, self._map_south):
             view.refresh_layout()
 
     def _show_lets_python(self):
@@ -658,7 +655,7 @@ class SkyMapPage(LazyPageMixin, QWidget):
             lat=obs.lat,
             lon=obs.lon,
             height_km=obs.height_km(),
-            min_height=max(320, self._map_box.height()),
+            min_height=max(_MAP_MIN_HEIGHT, self._map_tabs.height()),
         )
 
         self._plotting = False

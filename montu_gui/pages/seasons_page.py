@@ -32,6 +32,7 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.step_spinbox import StepSpinBox
 
 HELP_MODULE = "seasons"
@@ -252,23 +253,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        title = _label("🎑  Seasons & Lunar Phases", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        intro = QLabel(
-            "Compute the exact dates of the four astronomical seasons and all "
-            "lunar phases for any year in history. "
-            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
-            "opens a help window."
-        )
-        intro.setWordWrap(True)
-        intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        intro.setTextFormat(Qt.TextFormat.RichText)
-        root.addWidget(intro)
-
-        root.addWidget(_hline())
+        root.addWidget(module_brand("seasons"))
 
         # year bar
         bar_wrap = QWidget()

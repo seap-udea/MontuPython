@@ -10,9 +10,9 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from pathlib import Path
+from montu_gui.utils.bundle_paths import gui_asset
 
-_LOCATIONS_FILE = Path(__file__).parent.parent / "assets" / "locations.json"
+_LOCATIONS_FILE = gui_asset("locations.json")
 
 # Fallback if JSON is missing (Thebes / Luxor)
 DEFAULT_LOCATION_ID = "thebes"

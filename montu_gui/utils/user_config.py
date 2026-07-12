@@ -21,17 +21,12 @@ SCHEMA_VERSION = 1
 _APP_SUPPORT_NAME = "MontuPython Desktop"
 
 
-def _is_frozen() -> bool:
-    return getattr(sys, "frozen", False)
-
-
-def _bundle_root() -> Path:
-    return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+from montu_gui.utils.bundle_paths import bundle_root, is_frozen
 
 
 def _writable_user_dir() -> Path:
     """Per-user settings directory (writable when the app is installed from a DMG)."""
-    if _is_frozen():
+    if is_frozen():
         if sys.platform == "darwin":
             base = Path.home() / "Library" / "Application Support"
         elif sys.platform == "win32":
@@ -47,8 +42,8 @@ def user_dir() -> Path:
 
 
 def _default_source_path() -> Path:
-    if _is_frozen():
-        return _bundle_root() / "montu_gui" / "user" / "default.json"
+    if is_frozen():
+        return bundle_root() / "montu_gui" / "user" / "default.json"
     return Path(__file__).resolve().parent.parent / "user" / "default.json"
 
 

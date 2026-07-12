@@ -208,10 +208,18 @@ def build_sky_map_plot(
         n_south = int((stars["DecEpoch"] <= 0.0).sum())
 
         html_north = _wrap_sky_map_html(
-            figure_to_html(fig_north, min_height=min_height),
+            figure_to_html(
+                fig_north,
+                min_height=min_height,
+                page_background="#0d1117",
+            ),
         )
         html_south = _wrap_sky_map_html(
-            figure_to_html(fig_south, min_height=min_height),
+            figure_to_html(
+                fig_south,
+                min_height=min_height,
+                page_background="#0d1117",
+            ),
         )
 
         return SkyMapPlotResult(

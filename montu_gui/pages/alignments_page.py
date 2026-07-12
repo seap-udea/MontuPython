@@ -56,6 +56,7 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
+from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox, StepDoubleSpinBox
 
@@ -258,27 +259,6 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        # title
-        title = _label("📐  Star Alignments", bold=True, size=16)
-        title.setObjectName("section_title")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        root.addWidget(title)
-
-        # intro
-        self._intro = QLabel()
-        self._intro.setWordWrap(True)
-        self._intro.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._intro.setTextFormat(Qt.TextFormat.RichText)
-        self._intro.setText(
-            "Determine which stars passed through a fixed sky direction "
-            "(azimuth + elevation) over a given date range, accounting for "
-            "stellar precession. "
-            "<span style='color:#007aff; text-decoration:underline;'>Blue underlined text</span> "
-            "opens a help window."
-        )
-        root.addWidget(self._intro)
-        root.addWidget(_hline())
-
         # ── splitter: params left | results right ─────────────────────────────
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -294,6 +274,8 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         left_lay = QVBoxLayout(left_inner)
         left_lay.setContentsMargins(0, 0, 8, 0)
         left_lay.setSpacing(10)
+
+        left_lay.addWidget(module_brand("alignments"))
 
         # ── famous alignments preset ─────────────────────────────────────────
         preset_box = QGroupBox("Famous alignments")

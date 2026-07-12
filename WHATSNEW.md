@@ -2,6 +2,12 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.21.2
+
+- **Example notebooks** — `%matplotlib inline` moved to the `import montu` cell; `%load_ext autoreload` / `%autoreload 2` commented with a note that they fail on Google Colab (Python 3.12+, removed `imp` module). Applied in `examples/` and `docs/examples/`.
+- **`README.ipynb`** — pole-star precession loop prints a short start/finish message instead of a tqdm progress bar (cleaner output in Jupyter and Colab).
+- **`polar_sky_map`** — figure layout uses `autosize` rather than a fixed pixel height so azimuthal maps resize better when embedded in MontuPython Desktop.
+
 ## Version 0.21.1
 
 - **`montu/maps.py`** — new module that unifies Plotly sky-map plotting: equatorial Mercator and azimuthal (polar) projections live together instead of being split across `stars.py` and a separate helper module.

@@ -21,7 +21,9 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 ROOT = Path(SPECPATH).resolve().parent
 GUI = ROOT / "montu_gui"
-ICON = GUI / "assets" / "montu-python-logo-complete.png"
+ICON_PNG = GUI / "assets" / "montu-python-logo-complete.png"
+ICON_ICO = GUI / "assets" / "montu-python-logo-complete.ico"
+ICON = ICON_ICO if sys.platform == "win32" and ICON_ICO.is_file() else ICON_PNG
 
 version_text = (GUI / "version.py").read_text(encoding="utf-8")
 match = re.search(r"""^version\s*=\s*['"]([^'"]+)['"]""", version_text, re.M)
@@ -35,6 +37,11 @@ block_cipher = None
 datas: list[tuple[str, str]] = []
 datas += collect_data_files("montu", includes=["data/**"])
 datas += collect_data_files("montu_gui", includes=["assets/**", "WHATSNEW.md"])
+assets_dir = GUI / "assets"
+if assets_dir.is_dir():
+    for asset in sorted(assets_dir.iterdir()):
+        if asset.is_file():
+            datas.append((str(asset), "montu_gui/assets"))
 user_default = GUI / "user" / "default.json"
 if user_default.is_file():
     datas.append((str(user_default), "montu_gui/user"))

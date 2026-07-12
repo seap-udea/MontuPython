@@ -2,6 +2,15 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.2.2
+
+- **Frozen-bundle assets** — new `montu_gui/utils/bundle_paths.py` resolves `home.json`, `help.json`, logos, and other files from the PyInstaller `_MEIPASS` tree; all `montu_gui/assets/` files are copied explicitly in `montu-desktop.spec`. Fixes empty Home page and “No help text found” dialogs on Windows installs.
+- **Windows icon** — `montu-python-logo-complete.ico` used for the `.exe` and taskbar; sidebar logo path fixed in frozen builds (`main.py` → `gui_asset()`).
+- **User config** — `default.json` bundled and writable `config.json` path under `%AppData%` on Windows (same pattern as macOS Application Support).
+- **Module branding** — compact **Module brand** strip (sidebar emoji, title, one-line description from `home.json`) in each module’s input panel; top title bars removed to recover vertical space.
+- **Plotly embed** — maps and charts fill the available panel height in tall windows and gain scroll bars when the view is shorter than the minimum map height (`plotly_html.py`; Sky Map minimum 560 px).
+- **Orientation Disk example** — `montu_gui/pages/examples/orientation_disk.py` redrawn to match the Desktop azimuth disk (four rise/set extremes per body, triangle markers, compass labels).
+
 ## Version 0.2.0
 
 - **Sky Map (🌌)** — new module with separate azimuthal maps for the northern and southern celestial hemispheres.
