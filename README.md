@@ -1,8 +1,3 @@
-```python
-%matplotlib inline
-
-```
-
 # Montu Python /mnṯw ꜥꜣpp(y)/
 ## Astronomical ephemerides for the ancient world
 
@@ -62,7 +57,6 @@ If you are using `PyPI` installation it's as simple as:
 
 ```python
 import matplotlib.pyplot as plt
-plt.ioff()
 !mkdir -p gallery
 ```
 
@@ -80,13 +74,14 @@ You may import the package using:
 from montu import *
 ```
 
-    MontuPython version 0.21.1. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.21.2. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
 
 
 or for a safe import:
 
 
 ```python
+%matplotlib inline
 import montu
 ```
 
@@ -429,7 +424,7 @@ from IPython.display import display
 
 
     
-![png](README_files/README_59_0.png)
+![png](README_files/README_58_0.png)
     
 
 
@@ -520,7 +515,7 @@ from IPython.display import display
 
 
     
-![png](README_files/README_66_0.png)
+![png](README_files/README_65_0.png)
     
 
 
@@ -781,52 +776,30 @@ Now precess the position of all stars from -20 000 to 20 000 years from 2000:
 
 ```python
 import pandas as pd
-import tqdm
+import time
 
 now = montu.Time()
-df = pd.DataFrame()
-for dt in tqdm.tqdm(np.linspace(-20000*montu.YEAR,20000*montu.YEAR,1000)):
+epochs = np.linspace(-20000 * montu.YEAR, 20000 * montu.YEAR, 1000)
+n = len(epochs)
+print(f"Precessing {len(star_names)} stars over {n:,} epochs …")
+
+t0 = time.perf_counter()
+rows = []
+for dt in epochs:
     past = now + dt
     pstars = stars.where_in_space(at=past)
-    row = dict(tt = past.tt)
+    row = {"tt": past.tt}
     for star in star_names:
-        row.update({star: pstars.value_for(star, 'DecEpoch')})
-    df = pd.concat([df,pd.DataFrame([row])])
+        row[star] = pstars.value_for(star, "DecEpoch")
+    rows.append(row)
+
+df = pd.DataFrame(rows)
+print(f"Done in {time.perf_counter() - t0:.1f} s.")
+
 ```
 
-      0%|                                                                                                                   | 0/1000 [00:00<?, ?it/s]
-
-      6%|██████▊                                                                                                  | 65/1000 [00:00<00:01, 643.38it/s]
-
-     13%|█████████████▊                                                                                          | 133/1000 [00:00<00:01, 660.66it/s]
-
-     20%|████████████████████▉                                                                                   | 201/1000 [00:00<00:01, 668.66it/s]
-
-     27%|███████████████████████████▊                                                                            | 268/1000 [00:00<00:01, 666.83it/s]
-
-     34%|███████████████████████████████████                                                                     | 337/1000 [00:00<00:00, 672.31it/s]
-
-     40%|██████████████████████████████████████████                                                              | 405/1000 [00:00<00:00, 671.58it/s]
-
-     47%|█████████████████████████████████████████████████▏                                                      | 473/1000 [00:00<00:00, 670.49it/s]
-
-     54%|████████████████████████████████████████████████████████▎                                               | 541/1000 [00:00<00:00, 672.43it/s]
-
-     61%|███████████████████████████████████████████████████████████████▎                                        | 609/1000 [00:00<00:00, 672.88it/s]
-
-     68%|██████████████████████████████████████████████████████████████████████▍                                 | 677/1000 [00:01<00:00, 671.41it/s]
-
-     74%|█████████████████████████████████████████████████████████████████████████████▍                          | 745/1000 [00:01<00:00, 669.36it/s]
-
-     81%|████████████████████████████████████████████████████████████████████████████████████▌                   | 813/1000 [00:01<00:00, 672.13it/s]
-
-     88%|███████████████████████████████████████████████████████████████████████████████████████████▌            | 881/1000 [00:01<00:00, 667.42it/s]
-
-     95%|██████████████████████████████████████████████████████████████████████████████████████████████████▌     | 948/1000 [00:01<00:00, 666.38it/s]
-
-    100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:01<00:00, 668.04it/s]
-
-    
+    Precessing 6 stars over 1,000 epochs …
+    Done in 1.4 s.
 
 
 Now plot declinations as a function of time:
@@ -857,7 +830,7 @@ from IPython.display import display
 
 
     
-![png](README_files/README_98_0.png)
+![png](README_files/README_97_0.png)
     
 
 
@@ -873,12 +846,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-03 12:51:23.400013 (declination 89:31:55.714)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-06 05:42:51.304320 (declination 86:22:03.630)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-08 13:02:39.497280 (declination 89:56:04.717)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-26 01:11:42.996544 (declination 86:57:15.608)
-    Star Alderamin will be the closest to the pole at 7532-02-23 06:40:58.200960 (declination 87:58:42.995)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-12 21:09:41.100496 (declination 83:29:32.444)
+    Star Polaris will be the closest to the pole at 2086-08-03 15:18:23.198401 (declination 89:31:55.715)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-06 08:09:51.7680 (declination 86:22:03.630)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-08 15:29:39.200640 (declination 89:56:04.720)
+    Star Deneb will be the closest to the pole at 14732 B.C. 05-26 03:38:42.708416 (declination 86:57:15.607)
+    Star Alderamin will be the closest to the pole at 7532-02-23 09:07:57.904288 (declination 87:58:42.995)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-12 23:36:40.803856 (declination 83:29:32.444)
 
 
 ## Tutorial by example notebooks
