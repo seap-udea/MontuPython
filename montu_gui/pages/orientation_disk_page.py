@@ -54,6 +54,7 @@ from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox, StepDoubleSpinBox
 
 HELP_MODULE   = "orientation_disk"
+_COMMON_MODULE = "_common"
 _PARAMS_MIN_W = 340
 _PARAMS_MAX_W = 460
 _DEBOUNCE_MS  = 700
@@ -88,6 +89,14 @@ def _hline() -> QFrame:
     ln.setFrameShape(QFrame.Shape.HLine)
     ln.setFrameShadow(QFrame.Shadow.Sunken)
     return ln
+
+
+def _field_col(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout:
+    col = QVBoxLayout()
+    col.setSpacing(4)
+    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(widget)
+    return col
 
 
 def _double_spin(
@@ -349,11 +358,14 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         year_box = QGroupBox("Reference year")
         year_lay = QVBoxLayout(year_box)
         year_lay.setSpacing(6)
-        year_lay.addWidget(
-            _label("Start year for the 3-year search window:", size=11)
-        )
         self._year_input = _YearEraInput(DEFAULT_YEAR, DEFAULT_ERA)
-        year_lay.addWidget(self._year_input)
+        year_lay.addLayout(
+            _field_col(
+                "Start year for the 3-year search window:",
+                "reference_year",
+                self._year_input,
+            ),
+        )
         left_lay.addWidget(year_box)
 
         # ── observer ──────────────────────────────────────────────────────────
@@ -363,6 +375,9 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         self._loc_label = QLabel()
         self._loc_label.setWordWrap(True)
         self._loc_label.setTextFormat(Qt.TextFormat.RichText)
+        loc_lay.addWidget(
+            HelpLink("Location:", _COMMON_MODULE, "input", "observer_location", bold=True),
+        )
         loc_lay.addWidget(self._loc_label)
         note = QLabel(
             "<i>Set location in the 🧭 Observer module.</i>"
@@ -383,7 +398,9 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         bodies_lay.setSpacing(6)
 
         # ── add body section (before the list) ────────────────────────────────
-        bodies_lay.addWidget(_label("Add a body:", bold=True))
+        bodies_lay.addWidget(
+            HelpLink("Add a body:", HELP_MODULE, "input", "add_body", bold=True),
+        )
 
         add_row = QHBoxLayout()
         add_row.setSpacing(6)
@@ -402,7 +419,9 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
 
         mag_row = QHBoxLayout()
         mag_row.setSpacing(6)
-        mag_row.addWidget(_label("Stars with V mag ≤"))
+        mag_row.addWidget(
+            HelpLink("Stars with V mag ≤", HELP_MODULE, "input", "star_mag_filter", bold=True),
+        )
         self._mag_spin = _double_spin(-2.0, 8.0, DEFAULT_MAG_LIMIT, step=0.5, decimals=1)
         self._mag_spin.setFixedWidth(72)
         self._mag_spin.setToolTip(
@@ -672,3 +691,56 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         if self._pending:
             self._pending = False
             self._schedule()
+
+    def export_config(self) -> dict:
+        return {
+            "reference_year": {
+                "era": self._year_input.era,
+                "year": self._year_input.year,
+            },
+            "star_mag_limit": float(self._mag_spin.value()),
+            "bodies": [
+                {
+                    "name": row.cfg.name,
+                    "body_type": row.cfg.body_type,
+                    "horizon_el": float(row.cfg.horizon_el),
+                    "color": row.cfg.color,
+                    "hip": row.cfg.hip,
+                }
+                for row in self._body_rows
+            ],
+        }
+
+    def apply_config(self, cfg: dict) -> None:
+        ref = cfg.get("reference_year", {})
+        self._year_input.set_values(
+            int(ref.get("year", DEFAULT_YEAR)),
+            ref.get("era", DEFAULT_ERA),
+        )
+        self._mag_spin.blockSignals(True)
+        try:
+            self._mag_spin.setValue(float(cfg.get("star_mag_limit", DEFAULT_MAG_LIMIT)))
+        finally:
+            self._mag_spin.blockSignals(False)
+        self._populate_combo()
+        self._set_bodies_from_config(list(cfg.get("bodies", [])))
+
+    def _set_bodies_from_config(self, bodies: list[dict]) -> None:
+        for row in list(self._body_rows):
+            self._body_list_lay.removeWidget(row)
+            row.setParent(None)
+            row.deleteLater()
+        self._body_rows.clear()
+
+        for item in bodies:
+            cfg = BodyConfig(
+                name=item.get("name", "Sun"),
+                body_type=item.get("body_type", "planet"),
+                horizon_el=float(item.get("horizon_el", 0.0)),
+                color=item.get("color", DEFAULT_BODY_COLOR),
+                hip=item.get("hip"),
+            )
+            self._insert_body_row(cfg)
+
+        if not self._body_rows:
+            self._add_body_by_name("Sun")

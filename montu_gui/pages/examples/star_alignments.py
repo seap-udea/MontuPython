@@ -4,7 +4,7 @@ import math
 
 import montu
 import plotly.graph_objects as go
-from montu.stars import mercator_sky_map
+from montu.maps import mercator_sky_map
 
 # Khufu north shaft: az 0°, el 31.7°, observer at Giza
 AZ, EL, LAT = 0.0, 31.7, 29.9792

@@ -30,7 +30,7 @@ from pathlib import Path
 
 from montu_gui.utils.debug import timed_block
 from montu_gui.utils.plotly_html import figure_to_html
-from montu.stars import mercator_sky_map
+from montu.maps import mercator_sky_map
 
 # ── Great Pyramid of Khufu (Cheops) defaults ─────────────────────────────────
 # King's Chamber northern shaft — "imperishable stars" / Thuban alignment.

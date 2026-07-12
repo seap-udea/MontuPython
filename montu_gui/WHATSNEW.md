@@ -2,6 +2,21 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.2.0
+
+- **Sky Map (🌌)** — new module with separate azimuthal maps for the northern and southern celestial hemispheres.
+- Precessed stars to the selected date; limiting magnitude filter; local solar time and observer site from **Observer Location**.
+- **Bodies on map** — Sun, Moon, and classical planets as emoji symbols; **Lines on map** — ecliptic (precessed) and horizon (elevation 0°).
+- **Horizon** mode — azimuth marks every 30° on the horizon circle; stars below the horizon tinted green; tooltips show RA, Dec, azimuth, and elevation (four decimal places).
+- **Meridian view** — rotate the map so the local meridian (LST) is at the top; RA grid labels follow absolute meridians.
+- Map title includes **LST**; legend lists overlay lines only (bodies remain on the map without legend entries).
+- **Constellation set** — choose **IAU Constellations**, **Ancient Egyptian**, or **Dendera Egyptian** asterisms (Stellarium sky-culture data in `montu/data`; help cites sources and licences).
+- **Persistent configuration** — module parameters and observer location saved to `montu_gui/user/config.json`; factory defaults in `montu_gui/user/default.json`.
+- **Home** — redesigned welcome page with module list (icon + description) and **Save configuration** / **Reset configuration** buttons.
+- **Contextual help** expanded across modules; shared field text in `help.json` under `_common` (resolved via `$ref`); Sky Map and Orientation Disk fields documented; **Map** help explains window sizing (no scroll bars, no zoom in this projection).
+- All main modules export and restore their parameters through `export_config` / `apply_config` (Calendar, Location, Planets, Seasons, Star Alignments, Orientation Disk, Sky Map).
+- **PlotlyView** — each embedded chart uses its own temp HTML file so multiple plots on one page do not overwrite each other.
+
 ## Version 0.1.5
 
 - **Historical dates from the library** — Calendar Calculator and examples now use `montu.load_historical_dates()` and the catalogue bundled in `montu/data/historical_dates.json` (removed duplicate data from the Desktop PyInstaller spec).

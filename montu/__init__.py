@@ -5,6 +5,7 @@ from montu.version import *
 from montu.util import *
 from montu.time import *
 from montu.stars import *
+from montu.maps import *
 from montu.observer import *
 from montu.sebau import *
 

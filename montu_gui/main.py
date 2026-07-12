@@ -30,7 +30,7 @@ from PySide6.QtGui import QFont, QPixmap, QIcon
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QStackedWidget, QFrame, QLabel, QSizePolicy,
-    QStatusBar,
+    QStatusBar, QMessageBox,
 )
 
 # ── ensure repo root is on sys.path so 'montu' and 'montu_gui' are importable ─
@@ -49,7 +49,17 @@ from montu_gui.pages.seasons_page import SeasonsPage
 from montu_gui.pages.planets_page import PlanetsPage
 from montu_gui.pages.alignments_page import AlignmentsPage
 from montu_gui.pages.orientation_disk_page import OrientationDiskPage
+from montu_gui.pages.sky_map_page import SkyMapPage
 from montu_gui.utils.location_state import LocationState
+from montu_gui.modules.location import ObserverCoords
+from montu_gui.utils.user_config import (
+    CONFIG_PATH,
+    DEFAULT_PATH,
+    load_default_config,
+    load_config,
+    reset_config_file,
+    save_config,
+)
 
 
 from montu.version import version as MONTU_VERSION
@@ -67,6 +77,7 @@ NAV_ITEMS = [
     ("🪐", "Planetary Ephemerides", "planets"),
     ("📐", "Star Alignments", "alignments"),
     ("⭕", "Orientation disk", "orient_disk"),
+    ("🌌", "Sky map", "sky_map"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -132,10 +143,15 @@ class MainWindow(QMainWindow):
 
         self._nav_buttons: list[NavButton] = []
         self._page_map: dict[str, int] = {}
+        self._page_widgets: dict[str, QWidget] = {}
         self._current_page = "home"
         self._location_state = LocationState.instance()
+        self._startup_config = load_config()
+        self._apply_observer_config(self._startup_config.get("observer", {}))
         self._build_ui()
-        self._navigate("home")
+        self._apply_pages_config(self._startup_config)
+        last_page = self._startup_config.get("app", {}).get("last_page", "home")
+        self._navigate(last_page if last_page in self._page_map else "home")
 
     def _build_ui(self):
         central = QWidget()
@@ -178,6 +194,31 @@ class MainWindow(QMainWindow):
             self._sb_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignTop)
 
         self._sb_layout.addStretch()
+
+        config_sep = QFrame()
+        config_sep.setFrameShape(QFrame.Shape.HLine)
+        config_sep.setFrameShadow(QFrame.Shadow.Sunken)
+        self._config_sep = config_sep
+        self._sb_layout.addWidget(config_sep)
+
+        self._btn_save_config = QPushButton("💾  Save configuration")
+        self._btn_save_config.setObjectName("config_btn")
+        self._btn_save_config.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_save_config.setToolTip(
+            f"Save all module settings to {CONFIG_PATH.name}"
+        )
+        self._btn_save_config.clicked.connect(self._save_configuration)
+        self._sb_layout.addWidget(self._btn_save_config)
+
+        self._btn_reset_config = QPushButton("↺  Reset configuration")
+        self._btn_reset_config.setObjectName("config_btn")
+        self._btn_reset_config.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_reset_config.setToolTip(
+            f"Restore settings from {DEFAULT_PATH.name}"
+        )
+        self._btn_reset_config.clicked.connect(self._reset_configuration)
+        self._sb_layout.addWidget(self._btn_reset_config)
+
         root.addWidget(self._sidebar)
 
         # ── page stack ──
@@ -203,6 +244,9 @@ class MainWindow(QMainWindow):
         orient_disk_page = OrientationDiskPage(self._location_state)
         orient_disk_page.status_message.connect(self._show_status)
         self._add_page("orient_disk", orient_disk_page)
+        sky_map_page = SkyMapPage(self._location_state)
+        sky_map_page.status_message.connect(self._show_status)
+        self._add_page("sky_map", sky_map_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
@@ -221,6 +265,104 @@ class MainWindow(QMainWindow):
     def _add_page(self, key: str, widget: QWidget):
         idx = self._stack.addWidget(widget)
         self._page_map[key] = idx
+        self._page_widgets[key] = widget
+
+    def _apply_observer_config(self, observer_cfg: dict) -> None:
+        if not observer_cfg:
+            return
+        coords = ObserverCoords(
+            name=str(observer_cfg.get("name", "")),
+            lat=float(observer_cfg.get("lat", 0.0)),
+            lon=float(observer_cfg.get("lon", 0.0)),
+            alt_m=float(observer_cfg.get("alt_m", 0.0)),
+            location_id=str(observer_cfg.get("location_id", "")),
+        )
+        self._location_state.set_coords(coords, emit=False)
+
+    def _apply_pages_config(self, config: dict) -> None:
+        page_sections = {
+            "location": "location_page",
+            "planets": "planets",
+            "sky_map": "sky_map",
+            "orient_disk": "orientation_disk",
+            "alignments": "alignments",
+            "calendar": "calendar",
+            "seasons": "seasons",
+        }
+        for page_key, section_key in page_sections.items():
+            widget = self._page_widgets.get(page_key)
+            section = config.get(section_key, {})
+            if widget and hasattr(widget, "apply_config") and section:
+                widget.apply_config(section)
+
+        loc_page = self._page_widgets.get("location")
+        if loc_page and hasattr(loc_page, "_load_from_state"):
+            loc_page._load_from_state(self._location_state.coords)
+
+    def _collect_configuration(self) -> dict:
+        config = load_default_config()
+        config["app"] = {"last_page": self._current_page}
+        obs = self._location_state.coords
+        config["observer"] = {
+            "location_id": obs.location_id,
+            "name": obs.name,
+            "lat": obs.lat,
+            "lon": obs.lon,
+            "alt_m": obs.alt_m,
+        }
+        exporters = {
+            "location_page": "location",
+            "planets": "planets",
+            "sky_map": "sky_map",
+            "orientation_disk": "orient_disk",
+            "alignments": "alignments",
+            "calendar": "calendar",
+            "seasons": "seasons",
+        }
+        for section_key, page_key in exporters.items():
+            widget = self._page_widgets.get(page_key)
+            if widget and hasattr(widget, "export_config"):
+                config[section_key] = widget.export_config()
+        return config
+
+    def _save_configuration(self) -> None:
+        try:
+            save_config(self._collect_configuration())
+            self._show_status(f"Configuration saved to {CONFIG_PATH}")
+            dbg(f"user config saved: {CONFIG_PATH}")
+        except OSError as exc:
+            QMessageBox.warning(
+                self,
+                "Save configuration",
+                f"Could not write configuration file:\n{exc}",
+            )
+
+    def _reset_configuration(self) -> None:
+        answer = QMessageBox.question(
+            self,
+            "Reset configuration",
+            "Restore all module parameters to factory defaults?\n\n"
+            "The current settings will be replaced and saved.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return
+        try:
+            defaults = reset_config_file()
+            self._apply_observer_config(defaults.get("observer", {}))
+            self._apply_pages_config(defaults)
+            loc_page = self._page_widgets.get("location")
+            if loc_page and hasattr(loc_page, "_load_from_state"):
+                loc_page._load_from_state(self._location_state.coords)
+            self._show_status("Configuration reset to defaults")
+            dbg("user config reset to defaults")
+        except OSError as exc:
+            QMessageBox.warning(
+                self,
+                "Reset configuration",
+                f"Could not reset configuration:\n{exc}",
+            )
 
     def _update_sidebar(self, key: str):
         on_home = key == "home"
@@ -239,6 +381,10 @@ class MainWindow(QMainWindow):
         self._set_logo(full=on_home)
         self._app_name.setVisible(on_home)
         self._sidebar_sep.setVisible(on_home)
+        self._btn_save_config.setVisible(on_home)
+        self._btn_reset_config.setVisible(on_home)
+        if hasattr(self, "_config_sep"):
+            self._config_sep.setVisible(on_home)
 
         for btn in self._nav_buttons:
             if on_home:

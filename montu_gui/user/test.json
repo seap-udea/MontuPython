@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "app": {
+    "last_page": "home"
+  },
+  "observer": {
+    "location_id": "deir_el_bahari",
+    "name": "Deir el-Bahari (TT353)",
+    "lat": 25.7375,
+    "lon": 32.6072,
+    "alt_m": 200.0
+  },
+  "location_page": {
+    "coordinate_format": "decimal",
+    "map_label_lang": "local",
+    "map_network_consent": true
+  },
+  "planets": {
+    "initial_date": {
+      "era": "bce",
+      "year": 1500,
+      "month": 1,
+      "day": 1
+    },
+    "time_span_years": 3.0,
+    "num_points": 600,
+    "planets": [
+      "Moon",
+      "Mercury",
+      "Venus"
+    ],
+    "property": "elongation"
+  },
+  "sky_map": {
+    "date": {
+      "era": "ce",
+      "year": 1975,
+      "month": 6,
+      "day": 19
+    },
+    "local_time": {
+      "hour": 2,
+      "minute": 0,
+      "second": 0
+    },
+    "bodies": [
+      "Sun",
+      "Moon",
+      "Mercury",
+      "Venus",
+      "Mars",
+      "Jupiter",
+      "Saturn"
+    ],
+    "lines": [
+      "Ecliptic",
+      "Horizon"
+    ],
+    "meridian_view": true,
+    "mag_limit": 3.5,
+    "active_tab": "north"
+  },
+  "orientation_disk": {
+    "reference_year": {
+      "era": "bce",
+      "year": 2560
+    },
+    "star_mag_limit": 1.0,
+    "bodies": [
+      {
+        "name": "Sun",
+        "body_type": "planet",
+        "horizon_el": 0.0,
+        "color": "#B71C1C",
+        "hip": null
+      },
+      {
+        "name": "Jupiter",
+        "body_type": "planet",
+        "horizon_el": 0.0,
+        "color": "#1B5E20",
+        "hip": null
+      }
+    ]
+  },
+  "alignments": {
+    "preset_id": "senenmut_tt353",
+    "azimuth": 99.0,
+    "elevation": 25.0,
+    "year_start": {
+      "era": "bce",
+      "year": 1472
+    },
+    "year_end": {
+      "era": "bce",
+      "year": 1457
+    },
+    "mag_limit": 4.0,
+    "dec_tolerance": 1.0
+  },
+  "calendar": {
+    "input_mode": "caniucular",
+    "julian_gregorian": {
+      "era": "ce",
+      "calendar_type": "proleptic",
+      "year": 2216,
+      "month": 3,
+      "day": 2,
+      "hour": 0,
+      "minute": 0,
+      "second": 0
+    },
+    "caniucular": {
+      "hyear": 5000,
+      "month": "I",
+      "season": "Akhet",
+      "day": 1
+    },
+    "julian_day": {
+      "jd_utc": 2530497.5
+    },
+    "historical": {
+      "key": "bce 2782-07-20"
+    }
+  },
+  "seasons": {
+    "era": "bce",
+    "human_year": 2026
+  }
+}

@@ -618,11 +618,16 @@ class JulGregForm(QWidget):
         hour: int = 0,
         minute: int = 0,
         second: int = 0,
+        *,
+        calendar_type: str | None = None,
     ):
         self._syncing = True
         try:
             self.rb_bce.setChecked(era == "bce")
             self.rb_ce.setChecked(era == "ce")
+            if calendar_type is not None:
+                self.rb_proleptic.setChecked(calendar_type == "proleptic")
+                self.rb_mixed.setChecked(calendar_type != "proleptic")
             cal_year = max(1, min(9999, year))
             self.month_combo.setCurrentIndex(month - 1)
             self.year_spin.setValue(cal_year)
@@ -841,6 +846,13 @@ class HistoricalDatesForm(QWidget):
 
     def current_key(self) -> str | None:
         return self.combo.currentData()
+
+    def set_key(self, key: str) -> None:
+        if not key:
+            return
+        idx = self.combo.findData(key)
+        if idx >= 0:
+            self.combo.setCurrentIndex(idx)
 
 
 # ── main page widget ───────────────────────────────────────────────────────────
@@ -1157,3 +1169,80 @@ class CalendarPage(LazyPageMixin, QWidget):
         log_ui_event("open lets_python dialog")
         dlg = LetsPythonDialog(_CALENDAR_EXAMPLE, self.window())
         dlg.exec()
+
+    def export_config(self) -> dict:
+        if self.rb_mode_can.isChecked():
+            mode = "caniucular"
+        elif self.rb_mode_jd.isChecked():
+            mode = "julian_day"
+        elif self.rb_mode_hist.isChecked():
+            mode = "historical_dates"
+        else:
+            mode = "julian_gregorian"
+        return {
+            "input_mode": mode,
+            "julian_gregorian": {
+                "era": self.form_jg.era,
+                "calendar_type": self.form_jg.calendar_type,
+                "year": self.form_jg.year,
+                "month": self.form_jg.month,
+                "day": self.form_jg.day,
+                "hour": self.form_jg.hour,
+                "minute": self.form_jg.minute,
+                "second": self.form_jg.second,
+            },
+            "caniucular": {
+                "hyear": self.form_can.hyear_spin.value(),
+                "month": self.form_can.month_combo.currentText(),
+                "season": self.form_can.season_combo.currentText(),
+                "day": self.form_can.day_spin.value(),
+            },
+            "julian_day": {"jd_utc": self.form_jd.jd},
+            "historical": {"key": self.form_hist.current_key() or ""},
+        }
+
+    def apply_config(self, cfg: dict) -> None:
+        self._block_auto = True
+        try:
+            mode = cfg.get("input_mode", "julian_gregorian")
+            mode_buttons = {
+                "julian_gregorian": self.rb_mode_jg,
+                "caniucular": self.rb_mode_can,
+                "julian_day": self.rb_mode_jd,
+                "historical_dates": self.rb_mode_hist,
+            }
+            btn = mode_buttons.get(mode, self.rb_mode_jg)
+            if not btn.isChecked():
+                btn.setChecked(True)
+            else:
+                self._on_mode_changed()
+
+            jg = cfg.get("julian_gregorian", {})
+            self.form_jg.set_values(
+                jg.get("era", "ce"),
+                int(jg.get("year", 2000)),
+                int(jg.get("month", 1)),
+                int(jg.get("day", 1)),
+                int(jg.get("hour", 0)),
+                int(jg.get("minute", 0)),
+                int(jg.get("second", 0)),
+                calendar_type=jg.get("calendar_type", "proleptic"),
+            )
+
+            can = cfg.get("caniucular", {})
+            self.form_can.set_values(
+                int(can.get("hyear", 0)),
+                can.get("month", "I"),
+                can.get("season", "Akhet"),
+                int(can.get("day", 1)),
+            )
+
+            jd = cfg.get("julian_day", {})
+            self.form_jd.set_jd(float(jd.get("jd_utc", 625307.5)))
+
+            hist = cfg.get("historical", {})
+            key = hist.get("key", "")
+            if key:
+                self.form_hist.set_key(key)
+        finally:
+            self._block_auto = False

@@ -440,3 +440,15 @@ class SeasonsPage(LazyPageMixin, QWidget):
         log_ui_event("open lets_python dialog", module="seasons_lunar")
         dlg = LetsPythonDialog(_SEASONS_EXAMPLE, self.window())
         dlg.exec()
+
+    def export_config(self) -> dict:
+        return {
+            "era": self._year_input.era,
+            "human_year": self._year_input.human_year,
+        }
+
+    def apply_config(self, cfg: dict) -> None:
+        self._year_input.set_year(
+            cfg.get("era", "ce"),
+            int(cfg.get("human_year", datetime.now().year)),
+        )

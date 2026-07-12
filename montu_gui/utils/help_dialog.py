@@ -12,6 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 _HELP_FILE = Path(__file__).parent.parent / "assets" / "help.json"
+_COMMON_MODULE = "_common"
 
 
 def load_help() -> dict:
@@ -23,18 +24,45 @@ def load_help() -> dict:
         return {}
 
 
+def _lookup_raw(tree: dict, module: str, block: str, key: str) -> dict:
+    """Fetch a help node before resolving ``$ref`` aliases."""
+    if module == _COMMON_MODULE:
+        return tree.get(_COMMON_MODULE, {}).get(key, {})
+    return tree.get(module, {}).get(block, {}).get(key, {})
+
+
+def _resolve_entry(entry: dict, tree: dict, *, _depth: int = 0) -> dict:
+    """Follow ``$ref`` chains (e.g. ``_common/observer_location``)."""
+    if _depth > 8 or not isinstance(entry, dict):
+        return entry if isinstance(entry, dict) else {}
+
+    ref = entry.get("$ref")
+    if not ref:
+        return entry
+
+    parts = ref.split("/")
+    if len(parts) == 2 and parts[0] == _COMMON_MODULE:
+        target = tree.get(_COMMON_MODULE, {}).get(parts[1], {})
+    elif len(parts) == 3:
+        target = tree.get(parts[0], {}).get(parts[1], {}).get(parts[2], {})
+    else:
+        target = {}
+
+    resolved = _resolve_entry(target, tree, _depth=_depth + 1)
+    if not resolved:
+        return entry
+    return resolved
+
+
 def get_help_entry(module: str, block: str, key: str) -> dict:
-    """Return {title, body} for module/block/key, or empty dict."""
+    """Return {title, body} for module/block/key, resolving shared ``$ref`` entries."""
     if module == "planets" and block == "input" and key == "property":
         from montu_gui.modules.planets import property_help_entry
         return property_help_entry()
 
     tree = load_help()
-    return (
-        tree.get(module, {})
-        .get(block, {})
-        .get(key, {})
-    )
+    entry = _lookup_raw(tree, module, block, key)
+    return _resolve_entry(entry, tree)
 
 
 def show_field_help(module: str, block: str, key: str, parent=None):
@@ -43,7 +71,8 @@ def show_field_help(module: str, block: str, key: str, parent=None):
     title = entry.get("title", key.replace("_", " ").title())
     body = entry.get(
         "body",
-        f"No help text found. Add calendar → {block} → {key} in montu_gui/assets/help.json.",
+        f"No help text found. Add {module} → {block} → {key} "
+        f"(or a <code>$ref</code> in <code>_common</code>) in montu_gui/assets/help.json.",
     )
 
     dlg = QDialog(parent)

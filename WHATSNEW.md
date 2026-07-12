@@ -2,6 +2,15 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.21.1
+
+- **`montu/maps.py`** — new module that unifies Plotly sky-map plotting: equatorial Mercator and azimuthal (polar) projections live together instead of being split across `stars.py` and a separate helper module.
+- **`polar_sky_map`** — builds north- and south-hemisphere azimuthal maps from a precessed catalogue: limiting magnitude, optional **horizon** (elevation 0° with azimuth marks) and **ecliptic**, solar-system bodies, **meridian view**, and **LST** in the title. High-level API: `polar_sky_map(...)`; per-hemisphere: `polar_sky_map_figure(...)`.
+- **Constellation asterism sets** — choose among `iau`, `egyptian_ancient`, and `egyptian_dendera` via `constellation_set` (Stellarium sky-culture stick figures and name files shipped in `montu/data/`). New helpers: `CONSTELLATION_SET_IDS`, `constellation_data_files()`, `parse_constellation_names()`.
+- **`mercator_sky_map`** — moved into `montu/maps.py`; still exported from `montu`, `montu.maps`, and `montu.stars` so existing notebooks and `from montu.stars import mercator_sky_map` keep working.
+- **`Stars.polar_sky_map()`** — convenience wrapper on a precessed `Stars` catalogue (mirrors `Stars.mercator_sky_map()`).
+- **`local_solar_to_utc_datepro()`** — convert local solar time at an observer longitude to a proleptic UTC `datepro` string (used by polar sky maps and MontuPython Desktop).
+
 ## Version 0.21.x
 
 - **SPICE removed from the active package** — kernels are no longer loaded on import; time conversions use NumPy and PyMeeus instead of `spiceypy`. `spiceypy` was dropped from install dependencies.

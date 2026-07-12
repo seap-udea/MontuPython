@@ -179,6 +179,31 @@ class _DateInput(QWidget):
             self._day_spin.value(),
         )
 
+    def set_values(self, era: str, year: int, month: int, day: int) -> None:
+        for w in (
+            self._year_spin,
+            self._month_combo,
+            self._day_spin,
+            self._rb_bce,
+            self._rb_ce,
+        ):
+            w.blockSignals(True)
+        try:
+            self._rb_bce.setChecked(era == "bce")
+            self._rb_ce.setChecked(era == "ce")
+            self._year_spin.setValue(max(1, int(year)))
+            self._month_combo.setCurrentIndex(max(0, min(11, month - 1)))
+            self._day_spin.setValue(max(1, min(31, day)))
+        finally:
+            for w in (
+                self._year_spin,
+                self._month_combo,
+                self._day_spin,
+                self._rb_bce,
+                self._rb_ce,
+            ):
+                w.blockSignals(False)
+
 
 class _PlanetPicker(QWidget):
     """Planet checkboxes in a compact horizontal grid (not a vertical list)."""
@@ -202,6 +227,13 @@ class _PlanetPicker(QWidget):
 
     def selected(self) -> list[str]:
         return [name for name, cb in self._boxes.items() if cb.isChecked()]
+
+    def set_selected(self, names: list[str]) -> None:
+        selected = set(names)
+        for name, cb in self._boxes.items():
+            cb.blockSignals(True)
+            cb.setChecked(name in selected)
+            cb.blockSignals(False)
 
 
 class PlanetsPage(LazyPageMixin, QWidget):
@@ -398,3 +430,41 @@ class PlanetsPage(LazyPageMixin, QWidget):
         log_ui_event("open lets_python dialog", module="planets")
         dlg = LetsPythonDialog(_PLANETS_EXAMPLE, self.window())
         dlg.exec()
+
+    def export_config(self) -> dict:
+        return {
+            "initial_date": {
+                "era": self._date_input.era,
+                "year": self._date_input._year_spin.value(),
+                "month": self._date_input._month_combo.currentIndex() + 1,
+                "day": self._date_input._day_spin.value(),
+            },
+            "time_span_years": float(self._time_span.value()),
+            "num_points": int(self._num_points.value()),
+            "planets": self._planet_picker.selected(),
+            "property": self._property.currentData(),
+        }
+
+    def apply_config(self, cfg: dict) -> None:
+        date = cfg.get("initial_date", {})
+        self._date_input.set_values(
+            date.get("era", "bce"),
+            int(date.get("year", 1500)),
+            int(date.get("month", 1)),
+            int(date.get("day", 1)),
+        )
+        self._time_span.blockSignals(True)
+        self._num_points.blockSignals(True)
+        self._property.blockSignals(True)
+        try:
+            self._time_span.setValue(int(cfg.get("time_span_years", 10)))
+            self._num_points.setValue(int(cfg.get("num_points", 120)))
+            prop = cfg.get("property", DEFAULT_PROPERTY)
+            idx = self._property.findData(prop)
+            if idx >= 0:
+                self._property.setCurrentIndex(idx)
+        finally:
+            self._time_span.blockSignals(False)
+            self._num_points.blockSignals(False)
+            self._property.blockSignals(False)
+        self._planet_picker.set_selected(list(cfg.get("planets", [])))

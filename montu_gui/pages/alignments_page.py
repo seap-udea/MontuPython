@@ -665,3 +665,67 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         log_ui_event("open lets_python dialog", module="alignments")
         dlg = LetsPythonDialog(_EXAMPLE, self.window())
         dlg.exec()
+
+    def export_config(self) -> dict:
+        return {
+            "preset_id": self._preset_combo.currentData(),
+            "azimuth": float(self._az_spin.value()),
+            "elevation": float(self._el_spin.value()),
+            "year_start": {
+                "era": self._year_start.era,
+                "year": self._year_start.year,
+            },
+            "year_end": {
+                "era": self._year_end.era,
+                "year": self._year_end.year,
+            },
+            "mag_limit": float(self._mag_spin.value()),
+            "dec_tolerance": float(self._tol_spin.value()),
+        }
+
+    def apply_config(self, cfg: dict) -> None:
+        self._block_preset = True
+        try:
+            preset_id = cfg.get("preset_id")
+            if preset_id:
+                idx = self._preset_combo.findData(preset_id)
+                if idx >= 0:
+                    self._preset_combo.setCurrentIndex(idx)
+                    preset = find_alignment_preset(preset_id)
+                    if preset:
+                        self._preset_desc.setText(preset.description)
+
+            for widget in (
+                self._az_spin,
+                self._el_spin,
+                self._mag_spin,
+                self._tol_spin,
+            ):
+                widget.blockSignals(True)
+            try:
+                self._az_spin.setValue(float(cfg.get("azimuth", DEFAULT_AZ)))
+                self._el_spin.setValue(float(cfg.get("elevation", DEFAULT_EL)))
+                self._mag_spin.setValue(float(cfg.get("mag_limit", DEFAULT_MAG_LIMIT)))
+                self._tol_spin.setValue(float(cfg.get("dec_tolerance", DEFAULT_DEC_TOL)))
+            finally:
+                for widget in (
+                    self._az_spin,
+                    self._el_spin,
+                    self._mag_spin,
+                    self._tol_spin,
+                ):
+                    widget.blockSignals(False)
+
+            year_start = cfg.get("year_start", {})
+            year_end = cfg.get("year_end", {})
+            self._year_start.set_values(
+                int(year_start.get("year", DEFAULT_YEAR_START)),
+                year_start.get("era", DEFAULT_ERA_START),
+            )
+            self._year_end.set_values(
+                int(year_end.get("year", DEFAULT_YEAR_END)),
+                year_end.get("era", DEFAULT_ERA_END),
+            )
+            self._update_target_label()
+        finally:
+            self._block_preset = False

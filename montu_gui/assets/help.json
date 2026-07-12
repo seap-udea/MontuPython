@@ -1,4 +1,42 @@
 {
+  "_common": {
+    "observer_location": {
+      "title": "Observer location",
+      "body": "<p>Geographic observing site <b>shared by all sky modules</b>. Set latitude, longitude, and altitude in the <b>🧭 Observer Location</b> module; the label here shows the active site.</p><p>Latitude and longitude define the local horizon, sidereal time, and azimuth/elevation; altitude [m] is converted to kilometres for <code>montu.Observer</code>.</p>"
+    },
+    "bce": {
+      "title": "BCE",
+      "body": "Before Common Era. Enter the historical year as a positive integer (e.g. 2500 for 2500 BCE). MontuPython converts internally to astronomical year numbering for computation."
+    },
+    "ce": {
+      "title": "CE",
+      "body": "Common Era (historically “AD”). Enter the year as a positive integer (e.g. 2026 for 2026 CE)."
+    },
+    "date_proleptic": {
+      "title": "Date (proleptic Gregorian)",
+      "body": "<p>Calendar date in the <b>proleptic Gregorian</b> system with historical BCE/CE years. Used to precess star coordinates to the selected epoch.</p><p>Choose era, then year, month, and day. Local time is set separately.</p>"
+    },
+    "year": {
+      "title": "Year",
+      "body": "<p>Calendar year as a positive integer together with the selected <b>BCE</b> or <b>CE</b> era.</p><p>Example: <code>2500</code> with <b>BCE</b> → year 2500 BCE.</p>"
+    },
+    "month": {
+      "title": "Month",
+      "body": "<p>Gregorian month (January–December) for the selected date.</p>"
+    },
+    "day": {
+      "title": "Day",
+      "body": "<p>Day of month (1–31) for the selected date. February length follows the proleptic Gregorian rules.</p>"
+    },
+    "local_solar_time": {
+      "title": "Local time",
+      "body": "<p>Local <b>solar</b> civil time at the observer — hours, minutes, and seconds. With geographic longitude, MontuPython converts this instant to UTC for horizon lines, meridian view, and solar-system body positions.</p>"
+    },
+    "mag_limit_v": {
+      "title": "Limiting magnitude (V)",
+      "body": "<p>Johnson <b>V</b>-band visual magnitude cutoff. Only objects <b>brighter than or equal to</b> this value are included (smaller numbers = brighter).</p><p>Reference: Sirius ≈ −1.5; naked-eye limit ≈ 6.5 under dark skies.</p>"
+    }
+  },
   "calendar": {
     "result": {
       "weekday": {
@@ -56,12 +94,10 @@
         "body": "Select a preset date from Egyptology and astronomy literature. See also the full help under <b>Historical dates</b> (input mode) or <b>Historical Date</b> above the preset list for sources, including José Lull’s <i>La astronomía en el antiguo Egipto</i>."
       },
       "bce": {
-        "title": "BCE",
-        "body": "Before Common Era. Years are counted historically (1 BCE is followed by 1 CE). MontuPython converts internally to the astronomical year numbering used by the library."
+        "$ref": "_common/bce"
       },
       "ce": {
-        "title": "CE",
-        "body": "Common Era (historically “AD”). Use for dates from 1 CE onward in the Julian/Gregorian input form."
+        "$ref": "_common/ce"
       },
       "mixed": {
         "title": "Mixed",
@@ -146,12 +182,10 @@
     },
     "input": {
       "bce": {
-        "title": "BCE",
-        "body": "Before Common Era. Enter the historical year as a positive integer (e.g. 1450 for 1450 BCE)."
+        "$ref": "_common/bce"
       },
       "ce": {
-        "title": "CE",
-        "body": "Common Era. Enter the year as a positive integer (e.g. 2026 for 2026 CE)."
+        "$ref": "_common/ce"
       }
     },
     "fields": {
@@ -184,12 +218,10 @@
         "body": "<p>Start of the ephemeris interval in the <b>proleptic Gregorian</b> calendar using <b>historical</b> BCE/CE years.</p><p>Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. Example: <b>1500 BCE</b>, 1 January is year&nbsp;1500 before the Common Era — internally converted to astronomical year&nbsp;−1499 for computation.</p><p>The chart axis shows astronomical proleptic dates (<code>datepro</code>); the title uses the human-readable SPICE-style form (<code>1500 B.C. 01-01</code>).</p>"
       },
       "bce": {
-        "title": "BCE",
-        "body": "Before Common Era. Enter the historical year as a positive integer (e.g. 1500 for 1500 BCE)."
+        "$ref": "_common/bce"
       },
       "ce": {
-        "title": "CE",
-        "body": "Common Era. Enter the year as a positive integer (e.g. 2026 for 2026 CE)."
+        "$ref": "_common/ce"
       },
       "time_span": {
         "title": "Time span (years)",
@@ -218,8 +250,7 @@
   "alignments": {
     "input": {
       "location": {
-        "title": "Observer location",
-        "body": "<p>The observer's geographic <b>latitude</b> is the only location parameter that affects the target declination calculation. Longitude is not relevant for this module.</p><p>Set the location in the <b>🧭 Observer Location</b> module, or choose a <b>Famous alignment</b> preset above — presets fill coordinates automatically.</p>"
+        "$ref": "_common/observer_location"
       },
       "famous_alignments": {
         "title": "Famous alignments",
@@ -290,6 +321,78 @@
       "map_labels": {
         "title": "Map labels",
         "body": "<p>Choose how place names appear on the map tiles.</p><ul><li><b>Local names</b> — standard OpenStreetMap tiles (e.g. Arabic in Egypt).</li><li><b>English names</b> — Wikimedia internationalized tiles that prefer <code>name:en</code> where available.</li></ul><p>Switching reloads the map. Your choice is remembered for future sessions.</p>"
+      }
+    }
+  },
+  "orientation_disk": {
+    "input": {
+      "location": {
+        "$ref": "_common/observer_location"
+      },
+      "add_body": {
+        "title": "Add a body",
+        "body": "<p>Choose a <b>Sun</b>, <b>Moon</b>, planet, or named star from the dropdown and click <b>＋ Add</b>. Each body appears as a row on the disk with its own effective horizon altitude.</p><p>The star list respects the <b>V magnitude</b> filter below. Duplicate bodies are not allowed. At least one body must remain on the disk.</p><p>Over a 3-year window around the reference year, MontuPython finds the northernmost and southernmost rise (△) and set (▽) azimuths for each body.</p>"
+      },
+      "star_mag_filter": {
+        "title": "Stars with V mag ≤",
+        "body": "<p>Filters which <b>named stars</b> appear in the add-body dropdown. Only stars brighter than or equal to this Johnson V magnitude are listed.</p><p>Does not affect planets or the Sun/Moon. Lower values show fewer, brighter stars.</p>"
+      },
+      "reference_year": {
+        "title": "Reference year",
+        "body": "<p>Central year of the 3-year search window (reference year ± 1 year). Select <b>BCE</b> or <b>CE</b> and enter the historical year.</p><p>Extreme rise/set azimuths are sampled over this interval at the observer site.</p>"
+      }
+    }
+  },
+  "sky_map": {
+    "input": {
+      "location": {
+        "$ref": "_common/observer_location"
+      },
+      "date": {
+        "$ref": "_common/date_proleptic"
+      },
+      "year": {
+        "$ref": "_common/year"
+      },
+      "month": {
+        "$ref": "_common/month"
+      },
+      "day": {
+        "$ref": "_common/day"
+      },
+      "bce": {
+        "$ref": "_common/bce"
+      },
+      "ce": {
+        "$ref": "_common/ce"
+      },
+      "local_time": {
+        "$ref": "_common/local_solar_time"
+      },
+      "constellation_set": {
+        "title": "Constellation set",
+        "body": "<p>Choose which asterism catalogue draws the stick figures and labels on the map. Stick figures and names are loaded from <code>constellationship_*.fab</code> and <code>constellation_names_*.fab</code> in <code>montu/data</code>.</p><ul><li><b>IAU Constellations</b> — the modern 88-constellation outlines used in contemporary astronomy.</li><li><b>Ancient Egyptian</b> — late and earlier Egyptian sky figures (decans and related lore). Names and line patterns follow Egyptian tradition rather than the Greco-Roman zodiac; for example, Cancer appears as the Scarab Beetle and a Lion figure near the Scales corresponds to Centaurus, not Leo. Planets were the “stars that knew no rest,” each with Egyptian epithets (e.g. Jupiter as <i>Horus Who Limits the Two Lands</i>).</li><li><b>Dendera Egyptian</b> — figures mapped onto the stars from the sculpted zodiac on the ceiling of the Hathor temple at Dendera (Ptolemaic/Roman period; commonly dated c. 54&nbsp;BCE). It is not a purely Egyptian sky: the zodiac and many surrounding figures blend Greco-Roman, Babylonian, and Egyptian iconography drawn in Egyptian style — e.g. Gemini as Shu &amp; Tefnut, Aquarius as the Nile god Hapi, and native Egyptian forms such as the Bull’s Thigh (Ursa Major) beside Babylonian Fox and Ewe.</li></ul><p><b>Source</b> — the Egyptian sets reproduce <a href=\"https://stellarium.org\">Stellarium</a> sky-culture data (historical, Northern Africa). <b>Ancient Egyptian</b> is based on Juan Antonio Belmonte’s <i>A Map of the Ancient Egyptian Firmament</i> (contributed by Karrie Berglund; planet names updated by misibacsi). <b>Dendera Egyptian</b> maps figures from Louvre photographs of the Dendera ceiling (Susanne M. Hoffmann).</p><p><b>Licence</b> — <b>Ancient Egyptian</b>: GNU GPL v2.0 (commercial and non-commercial use; adaptation and sharing allowed). <b>Dendera Egyptian</b>: CC BY-ND 4.0 (reuse with attribution; adapted versions may not be redistributed). See Stellarium for full sky-culture terms.</p>"
+      },
+      "bodies_on_map": {
+        "title": "Bodies on map",
+        "body": "<p>Select solar-system bodies to plot as emoji symbols on the map: <b>Sun</b>, <b>Moon</b>, and the classical planets.</p><p>Positions use the observer site and local time. Bodies below the horizon can be shown when the <b>Horizon</b> line is enabled (stars below the horizon are tinted green).</p>"
+      },
+      "lines_on_map": {
+        "title": "Lines on map",
+        "body": "<p>Overlay great circles on the map:</p><ul><li><b>Ecliptic</b> — apparent path of the Sun, precessed to the selected date (dashed orange).</li><li><b>Horizon</b> — elevation 0° at the observer; enables azimuth labels and green below-horizon styling (solid green).</li></ul>"
+      },
+      "configuration": {
+        "title": "Configuration",
+        "body": "<p><b>Meridian view</b> — rotate the map so the local meridian (LST) is at the top. Angular grid labels show absolute RA meridians; otherwise RA increases clockwise from 0° at the top.</p>"
+      },
+      "mag_limit": {
+        "$ref": "_common/mag_limit_v"
+      }
+    },
+    "chart": {
+      "map": {
+        "title": "Map",
+        "body": "<p>Celestial map in a fixed Mercator-style projection. Use the <b>Northern Hemisphere</b> and <b>Southern Hemisphere</b> tabs to switch views.</p><p><b>Window size</b> — give the map panel enough space by enlarging the application window or dragging the splitter between the controls and the map. The map is drawn at a fixed aspect ratio; if the panel is too narrow or too short, edges may be clipped.</p><p><b>No scroll bars</b> — when the map does not fit, clipped regions are not reachable; resize the window or splitter instead of expecting pan or scroll.</p><p><b>No zoom</b> — this projection does not support zoom or pan. Use <b>Limiting magnitude</b> and the display options on the left to change what is shown, and hover over stars and bodies for coordinates.</p>"
       }
     }
   }

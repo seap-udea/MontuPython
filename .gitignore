@@ -170,3 +170,6 @@ cython_debug/
 #.idea/
 
 contrib/*
+
+# MontuPython Desktop — per-user settings (not committed)
+montu_gui/user/config.json

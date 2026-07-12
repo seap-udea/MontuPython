@@ -2,18 +2,62 @@
   "title": "MontuPython Desktop",
   "tagline": "Astronomical ephemerides for the ancient world",
   "fonts": {
-    "title": 40,
-    "tagline": 21,
-    "version": 19,
-    "body": 19,
-    "credits": 19,
-    "contact": 19,
-    "links": 19
+    "title": 31,
+    "tagline": 15,
+    "version": 14,
+    "body": 14,
+    "section": 15,
+    "module_title": 14,
+    "module_body": 13,
+    "credits": 13,
+    "contact": 13,
+    "links": 13
   },
   "paragraphs": [
-    "<b>MontuPython</b> (<i>mnṯw 'app(y)</i>) is a Python package to compute astronomical ephemerides in the ancient world — thousands of years before the present. It was developed for ancient Egypt and applies equally to other sites of cultural and archaeoastronomical interest.",
-    "<b>MontuPython Desktop</b> is the graphical front-end to that library. It offers pre-built tools for users who do not wish to program at the Python level, or who want quick access to core functionality. Open a module from the sidebar to run predefined calculations — for example, <b>Calendar Calculator</b> to convert among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), and Julian Day formats.  In each module, you will find python code, related to the task performed using that module, that you can copy and paste into your own projects or to learn from."
+    "<b>MontuPython</b> computes astronomical ephemerides thousands of years before the present — developed for ancient Egypt and useful at any archaeoastronomical site. <b>MontuPython Desktop</b> is its graphical front-end: open a module from the sidebar to run predefined calculations. Each module also offers Python code you can copy into your own projects."
   ],
+  "modules": [
+    {
+      "icon": "🧭",
+      "title": "Observer Location",
+      "description": "Set the observer site (predefined ancient locations, map click, or manual coordinates). Shared by all sky modules."
+    },
+    {
+      "icon": "📅",
+      "title": "Calendar Calculator",
+      "description": "Convert dates among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), Julian Day, and historical presets."
+    },
+    {
+      "icon": "🎑",
+      "title": "Seasons & Lunar Phases",
+      "description": "Exact dates of the four astronomical seasons and all lunar phases for any historical year."
+    },
+    {
+      "icon": "🪐",
+      "title": "Planetary Ephemerides",
+      "description": "Plot sky-condition properties for the Sun, Moon, and classical planets over a chosen time span."
+    },
+    {
+      "icon": "📐",
+      "title": "Star Alignments",
+      "description": "Find which bright stars passed through a fixed azimuth and elevation over a date range, with precession."
+    },
+    {
+      "icon": "⭕",
+      "title": "Orientation Disk",
+      "description": "Extreme rise and set azimuths for the Sun, planets, and stars on an azimuth disk (N at top)."
+    },
+    {
+      "icon": "🌌",
+      "title": "Sky Map",
+      "description": "Azimuthal sky maps with precessed stars, asterisms, ecliptic, horizon, and solar-system bodies."
+    }
+  ],
+  "configuration": {
+    "title": "Configuration",
+    "save": "Saves all module parameters and the observer location to your personal settings file (config.json). Restored automatically on the next launch.",
+    "reset": "Restores factory defaults from default.json and overwrites config.json. Use this to start fresh."
+  },
   "people": {
     "author": "Jorge I. Zuluaga © 2023–present",
     "contributors": "Juanita Agudelo (early web app), Luis Arroyo (online web app)",

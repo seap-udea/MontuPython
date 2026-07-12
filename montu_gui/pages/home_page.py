@@ -12,9 +12,10 @@ from datetime import date, datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QFont
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QPushButton,
+    QScrollArea, QFrame,
 )
 
 from montu.version import version as MONTU_VERSION, release_date as MONTU_RELEASE_DATE
@@ -33,7 +34,7 @@ def _rich_label(
 ) -> QLabel:
     wrapped = (
         f"<div style='font-size:{point_size}pt; font-family:Georgia; "
-        f"color:{color or PALETTE['text']};'>{html}</div>"
+        f"color:{color or PALETTE['text']}; line-height:1.35;'>{html}</div>"
     )
     lbl = QLabel(wrapped)
     lbl.setWordWrap(True)
@@ -110,6 +111,39 @@ def _version_row(
     return row
 
 
+def _module_row(
+    icon: str,
+    title: str,
+    description: str,
+    *,
+    title_size: int,
+    body_size: int,
+) -> QWidget:
+    """One module: emoji icon + title + brief description."""
+    row = QWidget()
+    lay = QHBoxLayout(row)
+    lay.setContentsMargins(0, 2, 0, 2)
+    lay.setSpacing(10)
+
+    icon_lbl = QLabel(icon)
+    icon_lbl.setFont(QFont("Apple Color Emoji", title_size + 4))
+    icon_lbl.setFixedWidth(max(36, title_size + 16))
+    icon_lbl.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+    lay.addWidget(icon_lbl)
+
+    text_html = (
+        f"<b>{title}</b> — {description}"
+    )
+    text_lbl = _rich_label(
+        text_html,
+        object_name="home_module",
+        point_size=body_size,
+        color=PALETTE["text"],
+    )
+    lay.addWidget(text_lbl, stretch=1)
+    return row
+
+
 class HomePage(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -117,6 +151,7 @@ class HomePage(QWidget):
             Path(__file__).parent.parent / "assets" / "home.json"
         )
         self._content_mtime: float = 0.0
+        self._scroll: QScrollArea | None = None
         self._root: QVBoxLayout | None = None
         self._content = load_home_content()
         self._fonts = self._content.get("fonts", {})
@@ -166,11 +201,26 @@ class HomePage(QWidget):
         except OSError:
             self._content_mtime = 0.0
 
-        self._root = QVBoxLayout(self)
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(0)
+
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._scroll.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
+
+        scroll_body = QWidget()
+        self._root = QVBoxLayout(scroll_body)
         self._root.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self._root.setSpacing(8)
-        self._root.setContentsMargins(40, 28, 40, 28)
+        self._root.setSpacing(5)
+        self._root.setContentsMargins(28, 18, 28, 18)
         self._populate()
+
+        self._scroll.setWidget(scroll_body)
+        outer.addWidget(self._scroll)
 
     def _populate(self):
         root = self._root
@@ -179,7 +229,7 @@ class HomePage(QWidget):
         title.setObjectName("home_title")
         title.setStyleSheet(
             _plain_label_style(
-                self._font_size("title", 34),
+                self._font_size("title", 31),
                 color=PALETTE["text"],
                 bold=True,
             )
@@ -197,7 +247,7 @@ class HomePage(QWidget):
         )
         root.addWidget(tagline)
 
-        version_size = self._font_size("version", 13)
+        version_size = self._font_size("version", 14)
         root.addLayout(
             _version_row(
                 "MontuPython library version",
@@ -217,15 +267,82 @@ class HomePage(QWidget):
             )
         )
 
-        root.addSpacing(6)
+        root.addSpacing(4)
 
-        body_size = self._font_size("body", 13)
+        body_size = self._font_size("body", 14)
         for para in self._content.get("paragraphs", []):
             root.addWidget(
                 _rich_label(para, object_name="home_body", point_size=body_size)
             )
 
+        root.addSpacing(6)
+
+        section_size = self._font_size("section", 15)
+        modules_heading = QLabel("Modules")
+        modules_heading.setObjectName("home_section")
+        modules_heading.setStyleSheet(
+            _plain_label_style(
+                section_size,
+                color=PALETTE["text"],
+                bold=True,
+            )
+        )
+        root.addWidget(modules_heading)
+
+        mod_title_size = self._font_size("module_title", 14)
+        mod_body_size = self._font_size("module_body", 13)
+        for mod in self._content.get("modules", []):
+            root.addWidget(
+                _module_row(
+                    mod.get("icon", "•"),
+                    mod.get("title", ""),
+                    mod.get("description", ""),
+                    title_size=mod_title_size,
+                    body_size=mod_body_size,
+                )
+            )
+
+        root.addSpacing(6)
+
+        cfg = self._content.get("configuration", {})
+        if cfg:
+            cfg_heading = QLabel(cfg.get("title", "Configuration"))
+            cfg_heading.setObjectName("home_section")
+            cfg_heading.setStyleSheet(
+                _plain_label_style(
+                    section_size,
+                    color=PALETTE["text"],
+                    bold=True,
+                )
+            )
+            root.addWidget(cfg_heading)
+
+            save_text = cfg.get("save", "")
+            reset_text = cfg.get("reset", "")
+            if save_text:
+                root.addWidget(
+                    _rich_label(
+                        f"💾 <b>Save configuration</b> — {save_text}",
+                        object_name="home_body",
+                        point_size=mod_body_size,
+                    )
+                )
+            if reset_text:
+                root.addWidget(
+                    _rich_label(
+                        f"↺ <b>Reset configuration</b> — {reset_text}",
+                        object_name="home_body",
+                        point_size=mod_body_size,
+                    )
+                )
+
         root.addSpacing(8)
+
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.HLine)
+        sep.setFrameShadow(QFrame.Shadow.Sunken)
+        root.addWidget(sep)
+        root.addSpacing(4)
 
         credits_size = self._font_size("credits", 13)
         people = self._content.get("people", {})
@@ -251,17 +368,15 @@ class HomePage(QWidget):
             _rich_label(lic_html, object_name="home_credits", point_size=credits_size)
         )
 
-        root.addSpacing(6)
-
         links_row = QHBoxLayout()
-        links_row.setSpacing(10)
+        links_row.setSpacing(8)
         for link in self._content.get("links", []):
             btn = QPushButton(link.get("label", "Link"))
             btn.setObjectName("home_link_btn")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            link_size = self._font_size("links", self._font_size("body", 13))
+            link_size = self._font_size("links", 13)
             btn.setStyleSheet(
-                f"font-size: {link_size}pt; font-family: Georgia;"
+                f"font-size: {link_size}pt; font-family: Georgia; padding: 4px 10px;"
             )
             url = link.get("url", "")
             btn.clicked.connect(
@@ -280,8 +395,6 @@ class HomePage(QWidget):
                     email_html, object_name="home_contact", point_size=contact_size
                 )
             )
-
-        root.addStretch()
 
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,

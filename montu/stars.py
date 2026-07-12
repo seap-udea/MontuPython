@@ -24,32 +24,13 @@ import pymeeus.Coordinates as pymeeus_Coordinates
 STELLAR_CATALOGUE = 'montu_stellar_catalogue_v38.csv' # Latest version: 2025/03/28
 CONSTELLATION_LINES_IAU = 'constellationship_iau.fab'
 CONSTELLATION_BOUNDARIES_IAU = 'constellation_boundaries.dat'
+CONSTELLATION_SET_IDS = ('iau', 'egyptian_ancient', 'egyptian_dendera')
 PLT_DEFAULT_STYLE = 'default' # others: ggplot, default, classic
 SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
 
-# ── IAU constellation sky-map helpers (Plotly Mercator) ─────────────────────
-
-def _import_plotly():
-    try:
-        import plotly.graph_objects as go
-        return go
-    except ImportError as exc:
-        raise ImportError(
-            "Plotly is required for mercator_sky_map. "
-            "Install with: pip install plotly"
-        ) from exc
-
-
-def _mag_to_marker_size(vmag: float) -> float:
-    return float(np.clip(13.0 - 2.0 * vmag, 3.0, 22.0))
-
-
-def _star_display_name(row) -> str:
-    pn = str(row.get("ProperName", ""))
-    if pn not in ("", "nan", "None"):
-        return pn
-    return str(row.get("Name", ""))
-
+###############################################################
+# Constellation data (asterism .fab files)
+###############################################################
 
 def parse_constellation_boundaries(path=None):
     """Parse IAU constellation boundary polygons from ``constellation_boundaries.dat``.
@@ -96,13 +77,24 @@ def parse_constellation_boundaries(path=None):
     return polygons
 
 
-def parse_constellation_lines(path=None):
-    """Parse IAU constellation stick figures from ``constellationship_iau.fab``.
+def constellation_data_files(set_id: str = 'iau') -> tuple[str, str]:
+    """Return ``(lines_file, names_file)`` for a constellation asterism set."""
+    if set_id not in CONSTELLATION_SET_IDS:
+        set_id = 'iau'
+    return (
+        f'constellationship_{set_id}.fab',
+        f'constellation_names_{set_id}.fab',
+    )
+
+
+def parse_constellation_lines(path=None, *, set_id: str = 'iau'):
+    """Parse constellation stick figures from a ``constellationship_*.fab`` file.
 
     Returns a list of dicts with keys ``abbrev`` and ``segments`` (HIP pairs).
     """
     if path is None:
-        path = montu.Util._data_path(CONSTELLATION_LINES_IAU, check=True)
+        lines_file, _ = constellation_data_files(set_id)
+        path = montu.Util._data_path(lines_file, check=True)
     entries = []
     with open(path, encoding="utf-8") as fh:
         for raw in fh:
@@ -120,275 +112,29 @@ def parse_constellation_lines(path=None):
     return entries
 
 
-def _build_hip_lookup(
-    star_data: pd.DataFrame,
-    ra_col: str = "RAEpoch",
-    dec_col: str = "DecEpoch",
-) -> dict:
-    lookup = {}
-    for _, row in star_data.iterrows():
-        hip = row.get("HIP", np.nan)
-        if pd.isna(hip):
-            continue
-        ra = row.get(ra_col, np.nan)
-        dec = row.get(dec_col, np.nan)
-        if pd.isna(ra) or pd.isna(dec):
-            continue
-        ra_deg = float(ra) * 15.0
-        lookup[int(hip)] = (ra_deg, float(dec))
-    return lookup
+def parse_constellation_names(path=None, *, set_id: str = 'iau') -> dict[str, str]:
+    """Parse ``constellation_names_*.fab`` into ``abbrev → display label``."""
+    import re
 
+    if path is None:
+        _, names_file = constellation_data_files(set_id)
+        path = montu.Util._data_path(names_file, check=True)
 
-def _fab_hip_ids():
-    """HIP catalogue numbers referenced in the IAU stick-figure file."""
-    hips = set()
-    for entry in parse_constellation_lines():
-        for hip_a, hip_b in entry["segments"]:
-            hips.add(hip_a)
-            hips.add(hip_b)
-    return hips
+    labels: dict[str, str] = {}
+    with open(path, encoding="utf-8") as fh:
+        for raw in fh:
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            abbrev = line.split()[0]
+            translated = re.search(r'_\("([^"]*)"\)', line)
+            if translated:
+                labels[abbrev] = translated.group(1)
+                continue
+            quoted = re.search(r'"([^"]*)"', line)
+            labels[abbrev] = quoted.group(1) if quoted else abbrev
+    return labels
 
-
-def _complete_hip_lookup(
-    star_data: pd.DataFrame,
-    ra_col: str = "RAEpoch",
-    dec_col: str = "DecEpoch",
-    at=None,
-) -> dict:
-    """Build HIP→(RA°, Dec°) lookup, supplementing asterism stars from the catalogue."""
-    lookup = _build_hip_lookup(star_data, ra_col=ra_col, dec_col=dec_col)
-    missing = _fab_hip_ids() - set(lookup.keys())
-    if not missing:
-        return lookup
-    cat = pd.read_csv(
-        montu.Util._data_path(STELLAR_CATALOGUE, check=True),
-        low_memory=False,
-    )
-    subset = cat[cat["HIP"].isin(list(missing))].copy()
-    if subset.empty:
-        return lookup
-    use_epoch = ra_col in ("RAEpoch",) and at is not None
-    if use_epoch:
-        extra = Stars(data=subset)
-        extra = extra.where_in_space(at=at)
-        lookup.update(_build_hip_lookup(extra.data, "RAEpoch", "DecEpoch"))
-    else:
-        lookup.update(_build_hip_lookup(subset, "RAJ2000", "DecJ2000"))
-    return lookup
-
-
-def _polyline_ra_dec(points, *, split_wrap=True):
-    """Expand polygon vertices into x/y lists with ``None`` breaks at RA wraps."""
-    if not points:
-        return [], []
-    xs, ys = [], []
-    for k, (ra, dec) in enumerate(points):
-        if k > 0 and split_wrap:
-            ra_prev = points[k - 1][0]
-            if abs(ra - ra_prev) > 180.0:
-                xs.append(None)
-                ys.append(None)
-        xs.append(ra)
-        ys.append(dec)
-    return xs, ys
-
-
-def mercator_sky_axes():
-    """Default Plotly axis dicts for an equatorial Mercator sky map."""
-    xaxis = dict(
-        title="Right Ascension [h]",
-        autorange="reversed",
-        range=[360, 0],
-        gridcolor="#1a2740",
-        tickvals=list(range(0, 361, 30)),
-        ticktext=[f"{v // 15}h" for v in range(0, 361, 30)],
-        color="#8899aa",
-        showgrid=True,
-        zeroline=False,
-    )
-    yaxis = dict(
-        title="Declination [°]",
-        range=[-90, 90],
-        gridcolor="#1a2740",
-        tickvals=list(range(-90, 91, 30)),
-        color="#8899aa",
-        showgrid=True,
-        zeroline=False,
-    )
-    return xaxis, yaxis
-
-
-def mercator_sky_map(
-    star_data: pd.DataFrame,
-    *,
-    ra_col: str = "RAEpoch",
-    dec_col: str = "DecEpoch",
-    mag_col: str = "Vmag",
-    mag_limit: float = 6.5,
-    label_bright_mag: float = 2.5,
-    show_stars: bool = True,
-    show_constellation_lines: bool = True,
-    show_constellation_boundaries: bool = True,
-    show_constellation_labels: bool = True,
-    at=None,
-    layout=None,
-):
-    """Build a base equatorial Mercator sky map (Plotly).
-
-    Draws IAU constellation boundaries, asterism lines, soft constellation
-    abbreviations, and background stars.  Alignment overlays (target
-    declination, circumpolar limit, highlighted stars, title, etc.) should be
-    added by the caller on the returned figure.
-
-    Parameters
-    ----------
-    star_data : pandas.DataFrame
-        Stellar catalogue rows at the map epoch (must include ``HIP`` for
-        constellation geometry).
-    ra_col, dec_col : str
-        Right ascension [hours] and declination [degrees] column names.
-    mag_limit : float
-        Faint limit for background stars.
-    label_bright_mag : float
-        Annotate stars brighter than this V magnitude.
-    at : montu.Time, optional
-        Epoch for precessing asterism stars missing from *star_data*.
-    layout : dict, optional
-        Extra keys merged into ``fig.update_layout`` (no title by default).
-
-    Returns
-    -------
-    plotly.graph_objects.Figure
-    """
-    go = _import_plotly()
-    fig = go.Figure()
-    hip_lookup = _complete_hip_lookup(
-        star_data, ra_col=ra_col, dec_col=dec_col, at=at,
-    )
-
-    if show_constellation_boundaries:
-        bx, by = [], []
-        for poly in parse_constellation_boundaries():
-            px, py = _polyline_ra_dec(poly["points"])
-            if px:
-                bx.extend(px + [None])
-                by.extend(py + [None])
-        if bx:
-            fig.add_trace(go.Scatter(
-                x=bx, y=by, mode="lines",
-                line=dict(color="rgba(230, 120, 170, 0.65)", width=0.8),
-                hoverinfo="skip", showlegend=False, name="boundaries",
-            ))
-
-    label_positions: dict[str, list[tuple[float, float]]] = {}
-
-    if show_constellation_lines:
-        lx, ly = [], []
-        for entry in parse_constellation_lines():
-            abbrev = entry["abbrev"]
-            for hip_a, hip_b in entry["segments"]:
-                pa = hip_lookup.get(hip_a)
-                pb = hip_lookup.get(hip_b)
-                if pa is None or pb is None:
-                    continue
-                ra1, dec1 = pa
-                ra2, dec2 = pb
-                if abs(ra2 - ra1) > 180.0:
-                    lx.extend([ra1, None])
-                    ly.extend([dec1, None])
-                lx.extend([ra1, ra2, None])
-                ly.extend([dec1, dec2, None])
-                label_positions.setdefault(abbrev, []).append(pa)
-                label_positions.setdefault(abbrev, []).append(pb)
-        if lx:
-            fig.add_trace(go.Scatter(
-                x=lx, y=ly, mode="lines",
-                line=dict(color="rgba(110, 125, 145, 0.55)", width=1.0),
-                hoverinfo="skip", showlegend=False, name="asterisms",
-            ))
-
-    if show_constellation_labels and label_positions:
-        label_x, label_y, label_text = [], [], []
-        for abbrev, coords in label_positions.items():
-            ra_mean = float(np.mean([c[0] for c in coords]))
-            dec_mean = float(np.mean([c[1] for c in coords]))
-            label_x.append(ra_mean)
-            label_y.append(dec_mean)
-            label_text.append(abbrev)
-        fig.add_trace(go.Scatter(
-            x=label_x, y=label_y, mode="text", text=label_text,
-            textfont=dict(size=9, color="rgba(130, 140, 155, 0.42)"),
-            hoverinfo="skip", showlegend=False, name="constellation labels",
-        ))
-
-    if show_stars and not star_data.empty:
-        data = star_data[star_data[mag_col] <= float(mag_limit)].copy()
-        if not data.empty:
-            if ra_col.endswith("J2000") or ra_col == "RAJ2000":
-                data["ra_deg"] = data[ra_col] * 15.0
-            elif ra_col.startswith("RA"):
-                data["ra_deg"] = data[ra_col] * 15.0
-            else:
-                data["ra_deg"] = data[ra_col]
-            data["msize"] = data[mag_col].apply(_mag_to_marker_size)
-            data["display_name"] = data.apply(_star_display_name, axis=1)
-            label_col = data.apply(
-                lambda r: r["display_name"] if r[mag_col] <= label_bright_mag else "",
-                axis=1,
-            )
-            fig.add_trace(go.Scatter(
-                x=data["ra_deg"],
-                y=data[dec_col],
-                mode="markers+text",
-                marker=dict(
-                    size=data["msize"],
-                    color="white",
-                    opacity=0.65,
-                    symbol="circle",
-                    line=dict(width=0),
-                ),
-                text=label_col,
-                textposition="top center",
-                textfont=dict(size=9, color="#8899aa"),
-                name="Stars",
-                customdata=np.stack([data[mag_col], data["display_name"]], axis=1),
-                hovertemplate=(
-                    "<b>%{customdata[1]}</b><br>"
-                    "RA: %{x:.2f}°<br>"
-                    "Dec: %{y:.2f}°<br>"
-                    "V mag: %{customdata[0]:.2f}"
-                    "<extra></extra>"
-                ),
-                showlegend=True,
-            ))
-
-    xaxis, yaxis = mercator_sky_axes()
-    base_layout = dict(
-        paper_bgcolor="#0d1117",
-        plot_bgcolor="#0d1117",
-        font=dict(color="white"),
-        xaxis=xaxis,
-        yaxis=yaxis,
-        legend=dict(
-            bgcolor="rgba(10,16,26,0.7)",
-            bordercolor="#2c4060",
-            borderwidth=1,
-            font=dict(size=11),
-            x=0.01, y=0.99,
-            xanchor="left", yanchor="top",
-        ),
-        margin=dict(l=60, r=40, t=60, b=60),
-        height=520,
-        autosize=True,
-    )
-    if layout:
-        for key, val in layout.items():
-            if key in ("xaxis", "yaxis") and isinstance(val, dict):
-                base_layout[key] = {**base_layout.get(key, {}), **val}
-            else:
-                base_layout[key] = val
-    fig.update_layout(**base_layout)
-    return fig
 
 ###############################################################
 # Module helpers
@@ -852,8 +598,21 @@ class Stars(object):
         pass
     
     def mercator_sky_map(self, **kwargs):
-        """Build a base Mercator sky map for this catalogue (see :func:`mercator_sky_map`)."""
-        return mercator_sky_map(self.data, **kwargs)
+        """Build a base Mercator sky map for this catalogue (see :func:`montu.maps.mercator_sky_map`)."""
+        from montu.maps import mercator_sky_map as _mercator_sky_map
+
+        return _mercator_sky_map(self.data, **kwargs)
+
+    def polar_sky_map(self, observer, calendar_date: str, **kwargs):
+        """Build north and south polar sky maps (see :func:`montu.maps.polar_sky_map`)."""
+        from montu.maps import polar_sky_map as _polar_sky_map
+
+        return _polar_sky_map(
+            calendar_date,
+            observer=observer,
+            precessed_star_data=self.data,
+            **kwargs,
+        )
     
     def plot_stars(self,coords=['RAJ2000','DecJ2000'],
                    labels=True,label_mag=15,pad=0,figargs=dict(),stargs=dict()):
@@ -976,4 +735,13 @@ class Stars(object):
         repr = self.__str__()
         return repr
 
-    
+
+from montu.maps import (  # noqa: E402
+    DEFAULT_CONSTELLATION_SET,
+    LINE_ECLIPTIC,
+    LINE_HORIZON,
+    local_solar_to_utc_datepro,
+    mercator_sky_map,
+    polar_sky_map,
+    polar_sky_map_figure,
+)    

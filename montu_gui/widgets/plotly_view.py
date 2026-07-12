@@ -64,6 +64,10 @@ class PlotlyView(QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        self.refresh_layout()
+
+    def refresh_layout(self) -> None:
+        """Ask the embedded Plotly page to relayout after tab or resize changes."""
         if self._view is not None:
             self._view.page().runJavaScript(
                 "if (typeof montuResizePlotly === 'function') montuResizePlotly();"
@@ -71,9 +75,7 @@ class PlotlyView(QWidget):
 
     def _on_load_finished(self, ok: bool) -> None:
         if ok and self._view is not None:
-            self._view.page().runJavaScript(
-                "if (typeof montuResizePlotly === 'function') montuResizePlotly();"
-            )
+            self.refresh_layout()
 
     def set_html(self, html: str):
         """Load Plotly HTML from a temp file (reliable for large pages)."""

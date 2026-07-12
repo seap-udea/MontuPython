@@ -34,7 +34,7 @@ from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.utils.map_consent import (
-    request_map_consent, get_map_label_lang, save_map_label_lang,
+    request_map_consent, get_map_label_lang, save_map_label_lang, has_map_consent,
 )
 from montu_gui.widgets.map_view import ObserverMapView
 from montu_gui.widgets.help_link import HelpLink
@@ -508,3 +508,31 @@ class LocationPage(LazyPageMixin, QWidget):
         log_ui_event("open lets_python dialog", module="location")
         dlg = LetsPythonDialog(_LOCATION_EXAMPLE, self.window())
         dlg.exec()
+
+    def export_config(self) -> dict:
+        return {
+            "coordinate_format": (
+                "decimal" if self._fmt_decimal.isChecked() else "sexagesimal"
+            ),
+            "map_label_lang": self._map_lang.currentData(),
+            "map_network_consent": has_map_consent(),
+        }
+
+    def apply_config(self, cfg: dict) -> None:
+        from montu_gui.utils.map_consent import save_map_consent, save_map_label_lang
+
+        fmt = cfg.get("coordinate_format", "decimal")
+        self._fmt_decimal.setChecked(fmt == "decimal")
+        self._fmt_sexagesimal.setChecked(fmt != "decimal")
+        self._coord_stack.setCurrentIndex(0 if fmt == "decimal" else 1)
+
+        lang = cfg.get("map_label_lang", "local")
+        idx = self._map_lang.findData(lang)
+        if idx >= 0:
+            self._map_lang.setCurrentIndex(idx)
+        save_map_label_lang(lang)
+
+        if cfg.get("map_network_consent", False):
+            save_map_consent()
+            self._map_online = True
+            self._map.set_online_enabled(True)

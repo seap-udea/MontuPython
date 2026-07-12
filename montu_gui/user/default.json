@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "app": {
+    "last_page": "home"
+  },
+  "observer": {
+    "location_id": "giza",
+    "name": "Giza",
+    "lat": 29.9792,
+    "lon": 31.1342,
+    "alt_m": 75.0
+  },
+  "location_page": {
+    "coordinate_format": "decimal",
+    "map_label_lang": "local",
+    "map_network_consent": false
+  },
+  "planets": {
+    "initial_date": {
+      "era": "bce",
+      "year": 1500,
+      "month": 1,
+      "day": 1
+    },
+    "time_span_years": 10.0,
+    "num_points": 120,
+    "planets": [
+      "Mercury"
+    ],
+    "property": "DecEpoch"
+  },
+  "sky_map": {
+    "date": {
+      "era": "bce",
+      "year": 2500,
+      "month": 1,
+      "day": 1
+    },
+    "local_time": {
+      "hour": 18,
+      "minute": 0,
+      "second": 0
+    },
+    "constellation_set": "iau",
+    "bodies": [
+      "Sun"
+    ],
+    "lines": [
+      "Ecliptic"
+    ],
+    "meridian_view": false,
+    "mag_limit": 3.5,
+    "active_tab": "north"
+  },
+  "orientation_disk": {
+    "reference_year": {
+      "era": "bce",
+      "year": 2560
+    },
+    "star_mag_limit": 1.0,
+    "bodies": [
+      {
+        "name": "Sun",
+        "body_type": "planet",
+        "horizon_el": 0.0,
+        "color": "#B71C1C",
+        "hip": null
+      }
+    ]
+  },
+  "alignments": {
+    "preset_id": "khufu_north_shaft",
+    "azimuth": 0.0,
+    "elevation": 31.7,
+    "year_start": {
+      "era": "bce",
+      "year": 2620
+    },
+    "year_end": {
+      "era": "bce",
+      "year": 2420
+    },
+    "mag_limit": 4.0,
+    "dec_tolerance": 1.0
+  },
+  "calendar": {
+    "input_mode": "julian_gregorian",
+    "julian_gregorian": {
+      "era": "ce",
+      "calendar_type": "proleptic",
+      "year": 2026,
+      "month": 1,
+      "day": 1,
+      "hour": 12,
+      "minute": 0,
+      "second": 0
+    },
+    "caniucular": {
+      "hyear": 0,
+      "month": "I",
+      "season": "Akhet",
+      "day": 1
+    },
+    "julian_day": {
+      "jd_utc": 625307.5
+    },
+    "historical": {
+      "key": ""
+    }
+  },
+  "seasons": {
+    "era": "ce",
+    "human_year": 2026
+  }
+}
