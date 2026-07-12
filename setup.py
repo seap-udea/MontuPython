@@ -32,7 +32,7 @@ setuptools.setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         ],
-    version='0.20.5',
+    version='0.21.0',
 
     # ######################################################################
     # FILES

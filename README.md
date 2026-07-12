@@ -75,7 +75,7 @@ You may import the package using:
 from montu import *
 ```
 
-    Running MontuPython version 0.20.0
+    MontuPython version 0.21.0. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
 
 
 or for a safe import:
@@ -174,28 +174,29 @@ print(mtime)
     Montu Time Object:
     -------------------------- 
     Readable:
-        Date in proleptic UTC: -2500-01-01 12:00:00.0000
-        Date in mixed UTC: -2500-01-22 12:00:00
-        Date in SPICE format: 2501 B.C. 01-01 12:00:00.00
-        Date in caniucular format: hrw 280-I-Shemu-17
-        Components: [-1, 2500, 1, 1, 12, 0, 0, 0]
+        Date in proleptic UTC (.readable.datepro): -2500-01-01 12:00:00.000000
+        Date in mixed UTC (.readable.datemix): -2500-01-22 12:00:00
+        Date in SPICE format (.readable.datespice): 2501 B.C. 01-01 12:00:00.00
+        Date in caniucular format (.readable.datecan): hrw 280-I-Shemu-17
+        Weekday (.readable.weekday): 2 (monday)
+        Components (.readable.comps): [-1, 2500, 1, 1, 12, 0, 0, 0]
     Objects:
-        Date in datetime64 format: -2500-01-01T12:00:00.000000
-        Date in PyPlanet Epoch: 807954.0
-        Date in PyEphem Epoch: -2501/1/22 12:00:00
+        Date in datetime64 format (.readable.obj_datetime64): -2500-01-01T12:00:00.000000
+        Date in PyPlanet Epoch (.obj_pyplanet): 807954.0
+        Date in PyEphem Epoch (.obj_pyephem): -2501/1/22 12:00:00
     General:
-        Is bce: True
-        Is Julian: True
+        Is bce (.bce): True
+        Is Julian (.isjulian): True
     Uniform scales:
         Terrestrial time:
-            tt: -142006202700.3
-            jtd: 807954.6909688
-            htd: 102457.19096879999
+            tt (.tt): -142006202700.3
+            jtd (.jtd): 807954.6909688
+            htd (.htd): 102457.19096879999
         UTC time:
-            et: -142006262400.0
-            jed: 807954.0
-            hed: 102456.5
-        Delta-t = TT - UTC = 59699.7
+            et (.et): -142006262400.0
+            jed (.jed): 807954.0
+            hed (.hed): 102456.5
+        Delta-t = TT - UTC (.deltat): 59699.7
     
 
 
@@ -216,28 +217,29 @@ print(mtime)
     Montu Time Object:
     -------------------------- 
     Readable:
-        Date in proleptic UTC: -1321-07-08 00:00:00.0000
-        Date in mixed UTC: -1321-07-20 00:00:00
-        Date in SPICE format: 1322 B.C. 07-08 00:00:00.00
-        Date in caniucular format: hrw 1461-I-Akhet-1
-        Components: [-1, 1321, 7, 8, 0, 0, 0, 0]
+        Date in proleptic UTC (.readable.datepro): -1321-07-20 08:45:50.8
+        Date in mixed UTC (.readable.datemix): -1321-07-20 00:00:00
+        Date in SPICE format (.readable.datespice): 1322 B.C. 07-20 08:45:50.800000
+        Date in caniucular format (.readable.datecan): hrw 1461-I-Akhet-1
+        Weekday (.readable.weekday): 3 (tuesday)
+        Components (.readable.comps): [-1, 1321, 7, 20, 8, 45, 50, 800000]
     Objects:
-        Date in datetime64 format: -1321-07-08T00:00:00.000000
-        Date in PyPlanet Epoch: 1238762.5
-        Date in PyEphem Epoch: -1322/7/20 00:00:00
+        Date in datetime64 format (.readable.obj_datetime64): -1321-07-20T08:45:50.800
+        Date in PyPlanet Epoch (.obj_pyplanet): 1238762.5
+        Date in PyEphem Epoch (.obj_pyephem): -1322/7/20 00:00:00
     General:
-        Is bce: True
-        Is Julian: True
+        Is bce (.bce): True
+        Is Julian (.isjulian): True
     Uniform scales:
         Terrestrial time:
-            tt: -104784376449.2
-            jtd: 1238762.8651713
-            htd: 533265.3651713
+            tt (.tt): -104784376449.2
+            jtd (.jtd): 1238762.8651713
+            htd (.htd): 533265.3651713
         UTC time:
-            et: -104784408000.0
-            jed: 1238762.5
-            hed: 533265.0
-        Delta-t = TT - UTC = 31550.8
+            et (.et): -104784408000.0
+            jed (.jed): 1238762.5
+            hed (.hed): 533265.0
+        Delta-t = TT - UTC (.deltat): 31550.8
     
 
 
@@ -260,11 +262,11 @@ mtime = montu.Time('2001-01-01 12:00:00',format='iso')
 
 
 
-    (Time('2001-01-01 12:00:00.0000'/'2001-01-01 12:00:00'/'hrw 4784-I-Shemu-14'/JED 2451911.0/JTD 2451911.0007419),
-     Time(JED 2451910.5/JTD 2451910.5007419),
-     Time(JED 2451912.0/JTD 2451912.0007419),
-     Time(JED 2450816.0000127/JTD 2450816.0007419),
-     Time(JED 2459215.9999063/JTD 2459216.0007419))
+    (Time('2001-01-01 12:00:00.000000'/'2001-01-01 12:00:00'/'hrw 4784-I-Shemu-14'/JED 2451911.0/JTD 2451911.0007419),
+     Time('2001-01-01 00:00:00.000000'/'2001-01-01 00:00:00'/'hrw 4784-I-Shemu-14'/JED 2451910.5/JTD 2451910.5007419),
+     Time('2001-01-02 12:00:00.000000'/'2001-01-02 12:00:00'/'hrw 4784-I-Shemu-15'/JED 2451912.0/JTD 2451912.0007419),
+     Time('1998-01-02 12:00:01.097278'/'1998-01-02 12:00:00'/'hrw 4781-I-Shemu-14'/JED 2450816.0000127/JTD 2450816.0007419),
+     Time('2021-01-01 11:59:51.904328'/'2021-01-01 11:59:59'/'hrw 4804-I-Shemu-19'/JED 2459215.9999063/JTD 2459216.0007419))
 
 
 
@@ -282,28 +284,29 @@ print(mtime2)
     Montu Time Object:
     -------------------------- 
     Readable:
-        Date in proleptic UTC: 2002-01-01 12:00:00.0000
-        Date in mixed UTC: 2002-01-01 12:00:00
-        Date in SPICE format: 2002-01-01 12:00:00.0000
-        Date in caniucular format: hrw 4785-I-Shemu-14
-        Components: [1, 2002, 1, 1, 12, 0, 0, 0]
+        Date in proleptic UTC (.readable.datepro): 2002-01-01 12:00:00.000000
+        Date in mixed UTC (.readable.datemix): 2002-01-01 12:00:00
+        Date in SPICE format (.readable.datespice): 2002-01-01 12:00:00.000000
+        Date in caniucular format (.readable.datecan): hrw 4785-I-Shemu-14
+        Weekday (.readable.weekday): 3 (tuesday)
+        Components (.readable.comps): [1, 2002, 1, 1, 12, 0, 0, 0]
     Objects:
-        Date in datetime64 format: 2002-01-01T12:00:00.000000
-        Date in PyPlanet Epoch: 2452276.0
-        Date in PyEphem Epoch: 2002/1/1 12:00:00
+        Date in datetime64 format (.readable.obj_datetime64): 2002-01-01T12:00:00.000000
+        Date in PyPlanet Epoch (.obj_pyplanet): 2452276.0
+        Date in PyEphem Epoch (.obj_pyephem): 2002/1/1 12:00:00
     General:
-        Is bce: False
-        Is Julian: False
+        Is bce (.bce): False
+        Is Julian (.isjulian): False
     Uniform scales:
         Terrestrial time:
-            tt: 63158464.3
-            jtd: 2452276.0007442
-            htd: 1746778.5007441998
+            tt (.tt): 63158464.3
+            jtd (.jtd): 2452276.0007442
+            htd (.htd): 1746778.5007441998
         UTC time:
-            et: 63158400.0
-            jed: 2452276.0
-            hed: 1746778.5
-        Delta-t = TT - UTC = 64.3
+            et (.et): 63158400.0
+            jed (.jed): 2452276.0
+            hed (.hed): 1746778.5
+        Delta-t = TT - UTC (.deltat): 64.3
     
 
 
@@ -698,10 +701,10 @@ vernal, summer, autumn, winter = montu.Sun.next_seasons(at=mtime)
 
 
 
-    (Time('2023-03-20 21:24:15.1000'/'2023-03-20 21:24:24'/'hrw 4806-IV-Shemu-7'/JED 2460024.3918415/JTD 2460024.392691),
-     Time('2023-06-21 14:57:55.5000'/'2023-06-21 14:57:57'/'hrw 4807-III-Akhet-5'/JED 2460117.123559/JTD 2460117.1244109),
-     Time('2023-09-23 06:50:00.3000'/'2023-09-23 06:50:50'/'hrw 4807-II-Peret-9'/JED 2460210.7847257/JTD 2460210.7855787),
-     Time('2023-12-22 03:27:09.3000'/'2023-12-22 03:27:27'/'hrw 4807-I-Shemu-9'/JED 2460300.6438576/JTD 2460300.6447118))
+    (Time('2023-03-20 21:25:28.5'/'2023-03-20 21:24:24'/'hrw 4806-IV-Shemu-7'/JED 2460024.3918415/JTD 2460024.392691),
+     Time('2023-06-21 14:59:09.1'/'2023-06-21 14:57:57'/'hrw 4807-III-Akhet-5'/JED 2460117.123559/JTD 2460117.1244109),
+     Time('2023-09-23 06:51:14.0'/'2023-09-23 06:50:50'/'hrw 4807-II-Peret-9'/JED 2460210.7847257/JTD 2460210.7855787),
+     Time('2023-12-22 03:28:23.1'/'2023-12-22 03:27:27'/'hrw 4807-I-Shemu-9'/JED 2460300.6438576/JTD 2460300.6447118))
 
 
 
@@ -715,10 +718,12 @@ montu.Moon.next_moon_quarters(since=mtime,output='datepro')
 
 
 
-    {'full': ['2023-01-06 23:09:10.8000', 7.907907465007156, 5.46470835711807],
-     'last': ['2023-01-15 02:11:35.3000', 8.126672363374382, 13.591380720492452],
-     'new': ['2023-01-21 20:54:23.1000', 6.7797199985943735, 20.371100719086826],
-     'first': ['2023-01-28 15:20:01.7000', 6.767808315809816, 27.138909034896642]}
+    {'full': ['2023-01-06 23:09:10.797107', 7.907907465007156, 5.46470835711807],
+     'last': ['2023-01-15 02:11:35.301130', 8.126672363374382, 13.591380720492452],
+     'new': ['2023-01-21 20:54:23.100479', 6.7797199985943735, 20.371100719086826],
+     'first': ['2023-01-28 15:20:01.694387',
+      6.767808315809816,
+      27.138909034896642]}
 
 
 
@@ -766,7 +771,41 @@ for dt in tqdm.tqdm(np.linspace(-20000*montu.YEAR,20000*montu.YEAR,1000)):
     df = pd.concat([df,pd.DataFrame([row])])
 ```
 
-    100%|██████████| 1000/1000 [00:01<00:00, 658.32it/s]
+      0%|                                                                                                                   | 0/1000 [00:00<?, ?it/s]
+
+      6%|██████▌                                                                                                  | 62/1000 [00:00<00:01, 614.17it/s]
+
+     13%|█████████████▌                                                                                          | 130/1000 [00:00<00:01, 648.23it/s]
+
+     20%|████████████████████▍                                                                                   | 196/1000 [00:00<00:01, 650.46it/s]
+
+     26%|███████████████████████████▏                                                                            | 262/1000 [00:00<00:01, 648.80it/s]
+
+     33%|██████████████████████████████████▎                                                                     | 330/1000 [00:00<00:01, 659.62it/s]
+
+     40%|█████████████████████████████████████████▍                                                              | 399/1000 [00:00<00:00, 666.72it/s]
+
+     47%|████████████████████████████████████████████████▍                                                       | 466/1000 [00:00<00:00, 662.28it/s]
+
+     53%|███████████████████████████████████████████████████████▍                                                | 533/1000 [00:00<00:00, 664.50it/s]
+
+     60%|██████████████████████████████████████████████████████████████▍                                         | 600/1000 [00:00<00:00, 664.40it/s]
+
+     67%|█████████████████████████████████████████████████████████████████████▎                                  | 667/1000 [00:01<00:00, 644.07it/s]
+
+     73%|████████████████████████████████████████████████████████████████████████████▏                           | 732/1000 [00:01<00:00, 531.69it/s]
+
+     80%|██████████████████████████████████████████████████████████████████████████████████▋                     | 795/1000 [00:01<00:00, 555.27it/s]
+
+     86%|█████████████████████████████████████████████████████████████████████████████████████████▊              | 863/1000 [00:01<00:00, 586.99it/s]
+
+     93%|████████████████████████████████████████████████████████████████████████████████████████████████▍       | 927/1000 [00:01<00:00, 601.21it/s]
+
+     99%|███████████████████████████████████████████████████████████████████████████████████████████████████████▏| 992/1000 [00:01<00:00, 614.98it/s]
+
+    100%|███████████████████████████████████████████████████████████████████████████████████████████████████████| 1000/1000 [00:01<00:00, 621.75it/s]
+
+    
 
 
 Now plot declinations as a function of time:
@@ -804,24 +843,50 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-01 08:06:55.8000 (declination 89:31:55.691)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-04 00:58:23.600000 (declination 86:22:03.624)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-06 08:18:11.800000 (declination 89:56:04.656)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-23 20:27:15.300000 (declination 86:57:15.609)
-    Star Alderamin will be the closest to the pole at 7532-02-21 01:56:30.5000 (declination 87:58:42.991)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-10 16:25:13.400000 (declination 83:29:32.443)
+    Star Polaris will be the closest to the pole at 2086-08-03 09:17:46.504333 (declination 89:31:55.712)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-06 02:09:14.305024 (declination 86:22:03.629)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-08 09:29:02.497920 (declination 89:56:04.713)
+    Star Deneb will be the closest to the pole at 14732 B.C. 05-25 21:38:06.5696 (declination 86:57:15.608)
+    Star Alderamin will be the closest to the pole at 7532-02-23 03:07:21.201632 (declination 87:58:42.995)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-12 17:36:04.101136 (declination 83:29:32.444)
 
 
-## Other example scripts
+## Tutorial by example notebooks
 
-You will find a complete set of runable example notebooks –`Colab` notebooks– in the [Google Drive public repository of `MontuPython`](https://drive.google.com/drive/folders/11L59yZ3A1g1ZT7v_dLDPwLMnRMR-tFgE?usp=sharing).
+The following notebooks introduce MontuPython step by step. Open any of them in Google Colab and start working immediately — they are ideal for training new users or for testing code generated by MontuPython Desktop.
+
+
+- **Basic functionalities** Introductory notebook covering MontuPython's essential objects: the stellar catalogue, observers, time instants, and coordinate transformations between equatorial and horizontal systems. Learn how to query naked-eye stars and compute their positions in the sky for any site and date.
+
+   **File**: `MontuPython-BasicFunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-BasicFunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb)
+
+- **Time: Basic time functionalities** Illustrates the `montu.Time` class across its full range of calendars and time scales. Parse dates in ISO, SPICE, Julian day, and terrestrial time; convert between proleptic Gregorian, mixed Julian/Gregorian, ancient Egyptian civil, and caniucular (Horus year) calendars; and add or subtract calendar periods.
+
+   **File**: `MontuPython-MonTime.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-MonTime.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb)
+
+- **Egyptian civil calendar: historical cross-checks** Compares MontuPython's computed Egyptian civil dates against the civil dates recorded in Egyptology sources for key historical events (apokatastasis anchors, Ptolemaic decrees, dated papyri). Uses the same event catalogue as MontuPython Desktop's Calendar Calculator.
+
+   **File**: `MontuPython-EgyptianCalendar.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-EgyptianCalendar.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-EgyptianCalendar.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-EgyptianCalendar.ipynb)
+
+- **Test code** A sandbox notebook for running code snippets produced by **MontuPython Desktop**'s *Let's Python!* windows. Copy the generated script from the Desktop app into the notebook cell and execute it in Colab without any local setup.
+
+   **File**: `MontuPython-TestCode.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-TestCode.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-TestCode.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-TestCode.ipynb)
+
 
 ## Advanced examples
 
-Fully-fledged working examples:
 
-- [`examples/MontuPython-Montunctions.ipynb`](https://drive.google.com/file/d/1kTFaHqfxydv_Sbc3rvn-TH24--CDlCTy/view?usp=drive_link)
-- [`examples/MontuPython-VenusAzimuths.ipynb`](https://drive.google.com/file/d/1M5NIOTl6TP9l0yrwgb50nyK5gmFwk4Ne/view?usp=sharing)
+The following notebooks present archaeoastronomical computations of broader historical and interpretive interest.
+
+
+- **Montunctions** Computes *marstices* — the stationary points of Mars — and their conjunctions with Aldebaran near the winter solstice throughout ancient Egyptian history. Includes periodicity analysis and publication-ready plots. The methodology and figures supported Francisco Vivas Fernández's Ph.D. thesis on the astronomical and landscape orientations of Senenmut's monuments in the Theban necropolis (2023).
+
+   **File**: `MontuPython-Montunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-Montunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-Montunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-Montunctions.ipynb)
+
+- **Example: Venus Azimutal Distributions** Computes the distribution of Venus rising and setting azimuths at dawn and dusk over millennia, as observed from Thebes. Distinguishes morning-star and evening-star apparitions and summarizes their preferred horizon directions — a classic archaeoastronomical exercise for Venus cult and calendar studies.
+
+   **File**: `MontuPython-VenusAzimuths.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-VenusAzimuths.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb)
+
 
 ## What's new
 
