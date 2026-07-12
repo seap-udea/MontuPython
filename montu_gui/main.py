@@ -40,6 +40,14 @@ else:
     _REPO = Path(__file__).parent.parent
     sys.path.insert(0, str(_REPO))
 
+
+def _gui_asset(name: str) -> Path:
+    """Resolve a file under ``montu_gui/assets/`` (dev and PyInstaller bundle)."""
+    if getattr(sys, "frozen", False):
+        return _REPO / "montu_gui" / "assets" / name
+    return Path(__file__).parent / "assets" / name
+
+
 from montu_gui.utils.theme import STYLESHEET, PALETTE
 from montu_gui.utils.debug import enable_debug, log_startup, log_navigation, dbg
 from montu_gui.pages.home_page import HomePage
@@ -136,7 +144,7 @@ class MainWindow(QMainWindow):
         self.resize(1100, 720)
         self.setMinimumSize(800, 560)
 
-        _logo = Path(__file__).parent / "assets" / "montu-python-logo-complete.png"
+        _logo = _gui_asset("montu-python-logo-complete.png")
         if _logo.exists():
             self.setWindowIcon(QIcon(str(_logo)))
         self._logo_path = _logo

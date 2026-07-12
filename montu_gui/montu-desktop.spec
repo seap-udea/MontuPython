@@ -35,6 +35,9 @@ block_cipher = None
 datas: list[tuple[str, str]] = []
 datas += collect_data_files("montu", includes=["data/**"])
 datas += collect_data_files("montu_gui", includes=["assets/**", "WHATSNEW.md"])
+user_default = GUI / "user" / "default.json"
+if user_default.is_file():
+    datas.append((str(user_default), "montu_gui/user"))
 datas += collect_data_files("plotly", includes=["package_data/plotly.min.js"])
 
 examples_dir = GUI / "pages" / "examples"

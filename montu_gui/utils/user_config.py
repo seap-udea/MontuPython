@@ -12,18 +12,48 @@ from __future__ import annotations
 
 import json
 import shutil
+import sys
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 1
-_USER_DIR = Path(__file__).resolve().parent.parent / "user"
-DEFAULT_PATH = _USER_DIR / "default.json"
-CONFIG_PATH = _USER_DIR / "config.json"
+_APP_SUPPORT_NAME = "MontuPython Desktop"
+
+
+def _is_frozen() -> bool:
+    return getattr(sys, "frozen", False)
+
+
+def _bundle_root() -> Path:
+    return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
+
+
+def _writable_user_dir() -> Path:
+    """Per-user settings directory (writable when the app is installed from a DMG)."""
+    if _is_frozen():
+        if sys.platform == "darwin":
+            base = Path.home() / "Library" / "Application Support"
+        elif sys.platform == "win32":
+            base = Path.home() / "AppData" / "Roaming"
+        else:
+            base = Path.home() / ".config"
+        return base / _APP_SUPPORT_NAME
+    return Path(__file__).resolve().parent.parent / "user"
 
 
 def user_dir() -> Path:
-    return _USER_DIR
+    return _writable_user_dir()
+
+
+def _default_source_path() -> Path:
+    if _is_frozen():
+        return _bundle_root() / "montu_gui" / "user" / "default.json"
+    return Path(__file__).resolve().parent.parent / "user" / "default.json"
+
+
+DEFAULT_PATH = _default_source_path()
+CONFIG_PATH = _writable_user_dir() / "config.json"
 
 
 def _read_json(path: Path) -> dict[str, Any] | None:
@@ -62,7 +92,7 @@ def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]
 
 
 def _write_config(path: Path, config: dict[str, Any]) -> None:
-    _USER_DIR.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
     payload = deepcopy(config)
     payload["schema_version"] = SCHEMA_VERSION
     with open(path, "w", encoding="utf-8") as fh:
@@ -77,7 +107,7 @@ def save_config(config: dict[str, Any]) -> None:
 
 def load_config() -> dict[str, Any]:
     """Load user config, creating ``config.json`` from defaults on first run."""
-    _USER_DIR.mkdir(parents=True, exist_ok=True)
+    _writable_user_dir().mkdir(parents=True, exist_ok=True)
     defaults = load_default_config()
 
     if not CONFIG_PATH.is_file():
