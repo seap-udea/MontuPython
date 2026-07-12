@@ -208,31 +208,14 @@ PY
 }
 
 execute_notebooks() {
-  local nb notebooks=()
+  log "Installing editable package and notebook tooling..."
+  export PYTHONPATH="${ROOT_DIR}${PYTHONPATH:+:$PYTHONPATH}"
 
-  export MPLBACKEND=Agg
-
-  log "Installing editable package for notebook execution..."
   "$PY" -m pip install -q -e .
-  "$PY" -m pip install -q nbconvert ipykernel
+  "$PY" -m pip install -q nbconvert ipykernel matplotlib-inline
 
-  notebooks+=(README.ipynb)
-  while IFS= read -r nb; do
-    notebooks+=("$nb")
-  done < <(find examples -maxdepth 1 -name '*.ipynb' | sort)
-
-  for nb in "${notebooks[@]}"; do
-    if [[ ! -f "$nb" ]]; then
-      die "Notebook not found: $nb"
-    fi
-    log "Executing notebook: $nb"
-    "$PY" -m jupyter nbconvert \
-      --to notebook \
-      --execute \
-      --inplace \
-      --ExecutePreprocessor.timeout=1800 \
-      "$nb"
-  done
+  log "Executing notebooks (README + examples/)..."
+  "$PY" "$ROOT_DIR/bin/execute_notebooks.py"
 }
 
 commit_if_needed() {

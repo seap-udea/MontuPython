@@ -1,5 +1,5 @@
 .PHONY: help show status clean cleanall cleancrap cleanout cleandist \
-	install install-dev build env addall commit pull push release readme import \
+	install install-dev build env addall commit pull push release notebooks readme import \
 	docs docs-install docs-prepare docs-build docs-clean \
 	test-install test test-docstrings test-notebooks test-structure \
 	desktop-show desktop-install-build desktop-build desktop-clean \
@@ -34,6 +34,7 @@ help:
 	@echo "  push        - Commit and push current branch"
 	@echo "  release     - Release a new version (make release RELMODE=release VERSION=x.y.z)"
 	@echo "  release-pipeline - Full release workflow (./release-pipeline.sh --version x.y.z [--tag a.b.c])"
+	@echo "  notebooks     - Execute README + examples notebooks (embed plots)"
 	@echo "  readme      - Convert README.ipynb to README.md"
 	@echo "  docs         - Prepare examples and build Sphinx HTML (prepare + build)"
 	@echo "  docs-install - Install documentation dependencies (sphinx, myst-parser, nbsphinx, etc.)"
@@ -166,6 +167,10 @@ push:
 release:
 	@echo "Releasing a new version..."
 	@bash bin/release.sh $(RELMODE) $(VERSION)
+
+notebooks:
+	@echo "Executing README and example notebooks..."
+	@$(PYTHON) bin/execute_notebooks.py
 
 readme:
 	$(PYTHON) -m nbconvert README.ipynb --to markdown
