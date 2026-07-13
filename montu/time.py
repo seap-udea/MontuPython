@@ -111,6 +111,38 @@ def _datestr_from_datetime64(dt64):
     """ISO-like string from a ``datetime64`` timestamp."""
     return str(dt64).replace('T', ' ')
 
+
+class ReadableTime(montu.Dictobj):
+    """Represent all human-readable string representations of a Time object,
+    populating them on demand when accessed.
+    """
+    def __init__(self, time_obj, **kwargs):
+        object.__setattr__(self, '_time_obj', time_obj)
+        object.__setattr__(self, '_populated', False)
+        super().__init__(**kwargs)
+
+    def _ensure_populated(self):
+        if not object.__getattribute__(self, '_populated'):
+            object.__setattr__(self, '_populated', True)
+            object.__getattribute__(self, '_time_obj').get_readable()
+
+    def __getattr__(self, name):
+        self._ensure_populated()
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            pass
+        raise AttributeError(f"Object of class 'ReadableTime' has no attribute '{name}'")
+
+    def __str__(self):
+        self._ensure_populated()
+        clean_dict = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
+        return str(clean_dict)
+
+    def __repr__(self):
+        return self.__str__()
+
+
 ###############################################################
 # Main class
 ###############################################################
@@ -220,13 +252,14 @@ class Time(object):
                  format='iso',
                  scale='utc',
                  calendar='proleptic',
-                 full=False):
+                 full=False,
+                 zone=0):
         """Initialise a Time object.
 
         See class docstring for parameter and attribute descriptions.
         """
         # Representation is a dictionary with the representation
-        self.readable = montu.Dictobj()
+        self.readable = ReadableTime(self)
 
         # If date is None take now
         if date is None:
@@ -372,6 +405,37 @@ class Time(object):
 
             if full:
                 self.get_readable()
+
+        # Parse zone parameter
+        zone_hours = 0.0
+        if zone is not None and zone != 0:
+            if isinstance(zone, montu.Observer) or hasattr(zone, 'lon'):
+                zone_hours = zone.lon / 15.0
+            elif isinstance(zone, str):
+                if zone.upper().startswith('UTC'):
+                    zone_val = zone[3:]
+                else:
+                    zone_val = zone
+                
+                # Check for colon format like UTC-5:30 or -5:30
+                if ':' in zone_val:
+                    parts = zone_val.split(':')
+                    h = float(parts[0])
+                    m = float(parts[1])
+                    sign = -1.0 if '-' in parts[0] else 1.0
+                    zone_hours = h + sign * m / 60.0
+                else:
+                    zone_hours = float(zone_val)
+            else:
+                zone_hours = float(zone)
+
+        if zone_hours != 0:
+            zonedt = zone_hours * montu.HOUR
+            ft = self - zonedt
+            ft.get_readable()
+            self.__dict__.update(ft.__dict__)
+            if hasattr(self, 'readable') and isinstance(self.readable, ReadableTime):
+                object.__setattr__(self.readable, '_time_obj', self)
 
     def _parse_datestr(self,date):
         """Parse an ISO-like date string and populate ``self.readable``.
@@ -650,7 +714,7 @@ class Time(object):
         >>> mtime2 = mtime - montu.DAY  # subtract one TT-day
         """
         new = copy.copy(self)
-        new.tt -= dtt
+        new.tt -= dtt 
         new.update_time()
         return new
     

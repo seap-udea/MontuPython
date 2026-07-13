@@ -124,5 +124,5 @@ class Observer(object):
             mtime = montu.Time(mtime, format='jd', scale='utc')
         mtime.get_readable()
         comps = mtime.readable.comps
-        hour = (comps[4] + comps[5] / 60.0 + comps[6] / 3600.0) + self.lon / 15
+        hour = (comps[4] + comps[5] / 60.0 + comps[6] / 3600.0 + comps[7] / (1e6*3600.0)) + self.lon / 15
         return montu.D2H(hour) if hms else hour

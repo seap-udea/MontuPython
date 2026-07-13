@@ -64,3 +64,19 @@ def test_sun_and_planet_examples_compute_conditions(giza_observer):
     seasons = montu.Sun.next_seasons(at=montu.Time("-1000-01-01"))
     assert len(seasons) == 4
     assert list(seasons) == sorted(seasons)
+
+
+def test_time_lazy_readable():
+    # Instantiating Time with jd/tt formats defaults to full=False
+    mtime = montu.Time(0, format="tt", scale="utc")
+    
+    # Prior to accessing attributes, the object is a ReadableTime, which behaves like a Dictobj
+    # and populates on demand.
+    assert mtime.readable.datecan is not None
+    assert mtime.readable.datepro is not None
+    assert mtime.readable.datemix is not None
+    
+    # Typos or invalid attributes should still raise AttributeError
+    with pytest.raises(AttributeError):
+        _ = mtime.readable.invalid_attr
+

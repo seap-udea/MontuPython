@@ -1,0 +1,2 @@
+- Crear una lista de sitios predefinidos.
+- Ajustar la documentación de los parámetros de entrada de las funciones.

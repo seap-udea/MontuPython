@@ -199,7 +199,7 @@ class Stars(object):
     >>> allstars.data.to_csv('my_catalogue.csv', index=False)
     >>> reloaded = montu.Stars(filename='my_catalogue.csv')
     """
-    def __init__(self,data=None,filename=None):
+    def __init__(self,data=None,filename=None,subset=None,**kwargs):
 
         if data is not None:
             # Load data for stars from a dataframe already loaded
@@ -211,13 +211,23 @@ class Stars(object):
 
         else:
             # Load data from the database provided with package
-            print(f"Loading stellar catalogue {STELLAR_CATALOGUE}")
+            if subset:
+                catalogue_file = STELLAR_CATALOGUE.replace('.csv', f'_{subset}.csv')
+            else:
+                catalogue_file = STELLAR_CATALOGUE
+
+            print(f"Loading stellar catalogue {catalogue_file}")
             self.data = pd.read_csv(
-                montu.Util._data_path(STELLAR_CATALOGUE,check=True),
+                montu.Util._data_path(catalogue_file,check=True),
                 low_memory=False,
             )
 
         self.number = len(self.data)
+
+        if kwargs:
+            filtered_stars = self.get_stars(**kwargs)
+            self.data = filtered_stars.data
+            self.number = filtered_stars.number
 
     def get_stars(self,**args):
         """Filter the catalogue by one or more column criteria.

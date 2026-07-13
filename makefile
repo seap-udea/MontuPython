@@ -3,7 +3,7 @@
 	docs docs-install docs-prepare docs-build docs-clean \
 	test-install test test-docstrings test-notebooks test-structure \
 	desktop-show desktop-install-build desktop-build desktop-clean \
-	desktop-package desktop-release desktop-ci
+	desktop-package desktop-release desktop-ci subsets
 
 ##################################################################
 # VARIABLES
@@ -262,3 +262,7 @@ desktop-ci:
 		exit 1; \
 	fi
 	@git push origin "$(TAG)"
+
+subsets:
+	@echo "Generating stellar subsets..."
+	$(PYTHON) bin/cat_subsets.py
