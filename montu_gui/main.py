@@ -50,6 +50,7 @@ from montu_gui.pages.calendar_page import CalendarPage
 from montu_gui.pages.seasons_page import SeasonsPage
 from montu_gui.pages.planets_page import PlanetsPage
 from montu_gui.pages.alignments_page import AlignmentsPage
+from montu_gui.pages.heliacal_rise_page import HeliacalRisePage
 from montu_gui.pages.orientation_disk_page import OrientationDiskPage
 from montu_gui.pages.sky_map_page import SkyMapPage
 from montu_gui.utils.location_state import LocationState
@@ -78,6 +79,7 @@ NAV_ITEMS = [
     ("🎑", "Seasons & Lunar Phases", "seasons"),
     ("🪐", "Planetary Ephemerides", "planets"),
     ("📐", "Star Alignments", "alignments"),
+    ("🌅", "Heliacal Rises", "heliacal_rise"),
     ("⭕", "Orientation disk", "orient_disk"),
     ("🌌", "Sky map", "sky_map"),
     # future pages:
@@ -152,6 +154,10 @@ class MainWindow(QMainWindow):
         self._apply_observer_config(self._startup_config.get("observer", {}))
         self._build_ui()
         self._apply_pages_config(self._startup_config)
+        self._apply_observer_config(self._startup_config.get("observer", {}))
+        loc_page = self._page_widgets.get("location")
+        if loc_page and hasattr(loc_page, "_load_from_state"):
+            loc_page._load_from_state(self._location_state.coords)
         last_page = self._startup_config.get("app", {}).get("last_page", "home")
         self._navigate(last_page if last_page in self._page_map else "home")
 
@@ -243,6 +249,9 @@ class MainWindow(QMainWindow):
         alignments_page = AlignmentsPage(self._location_state)
         alignments_page.status_message.connect(self._show_status)
         self._add_page("alignments", alignments_page)
+        heliacal_rise_page = HeliacalRisePage(self._location_state)
+        heliacal_rise_page.status_message.connect(self._show_status)
+        self._add_page("heliacal_rise", heliacal_rise_page)
         orient_disk_page = OrientationDiskPage(self._location_state)
         orient_disk_page.status_message.connect(self._show_status)
         self._add_page("orient_disk", orient_disk_page)
@@ -288,6 +297,7 @@ class MainWindow(QMainWindow):
             "sky_map": "sky_map",
             "orient_disk": "orientation_disk",
             "alignments": "alignments",
+            "heliacal_rise": "heliacal_rise",
             "calendar": "calendar",
             "seasons": "seasons",
         }
@@ -318,6 +328,7 @@ class MainWindow(QMainWindow):
             "sky_map": "sky_map",
             "orientation_disk": "orient_disk",
             "alignments": "alignments",
+            "heliacal_rise": "heliacal_rise",
             "calendar": "calendar",
             "seasons": "seasons",
         }

@@ -2,6 +2,15 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.21.3
+
+- **`montu/phenomena.py`** — new module for celestial phenomena predicted from observational visibility models.
+- **`HeliacalRise`** — class to search for heliacal-rise mornings over a date interval at an observer site; supports **Schaefer 1985**, **Schaefer 1987**, and **Belokrylov et al. 2011** models with configurable extinction, limiting magnitude, solar depression, and twilight-scan parameters.
+- **`heliacal_rise()`** — convenience wrapper that runs a search and prints a formatted table (model source, local time, body/Sun altitude and azimuth, and model visibility quantities).
+- **Stars and planets** — accepts a precessed `Stars` row or a `Sebau` planet; catalogue V magnitude for stars and ephemeris magnitude for planets.
+- **`HELIACAL_RISE_MODELS`** / **`HELIACAL_RISE_SOURCES`** — model identifiers and bibliographic source strings exported at package level.
+- **Tests** — `montu/tests/test_phenomena.py` covers all three models, the function wrapper, and the third *apokatastasis* Sirius case (Thebes, Schaefer 1987).
+
 ## Version 0.21.2
 
 - **Example notebooks** — `%matplotlib inline` moved to the `import montu` cell; `%load_ext autoreload` / `%autoreload 2` commented with a note that they fail on Google Colab (Python 3.12+, removed `imp` module). Applied in `examples/` and `docs/examples/`.

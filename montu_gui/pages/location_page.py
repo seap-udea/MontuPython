@@ -161,6 +161,7 @@ class LocationPage(LazyPageMixin, QWidget):
         self._load_from_state(self._state.coords)
 
     def _activate_page(self) -> None:
+        self._load_from_state(self._state.coords)
         if not self._map_online:
             if request_map_consent(self.window()):
                 self._map_online = True

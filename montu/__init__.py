@@ -8,6 +8,7 @@ from montu.stars import *
 from montu.maps import *
 from montu.observer import *
 from montu.sebau import *
+from montu.phenomena import *
 
 ###############################################################
 # Aliases

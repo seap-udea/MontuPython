@@ -4,11 +4,11 @@
     "last_page": "home"
   },
   "observer": {
-    "location_id": "giza",
-    "name": "Giza",
-    "lat": 29.9792,
-    "lon": 31.1342,
-    "alt_m": 75.0
+    "location_id": "thebes",
+    "name": "Thebes (Luxor)",
+    "lat": 25.6967,
+    "lon": 32.6422,
+    "alt_m": 76.0
   },
   "location_page": {
     "coordinate_format": "decimal",
@@ -82,6 +82,27 @@
     },
     "mag_limit": 4.0,
     "dec_tolerance": 1.0
+  },
+  "heliacal_rise": {
+    "body_type": "star",
+    "body_name": "Sirius",
+    "start_date": {
+      "era": "bce",
+      "year": 2782,
+      "month": 6,
+      "day": 1
+    },
+    "calendar": "mixed",
+    "range_years": 10,
+    "model": "schaefer1987",
+    "model_parameters": {
+      "k": 0.25,
+      "limiting_mag_zenith": 6.5,
+      "sun_depression": -12.0,
+      "reference_extinction": 0.25,
+      "step_minutes": 2.0,
+      "twilight_sunbelow": -18.0
+    }
   },
   "calendar": {
     "input_mode": "julian_gregorian",

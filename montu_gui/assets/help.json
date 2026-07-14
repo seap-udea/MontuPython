@@ -343,6 +343,83 @@
       }
     }
   },
+  "heliacal_rise": {
+    "input": {
+      "body_type": {
+        "title": "Type of body",
+        "body": "<p>Select a <b>star</b> from the named bright-star catalogue or one of the visible classical <b>planets</b>. The calculation uses the catalogue V magnitude for stars and the ephemeris magnitude at each evaluated instant for planets.</p>"
+      },
+      "body": {
+        "title": "Celestial body",
+        "body": "<p>Body whose first visible morning appearance is sought. A heliacal rise is reported when the body is visible under the selected model after having been invisible on the preceding morning.</p>"
+      },
+      "initial_date": {
+        "title": "Initial date",
+        "body": "<p>First civil date of the search interval. Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. The default is <b>2782 BCE, 1 June</b> — near the first <i>apokatastasis</i> in the historical presets.</p>"
+      },
+      "bce": {
+        "$ref": "_common/bce"
+      },
+      "ce": {
+        "$ref": "_common/ce"
+      },
+      "year": {
+        "$ref": "_common/year"
+      },
+      "month": {
+        "$ref": "_common/month"
+      },
+      "day": {
+        "$ref": "_common/day"
+      },
+      "calendar": {
+        "title": "Calendar",
+        "body": "<p>Select the calendar interpretation of the initial date.</p><ul><li><b>Mixed</b> — Julian calendar before 15 October 1582 and Gregorian thereafter. This is the default and is recommended for historical dates, including the 139 BCE caniucular context.</li><li><b>Proleptic</b> — Gregorian rules extended uniformly into the past. Use it for astronomical or mathematical date ranges that require a single calendar system.</li></ul>"
+      },
+      "year_range": {
+        "title": "Year range",
+        "body": "<p>Length of the search interval in years, starting at the initial date. The calculator evaluates the selected visibility model one morning at a time; longer intervals take proportionally longer.</p><p><b>Warning:</b> scan-based models and long intervals can take time to complete.</p>"
+      },
+      "model": {
+        "title": "Visibility model",
+        "body": "<p>Observational model used to decide whether the body is visible at morning twilight.</p><ul><li><b>Schaefer 1985</b> — twilight sky brightness, atmospheric extinction, and a point-source threshold; reconstructed from the published <i>Sky &amp; Telescope</i> BASIC listing.</li><li><b>Schaefer 1987</b> — evaluates visibility at a fixed Sun depression using secant airmass and a zenith limiting magnitude.</li><li><b>Belokrylov et al. 2011</b> — atmospheric absorption, bright-star regressions, and a Sun–star separation correction.</li></ul><p>The bibliographic source for the active model appears below the results.</p>"
+      },
+      "k": {
+        "title": "Extinction k",
+        "body": "<p>Visual atmospheric extinction coefficient in <b>magnitudes per air mass</b>. It dims objects nearer the horizon. Default: <code>0.25</code> mag/air mass.</p>"
+      },
+      "limiting_mag_zenith": {
+        "title": "Zenith limiting magnitude",
+        "body": "<p>Faintest visible visual magnitude at the zenith for the Schaefer models. Smaller magnitudes are brighter; a larger value assumes a darker, more transparent sky. Default: <code>6.0</code>.</p>"
+      },
+      "sun_depression": {
+        "title": "Sun depression",
+        "body": "<p>Solar altitude below the horizon [degrees] at which the <b>Schaefer 1987</b> criterion is evaluated. It must be negative. Default: <code>−11°</code>.</p>"
+      },
+      "reference_extinction": {
+        "title": "Reference extinction",
+        "body": "<p>Reference extinction in equation (6) of the Belokrylov et al. (2011) model, in magnitudes per air mass. Default: <code>0.25</code>.</p>"
+      },
+      "step_minutes": {
+        "title": "Scan step",
+        "body": "<p>Time step [minutes] used while scanning morning twilight in the Schaefer 1985 and Belokrylov 2011 models. Smaller steps locate the first visible instant more precisely but increase calculation time. Default: <code>2</code> minutes.</p>"
+      },
+      "twilight_sunbelow": {
+        "title": "Scan starts at Sun",
+        "body": "<p>Solar depression [degrees] that marks the start of the morning-twilight scan for Schaefer 1985 and Belokrylov 2011. Default: <code>−18°</code>, astronomical dawn.</p>"
+      }
+    },
+    "result": {
+      "table": {
+        "title": "Heliacal-rise results",
+        "body": "<p>Each row is a morning on which the selected body became visible under the selected model after being invisible on the preceding morning.</p><ul><li><b>#</b> — event sequence number.</li><li><b>Date mixed</b>, <b>Date proleptic</b>, and <b>Date caniucular</b> — the same instant in <code>Time.readable.datemix</code>, <code>datepro</code>, and <code>datecan</code>.</li><li><b>Time from latest</b> — days since the prior heliacal rise; for event 1, days since the initial date.</li><li><b>Local time</b> — local solar time at the evaluated visible instant.</li><li><b>Altitude</b> and <b>azimuth</b> — apparent horizontal coordinates of the body and Sun in degrees. Azimuth is measured clockwise from North.</li></ul>"
+      },
+      "peret_sopedet": {
+        "title": "Peret Sopedet",
+        "body": "<p><b>Peret Sopedet</b> (emergence of Sopedet) is the Egyptian civil-year marker tied to the <b>heliacal rise</b> of Sirius — <i>Sothis</i> in Greek, <i>Sopedet</i> (<code>spdt</code>) in Egyptian. Its first morning visibility after a period of invisibility opened the season Akhet and the civil New Year (<code>hrw 0-I-Akhet-1</code>).</p><p>The illustration below depicts that heliacal rising of Sirius beside the pyramids on the Giza plateau.</p><p><b>Image credit</b></p><p>This illustration was generated with <b>Nano Banana</b>, edited in <b>Preview</b>, and is based on the realistic simulation created with Stellarium and GIMP by <b>Bob Moler</b> and published on <i>Bob Moler's Ephemeris Blog</i>: <a href=\"https://bobmoler.blog/2017/02/07/02072017-ephemeris-sirius-an-important-star-in-history/\">Sirius: an important star in history</a> (7 February 2017).</p>"
+      }
+    }
+  },
   "sky_map": {
     "input": {
       "location": {

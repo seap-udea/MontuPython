@@ -234,8 +234,6 @@ class AlignmentsPage(LazyPageMixin, QWidget):
     # ── lazy activation ───────────────────────────────────────────────────────
 
     def _activate_page(self) -> None:
-        if self._preset_combo.currentIndex() < 0:
-            self._apply_preset(get_default_alignment())
         self._schedule()
 
     # ── location ──────────────────────────────────────────────────────────────
@@ -444,7 +442,9 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         self._tol_spin.valueChanged.connect(self._on_dir_changed)
         self._preset_combo.currentIndexChanged.connect(self._on_preset_selected)
 
-        self._apply_preset(get_default_alignment(), schedule=False)
+        self._apply_preset(
+            get_default_alignment(), schedule=False, update_observer=False,
+        )
         self._refresh_location_label()
         self._update_target_label()
 
@@ -461,6 +461,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         preset: AlignmentPreset | str,
         *,
         schedule: bool = True,
+        update_observer: bool = True,
     ) -> None:
         if isinstance(preset, str):
             found = find_alignment_preset(preset)
@@ -481,9 +482,10 @@ class AlignmentsPage(LazyPageMixin, QWidget):
             ):
                 widget.blockSignals(True)
             try:
-                self._location_state.set_coords(
-                    preset.to_observer_coords(), emit=False,
-                )
+                if update_observer:
+                    self._location_state.set_coords(
+                        preset.to_observer_coords(), emit=False,
+                    )
                 self._az_spin.setValue(preset.az)
                 self._el_spin.setValue(preset.el)
                 self._year_start.set_values(preset.year_start, preset.era_start)

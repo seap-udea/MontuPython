@@ -43,6 +43,11 @@
       "description": "Find which bright stars passed through a fixed azimuth and elevation over a date range, with precession."
     },
     {
+      "icon": "🌅",
+      "title": "Heliacal Rises",
+      "description": "Find first visible morning appearances of named stars and planets using Schaefer or Belokrylov visibility models."
+    },
+    {
       "icon": "⭕",
       "title": "Orientation Disk",
       "description": "Extreme rise and set azimuths for the Sun, planets, and stars on an azimuth disk (N at top)."

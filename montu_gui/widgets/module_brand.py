@@ -15,6 +15,7 @@ _MODULE_ICONS: dict[str, str] = {
     "seasons": "🎑",
     "planets": "🪐",
     "alignments": "📐",
+    "heliacal_rise": "🌅",
     "orient_disk": "⭕",
     "sky_map": "🌌",
 }
@@ -26,6 +27,7 @@ _MODULE_TITLES: dict[str, str] = {
     "seasons": "Seasons & Lunar Phases",
     "planets": "Planetary Ephemerides",
     "alignments": "Star Alignments",
+    "heliacal_rise": "Heliacal Rises",
     "orient_disk": "Orientation Disk",
     "sky_map": "Sky Map",
 }
