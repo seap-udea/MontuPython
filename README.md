@@ -1,4 +1,4 @@
-# Montu Python /mnṯw ꜥꜣpp(y)/
+# Montu Python
 ## Astronomical ephemerides for the ancient world
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/raw/main/montu/data/montu-python-logo-complete.webp" width="300" alt="MontuPython logo"/></p>
@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/montu?color=blue)](https://pypi.org/project/montu/) [![Downloads](https://img.shields.io/pypi/dw/montu)](https://pypi.org/project/montu/) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python](https://img.shields.io/badge/python-3.8%20|%203.9%20|%203.10%20|%203.11-blue)](https://www.python.org/) [![GitHub](https://img.shields.io/badge/GitHub-seap--udea%2FMontuPython-blue?logo=github)](https://github.com/seap-udea/MontuPython) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21298063.svg)](https://doi.org/10.5281/zenodo.21298063) [![arXiv](https://img.shields.io/badge/arXiv-preprint%20forthcoming-b31b1b)](#) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/README.ipynb)
 [![Powered by PyEphem](https://img.shields.io/badge/powered%20by-PyEphem-blue)](https://pypi.org/project/ephem/) [![Powered by PyMeeus](https://img.shields.io/badge/powered%20by-PyMeeus-blue)](https://pypi.org/project/pymeeus/) [![Powered by spiceypy](https://img.shields.io/badge/powered%20by-spiceypy-blue)](https://pypi.org/project/spiceypy/) [![Powered by pyplanets](https://img.shields.io/badge/powered%20by-pyplanets-blue)](https://pypi.org/project/pyplanets/)
 
-`MontuPython` (transileterated mnṯw ꜥꜣpp(y)) is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
+`MontuPython` is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
 ## Useful Resources 
 
@@ -74,7 +74,7 @@ You may import the package using:
 from montu import *
 ```
 
-    MontuPython version 0.21.4. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.21.5. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
 
 
 or for a safe import:
@@ -801,7 +801,7 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
     Precessing 6 stars over 1,000 epochs …
 
 
-    Done in 1.5 s.
+    Done in 1.7 s.
 
 
 Now plot declinations as a function of time:
@@ -848,12 +848,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-05 06:37:20.205109 (declination 89:31:55.732)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-07 23:28:48.5824 (declination 86:22:03.634)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-10 06:48:36.198688 (declination 89:56:04.765)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-27 18:57:39.697920 (declination 86:57:15.607)
-    Star Alderamin will be the closest to the pole at 7532-02-25 00:26:54.902368 (declination 87:58:42.998)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-14 14:55:37.801920 (declination 83:29:32.445)
+    Star Polaris will be the closest to the pole at 2086-08-05 12:16:54.698861 (declination 89:31:55.734)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-08 05:08:22.603136 (declination 86:22:03.635)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-10 12:28:10.796160 (declination 89:56:04.771)
+    Star Deneb will be the closest to the pole at 14732 B.C. 05-28 00:37:14.304000 (declination 86:57:15.606)
+    Star Alderamin will be the closest to the pole at 7532-02-25 06:06:29.499872 (declination 87:58:42.998)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-14 20:35:12.399360 (declination 83:29:32.445)
 
 
 ## Tutorial by example notebooks
@@ -908,7 +908,8 @@ The human authors maintain that all scientific ideas, the overall project concep
 
 MontuPython has benefited from the contributions and advice of several collaborators:
 
-- Francisco "Tito" Vivas provided scientific, archaeoastronomical, and Egyptological advice.
+- Francisco "Tito" Vivas provided an actual archaeoastronomical fase of study who originally motivated the development of this software.
+- Prof. José Lull of the Universitá Autónoma de Barcelona (UAB), provided scientific, archaeoastronomical, and Egyptological advice.
 - Juanita Agudelo developed the first versions of the MontuPython web app.
 - Luis Arroyo developed the version of the web app currently available online at [https://montupython-production.up.railway.app/](https://montupython-production.up.railway.app/).
 
