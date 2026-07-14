@@ -2,6 +2,12 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.2.5 (Desktop)
+
+- **Bilingual localization (ES/EN)** — expanded and normalized translations across labels, forms, results text, and module UI.
+- **Spanish terminology fixes** — updated wording for astronomical seasons and heliacal rises; standardized visible text from "ano" to "año".
+- **Spanish help content restored** — rebuilt `help_es.json` with a module/key structure aligned to `help.json` for consistent fallback behavior.
+
 ## Version 0.2.4
 
 - **Observer sites from the library** — predefined locations now load from `montu/data/locations.json`; the Desktop uses the same catalogue as `montu.Observer.list()` / `montu.Observer(site=…)`.

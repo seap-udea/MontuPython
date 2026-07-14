@@ -2,6 +2,12 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.21.5 (Library)
+
+- Localization and consistency updates to support the Desktop ES/EN bilingual experience.
+- Terminology alignment for seasons, heliacal-rise wording, and related Spanish text conventions.
+- Supporting notes/content refresh to keep library and Desktop documentation aligned.
+
 ## Version 0.21.4
 
 - **`montu/observer.py`** — predefined ancient-world observing sites bundled in `montu/data/locations.json` (same catalogue as MontuPython Desktop).
