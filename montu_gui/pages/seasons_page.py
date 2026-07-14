@@ -28,6 +28,7 @@ from montu_gui.modules.seasons_lunar import (
 )
 from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.lazy_page import LazyPageMixin
+from montu_gui.utils.location_state import LocationState
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
@@ -198,6 +199,14 @@ def _season_card(season: dict) -> QFrame:
         "Caniucular:", "caniucular",
         season.get("caniucular", "—"),
     ))
+    for label, key, field in (
+        ("Sun rise azimuth:", "sun_rise_az", "sun_rise_az"),
+        ("Sun set azimuth:", "sun_set_az", "sun_set_az"),
+        ("Sun rise time:", "sun_rise_time", "sun_rise_time"),
+        ("Sun set time:", "sun_set_time", "sun_set_time"),
+    ):
+        if field in season:
+            lay.addLayout(_field_row(label, key, season.get(field, "—")))
     delta_row = QHBoxLayout()
     delta_row.setSpacing(8)
     delta_row.addWidget(HelpLink(
@@ -240,10 +249,16 @@ class SeasonsPage(LazyPageMixin, QWidget):
 
     status_message = Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, location_state: LocationState, parent=None):
         super().__init__(parent)
+        self._location_state = location_state
         self._season_cards: list[QFrame] = []
         self._build_ui()
+        self._location_state.changed.connect(self._on_location_changed)
+
+    def _on_location_changed(self, _coords=None):
+        self._refresh_site_label()
+        self._calculate()
 
     def _activate_page(self) -> None:
         self._calculate()
@@ -272,6 +287,11 @@ class SeasonsPage(LazyPageMixin, QWidget):
         bar.addWidget(now_btn)
         bar.addStretch()
         root.addWidget(bar_wrap)
+
+        self._site_label = _value_label("")
+        self._site_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        root.addWidget(self._site_label)
+        self._refresh_site_label()
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
 
@@ -353,6 +373,12 @@ class SeasonsPage(LazyPageMixin, QWidget):
 
         self._year_input.changed.connect(self._calculate)
 
+    def _refresh_site_label(self):
+        c = self._location_state.coords
+        self._site_label.setText(
+            f"Observing site: {c.label_with_coords()}"
+        )
+
     def _set_current_year(self):
         self._year_input.set_year("ce", datetime.now().year)
         self._calculate()
@@ -364,7 +390,11 @@ class SeasonsPage(LazyPageMixin, QWidget):
         log_ui_event("seasons_lunar calculate", era=era, human_year=human_year)
         self.status_message.emit(f"Computing seasons & lunar phases for {label} …")
 
-        s_result = compute_seasons(era, human_year)
+        obs = self._location_state.coords
+        s_result = compute_seasons(
+            era, human_year,
+            lon=obs.lon, lat=obs.lat, height_km=obs.height_km(),
+        )
         self._fill_seasons(s_result)
         l_result = compute_lunar_quarters(era, human_year)
         self._fill_lunar(l_result)

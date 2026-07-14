@@ -51,6 +51,7 @@ class ModuleBrand(QFrame):
         parent: QWidget | None = None,
         *,
         show_description: bool = True,
+        on_description_link=None,
     ):
         super().__init__(parent)
         self.setObjectName("module_brand")
@@ -82,7 +83,17 @@ class ModuleBrand(QFrame):
         title_lbl.setWordWrap(True)
         text_col.addWidget(title_lbl)
         if description:
-            desc_lbl = QLabel(description)
+            if on_description_link and "this link" in description:
+                desc_html = description.replace(
+                    "this link",
+                    "<a href='historical' style='color:#1565C0'>this link</a>",
+                )
+                desc_lbl = QLabel(desc_html)
+                desc_lbl.setTextFormat(Qt.TextFormat.RichText)
+                desc_lbl.setOpenExternalLinks(False)
+                desc_lbl.linkActivated.connect(lambda _url: on_description_link())
+            else:
+                desc_lbl = QLabel(description)
             desc_lbl.setObjectName("module_brand_desc")
             desc_lbl.setWordWrap(True)
             text_col.addWidget(desc_lbl)
@@ -93,6 +104,11 @@ def module_brand(
     module_key: str,
     *,
     show_description: bool = True,
+    on_description_link=None,
 ) -> ModuleBrand:
     """Build a module branding strip for an input panel."""
-    return ModuleBrand(module_key, show_description=show_description)
+    return ModuleBrand(
+        module_key,
+        show_description=show_description,
+        on_description_link=on_description_link,
+    )

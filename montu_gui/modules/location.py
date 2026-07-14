@@ -10,9 +10,6 @@ from __future__ import annotations
 import json
 import re
 from dataclasses import dataclass
-from montu_gui.utils.bundle_paths import gui_asset
-
-_LOCATIONS_FILE = gui_asset("locations.json")
 
 # Fallback if JSON is missing (Thebes / Luxor)
 DEFAULT_LOCATION_ID = "thebes"
@@ -62,12 +59,18 @@ class ObserverCoords:
         )
 
 
+def _locations_file() -> str:
+    """Path to the site catalogue shipped with the montu package."""
+    import montu
+    return montu.Util._data_path("locations.json", check=True)
+
+
 def load_locations() -> list[LocationEntry]:
-    """Load predefined locations from ``assets/locations.json``."""
+    """Load predefined locations from ``montu/data/locations.json``."""
     try:
-        with open(_LOCATIONS_FILE, encoding="utf-8") as fh:
+        with open(_locations_file(), encoding="utf-8") as fh:
             data = json.load(fh)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
         return [_fallback_tebas()]
 
     entries = []
@@ -88,10 +91,10 @@ def load_locations() -> list[LocationEntry]:
 def get_default_location_id() -> str:
     """Return the default location id from JSON (falls back to Thebes)."""
     try:
-        with open(_LOCATIONS_FILE, encoding="utf-8") as fh:
+        with open(_locations_file(), encoding="utf-8") as fh:
             data = json.load(fh)
         return data.get("default", DEFAULT_LOCATION_ID)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except (FileNotFoundError, json.JSONDecodeError, ValueError):
         return DEFAULT_LOCATION_ID
 
 

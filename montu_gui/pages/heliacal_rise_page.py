@@ -53,6 +53,7 @@ from montu_gui.widgets.lets_python_dialog import (
     LetsPythonExample,
     make_lets_python_button_row,
 )
+from montu_gui.widgets.historical_heliacal_dialog import HistoricalHeliacalRisesDialog
 from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
 
@@ -208,6 +209,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._location_state = location_state
         self._stars: list[dict] = []
         self._illustration_source: QPixmap | None = None
+        self._historical_dialog: HistoricalHeliacalRisesDialog | None = None
         self._build_ui()
         self._location_state.changed.connect(self._refresh_location)
 
@@ -221,7 +223,10 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         root = QVBoxLayout(self)
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
-        root.addWidget(module_brand("heliacal_rise"))
+        root.addWidget(module_brand(
+            "heliacal_rise",
+            on_description_link=self._show_historical_rises,
+        ))
 
         splitter = QSplitter(Qt.Orientation.Horizontal)
         controls_scroll = QScrollArea()
@@ -548,6 +553,16 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
                 self._table.setItem(row_number, column, item)
         self._table.resizeColumnsToContents()
         self.status_message.emit(f"Heliacal rises: {len(result.events)} event(s) found.")
+
+    def _show_historical_rises(self) -> None:
+        if self._historical_dialog is None or not self._historical_dialog.isVisible():
+            self._historical_dialog = HistoricalHeliacalRisesDialog(self.window())
+            self._historical_dialog.setAttribute(
+                Qt.WidgetAttribute.WA_DeleteOnClose, False
+            )
+        self._historical_dialog.show()
+        self._historical_dialog.raise_()
+        self._historical_dialog.activateWindow()
 
     def _show_lets_python(self) -> None:
         dialog = LetsPythonDialog(_EXAMPLE, self.window())

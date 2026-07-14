@@ -331,7 +331,7 @@
       },
       "add_body": {
         "title": "Add a body",
-        "body": "<p>Choose a <b>Sun</b>, <b>Moon</b>, planet, or named star from the dropdown and click <b>＋ Add</b>. Each body appears as a row on the disk with its own effective horizon altitude.</p><p>The star list respects the <b>V magnitude</b> filter below. Duplicate bodies are not allowed. At least one body must remain on the disk.</p><p>Over a 3-year window around the reference year, MontuPython finds the northernmost and southernmost rise (△) and set (▽) azimuths for each body.</p>"
+        "body": "<p>Choose a <b>Sun</b>, <b>Moon</b>, planet, or named star from the dropdown and click <b>＋ Add</b>. Each body appears as a row on the disk with its own effective horizon altitude.</p><p>The star list respects the <b>V magnitude</b> filter below. Duplicate bodies are not allowed. At least one body must remain on the disk.</p><p>From the reference year, MontuPython sweeps max(2 years, orbital period) per body and finds the northernmost and southernmost rise (△) and set (▽) azimuths.</p>"
       },
       "star_mag_filter": {
         "title": "Stars with V mag ≤",
@@ -339,7 +339,7 @@
       },
       "reference_year": {
         "title": "Reference year",
-        "body": "<p>Central year of the 3-year search window (reference year ± 1 year). Select <b>BCE</b> or <b>CE</b> and enter the historical year.</p><p>Extreme rise/set azimuths are sampled over this interval at the observer site.</p>"
+        "body": "<p>Start year of the search window. The sweep length is <b>max(2 years, orbital period)</b> for each body (the Sun uses 2 years). Select <b>BCE</b> or <b>CE</b> and enter the historical year.</p><p>Extreme rise/set azimuths are sampled over this interval at the observer site.</p>"
       }
     }
   },

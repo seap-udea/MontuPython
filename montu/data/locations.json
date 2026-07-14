@@ -1,0 +1,275 @@
+{
+  "default": "thebes",
+  "locations": [
+    {
+      "id": "thebes",
+      "name": "Thebes (Luxor)",
+      "lat": 25.6967,
+      "lon": 32.6422,
+      "alt_m": 76,
+      "region": "Egypt",
+      "era": "Ancient Egypt",
+      "description": "Ancient Waset — capital of Upper Egypt during the New Kingdom. Karnak and the Valley of the Kings lie nearby."
+    },
+    {
+      "id": "memphis",
+      "name": "Memphis",
+      "lat": 29.8458,
+      "lon": 31.2508,
+      "alt_m": 25,
+      "region": "Egypt",
+      "era": "Ancient Egypt",
+      "description": "Capital of the Old Kingdom, near modern Mit Rahina south of Cairo."
+    },
+    {
+      "id": "giza",
+      "name": "Giza",
+      "lat": 29.9792,
+      "lon": 31.1342,
+      "alt_m": 75,
+      "region": "Egypt",
+      "era": "Ancient Egypt",
+      "description": "Site of the Great Pyramid and Sphinx on the west bank of the Nile."
+    },
+    {
+      "id": "alexandria",
+      "name": "Alexandria",
+      "lat": 31.2001,
+      "lon": 29.9187,
+      "alt_m": 7,
+      "region": "Egypt",
+      "era": "Hellenistic",
+      "description": "Founded by Alexander the Great; home of the Library and Pharos lighthouse."
+    },
+    {
+      "id": "babylon",
+      "name": "Babylon",
+      "lat": 32.5364,
+      "lon": 44.4209,
+      "alt_m": 34,
+      "region": "Mesopotamia",
+      "era": "Ancient Near East",
+      "description": "Capital of Hammurabi and Nebuchadnezzar on the Euphrates."
+    },
+    {
+      "id": "ur",
+      "name": "Ur",
+      "lat": 30.9625,
+      "lon": 46.1031,
+      "alt_m": 12,
+      "region": "Mesopotamia",
+      "era": "Sumer",
+      "description": "Sumerian city-state; birthplace of Abraham in biblical tradition."
+    },
+    {
+      "id": "nineveh",
+      "name": "Nineveh",
+      "lat": 36.3592,
+      "lon": 43.1528,
+      "alt_m": 220,
+      "region": "Mesopotamia",
+      "era": "Assyria",
+      "description": "Capital of the Assyrian Empire on the Tigris opposite modern Mosul."
+    },
+    {
+      "id": "persepolis",
+      "name": "Persepolis",
+      "lat": 29.9351,
+      "lon": 52.8916,
+      "alt_m": 1620,
+      "region": "Persia",
+      "era": "Achaemenid",
+      "description": "Ceremonial capital of the Persian Empire founded by Darius I."
+    },
+    {
+      "id": "susa",
+      "name": "Susa",
+      "lat": 32.1942,
+      "lon": 48.2436,
+      "alt_m": 150,
+      "region": "Persia",
+      "era": "Elam / Persia",
+      "description": "Ancient Elamite and Persian administrative capital in Khuzestan."
+    },
+    {
+      "id": "athens",
+      "name": "Athens",
+      "lat": 37.9838,
+      "lon": 23.7275,
+      "alt_m": 70,
+      "region": "Greece",
+      "era": "Classical Greece",
+      "description": "Birthplace of democracy; Acropolis and Parthenon overlook the city."
+    },
+    {
+      "id": "delphi",
+      "name": "Delphi",
+      "lat": 38.4824,
+      "lon": 22.5010,
+      "alt_m": 570,
+      "region": "Greece",
+      "era": "Classical Greece",
+      "description": "Sanctuary of Apollo and the Pythia oracle on Mount Parnassus."
+    },
+    {
+      "id": "knossos",
+      "name": "Knossos",
+      "lat": 35.2980,
+      "lon": 25.1631,
+      "alt_m": 85,
+      "region": "Crete",
+      "era": "Minoan",
+      "description": "Palace complex of the Minoan civilization near Heraklion."
+    },
+    {
+      "id": "rome",
+      "name": "Rome",
+      "lat": 41.9028,
+      "lon": 12.4964,
+      "alt_m": 21,
+      "region": "Italy",
+      "era": "Roman Empire",
+      "description": "Caput Mundi — centre of the Roman Republic and Empire."
+    },
+    {
+      "id": "carthage",
+      "name": "Carthage",
+      "lat": 36.8528,
+      "lon": 10.3233,
+      "alt_m": 10,
+      "region": "North Africa",
+      "era": "Phoenician / Punic",
+      "description": "Phoenician colony and rival of Rome on the Gulf of Tunis."
+    },
+    {
+      "id": "jerusalem",
+      "name": "Jerusalem",
+      "lat": 31.7683,
+      "lon": 35.2137,
+      "alt_m": 754,
+      "region": "Levant",
+      "era": "Ancient Near East",
+      "description": "Sacred city of Judaism, Christianity, and Islam."
+    },
+    {
+      "id": "jericho",
+      "name": "Jericho",
+      "lat": 31.8707,
+      "lon": 35.4437,
+      "alt_m": -258,
+      "region": "Levant",
+      "era": "Neolithic / Bronze Age",
+      "description": "One of the oldest continuously inhabited settlements in the world."
+    },
+    {
+      "id": "palmyra",
+      "name": "Palmyra",
+      "lat": 34.5500,
+      "lon": 38.2672,
+      "alt_m": 405,
+      "region": "Syria",
+      "era": "Roman / Palmyrene",
+      "description": "Oasis city on the Silk Road between Rome and Persia."
+    },
+    {
+      "id": "petra",
+      "name": "Petra",
+      "lat": 30.3285,
+      "lon": 35.4444,
+      "alt_m": 810,
+      "region": "Jordan",
+      "era": "Nabataean",
+      "description": "Rose-red city carved in sandstone by the Nabataeans."
+    },
+    {
+      "id": "miletus",
+      "name": "Miletus",
+      "lat": 37.5306,
+      "lon": 27.2800,
+      "alt_m": 5,
+      "region": "Anatolia",
+      "era": "Ionian Greece",
+      "description": "Ionian city of Thales and Anaximander on the Aegean coast."
+    },
+    {
+      "id": "chang_an",
+      "name": "Chang'an (Xi'an)",
+      "lat": 34.2619,
+      "lon": 108.9422,
+      "alt_m": 405,
+      "region": "China",
+      "era": "Han / Tang",
+      "description": "Eastern terminus of the Silk Road and capital of several dynasties."
+    },
+    {
+      "id": "varanasi",
+      "name": "Varanasi (Kashi)",
+      "lat": 25.3176,
+      "lon": 82.9739,
+      "alt_m": 81,
+      "region": "India",
+      "era": "Ancient India",
+      "description": "Sacred city on the Ganges, one of the oldest living cities."
+    },
+    {
+      "id": "angkor",
+      "name": "Angkor",
+      "lat": 13.4125,
+      "lon": 103.8667,
+      "alt_m": 20,
+      "region": "Cambodia",
+      "era": "Khmer Empire",
+      "description": "Capital of the Khmer Empire; Angkor Wat is the largest religious monument."
+    },
+    {
+      "id": "teotihuacan",
+      "name": "Teotihuacan",
+      "lat": 19.6925,
+      "lon": -98.8439,
+      "alt_m": 2300,
+      "region": "Mesoamerica",
+      "era": "Classic Mesoamerica",
+      "description": "City of the Sun and Moon pyramids in the Valley of Mexico."
+    },
+    {
+      "id": "chichen_itza",
+      "name": "Chichen Itza",
+      "lat": 20.6843,
+      "lon": -88.5678,
+      "alt_m": 30,
+      "region": "Mesoamerica",
+      "era": "Maya / Toltec",
+      "description": "Maya-Toltec ceremonial centre on the Yucatán Peninsula."
+    },
+    {
+      "id": "tiwanaku",
+      "name": "Tiwanaku",
+      "lat": -16.5547,
+      "lon": -68.6734,
+      "alt_m": 3885,
+      "region": "Andes",
+      "era": "Pre-Inca",
+      "description": "High-altitude ceremonial centre on the shores of Lake Titicaca."
+    },
+    {
+      "id": "cusco",
+      "name": "Cusco",
+      "lat": -13.5319,
+      "lon": -71.9675,
+      "alt_m": 3399,
+      "region": "Andes",
+      "era": "Inca",
+      "description": "Capital of the Inca Empire in the Peruvian highlands."
+    },
+    {
+      "id": "nazca",
+      "name": "Nazca",
+      "lat": -14.8357,
+      "lon": -74.9388,
+      "alt_m": 520,
+      "region": "Peru",
+      "era": "Nazca culture",
+      "description": "Desert plain famous for geoglyphs visible from the air."
+    }
+  ]
+}

@@ -128,7 +128,14 @@ def _format_caniucular_display(raw: str) -> str:
     return raw
 
 
-def _mtime_to_row(label: str, help_key: str, mt, *, delta_days: float | None) -> dict:
+def _mtime_to_row(
+    label: str,
+    help_key: str,
+    mt,
+    *,
+    delta_days: float | None,
+    observer=None,
+) -> dict:
     """Convert a montu.Time to a display-row dict."""
     r = mt.readable
     row = {
@@ -140,7 +147,71 @@ def _mtime_to_row(label: str, help_key: str, mt, *, delta_days: float | None) ->
     }
     if delta_days is not None:
         row["delta_t"] = _format_days(delta_days)
+    if observer is not None:
+        row.update(_sun_rise_set_at(mt, observer))
     return row
+
+
+def _sun_rise_set_at(mt, observer) -> dict:
+    """Sunrise/sunset azimuth and local time on the season's calendar day."""
+    montu = _import_montu()
+    import ephem as pyephem
+    import math
+
+    sun = montu.Sun()
+    date_part = mt.readable.datepro.split()[0]
+    utc_hour = 12.0 - observer.lon / 15.0
+    utc_h = int(utc_hour) % 24
+    utc_m = int(round((utc_hour % 1) * 60)) % 60
+    noon = montu.Time(
+        f"{date_part} {utc_h:02d}:{utc_m:02d}:00",
+        calendar="mixed",
+    )
+
+    site = pyephem.Observer()
+    site.lon = str(observer.lon)
+    site.lat = str(observer.lat)
+    site.elevation = observer.height
+    site.date = float(noon.jed) - montu.PYEPHEM_JD_REF
+
+    def _azimuth_at(event_date) -> float:
+        ev_site = pyephem.Observer()
+        ev_site.lon = site.lon
+        ev_site.lat = site.lat
+        ev_site.elevation = site.elevation
+        ev_site.date = event_date
+        sun.seba.compute(ev_site)
+        return math.degrees(float(sun.seba.az))
+
+    try:
+        rise_date = site.previous_rising(sun.seba)
+        set_date = site.next_setting(sun.seba)
+        rise_az = _azimuth_at(rise_date)
+        set_az = _azimuth_at(set_date)
+        rise_mt = montu.Time(
+            float(rise_date) + montu.PYEPHEM_JD_REF,
+            format="jd",
+            calendar="mixed",
+        )
+        set_mt = montu.Time(
+            float(set_date) + montu.PYEPHEM_JD_REF,
+            format="jd",
+            calendar="mixed",
+        )
+    except (pyephem.AlwaysUpError, pyephem.NeverUpError, Exception):
+        return {
+            "sun_rise_az": "—",
+            "sun_set_az": "—",
+            "sun_rise_time": "—",
+            "sun_set_time": "—",
+        }
+
+    return {
+        "sun_rise_az": f"{rise_az:.1f}°",
+        "sun_set_az": f"{set_az:.1f}°",
+        "sun_rise_time": observer.get_local_time(rise_mt),
+        "sun_set_time": observer.get_local_time(set_mt),
+    }
 
 
 def _to_montu_date(era: str, human_year: int) -> tuple[str, str]:
@@ -166,11 +237,19 @@ def _to_montu_date(era: str, human_year: int) -> tuple[str, str]:
     return start_str, end_str
 
 
-def compute_seasons(era: str, human_year: int) -> SeasonResult:
+def compute_seasons(
+    era: str,
+    human_year: int,
+    *,
+    lon: float = 0.0,
+    lat: float = 0.0,
+    height_km: float = 0.0,
+) -> SeasonResult:
     """Return the four astronomical seasons for the given human-format year."""
     t0 = time.perf_counter()
     try:
         montu = _import_montu()
+        observer = montu.Observer(lon=lon, lat=lat, height=height_km)
         date_str, _ = _to_montu_date(era, human_year)
         t_start = montu.Time(date_str, calendar="mixed")
         vernal, summer, autumnal, _w_skip = montu.Sun.next_seasons(at=t_start)
@@ -193,7 +272,7 @@ def compute_seasons(era: str, human_year: int) -> SeasonResult:
                 prev_jed = jeds[i - 1]
             mt = montu.Time(jed, format="jd", calendar="mixed", full=True)
             rows.append(_mtime_to_row(
-                label, help_key, mt, delta_days=jed - prev_jed
+                label, help_key, mt, delta_days=jed - prev_jed, observer=observer,
             ))
 
         result = SeasonResult(ok=True, year=human_year, seasons=rows)

@@ -5,7 +5,8 @@ The user selects a reference year (BCE/CE), picks celestial bodies from
 a dropdown (Sun, Moon, planets, named bright stars), configures an
 effective horizon elevation per body, and the module renders an azimuth
 disk showing the northernmost and southernmost orientations at which
-each body rises (East, △) and sets (West, ▽) over a 3-year span.
+each body rises (East, △) and sets (West, ▽) over a search window of
+max(2 years, orbital period) per body.
 
 Architecture:
     page   → modules.orientation_disk.compute_disk()
@@ -347,7 +348,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         self._year_input = _YearEraInput(DEFAULT_YEAR, DEFAULT_ERA)
         year_lay.addLayout(
             _field_col(
-                "Start year for the 3-year search window:",
+                "Start year for the search window (max(2 yr, orbital period)):",
                 "reference_year",
                 self._year_input,
             ),

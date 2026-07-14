@@ -2,9 +2,9 @@
 Orientation Disk — extreme rise/set azimuths for celestial bodies.
 
 For each selected body (Sun, Moon, planets, stars) the module computes,
-over a 3-year span starting from a reference historical year, the
-northernmost and southernmost azimuths at which the body rises (East
-hemisphere) and sets (West hemisphere).
+over a search window of max(2 years, orbital period) starting from a
+reference historical year, the northernmost and southernmost azimuths at
+which the body rises (East hemisphere) and sets (West hemisphere).
 
 Results are displayed as an azimuth disk: a polar chart with N at the
 top and colored arrows for each body's extreme orientations.
@@ -26,7 +26,9 @@ from montu_gui.utils.debug import timed_block
 # ── defaults ─────────────────────────────────────────────────────────────────
 DEFAULT_YEAR       = 2560
 DEFAULT_ERA        = "bce"
-DEFAULT_SPAN_YEARS = 3          # how many years to sweep for extremes
+MIN_SPAN_YEARS     = 2.0        # minimum search window [years]
+SUN_SPAN_YEARS     = 2.0        # Sun uses 2 years (not Earth's 1-year orbit)
+MOON_SIDEREAL_YEARS = 27.321661 / 365.25
 DEFAULT_STEP_DAYS  = 5          # sampling cadence in days
 DEFAULT_MAG_LIMIT  = 1.0        # star catalogue filter for the UI dropdown
 
@@ -118,6 +120,31 @@ def _import_montu():
         return montu
     except Exception as exc:
         raise ImportError(f"Cannot import montu: {exc}") from exc
+
+
+_planets_table = None
+
+
+def _orbital_period_years(body_name: str) -> float:
+    """Sidereal orbital period in years (Sun → 2 yr; Moon → sidereal month)."""
+    global _planets_table
+    name = body_name.strip().lower()
+    if name == "sun":
+        return SUN_SPAN_YEARS
+    if name == "moon":
+        return MOON_SIDEREAL_YEARS
+    if _planets_table is None:
+        montu = _import_montu()
+        _planets_table = montu.Util.load_planets()
+    planet_key = body_name.strip().capitalize()
+    if planet_key not in _planets_table.index:
+        return MIN_SPAN_YEARS
+    return float(_planets_table.loc[planet_key, "SiderealOrbit"])
+
+
+def span_years_for_body(body_name: str) -> float:
+    """Search window length: max(2 years, orbital period)."""
+    return max(MIN_SPAN_YEARS, _orbital_period_years(body_name))
 
 
 def _year_to_jed(year: int, era: str) -> float:
@@ -224,14 +251,13 @@ def compute_disk(
     lon: float,
     height: float,
     bodies: list[BodyConfig],
-    span_years: float = DEFAULT_SPAN_YEARS,
     step_days:  float = DEFAULT_STEP_DAYS,
     observer_name: str = "",
 ) -> DiskResult:
     """Compute extreme rise/set azimuths for each body.
 
-    Sweeps ``span_years`` years (default 3) from Jan 1 of the reference
-    year in increments of ``step_days`` days.  Planets and the Sun/Moon
+    Sweeps max(2 years, orbital period) from Jan 1 of the reference year
+    in increments of ``step_days`` days (per body).  Planets and the Sun/Moon
     are sampled via PyEphem; stars are computed analytically from their
     precessed declination at the start epoch.
 
@@ -244,8 +270,6 @@ def compute_disk(
         Observer coordinates [degrees, degrees, km].
     bodies : list of BodyConfig
         Bodies to include.  Must not be empty.
-    span_years : float
-        Length of the search window [years].
     step_days : float
         Sampling cadence [days].
     observer_name : str
@@ -262,8 +286,6 @@ def compute_disk(
         montu = _import_montu()
 
         jed_start = _year_to_jed(year, era)
-        jed_end   = jed_start + span_years * 365.25
-        jed_steps = np.arange(jed_start, jed_end, float(step_days))
 
         # Build montu observer for PyEphem pass-through
         obs = montu.Observer(lon=lon, lat=lat, height=height / 1000.0)  # montu uses km
@@ -274,6 +296,9 @@ def compute_disk(
             if cfg.body_type == "star":
                 extreme = _process_star(cfg, jed_start, lat)
             else:
+                span = span_years_for_body(cfg.name)
+                jed_end = jed_start + span * 365.25
+                jed_steps = np.arange(jed_start, jed_end, float(step_days))
                 extreme = _process_planet(cfg, jed_steps, obs, lat)
             result_bodies.append(extreme)
 

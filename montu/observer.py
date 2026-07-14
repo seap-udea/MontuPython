@@ -7,10 +7,34 @@ import montu
 # Required packages
 ###############################################################
 import ephem as pyephem
+import json
 
 ###############################################################
 # Module constants
 ###############################################################
+_LOCATIONS_DATA = None
+
+
+def _load_locations_data() -> dict:
+    """Load the bundled ancient-world sites catalogue (cached)."""
+    global _LOCATIONS_DATA
+    if _LOCATIONS_DATA is None:
+        path = montu.Util._data_path("locations.json", check=True)
+        with open(path, encoding="utf-8") as fh:
+            _LOCATIONS_DATA = json.load(fh)
+    return _LOCATIONS_DATA
+
+
+def _find_location_entry(site_id: str) -> dict:
+    """Return a location dict by ``id`` (case-insensitive)."""
+    key = (site_id or "").strip().lower()
+    if not key:
+        raise ValueError("site id must be a non-empty string")
+    for entry in _load_locations_data().get("locations", []):
+        if str(entry.get("id", "")).lower() == key:
+            return entry
+    raise ValueError(f"Unknown observing site: {site_id!r}")
+
 
 ###############################################################
 # Stars Class
@@ -29,6 +53,10 @@ class Observer(object):
     height : float, optional
         Elevation of the observing site above sea level [km].
         Default is 0.
+    site : str, optional
+        Predefined site id from :meth:`list` (e.g. ``'memphis'``). When
+        given, ``lon``, ``lat``, and ``height`` are taken from the catalogue
+        unless explicitly overridden.
     pressure : float, optional
         Atmospheric pressure at the observing site [mbar]. Default is 1013.25.
     temperature : float, optional
@@ -46,6 +74,10 @@ class Observer(object):
         Geodetic latitude [degrees].
     height : float
         Elevation [km].
+    site_id : str or None
+        Catalogue id when created via ``site=…``, else ``None``.
+    site_name : str or None
+        Display name from the catalogue when ``site=…`` was used.
     pressure : float
         Atmospheric surface pressure [mbar].
     temperature : float
@@ -67,18 +99,36 @@ class Observer(object):
     Create an observer at the Great Pyramid of Giza:
 
     >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+
+    Pick a predefined ancient-world site:
+
+    >>> memphis = montu.Observer(site='memphis')
+    >>> montu.Observer.list()[:3]
+    ['thebes', 'memphis', 'giza']
     """
     def __init__(self,
-                 lon=0,lat=0,height=0,
-                 pressure=1013.25,temperature=15,
-                 relative_humidity=0,obswl=0.6):
+                 lon=0, lat=0, height=0,
+                 site=None,
+                 pressure=1013.25, temperature=15,
+                 relative_humidity=0, obswl=0.6):
         """Initialise the Observer; see class docstring for parameter details."""
-            
+
+        self.site_id = None
+        self.site_name = None
+
+        if site is not None:
+            entry = _find_location_entry(site)
+            self.site_id = entry.get("id", site)
+            self.site_name = entry.get("name", site)
+            lon = float(entry.get("lon", lon))
+            lat = float(entry.get("lat", lat))
+            height = float(entry.get("alt_m", height * 1000.0)) / 1000.0
+
         # Properties of the site
         self.lon = lon
         self.lat = lat
         self.height = height
-        
+
         # Atmospheric properties
         self.pressure = pressure
         self.temperature = temperature
@@ -92,6 +142,35 @@ class Observer(object):
         self.site.pressure = self.pressure
         self.site.temp = self.temperature
         self.site.elevation = self.height
+
+    @classmethod
+    def list(cls, details=False):
+        """Return predefined observing sites from the bundled catalogue.
+
+        Parameters
+        ----------
+        details : bool, optional
+            If ``False`` (default), return site ids only.
+            If ``True``, return a list of dicts with full metadata
+            (``id``, ``name``, ``lat``, ``lon``, ``alt_m``, …).
+
+        Returns
+        -------
+        list
+            Site ids or site detail dicts.
+
+        Examples
+        --------
+        >>> import montu
+        >>> montu.Observer.list()
+        ['thebes', 'memphis', ...]
+        >>> montu.Observer.list(details=True)[0]['name']
+        'Thebes (Luxor)'
+        """
+        locations = _load_locations_data().get("locations", [])
+        if details:
+            return [dict(entry) for entry in locations]
+        return [entry.get("id", "") for entry in locations]
 
     def get_local_time(self,mtime,hms=True):
         """Compute local solar time at the observing site.

@@ -23,12 +23,12 @@ from montu.maps import (
 from montu_gui.utils.debug import dbg, timed_block
 from montu_gui.utils.plotly_html import figure_to_html
 
-DEFAULT_DATE = "bce 2500-01-01 00:00:00"
+DEFAULT_DATE = "bce 2500-06-01 00:00:00"
 DEFAULT_LOCAL_HOUR = 18
 DEFAULT_LOCAL_MINUTE = 0
 DEFAULT_LOCAL_SECOND = 0
-DEFAULT_BODIES = ["Sun"]
-DEFAULT_LINES = ["Ecliptic"]
+DEFAULT_BODIES = ["Sun", "Moon", "Mercury", "Venus"]
+DEFAULT_LINES = ["Ecliptic", "Horizon"]
 CONSTELLATION_SETS: tuple[tuple[str, str], ...] = (
     ("iau", "IAU Constellations"),
     ("egyptian_ancient", "Ancient Egyptian"),

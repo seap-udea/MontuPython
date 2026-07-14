@@ -73,15 +73,15 @@ VERSION_LABEL = f"v{MONTU_VERSION}"
 
 # icon, full label, page key
 NAV_ITEMS = [
-    ("🧭", "Observer Location", "location"),
     ("🏠", "Home", "home"),
     ("📅", "Calendar calculator", "calendar"),
+    ("🧭", "Observer Location", "location"),
+    ("🌌", "Sky map", "sky_map"),
     ("🎑", "Seasons & Lunar Phases", "seasons"),
     ("🪐", "Planetary Ephemerides", "planets"),
+    ("⭕", "Orientation disk", "orient_disk"),
     ("📐", "Star Alignments", "alignments"),
     ("🌅", "Heliacal Rises", "heliacal_rise"),
-    ("⭕", "Orientation disk", "orient_disk"),
-    ("🌌", "Sky map", "sky_map"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -233,31 +233,31 @@ class MainWindow(QMainWindow):
         self._stack = QStackedWidget()
         root.addWidget(self._stack, stretch=1)
 
-        loc_page = LocationPage(self._location_state)
-        loc_page.status_message.connect(self._show_status)
-        self._add_page("location", loc_page)
         self._add_page("home", HomePage())
         cal_page = CalendarPage()
         cal_page.status_message.connect(self._show_status)
         self._add_page("calendar", cal_page)
-        seasons_page = SeasonsPage()
+        loc_page = LocationPage(self._location_state)
+        loc_page.status_message.connect(self._show_status)
+        self._add_page("location", loc_page)
+        sky_map_page = SkyMapPage(self._location_state)
+        sky_map_page.status_message.connect(self._show_status)
+        self._add_page("sky_map", sky_map_page)
+        seasons_page = SeasonsPage(self._location_state)
         seasons_page.status_message.connect(self._show_status)
         self._add_page("seasons", seasons_page)
         planets_page = PlanetsPage(self._location_state)
         planets_page.status_message.connect(self._show_status)
         self._add_page("planets", planets_page)
+        orient_disk_page = OrientationDiskPage(self._location_state)
+        orient_disk_page.status_message.connect(self._show_status)
+        self._add_page("orient_disk", orient_disk_page)
         alignments_page = AlignmentsPage(self._location_state)
         alignments_page.status_message.connect(self._show_status)
         self._add_page("alignments", alignments_page)
         heliacal_rise_page = HeliacalRisePage(self._location_state)
         heliacal_rise_page.status_message.connect(self._show_status)
         self._add_page("heliacal_rise", heliacal_rise_page)
-        orient_disk_page = OrientationDiskPage(self._location_state)
-        orient_disk_page.status_message.connect(self._show_status)
-        self._add_page("orient_disk", orient_disk_page)
-        sky_map_page = SkyMapPage(self._location_state)
-        sky_map_page.status_message.connect(self._show_status)
-        self._add_page("sky_map", sky_map_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())

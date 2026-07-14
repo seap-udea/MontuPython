@@ -2,6 +2,16 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.2.4
+
+- **Observer sites from the library** — predefined locations now load from `montu/data/locations.json`; the Desktop uses the same catalogue as `montu.Observer.list()` / `montu.Observer(site=…)`.
+- **Module order** — sidebar and Home list reordered: Calendar, Observer Location, Sky Map, Seasons & Lunar Phases, Planetary Ephemerides, Orientation Disk, Star Alignments, Heliacal Rises (Home remains first in the sidebar).
+- **Orientation Disk (⭕)** — search window per body is **max(2 years, orbital period)** (Sun fixed at 2 years; Jupiter and Saturn use their sidereal periods); help text and reference-year label updated.
+- **Sky Map (🌌) defaults** — date **June** 2500 BCE; **Horizon** and **Meridian view** on by default; bodies **Sun, Moon, Mercury, and Venus** selected (`default.json` updated).
+- **Seasons & Lunar Phases (🎑)** — below **Caniucular** on each season card: Sun rise/set **azimuth** and **local time** for the observing site on that season’s calendar day; below the year selector: **Observing site** line from the global location; module listens to **LocationState** and recalculates on site change.
+- **Seasons fix** — solstice sunrise azimuths now use that day’s sunrise/sunset (local noon anchor) and display degrees correctly (no erroneous `RAD` conversion).
+- **Heliacal Rises (🌅)** — module description extended with a **this link** to open a non-modal **Historical Sirius heliacal rises** window (`montu/data/historical-heliacal-rises.json`); application stays usable while the list is open.
+
 ## Version 0.2.3
 
 - **Heliacal Rises (🌅)** — new module to find first visible morning appearances of named bright stars and classical planets using the library’s `HeliacalRise` models (Schaefer 1985/1987, Belokrylov 2011).

@@ -386,7 +386,7 @@ class _ConfigurationPicker(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(14)
         self._meridian = QCheckBox("Meridian view")
-        self._meridian.setChecked(False)
+        self._meridian.setChecked(True)
         self._meridian.toggled.connect(lambda *_: self.changed.emit())
         layout.addWidget(self._meridian)
         layout.addStretch()

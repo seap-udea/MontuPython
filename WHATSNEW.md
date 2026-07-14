@@ -2,6 +2,14 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.21.4
+
+- **`montu/observer.py`** — predefined ancient-world observing sites bundled in `montu/data/locations.json` (same catalogue as MontuPython Desktop).
+- **`Observer(site=…)`** — construct an observer from a catalogue id (e.g. `montu.Observer(site='memphis')`); coordinates and altitude are taken from the JSON entry.
+- **`Observer.list()`** — return the list of available site ids (`'thebes'`, `'memphis'`, …).
+- **`Observer.list(details=True)`** — return full metadata dicts (`id`, `name`, `lat`, `lon`, `alt_m`, `region`, `era`, `description`).
+- New attributes **`site_id`** and **`site_name`** when the observer is created via `site=…`.
+
 ## Version 0.21.3
 
 - **`montu/phenomena.py`** — new module for celestial phenomena predicted from observational visibility models.
