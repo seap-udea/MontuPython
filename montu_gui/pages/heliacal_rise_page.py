@@ -45,6 +45,7 @@ from montu_gui.modules.heliacal_rise import (
     parse_start_date,
 )
 from montu_gui.utils.bundle_paths import gui_asset
+from montu_gui.utils.i18n import tr, trf
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.utils.location_state import LocationState
 from montu_gui.widgets.help_link import HelpLink
@@ -60,14 +61,14 @@ from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
 HELP_MODULE = "heliacal_rise"
 _COMMON_MODULE = "_common"
 _MONTH_NAMES = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    tr("January"), tr("February"), tr("March"), tr("April"), tr("May"), tr("June"),
+    tr("July"), tr("August"), tr("September"), tr("October"), tr("November"), tr("December"),
 ]
 
 _EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "heliacal_rise.py",
     download_name="montu_heliacal_rise.py",
-    window_title="Let's Python!  —  Heliacal Rise Code",
+    window_title="¡A pythoniar!  —  Heliacal Rise Code",
     heading="Heliacal rises with MontuPython",
     subtitle=(
         "Copy or download this script to reproduce the Sirius heliacal-rise "
@@ -90,7 +91,7 @@ def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
     row = QHBoxLayout()
     row.setSpacing(4)
     row.addWidget(rb)
-    row.addWidget(HelpLink(label, HELP_MODULE, "input", help_key))
+    row.addWidget(HelpLink(tr(label), HELP_MODULE, "input", help_key))
     return row
 
 
@@ -237,7 +238,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         layout = QVBoxLayout(controls)
         layout.setContentsMargins(0, 0, 8, 0)
         layout.setSpacing(10)
-        location_box = QGroupBox("Location")
+        location_box = QGroupBox(tr("Location"))
         location_layout = QVBoxLayout(location_box)
         location_layout.addWidget(
             HelpLink("Observer location:", _COMMON_MODULE, "input", "observer_location", bold=True)
@@ -245,16 +246,16 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._location_label = QLabel()
         self._location_label.setWordWrap(True)
         location_layout.addWidget(self._location_label)
-        note = QLabel("<i>Change this in the 🧭 Observer Location module.</i>")
+        note = QLabel(tr("<i>Change this in the 🧭 Observer Location module.</i>"))
         note.setStyleSheet("color:#888; font-size:11px;")
         location_layout.addWidget(note)
         layout.addWidget(location_box)
 
-        body_box = QGroupBox("Celestial body")
+        body_box = QGroupBox(tr("Celestial body"))
         body_form = QFormLayout(body_box)
         self._body_type = QComboBox()
-        self._body_type.addItem("Star", "star")
-        self._body_type.addItem("Planet", "planet")
+        self._body_type.addItem(tr("Star"), "star")
+        self._body_type.addItem(tr("Planet"), "planet")
         body_form.addRow(
             HelpLink("Type:", HELP_MODULE, "input", "body_type", bold=True), self._body_type
         )
@@ -264,7 +265,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         )
         layout.addWidget(body_box)
 
-        date_box = QGroupBox("Search interval")
+        date_box = QGroupBox(tr("Search interval"))
         date_form = QFormLayout(date_box)
         self._start_date = _StartDateInput()
         date_form.addRow(
@@ -275,8 +276,8 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         calendar_layout = QHBoxLayout(calendar_input)
         calendar_layout.setContentsMargins(0, 0, 0, 0)
         self._calendar_group = QButtonGroup(calendar_input)
-        self._mixed_radio = QRadioButton("Mixed")
-        self._proleptic_radio = QRadioButton("Proleptic")
+        self._mixed_radio = QRadioButton(tr("Mixed"))
+        self._proleptic_radio = QRadioButton(tr("Proleptic"))
         self._calendar_group.addButton(self._mixed_radio)
         self._calendar_group.addButton(self._proleptic_radio)
         self._mixed_radio.setChecked(True)
@@ -290,14 +291,14 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._range_years = StepSpinBox()
         self._range_years.setRange(1, 100)
         self._range_years.setValue(DEFAULT_RANGE_YEARS)
-        self._range_years.setSuffix(" year(s)")
+        self._range_years.setSuffix(tr(" year(s)"))
         date_form.addRow(
             HelpLink("Year range:", HELP_MODULE, "input", "year_range", bold=True),
             self._range_years,
         )
         layout.addWidget(date_box)
 
-        model_box = QGroupBox("Visibility model")
+        model_box = QGroupBox(tr("Visibility model"))
         model_form = QFormLayout(model_box)
         self._model = QComboBox()
         self._model.addItem("Schaefer 1987", "schaefer1987")
@@ -340,15 +341,17 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         layout.addWidget(model_box)
 
         warning = QLabel(
-            "⚠️ The search evaluates visibility morning by morning. "
-            "Calculations can take time, especially for long ranges or scan-based models."
+            tr(
+                "⚠️ The search evaluates visibility morning by morning. "
+                "Calculations can take time, especially for long ranges or scan-based models."
+            )
         )
         warning.setWordWrap(True)
         warning.setStyleSheet(
             "padding:8px; border:1px solid #c79a37; border-radius:4px; color:#71500c;"
         )
         layout.addWidget(warning)
-        self._calculate_button = QPushButton("Calculate heliacal rises")
+        self._calculate_button = QPushButton(tr("Calculate heliacal rises"))
         self._calculate_button.setCursor(Qt.CursorShape.PointingHandCursor)
         self._calculate_button.clicked.connect(self._calculate)
         layout.addWidget(self._calculate_button)
@@ -361,21 +364,21 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._results_panel = results
         results_layout = QVBoxLayout(results)
         results_layout.setContentsMargins(0, 0, 0, 0)
-        self._result_heading = QLabel("Heliacal rises")
+        self._result_heading = QLabel(tr("Heliacal rises"))
         font = self._result_heading.font()
         font.setBold(True)
         font.setPointSize(16)
         self._result_heading.setFont(font)
         results_layout.addWidget(self._result_heading)
-        self._result_note = QLabel("Choose parameters and calculate.")
+        self._result_note = QLabel(tr("Choose parameters and calculate."))
         self._result_note.setWordWrap(True)
         results_layout.addWidget(self._result_note)
         self._table = QTableWidget(0, 10)
         self._table.setHorizontalHeaderLabels(
             [
-                "#", "Date mixed", "Date proleptic", "Date caniucular",
-                "Time from latest", "Local time", "Body altitude", "Sun altitude",
-                "Body azimuth", "Sun azimuth",
+                "#", tr("Date mixed"), tr("Date proleptic"), tr("Date caniucular"),
+                tr("Time from latest"), tr("Local time"), tr("Body altitude"), tr("Sun altitude"),
+                tr("Body azimuth"), tr("Sun azimuth"),
             ]
         )
         self._table.verticalHeader().setVisible(False)
@@ -393,13 +396,13 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         title_font = QFont()
         title_font.setBold(True)
         title_font.setPointSize(11)
-        title_prefix = QLabel("Illustration of Egyptian ")
+        title_prefix = QLabel(tr("Illustration of Egyptian "))
         title_prefix.setFont(title_font)
         title_row.addWidget(title_prefix)
         title_row.addWidget(
             HelpLink("Peret Sopedet", HELP_MODULE, "result", "peret_sopedet", bold=True),
         )
-        title_suffix = QLabel(" on the Giza plateau")
+        title_suffix = QLabel(tr(" on the Giza plateau"))
         title_suffix.setFont(title_font)
         title_row.addWidget(title_suffix)
         title_row.addStretch()
@@ -494,11 +497,11 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
     def _calculate(self) -> None:
         selected = self._body_name.currentData()
         if not selected:
-            self._result_note.setText("No body is available in the selected category.")
+            self._result_note.setText(tr("No body is available in the selected category."))
             return
         observer = self._location_state.coords
         self._calculate_button.setEnabled(False)
-        self.status_message.emit("Calculating heliacal rises — this may take a while …")
+        self.status_message.emit(tr("Calculating heliacal rises - this may take a while ..."))
         QApplication.processEvents()
         parameters = {key: widget.value() for key, widget in self._parameter_widgets.items()}
         result = compute_heliacal_rises(
@@ -520,24 +523,29 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
     def _fill_results(self, result, body_name: str) -> None:
         self._table.setRowCount(0)
         if not result.ok:
-            self._result_note.setText(f"Error: {result.error}")
-            self.status_message.emit(f"Heliacal-rise error: {result.error}")
+            self._result_note.setText(trf("Error: {error}", error=result.error))
+            self.status_message.emit(trf("Heliacal rises - error: {error}", error=result.error))
             return
-        self._result_heading.setText(f"Heliacal rises of {body_name}")
+        self._result_heading.setText(trf("Heliacal rises of {body}", body=body_name))
         if not result.events:
             self._result_note.setText(
-                f"No heliacal rise was detected for {body_name} from "
+                trf("No heliacal rise was detected for {body} from ", body=body_name)
+                +
                 f"{result.interval_start} to {result.interval_end}. "
                 f"Calculation time: {result.calculation_seconds:.2f} s."
             )
         else:
             self._result_note.setText(
-                "These are the heliacal-rise dates of "
-                f"<b>{body_name}</b> from <b>{result.interval_start}</b> to "
-                f"<b>{result.interval_end}</b>, together with the observing "
-                "conditions of the body. The calculation used the model "
-                f"“{result.source}”. Calculation time: "
-                f"<b>{result.calculation_seconds:.2f} s</b>."
+                tr("These are the heliacal-rise dates of ")
+                + f"<b>{body_name}</b> "
+                + tr("from")
+                + f" <b>{result.interval_start}</b> "
+                + tr("to")
+                + f" <b>{result.interval_end}</b>, "
+                + tr("together with the observing conditions of the body. The calculation used the model")
+                + f" “{result.source}”. "
+                + tr("Calculation time")
+                + f": <b>{result.calculation_seconds:.2f} s</b>."
             )
         self._table.setRowCount(len(result.events))
         for row_number, row in enumerate(result.events):
@@ -552,7 +560,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self._table.setItem(row_number, column, item)
         self._table.resizeColumnsToContents()
-        self.status_message.emit(f"Heliacal rises: {len(result.events)} event(s) found.")
+        self.status_message.emit(trf("Heliacal rises: {n} event(s) found.", n=len(result.events)))
 
     def _show_historical_rises(self) -> None:
         if self._historical_dialog is None or not self._historical_dialog.isVisible():

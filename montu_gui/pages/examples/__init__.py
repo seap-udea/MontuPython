@@ -1,1 +1,1 @@
-"""Runnable MontuPython example scripts shown in Let's Python! dialogs."""
+"""Scripts de ejemplo ejecutables de MontuPython mostrados en los dialogos de ¡A pythoniar!."""

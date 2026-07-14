@@ -7,6 +7,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QFrame, QHBoxLayout, QLabel, QVBoxLayout, QWidget
 
 from montu_gui.utils.home_content import load_home_content
+from montu_gui.utils.i18n import tr
 
 # module page key → sidebar emoji (matches main.NAV_ITEMS)
 _MODULE_ICONS: dict[str, str] = {
@@ -33,12 +34,14 @@ _MODULE_TITLES: dict[str, str] = {
 }
 
 
-def _module_descriptions() -> dict[str, str]:
+def _module_descriptions_by_key() -> dict[str, str]:
     descriptions: dict[str, str] = {}
+    icon_to_key = {icon: key for key, icon in _MODULE_ICONS.items()}
     for entry in load_home_content().get("modules", []):
-        title = entry.get("title", "")
-        if title:
-            descriptions[title] = entry.get("description", "")
+        icon = entry.get("icon", "")
+        key = icon_to_key.get(icon)
+        if key:
+            descriptions[key] = entry.get("description", "")
     return descriptions
 
 
@@ -57,8 +60,9 @@ class ModuleBrand(QFrame):
         self.setObjectName("module_brand")
 
         icon = _MODULE_ICONS.get(module_key, "•")
-        title = _MODULE_TITLES.get(module_key, module_key.replace("_", " ").title())
-        description = _module_descriptions().get(title, "") if show_description else ""
+        raw_title = _MODULE_TITLES.get(module_key, module_key.replace("_", " ").title())
+        title = tr(raw_title)
+        description = _module_descriptions_by_key().get(module_key, "") if show_description else ""
 
         row = QHBoxLayout(self)
         row.setContentsMargins(10, 8, 10, 8)
@@ -83,10 +87,15 @@ class ModuleBrand(QFrame):
         title_lbl.setWordWrap(True)
         text_col.addWidget(title_lbl)
         if description:
-            if on_description_link and "this link" in description:
-                desc_html = description.replace(
+            if on_description_link and ("this link" in description or "este enlace" in description):
+                desc_html = description
+                desc_html = desc_html.replace(
                     "this link",
                     "<a href='historical' style='color:#1565C0'>this link</a>",
+                )
+                desc_html = desc_html.replace(
+                    "este enlace",
+                    "<a href='historical' style='color:#1565C0'>este enlace</a>",
                 )
                 desc_lbl = QLabel(desc_html)
                 desc_lbl.setTextFormat(Qt.TextFormat.RichText)

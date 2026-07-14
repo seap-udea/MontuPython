@@ -2,32 +2,32 @@
 
 import montu
 
-# Gregorian date → all calendar formats
-## Parse a mixed Julian/Gregorian date
+# Fecha gregoriana -> todos los formatos de calendario
+## Analizar una fecha juliana/gregoriana mixta
 t = montu.Time("2026-07-10 00:00:00", calendar="mixed")
 print("2026-07-10")
 print(t)
 
-# Another historical date
-## BCE dates use the "bce YYYY-MM-DD" convention
+# Otra fecha historica
+## Las fechas AEC usan la convencion "bce YYYY-MM-DD"
 t = montu.Time("bce 1500-06-21 12:00:00", calendar="mixed")
 print(f"\nbce 1500-06-21")
 print(t)
 
-# Caniucular epoch (First Apokatastasis)
-## Egyptian civil calendar date (Horus year, month, day)
+# Epoca caniucular (primera apocatastasis)
+## Fecha del calendario civil egipcio (año de Horus, mes, dia)
 t = montu.Time("hrw 0-I-Akhet-1", calendar="caniucular")
 print(f"\nhrw 0-I-Akhet-1")
 print(t)
 
-# Historical date (Canopus Decree)
-## Preset dates ship with MontuPython — same catalogue as Calendar → Historical dates
+# Fecha historica (Decreto de Canopo)
+## MontuPython incluye fechas predefinidas (mismo catalogo de Calendario -> Fechas historicas)
 historical_dates = montu.load_historical_dates()
 date_key = "bce 238-03-07"
 entry = historical_dates[date_key]
 t = montu.Time(date_key, calendar="mixed")
 print(f"\n{entry['label']}")
-print(f"  Julian/Gregorian (mixed): {date_key}")
-print(f"  Known civil date: {entry['egyptian_date']}")
-print(f"  Computed civil date: {t.readable.datecan}")
+print(f"  Juliano/Gregoriano (mixto): {date_key}")
+print(f"  Fecha civil conocida: {entry['egyptian_date']}")
+print(f"  Fecha civil calculada: {t.readable.datecan}")
 print(t)

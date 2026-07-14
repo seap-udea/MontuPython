@@ -53,6 +53,7 @@ from montu_gui.modules.sky_map import (
     build_sky_map_plot,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.i18n import tr
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.utils.location_state import LocationState
 from montu_gui.widgets.help_link import HelpLink
@@ -76,7 +77,7 @@ _PLOT_DEBOUNCE_MS = 450
 _EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "sky_map.py",
     download_name="montu_sky_map.py",
-    window_title="Let's Python!  —  Sky Map Code",
+    window_title="¡A pythoniar!  —  Sky Map Code",
     heading="Polar sky map with MontuPython",
     subtitle=(
         "Copy or download the script to reproduce the azimuthal sky maps "
@@ -85,23 +86,23 @@ _EXAMPLE = LetsPythonExample(
 )
 
 _MONTH_NAMES = (
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
+    tr("January"),
+    tr("February"),
+    tr("March"),
+    tr("April"),
+    tr("May"),
+    tr("June"),
+    tr("July"),
+    tr("August"),
+    tr("September"),
+    tr("October"),
+    tr("November"),
+    tr("December"),
 )
 
 
 def _label(text: str, *, bold: bool = False, size: int | None = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -128,7 +129,7 @@ def _field_stack(
     col = QVBoxLayout()
     col.setSpacing(4)
     col.addWidget(
-        HelpLink(label_text, help_module, "input", help_key, bold=True),
+        HelpLink(tr(label_text), help_module, "input", help_key, bold=True),
     )
     col.addWidget(widget)
     return col
@@ -145,7 +146,7 @@ def _option_row(
     row = QHBoxLayout()
     row.setSpacing(4)
     row.addWidget(rb)
-    row.addWidget(HelpLink(label, help_module, "input", help_key))
+    row.addWidget(HelpLink(tr(label), help_module, "input", help_key))
     return row
 
 
@@ -327,7 +328,7 @@ class _BodyPicker(QWidget):
         grid.setVerticalSpacing(6)
         cols = 3
         for i, name in enumerate(get_planet_names()):
-            cb = QCheckBox(name)
+            cb = QCheckBox(tr(name))
             cb.setChecked(name in DEFAULT_BODIES)
             cb.toggled.connect(lambda *_: self.changed.emit())
             self._boxes[name] = cb
@@ -358,7 +359,7 @@ class _LinesPicker(QWidget):
         grid.setVerticalSpacing(6)
         cols = 2
         for i, name in enumerate((LINE_ECLIPTIC, LINE_HORIZON)):
-            cb = QCheckBox(name)
+            cb = QCheckBox(tr(name))
             cb.setChecked(name in DEFAULT_LINES)
             cb.toggled.connect(lambda *_: self.changed.emit())
             self._boxes[name] = cb
@@ -385,7 +386,7 @@ class _ConfigurationPicker(QWidget):
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(14)
-        self._meridian = QCheckBox("Meridian view")
+        self._meridian = QCheckBox(tr("Meridian view"))
         self._meridian.setChecked(True)
         self._meridian.toggled.connect(lambda *_: self.changed.emit())
         layout.addWidget(self._meridian)
@@ -455,7 +456,7 @@ class SkyMapPage(LazyPageMixin, QWidget):
 
         left_lay.addWidget(module_brand("sky_map"))
 
-        loc_box = QGroupBox("Observer")
+        loc_box = QGroupBox(tr("Observer"))
         loc_lay = QVBoxLayout(loc_box)
         loc_lay.setSpacing(6)
         self._loc_label = QLabel()
@@ -465,16 +466,14 @@ class SkyMapPage(LazyPageMixin, QWidget):
             HelpLink("Location:", _COMMON_MODULE, "input", "observer_location", bold=True),
         )
         loc_lay.addWidget(self._loc_label)
-        loc_note = QLabel(
-            "<i>Set location in the 🧭 Observer module.</i>"
-        )
+        loc_note = QLabel(tr("<i>Set location in the 🧭 Observer module.</i>"))
         loc_note.setWordWrap(True)
         loc_note.setTextFormat(Qt.TextFormat.RichText)
         loc_note.setStyleSheet("color:#888; font-size:11px;")
         loc_lay.addWidget(loc_note)
         left_lay.addWidget(loc_box)
 
-        params_box = QGroupBox("Inputs")
+        params_box = QGroupBox(tr("Inputs"))
         params_lay = QVBoxLayout(params_box)
         params_lay.setSpacing(12)
 
@@ -538,8 +537,9 @@ class SkyMapPage(LazyPageMixin, QWidget):
         params_lay.addLayout(mag_row)
 
         note = QLabel(
-            "Only stars with V ≤ limiting magnitude are plotted. "
-            "Asterism lines use precessed positions at the selected date."
+            tr(
+                "Only stars with V ≤ limiting magnitude are plotted. Asterism lines use precessed positions at the selected date."
+            )
         )
         note.setWordWrap(True)
         note.setStyleSheet("color:#666; font-size:11px;")
@@ -573,8 +573,8 @@ class SkyMapPage(LazyPageMixin, QWidget):
                 QSizePolicy.Policy.Expanding,
             )
             view.clear()
-        self._map_tabs.addTab(self._map_north, "Northern Hemisphere")
-        self._map_tabs.addTab(self._map_south, "Southern Hemisphere")
+        self._map_tabs.addTab(self._map_north, tr("Northern Hemisphere"))
+        self._map_tabs.addTab(self._map_south, tr("Southern Hemisphere"))
         self._map_tabs.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding,

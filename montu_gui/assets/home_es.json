@@ -1,0 +1,86 @@
+{
+  "title": "MontuPython Desktop",
+  "tagline": "Efemerides astronomicas para el mundo antiguo",
+  "fonts": {
+    "title": 31,
+    "tagline": 15,
+    "version": 14,
+    "body": 14,
+    "section": 15,
+    "module_title": 14,
+    "module_body": 13,
+    "credits": 13,
+    "contact": 13,
+    "links": 13
+  },
+  "paragraphs": [
+    "<b>MontuPython</b> calcula efemerides astronomicas miles de años antes del presente: fue desarrollado para el antiguo Egipto y es util en cualquier sitio de arqueoastronomia. <b>MontuPython Desktop</b> es su interfaz grafica: abre un modulo desde la barra lateral para ejecutar calculos predefinidos. Cada modulo tambien ofrece codigo Python que puedes copiar a tus propios proyectos."
+  ],
+  "modules": [
+    {
+      "icon": "📅",
+      "title": "Calculadora de calendario",
+      "description": "Convierte fechas entre Juliano/Gregoriano, Gregoriano proleptico, caniucular (civil egipcio), Dia Juliano y fechas historicas predefinidas."
+    },
+    {
+      "icon": "🧭",
+      "title": "Ubicacion del observador",
+      "description": "Define el sitio de observacion (lugares antiguos predefinidos, clic en mapa o coordenadas manuales). Se comparte con todos los modulos del cielo."
+    },
+    {
+      "icon": "🌌",
+      "title": "Mapa del cielo",
+      "description": "Mapas azimutales con estrellas precesadas, asterismos, ecliptica, horizonte y cuerpos del sistema solar."
+    },
+    {
+      "icon": "🎑",
+      "title": "Estaciones y fases lunares",
+      "description": "Fechas exactas de las cuatro estaciones astronomicas y de todas las fases lunares para cualquier año historico."
+    },
+    {
+      "icon": "🪐",
+      "title": "Efemerides planetarias",
+      "description": "Grafica propiedades de condicion del cielo para Sol, Luna y planetas clasicos en un intervalo de tiempo elegido."
+    },
+    {
+      "icon": "⭕",
+      "title": "Disco de orientacion",
+      "description": "Azimuts extremos de salida y puesta para Sol, planetas y estrellas sobre un disco de azimut (N arriba)."
+    },
+    {
+      "icon": "📐",
+      "title": "Alineamientos estelares",
+      "description": "Encuentra que estrellas brillantes pasaron por un azimut y elevacion fijos en un rango de fechas, con precesion."
+    },
+    {
+      "icon": "🌅",
+      "title": "Ortos heliacos",
+      "description": "Encuentra primeras apariciones matutinas visibles de estrellas y planetas usando modelos de visibilidad de Schaefer o Belokrylov. Para ver una lista de ortos heliacos historicos de Sirio, consulta este enlace."
+    }
+  ],
+  "configuration": {
+    "title": "Configuracion",
+    "save": "Guarda todos los parametros de modulos y la ubicacion del observador en tu archivo personal de configuracion (config.json). Se restaura automaticamente en el siguiente inicio.",
+    "reset": "Restaura los valores de fabrica desde default.json y sobreescribe config.json. Util para comenzar de cero."
+  },
+  "people": {
+    "author": "Jorge I. Zuluaga © 2023-presente",
+    "contributors": "Juanita Agudelo (app web temprana), Luis Arroyo (app web en linea)",
+    "advisors": "Francisco Vivas (arqueoastronomia y egiptologia), Jose Lull (arqueoastronomia, egiptologia y astronomia)"
+  },
+  "license": {
+    "name": "Licencia MIT",
+    "url": "https://github.com/seap-udea/MontuPython/blob/main/LICENSE"
+  },
+  "links": [
+    {
+      "label": "Repositorio en GitHub",
+      "url": "https://github.com/seap-udea/MontuPython"
+    },
+    {
+      "label": "Documentacion (Read the Docs)",
+      "url": "https://montupython.readthedocs.io/en/latest/"
+    }
+  ],
+  "contact_email": "montupythonizer@gmail.com"
+}

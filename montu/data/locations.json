@@ -9,7 +9,8 @@
       "alt_m": 76,
       "region": "Egypt",
       "era": "Ancient Egypt",
-      "description": "Ancient Waset — capital of Upper Egypt during the New Kingdom. Karnak and the Valley of the Kings lie nearby."
+      "description": "Ancient Waset — capital of Upper Egypt during the New Kingdom. Karnak and the Valley of the Kings lie nearby.",
+      "name_es": "Tebas (Luxor)"
     },
     {
       "id": "memphis",
@@ -19,7 +20,8 @@
       "alt_m": 25,
       "region": "Egypt",
       "era": "Ancient Egypt",
-      "description": "Capital of the Old Kingdom, near modern Mit Rahina south of Cairo."
+      "description": "Capital of the Old Kingdom, near modern Mit Rahina south of Cairo.",
+      "name_es": "Menfis"
     },
     {
       "id": "giza",
@@ -29,7 +31,8 @@
       "alt_m": 75,
       "region": "Egypt",
       "era": "Ancient Egypt",
-      "description": "Site of the Great Pyramid and Sphinx on the west bank of the Nile."
+      "description": "Site of the Great Pyramid and Sphinx on the west bank of the Nile.",
+      "name_es": "Giza"
     },
     {
       "id": "alexandria",
@@ -39,7 +42,8 @@
       "alt_m": 7,
       "region": "Egypt",
       "era": "Hellenistic",
-      "description": "Founded by Alexander the Great; home of the Library and Pharos lighthouse."
+      "description": "Founded by Alexander the Great; home of the Library and Pharos lighthouse.",
+      "name_es": "Alexandria"
     },
     {
       "id": "babylon",
@@ -49,7 +53,8 @@
       "alt_m": 34,
       "region": "Mesopotamia",
       "era": "Ancient Near East",
-      "description": "Capital of Hammurabi and Nebuchadnezzar on the Euphrates."
+      "description": "Capital of Hammurabi and Nebuchadnezzar on the Euphrates.",
+      "name_es": "Babilonia"
     },
     {
       "id": "ur",
@@ -59,7 +64,8 @@
       "alt_m": 12,
       "region": "Mesopotamia",
       "era": "Sumer",
-      "description": "Sumerian city-state; birthplace of Abraham in biblical tradition."
+      "description": "Sumerian city-state; birthplace of Abraham in biblical tradition.",
+      "name_es": "Ur"
     },
     {
       "id": "nineveh",
@@ -69,7 +75,8 @@
       "alt_m": 220,
       "region": "Mesopotamia",
       "era": "Assyria",
-      "description": "Capital of the Assyrian Empire on the Tigris opposite modern Mosul."
+      "description": "Capital of the Assyrian Empire on the Tigris opposite modern Mosul.",
+      "name_es": "Nineveh"
     },
     {
       "id": "persepolis",
@@ -79,7 +86,8 @@
       "alt_m": 1620,
       "region": "Persia",
       "era": "Achaemenid",
-      "description": "Ceremonial capital of the Persian Empire founded by Darius I."
+      "description": "Ceremonial capital of the Persian Empire founded by Darius I.",
+      "name_es": "Persepolis"
     },
     {
       "id": "susa",
@@ -89,7 +97,8 @@
       "alt_m": 150,
       "region": "Persia",
       "era": "Elam / Persia",
-      "description": "Ancient Elamite and Persian administrative capital in Khuzestan."
+      "description": "Ancient Elamite and Persian administrative capital in Khuzestan.",
+      "name_es": "Susa"
     },
     {
       "id": "athens",
@@ -99,7 +108,8 @@
       "alt_m": 70,
       "region": "Greece",
       "era": "Classical Greece",
-      "description": "Birthplace of democracy; Acropolis and Parthenon overlook the city."
+      "description": "Birthplace of democracy; Acropolis and Parthenon overlook the city.",
+      "name_es": "Atenas"
     },
     {
       "id": "delphi",
@@ -109,7 +119,8 @@
       "alt_m": 570,
       "region": "Greece",
       "era": "Classical Greece",
-      "description": "Sanctuary of Apollo and the Pythia oracle on Mount Parnassus."
+      "description": "Sanctuary of Apollo and the Pythia oracle on Mount Parnassus.",
+      "name_es": "Delphi"
     },
     {
       "id": "knossos",
@@ -119,7 +130,8 @@
       "alt_m": 85,
       "region": "Crete",
       "era": "Minoan",
-      "description": "Palace complex of the Minoan civilization near Heraklion."
+      "description": "Palace complex of the Minoan civilization near Heraklion.",
+      "name_es": "Knossos"
     },
     {
       "id": "rome",
@@ -129,7 +141,8 @@
       "alt_m": 21,
       "region": "Italy",
       "era": "Roman Empire",
-      "description": "Caput Mundi — centre of the Roman Republic and Empire."
+      "description": "Caput Mundi — centre of the Roman Republic and Empire.",
+      "name_es": "Roma"
     },
     {
       "id": "carthage",
@@ -139,7 +152,8 @@
       "alt_m": 10,
       "region": "North Africa",
       "era": "Phoenician / Punic",
-      "description": "Phoenician colony and rival of Rome on the Gulf of Tunis."
+      "description": "Phoenician colony and rival of Rome on the Gulf of Tunis.",
+      "name_es": "Carthage"
     },
     {
       "id": "jerusalem",
@@ -149,7 +163,8 @@
       "alt_m": 754,
       "region": "Levant",
       "era": "Ancient Near East",
-      "description": "Sacred city of Judaism, Christianity, and Islam."
+      "description": "Sacred city of Judaism, Christianity, and Islam.",
+      "name_es": "Jerusalen"
     },
     {
       "id": "jericho",
@@ -159,7 +174,8 @@
       "alt_m": -258,
       "region": "Levant",
       "era": "Neolithic / Bronze Age",
-      "description": "One of the oldest continuously inhabited settlements in the world."
+      "description": "One of the oldest continuously inhabited settlements in the world.",
+      "name_es": "Jerico"
     },
     {
       "id": "palmyra",
@@ -169,7 +185,8 @@
       "alt_m": 405,
       "region": "Syria",
       "era": "Roman / Palmyrene",
-      "description": "Oasis city on the Silk Road between Rome and Persia."
+      "description": "Oasis city on the Silk Road between Rome and Persia.",
+      "name_es": "Palmyra"
     },
     {
       "id": "petra",
@@ -179,7 +196,8 @@
       "alt_m": 810,
       "region": "Jordan",
       "era": "Nabataean",
-      "description": "Rose-red city carved in sandstone by the Nabataeans."
+      "description": "Rose-red city carved in sandstone by the Nabataeans.",
+      "name_es": "Petra"
     },
     {
       "id": "miletus",
@@ -189,7 +207,8 @@
       "alt_m": 5,
       "region": "Anatolia",
       "era": "Ionian Greece",
-      "description": "Ionian city of Thales and Anaximander on the Aegean coast."
+      "description": "Ionian city of Thales and Anaximander on the Aegean coast.",
+      "name_es": "Mileto"
     },
     {
       "id": "chang_an",
@@ -199,7 +218,8 @@
       "alt_m": 405,
       "region": "China",
       "era": "Han / Tang",
-      "description": "Eastern terminus of the Silk Road and capital of several dynasties."
+      "description": "Eastern terminus of the Silk Road and capital of several dynasties.",
+      "name_es": "Chang'an (Xi'an)"
     },
     {
       "id": "varanasi",
@@ -209,7 +229,8 @@
       "alt_m": 81,
       "region": "India",
       "era": "Ancient India",
-      "description": "Sacred city on the Ganges, one of the oldest living cities."
+      "description": "Sacred city on the Ganges, one of the oldest living cities.",
+      "name_es": "Varanasi (Kashi)"
     },
     {
       "id": "angkor",
@@ -219,7 +240,8 @@
       "alt_m": 20,
       "region": "Cambodia",
       "era": "Khmer Empire",
-      "description": "Capital of the Khmer Empire; Angkor Wat is the largest religious monument."
+      "description": "Capital of the Khmer Empire; Angkor Wat is the largest religious monument.",
+      "name_es": "Angkor"
     },
     {
       "id": "teotihuacan",
@@ -229,7 +251,8 @@
       "alt_m": 2300,
       "region": "Mesoamerica",
       "era": "Classic Mesoamerica",
-      "description": "City of the Sun and Moon pyramids in the Valley of Mexico."
+      "description": "City of the Sun and Moon pyramids in the Valley of Mexico.",
+      "name_es": "Teotihuacan"
     },
     {
       "id": "chichen_itza",
@@ -239,7 +262,8 @@
       "alt_m": 30,
       "region": "Mesoamerica",
       "era": "Maya / Toltec",
-      "description": "Maya-Toltec ceremonial centre on the Yucatán Peninsula."
+      "description": "Maya-Toltec ceremonial centre on the Yucatán Peninsula.",
+      "name_es": "Chichen Itza"
     },
     {
       "id": "tiwanaku",
@@ -249,7 +273,8 @@
       "alt_m": 3885,
       "region": "Andes",
       "era": "Pre-Inca",
-      "description": "High-altitude ceremonial centre on the shores of Lake Titicaca."
+      "description": "High-altitude ceremonial centre on the shores of Lake Titicaca.",
+      "name_es": "Tiwanaku"
     },
     {
       "id": "cusco",
@@ -259,7 +284,8 @@
       "alt_m": 3399,
       "region": "Andes",
       "era": "Inca",
-      "description": "Capital of the Inca Empire in the Peruvian highlands."
+      "description": "Capital of the Inca Empire in the Peruvian highlands.",
+      "name_es": "Cusco"
     },
     {
       "id": "nazca",
@@ -269,7 +295,8 @@
       "alt_m": 520,
       "region": "Peru",
       "era": "Nazca culture",
-      "description": "Desert plain famous for geoglyphs visible from the air."
+      "description": "Desert plain famous for geoglyphs visible from the air.",
+      "name_es": "Nazca"
     }
   ]
 }

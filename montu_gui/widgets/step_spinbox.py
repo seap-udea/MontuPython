@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt, Signal, QLocale
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLineEdit, QPushButton, QFrame,
 )
+from montu_gui.utils.i18n import tr
 
 
 def attach_step_buttons(parent_layout: QHBoxLayout) -> tuple[QPushButton, QPushButton]:
@@ -19,13 +20,13 @@ def attach_step_buttons(parent_layout: QHBoxLayout) -> tuple[QPushButton, QPushB
     btn_up = QPushButton("▲")
     btn_up.setObjectName("step_btn")
     btn_up.setFixedHeight(16)
-    btn_up.setToolTip("Increase")
+    btn_up.setToolTip(tr("Increase"))
     step_layout.addWidget(btn_up)
 
     btn_down = QPushButton("▼")
     btn_down.setObjectName("step_btn")
     btn_down.setFixedHeight(16)
-    btn_down.setToolTip("Decrease")
+    btn_down.setToolTip(tr("Decrease"))
     step_layout.addWidget(btn_down)
 
     parent_layout.addWidget(step_frame, alignment=Qt.AlignmentFlag.AlignTop)

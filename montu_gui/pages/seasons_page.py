@@ -27,6 +27,7 @@ from montu_gui.modules.seasons_lunar import (
     SeasonResult, LunarResult,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.i18n import tr, trf
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.utils.location_state import LocationState
 from montu_gui.widgets.help_link import HelpLink
@@ -41,7 +42,7 @@ HELP_MODULE = "seasons"
 _SEASONS_EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "seasons_lunar.py",
     download_name="montu_seasons_lunar.py",
-    window_title="Let's Python!  —  Seasons & Lunar Phases Code",
+    window_title="¡A pythoniar!  —  Seasons & Lunar Phases Code",
     heading="Astronomical seasons & lunar phases with MontuPython",
     subtitle=(
         "Copy or download the script to reproduce the calculations shown in "
@@ -52,17 +53,17 @@ _SEASONS_EXAMPLE = LetsPythonExample(
 )
 
 _PHASE_LEGEND = [
-    ("new",   "🌑", "New Moon"),
-    ("first", "🌓", "First Quarter"),
-    ("full",  "🌕", "Full Moon"),
-    ("last",  "🌗", "Last Quarter"),
+    ("new",   "🌑", tr("New Moon")),
+    ("first", "🌓", tr("First Quarter")),
+    ("full",  "🌕", tr("Full Moon")),
+    ("last",  "🌗", tr("Last Quarter")),
 ]
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def _label(text: str, bold=False, size: Optional[int] = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -90,7 +91,7 @@ def _field_row(label: str, help_key: str, value: str) -> QHBoxLayout:
     """Help-linked field label + value on one line."""
     row = QHBoxLayout()
     row.setSpacing(8)
-    link = HelpLink(label, HELP_MODULE, "fields", help_key)
+    link = HelpLink(tr(label), HELP_MODULE, "fields", help_key)
     link.setMinimumWidth(180)
     row.addWidget(link, alignment=Qt.AlignmentFlag.AlignTop)
     row.addWidget(_value_label(value), stretch=1, alignment=Qt.AlignmentFlag.AlignTop)
@@ -125,7 +126,7 @@ def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
     row = QHBoxLayout()
     row.setSpacing(4)
     row.addWidget(rb)
-    row.addWidget(HelpLink(label, HELP_MODULE, "input", help_key))
+    row.addWidget(HelpLink(tr(label), HELP_MODULE, "input", help_key))
     return row
 
 
@@ -188,15 +189,15 @@ def _season_card(season: dict) -> QFrame:
         bold=True,
     ))
     lay.addLayout(_field_row(
-        "Gregorian proleptic:", "gregorian_proleptic",
+        tr("Gregorian proleptic:"), "gregorian_proleptic",
         season.get("proleptic", "—"),
     ))
     lay.addLayout(_field_row(
-        "Mixed Julian/Gregorian:", "mixed",
+        tr("Mixed Julian/Gregorian:"), "mixed",
         season.get("mixed", "—"),
     ))
     lay.addLayout(_field_row(
-        "Caniucular:", "caniucular",
+        tr("Caniucular:"), "caniucular",
         season.get("caniucular", "—"),
     ))
     for label, key, field in (
@@ -210,7 +211,7 @@ def _season_card(season: dict) -> QFrame:
     delta_row = QHBoxLayout()
     delta_row.setSpacing(8)
     delta_row.addWidget(HelpLink(
-        "ΔT (days after previous season):",
+        tr("ΔT (days after previous season):"),
         HELP_MODULE, "fields", "season_delta_t",
     ))
     delta_row.addWidget(
@@ -280,7 +281,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         self._year_input = _YearInput()
         bar.addWidget(self._year_input)
 
-        now_btn = QPushButton("This year")
+        now_btn = QPushButton(tr("This year"))
         now_btn.setFixedHeight(34)
         now_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         now_btn.clicked.connect(self._set_current_year)
@@ -306,7 +307,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         self._seasons_layout.setContentsMargins(0, 0, 6, 0)
         self._seasons_layout.setSpacing(8)
 
-        seasons_box = QGroupBox("Astronomical Seasons")
+        seasons_box = QGroupBox(tr("Astronomical Seasons"))
         self._seasons_box_lay = QVBoxLayout(seasons_box)
         for _ in SEASON_LABELS:
             card = _season_card({
@@ -327,7 +328,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         right_lay.setContentsMargins(6, 0, 0, 0)
         right_lay.setSpacing(8)
 
-        lunar_box = QGroupBox("Lunar Phases")
+        lunar_box = QGroupBox(tr("Lunar Phases"))
         lunar_box_lay = QVBoxLayout(lunar_box)
         lunar_box_lay.setSpacing(8)
         lunar_box_lay.addLayout(_phase_legend_row())
@@ -337,9 +338,9 @@ class SeasonsPage(LazyPageMixin, QWidget):
         hdr_row.setSpacing(8)
         hdr_row.addSpacing(34)  # icon column
         for label, key in (
-            ("Mixed Julian/Greg.", "mixed"),
-            ("Caniucular", "caniucular"),
-            ("ΔT (since last quarter)", "quarter_delta_t"),
+            (tr("Mixed Julian/Greg."), "mixed"),
+            (tr("Caniucular"), "caniucular"),
+            (tr("ΔT (since last quarter)"), "quarter_delta_t"),
         ):
             hdr_row.addWidget(
                 HelpLink(label, HELP_MODULE, "fields", key, bold=True),
@@ -347,7 +348,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
             )
         lunar_box_lay.addLayout(hdr_row)
 
-        self._lunar_table = _make_table(["", "Mixed Julian/Greg.", "Caniucular", "ΔT"])
+        self._lunar_table = _make_table(["", tr("Mixed Julian/Greg."), tr("Caniucular"), "ΔT"])
         hdr = self._lunar_table.horizontalHeader()
         hdr.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         self._lunar_table.setColumnWidth(0, 34)
@@ -376,7 +377,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
     def _refresh_site_label(self):
         c = self._location_state.coords
         self._site_label.setText(
-            f"Observing site: {c.label_with_coords()}"
+            trf("Observing site: {site}", site=c.label_with_coords())
         )
 
     def _set_current_year(self):
@@ -388,7 +389,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         human_year = self._year_input.human_year
         label = f"{human_year} {'BCE' if era == 'bce' else 'CE'}"
         log_ui_event("seasons_lunar calculate", era=era, human_year=human_year)
-        self.status_message.emit(f"Computing seasons & lunar phases for {label} …")
+        self.status_message.emit(trf("Computing seasons & lunar phases for {label} ...", label=label))
 
         obs = self._location_state.coords
         s_result = compute_seasons(
@@ -401,7 +402,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
 
         if s_result.ok and l_result.ok:
             self.status_message.emit(
-                f"{label}: {len(l_result.quarters)} lunar phases loaded."
+                trf("{label}: {count} lunar phases loaded.", label=label, count=len(l_result.quarters))
             )
         else:
             err = s_result.error or l_result.error

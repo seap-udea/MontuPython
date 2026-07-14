@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QLabel
 
+from montu_gui.utils.i18n import tr
 from montu_gui.utils.whatsnew_dialog import show_whatsnew
 
 
@@ -24,7 +25,7 @@ class VersionLink(QLabel):
         self._kind = kind
         self.setObjectName("help_link")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setToolTip("Click to see what's new")
+        self.setToolTip(tr("Click to see what's new"))
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         font = QFont("Georgia", point_size)
         font.setUnderline(True)

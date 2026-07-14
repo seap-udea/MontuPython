@@ -44,6 +44,13 @@ else:
 from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.theme import STYLESHEET, PALETTE
 from montu_gui.utils.debug import enable_debug, log_startup, log_navigation, dbg
+from montu_gui.utils.i18n import (
+    get_language,
+    init_language_from_config,
+    set_language,
+    tr,
+    trf,
+)
 from montu_gui.pages.home_page import HomePage
 from montu_gui.pages.location_page import LocationPage
 from montu_gui.pages.calendar_page import CalendarPage
@@ -151,6 +158,7 @@ class MainWindow(QMainWindow):
         self._current_page = "home"
         self._location_state = LocationState.instance()
         self._startup_config = load_config()
+        init_language_from_config(self._startup_config)
         self._apply_observer_config(self._startup_config.get("observer", {}))
         self._build_ui()
         self._apply_pages_config(self._startup_config)
@@ -179,10 +187,16 @@ class MainWindow(QMainWindow):
         self._logo_lbl = QLabel()
         self._logo_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._logo_lbl.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._logo_lbl.setToolTip("Go to Home")
+        self._logo_lbl.setToolTip(tr("Go to Home"))
         self._logo_lbl.mousePressEvent = lambda _e: self._navigate("home")  # type: ignore[method-assign]
         self._set_logo(full=True)
         self._sb_layout.addWidget(self._logo_lbl)
+
+        self._lang_flag_lbl = QLabel()
+        self._lang_flag_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._lang_flag_lbl.setObjectName("sidebar_lang_flag")
+        self._update_language_flag()
+        self._sb_layout.addWidget(self._lang_flag_lbl)
 
         self._app_name = QLabel("MontuPython")
         self._app_name.setFont(QFont("Georgia", 11, QFont.Weight.Bold))
@@ -196,7 +210,8 @@ class MainWindow(QMainWindow):
         self._sb_layout.addSpacing(8)
 
         for icon, label, key in NAV_ITEMS:
-            btn = NavButton(icon, label, key)
+            localized_label = tr(label)
+            btn = NavButton(icon, localized_label, key)
             btn.clicked.connect(lambda checked, k=key: self._navigate(k))
             self._nav_buttons.append(btn)
             self._sb_layout.addWidget(btn, alignment=Qt.AlignmentFlag.AlignTop)
@@ -209,20 +224,20 @@ class MainWindow(QMainWindow):
         self._config_sep = config_sep
         self._sb_layout.addWidget(config_sep)
 
-        self._btn_save_config = QPushButton("💾  Save configuration")
+        self._btn_save_config = QPushButton(f"💾  {tr('Save configuration')}")
         self._btn_save_config.setObjectName("config_btn")
         self._btn_save_config.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_save_config.setToolTip(
-            f"Save all module settings to {CONFIG_PATH.name}"
+            trf("Save all module settings to {name}", name=CONFIG_PATH.name)
         )
         self._btn_save_config.clicked.connect(self._save_configuration)
         self._sb_layout.addWidget(self._btn_save_config)
 
-        self._btn_reset_config = QPushButton("↺  Reset configuration")
+        self._btn_reset_config = QPushButton(f"↺  {tr('Reset configuration')}")
         self._btn_reset_config.setObjectName("config_btn")
         self._btn_reset_config.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_reset_config.setToolTip(
-            f"Restore settings from {DEFAULT_PATH.name}"
+            trf("Restore settings from {name}", name=DEFAULT_PATH.name)
         )
         self._btn_reset_config.clicked.connect(self._reset_configuration)
         self._sb_layout.addWidget(self._btn_reset_config)
@@ -233,7 +248,9 @@ class MainWindow(QMainWindow):
         self._stack = QStackedWidget()
         root.addWidget(self._stack, stretch=1)
 
-        self._add_page("home", HomePage())
+        home_page = HomePage()
+        home_page.language_requested.connect(self._set_language)
+        self._add_page("home", home_page)
         cal_page = CalendarPage()
         cal_page.status_message.connect(self._show_status)
         self._add_page("calendar", cal_page)
@@ -261,7 +278,7 @@ class MainWindow(QMainWindow):
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
-        self._default_status = f"Welcome to MontuPython Desktop  ·  {VERSION_LABEL}"
+        self._default_status = f"{tr('Welcome to MontuPython Desktop')}  ·  {VERSION_LABEL}"
         self.statusBar().showMessage(self._default_status)
 
     def _set_logo(self, full: bool):
@@ -272,6 +289,15 @@ class MainWindow(QMainWindow):
             width, Qt.TransformationMode.SmoothTransformation
         )
         self._logo_lbl.setPixmap(px)
+
+    def _update_language_flag(self) -> None:
+        lang = get_language()
+        if lang == "es":
+            self._lang_flag_lbl.setText("🇪🇸")
+            self._lang_flag_lbl.setToolTip("Espanol")
+        else:
+            self._lang_flag_lbl.setText("🇬🇧")
+            self._lang_flag_lbl.setToolTip("English")
 
     def _add_page(self, key: str, widget: QWidget):
         idx = self._stack.addWidget(widget)
@@ -313,7 +339,10 @@ class MainWindow(QMainWindow):
 
     def _collect_configuration(self) -> dict:
         config = load_default_config()
-        config["app"] = {"last_page": self._current_page}
+        config["app"] = {
+            "last_page": self._current_page,
+            "language": get_language(),
+        }
         obs = self._location_state.coords
         config["observer"] = {
             "location_id": obs.location_id,
@@ -341,21 +370,22 @@ class MainWindow(QMainWindow):
     def _save_configuration(self) -> None:
         try:
             save_config(self._collect_configuration())
-            self._show_status(f"Configuration saved to {CONFIG_PATH}")
+            self._show_status(trf("Configuration saved to {path}", path=CONFIG_PATH))
             dbg(f"user config saved: {CONFIG_PATH}")
         except OSError as exc:
             QMessageBox.warning(
                 self,
-                "Save configuration",
-                f"Could not write configuration file:\n{exc}",
+                tr("Save configuration dialog title"),
+                trf("Could not write configuration file:\n{exc}", exc=exc),
             )
 
     def _reset_configuration(self) -> None:
         answer = QMessageBox.question(
             self,
-            "Reset configuration",
-            "Restore all module parameters to factory defaults?\n\n"
-            "The current settings will be replaced and saved.",
+            tr("Reset configuration dialog title"),
+            tr(
+                "Restore all module parameters to factory defaults?\n\nThe current settings will be replaced and saved."
+            ),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -368,13 +398,13 @@ class MainWindow(QMainWindow):
             loc_page = self._page_widgets.get("location")
             if loc_page and hasattr(loc_page, "_load_from_state"):
                 loc_page._load_from_state(self._location_state.coords)
-            self._show_status("Configuration reset to defaults")
+            self._show_status(tr("Configuration reset to defaults"))
             dbg("user config reset to defaults")
         except OSError as exc:
             QMessageBox.warning(
                 self,
-                "Reset configuration",
-                f"Could not reset configuration:\n{exc}",
+                tr("Reset configuration dialog title"),
+                trf("Could not reset configuration:\n{exc}", exc=exc),
             )
 
     def _update_sidebar(self, key: str):
@@ -392,7 +422,9 @@ class MainWindow(QMainWindow):
             self._sb_layout.setSpacing(6)
 
         self._set_logo(full=on_home)
+        self._update_language_flag()
         self._app_name.setVisible(on_home)
+        self._lang_flag_lbl.setVisible(True)
         self._sidebar_sep.setVisible(on_home)
         self._btn_save_config.setVisible(on_home)
         self._btn_reset_config.setVisible(on_home)
@@ -412,7 +444,7 @@ class MainWindow(QMainWindow):
         if key not in self._page_map:
             return
         self._current_page = key
-        log_navigation(key, NAV_LABELS.get(key, key))
+        log_navigation(key, tr(NAV_LABELS.get(key, key)))
         self._stack.setCurrentIndex(self._page_map[key])
         widget = self._stack.currentWidget()
         if hasattr(widget, "ensure_activated"):
@@ -427,6 +459,27 @@ class MainWindow(QMainWindow):
 
     def _show_status(self, msg: str):
         self.statusBar().showMessage(f"{msg}  ·  {VERSION_LABEL}", 8000)
+
+    def _set_language(self, lang: str) -> None:
+        new_lang = set_language(lang)
+        cfg = self._collect_configuration()
+        app_cfg = cfg.setdefault("app", {})
+        app_cfg["language"] = new_lang
+        save_config(cfg)
+
+        current_page = self._current_page
+        old = self.takeCentralWidget()
+        if old is not None:
+            old.deleteLater()
+
+        self._nav_buttons = []
+        self._page_map = {}
+        self._page_widgets = {}
+        self._startup_config = cfg
+        self._build_ui()
+        self._apply_pages_config(cfg)
+        self._apply_observer_config(cfg.get("observer", {}))
+        self._navigate(current_page if current_page in self._page_map else "home")
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:

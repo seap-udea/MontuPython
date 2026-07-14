@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QUrl
+from PySide6.QtCore import Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QFont
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QPushButton,
@@ -22,6 +22,7 @@ from montu.version import version as MONTU_VERSION, release_date as MONTU_RELEAS
 import montu_gui.version as desktop_version
 from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.home_content import load_home_content
+from montu_gui.utils.i18n import get_language, tr
 from montu_gui.utils.theme import PALETTE
 from montu_gui.widgets.version_link import VersionLink
 
@@ -146,9 +147,12 @@ def _module_row(
 
 
 class HomePage(QWidget):
+    language_requested = Signal(str)
+
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._content_path = gui_asset("home.json")
+        lang = get_language()
+        self._content_path = gui_asset(f"home_{lang}.json") if lang != "en" else gui_asset("home.json")
         self._content_mtime: float = 0.0
         self._scroll: QScrollArea | None = None
         self._root: QVBoxLayout | None = None
@@ -224,6 +228,26 @@ class HomePage(QWidget):
     def _populate(self):
         root = self._root
 
+        lang_row = QHBoxLayout()
+        lang_row.setSpacing(8)
+        lang_row.addWidget(QLabel(f"{tr('Language')}:"))
+
+        self._btn_es = QPushButton("🇪🇸")
+        self._btn_es.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_es.setToolTip(tr("Spanish"))
+        self._btn_es.setFixedWidth(42)
+        self._btn_es.clicked.connect(lambda: self.language_requested.emit("es"))
+        lang_row.addWidget(self._btn_es)
+
+        self._btn_en = QPushButton("🇬🇧")
+        self._btn_en.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_en.setToolTip(tr("English"))
+        self._btn_en.setFixedWidth(42)
+        self._btn_en.clicked.connect(lambda: self.language_requested.emit("en"))
+        lang_row.addWidget(self._btn_en)
+        lang_row.addStretch()
+        root.addLayout(lang_row)
+
         title = QLabel(self._content.get("title", "MontuPython Desktop"))
         title.setObjectName("home_title")
         title.setStyleSheet(
@@ -249,7 +273,7 @@ class HomePage(QWidget):
         version_size = self._font_size("version", 14)
         root.addLayout(
             _version_row(
-                "MontuPython library version",
+                tr("MontuPython library version"),
                 MONTU_VERSION,
                 MONTU_RELEASE_DATE,
                 "library",
@@ -258,7 +282,7 @@ class HomePage(QWidget):
         )
         root.addLayout(
             _version_row(
-                "MontuPython Desktop version",
+                tr("MontuPython Desktop version"),
                 desktop_version.version,
                 _desktop_release_date(),
                 "desktop",
@@ -277,7 +301,7 @@ class HomePage(QWidget):
         root.addSpacing(6)
 
         section_size = self._font_size("section", 15)
-        modules_heading = QLabel("Modules")
+        modules_heading = QLabel(tr("Modules"))
         modules_heading.setObjectName("home_section")
         modules_heading.setStyleSheet(
             _plain_label_style(
@@ -305,7 +329,7 @@ class HomePage(QWidget):
 
         cfg = self._content.get("configuration", {})
         if cfg:
-            cfg_heading = QLabel(cfg.get("title", "Configuration"))
+            cfg_heading = QLabel(cfg.get("title", tr("Configuration")))
             cfg_heading.setObjectName("home_section")
             cfg_heading.setStyleSheet(
                 _plain_label_style(
@@ -346,9 +370,9 @@ class HomePage(QWidget):
         credits_size = self._font_size("credits", 13)
         people = self._content.get("people", {})
         credits_html = (
-            f"<b>Author:</b> {people.get('author', '')}<br>"
-            f"<b>Contributors:</b> {people.get('contributors', '')}<br>"
-            f"<b>Scientific advisors:</b> {people.get('advisors', '')}"
+            f"<b>{tr('Author:')}</b> {people.get('author', '')}<br>"
+            f"<b>{tr('Contributors:')}</b> {people.get('contributors', '')}<br>"
+            f"<b>{tr('Scientific advisors:')}</b> {people.get('advisors', '')}"
         )
         root.addWidget(
             _rich_label(
@@ -360,9 +384,9 @@ class HomePage(QWidget):
         lic_name = lic.get("name", "MIT License")
         lic_url = lic.get("url", "")
         if lic_url:
-            lic_html = f'<b>License:</b> <a href="{lic_url}">{lic_name}</a>'
+            lic_html = f'<b>{tr("License:")}</b> <a href="{lic_url}">{lic_name}</a>'
         else:
-            lic_html = f"<b>License:</b> {lic_name}"
+            lic_html = f"<b>{tr('License:')}</b> {lic_name}"
         root.addWidget(
             _rich_label(lic_html, object_name="home_credits", point_size=credits_size)
         )
@@ -388,12 +412,16 @@ class HomePage(QWidget):
         contact_size = self._font_size("contact", 13)
         email = self._content.get("contact_email", "")
         if email:
-            email_html = f'<b>Contact:</b> <a href="mailto:{email}">{email}</a>'
+            email_html = f'<b>{tr("Contact:")}</b> <a href="mailto:{email}">{email}</a>'
             root.addWidget(
                 _rich_label(
                     email_html, object_name="home_contact", point_size=contact_size
                 )
             )
+
+        active_lang = get_language()
+        self._btn_es.setProperty("active", active_lang == "es")
+        self._btn_en.setProperty("active", active_lang == "en")
 
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,

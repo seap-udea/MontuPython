@@ -57,6 +57,7 @@ from montu_gui.modules.date_converter import (
     CALENDAR_PROLEPTIC,
 )
 from montu_gui.utils.debug import dbg, log_ui_event
+from montu_gui.utils.i18n import get_language, tr, trf
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.format_cell import FormatCell
 from montu_gui.widgets.help_link import HelpLink
@@ -69,8 +70,8 @@ from montu_gui.widgets.step_spinbox import StepSpinBox, attach_step_buttons as _
 _CALENDAR_EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "calendar_conversion.py",
     download_name="montu_calendar_conversion.py",
-    window_title="Let's Python!  —  Calendar Conversion Code",
-    heading="Calendar conversion with MontuPython",
+    window_title="¡A pythoniar!  —  Calendar Conversion Code",
+    heading=tr("Calendar conversion with MontuPython"),
     subtitle=(
         "Copy or download the script below to reproduce the conversions shown "
         "in the Calendar Calculator. Example 1 converts <b>today</b> to the "
@@ -87,7 +88,7 @@ HELP_MODULE = "calendar"
 
 # ── small helpers ──────────────────────────────────────────────────────────────
 def _label(text: str, bold=False, size: Optional[int] = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -134,7 +135,7 @@ def _form_row_help(label_text: str, help_key: str, widget: QWidget) -> QHBoxLayo
     """Help link label + widget row."""
     row = QHBoxLayout()
     row.setAlignment(Qt.AlignmentFlag.AlignTop)
-    link = HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True)
+    link = HelpLink(tr(label_text), HELP_MODULE, "input", help_key, bold=True)
     link.setMinimumWidth(110)
     link.setContentsMargins(0, 8, 0, 0)
     row.addWidget(link, alignment=Qt.AlignmentFlag.AlignTop)
@@ -152,7 +153,7 @@ def _input_mode_row(
     rb.setFixedWidth(18)
     row.addWidget(rb, alignment=Qt.AlignmentFlag.AlignTop)
     row.addWidget(
-        HelpLink(text, HELP_MODULE, block, help_key),
+        HelpLink(tr(text), HELP_MODULE, block, help_key),
         stretch=1,
         alignment=Qt.AlignmentFlag.AlignTop,
     )
@@ -166,7 +167,7 @@ def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
     row = QHBoxLayout()
     row.setSpacing(4)
     row.addWidget(rb)
-    row.addWidget(HelpLink(label, HELP_MODULE, "input", help_key))
+    row.addWidget(HelpLink(tr(label), HELP_MODULE, "input", help_key))
     return row
 
 
@@ -183,13 +184,13 @@ class DayStepButtons(QWidget):
 
         self.btn_minus = QPushButton("−")
         self.btn_minus.setObjectName("day_step_btn")
-        self.btn_minus.setToolTip("Go back one civil day")
+        self.btn_minus.setToolTip(tr("Go back one civil day"))
         self.btn_minus.setFixedSize(44, 32)
         layout.addWidget(self.btn_minus)
 
         self.btn_plus = QPushButton("+")
         self.btn_plus.setObjectName("day_step_btn")
-        self.btn_plus.setToolTip("Advance one civil day")
+        self.btn_plus.setToolTip(tr("Advance one civil day"))
         self.btn_plus.setFixedSize(44, 32)
         layout.addWidget(self.btn_plus)
 
@@ -281,7 +282,10 @@ class StepLineEdit(QWidget):
 
 
 def _month_names() -> list[str]:
-    loc = QLocale(QLocale.Language.Spanish, QLocale.Country.Spain)
+    if get_language() == "es":
+        loc = QLocale(QLocale.Language.Spanish, QLocale.Country.Spain)
+    else:
+        loc = QLocale(QLocale.Language.English, QLocale.Country.UnitedKingdom)
     return [
         loc.monthName(m, QLocale.FormatType.LongFormat)
         for m in range(1, 13)
@@ -294,20 +298,20 @@ class ResultTable(QTableWidget):
 
     # label, result attribute, help.json key
     ROWS = [
-        ("Weekday", "weekday", "weekday"),
-        ("Gregorian proleptic (human)", "spice", "spice"),
-        ("Gregorian proleptic (astronomical)", "proleptic", "proleptic"),
-        ("Mixed Julian/Gregorian", "mixed", "mixed"),
-        ("Caniucular (Egyptian civil)", "caniucular", "caniucular"),
-        ("Julian Day — UTC", "jd_utc", "jd_utc"),
-        ("TT ephemeris seconds (J2000)", "jd_tt", "tt"),
-        ("UTC ephemeris seconds (J2000)", "et", "et"),
-        ("Delta-T (seconds)", "delta_t", "delta_t"),
+        (tr("Weekday"), "weekday", "weekday"),
+        (tr("Gregorian proleptic (human)"), "spice", "spice"),
+        (tr("Gregorian proleptic (astronomical)"), "proleptic", "proleptic"),
+        (tr("Mixed Julian/Gregorian"), "mixed", "mixed"),
+        (tr("Caniucular (Egyptian civil)"), "caniucular", "caniucular"),
+        (tr("Julian Day — UTC"), "jd_utc", "jd_utc"),
+        (tr("TT ephemeris seconds (J2000)"), "jd_tt", "tt"),
+        (tr("UTC ephemeris seconds (J2000)"), "et", "et"),
+        (tr("Delta-T (seconds)"), "delta_t", "delta_t"),
     ]
 
     def __init__(self, parent=None):
         super().__init__(len(self.ROWS), 2, parent)
-        self.setHorizontalHeaderLabels(["Format", "Value"])
+        self.setHorizontalHeaderLabels([tr("Format"), tr("Value")])
         self.verticalHeader().setVisible(False)
         self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
@@ -340,19 +344,23 @@ class ResultTable(QTableWidget):
     def update_result(self, result: ConversionResult):
         if not result.ok:
             for row in range(self.rowCount()):
-                self.item(row, 1).setText("—")
+                item = self.item(row, 1)
+                if item is not None:
+                    item.setText("—")
             err_item = self.item(0, 1)
-            err_text = f"Error: {result.error}"
-            err_item.setText(err_text)
-            err_item.setToolTip(err_text)
+            err_text = trf("Error: {error}", error=result.error)
+            if err_item is not None:
+                err_item.setText(err_text)
+                err_item.setToolTip(err_text)
             self.resizeRowsToContents()
             return
 
         for row, (_, attr, _help_key) in enumerate(self.ROWS):
             value = str(getattr(result, attr, "—"))
             item = self.item(row, 1)
-            item.setText(value)
-            item.setToolTip(value)
+            if item is not None:
+                item.setText(value)
+                item.setToolTip(value)
 
         self.resizeRowsToContents()
 
@@ -416,7 +424,7 @@ class JulGregForm(QWidget):
         nav = QHBoxLayout()
         self.btn_prev = QPushButton("‹")
         self.btn_prev.setObjectName("mac_nav")
-        self.btn_prev.setToolTip("Previous month")
+        self.btn_prev.setToolTip(tr("Previous month"))
         nav.addWidget(self.btn_prev)
 
         self.month_combo = QComboBox()
@@ -432,7 +440,7 @@ class JulGregForm(QWidget):
 
         self.btn_next = QPushButton("›")
         self.btn_next.setObjectName("mac_nav")
-        self.btn_next.setToolTip("Next month")
+        self.btn_next.setToolTip(tr("Next month"))
         nav.addWidget(self.btn_next)
         date_layout.addLayout(nav)
 
@@ -481,7 +489,7 @@ class JulGregForm(QWidget):
 
         self.now_btn = QPushButton("Now")
         self.now_btn.setObjectName("primary")
-        self.now_btn.setToolTip("Set to current date and time")
+        self.now_btn.setToolTip(tr("Set to current date and time"))
         time_row.addWidget(self.now_btn)
         date_layout.addLayout(time_row)
 
@@ -651,31 +659,31 @@ class CaniucularForm(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        box = QGroupBox("Caniucular Date")
+        box = QGroupBox(tr("Caniucular Date"))
         box_layout = QVBoxLayout(box)
 
         self.hyear_spin = StepSpinBox()
         self.hyear_spin.setRange(-99999, 99999)
         self.hyear_spin.setValue(0)
         self.hyear_spin.setMinimumWidth(100)
-        box_layout.addLayout(_form_row_help("Horus Year:", "horus_year", self.hyear_spin))
+        box_layout.addLayout(_form_row_help(tr("Horus Year:"), "horus_year", self.hyear_spin))
 
         self.month_combo = QComboBox()
         self.month_combo.addItems(CANIUCULAR_MONTHS)
-        box_layout.addLayout(_form_row_help("Month:", "caniucular_month", self.month_combo))
+        box_layout.addLayout(_form_row_help(tr("Month:"), "caniucular_month", self.month_combo))
 
         self.season_combo = QComboBox()
         self.season_combo.addItems(CANIUCULAR_SEASONS)
-        box_layout.addLayout(_form_row_help("Season:", "caniucular_season", self.season_combo))
+        box_layout.addLayout(_form_row_help(tr("Season:"), "caniucular_season", self.season_combo))
 
         self.day_spin = StepSpinBox()
         self.day_spin.setRange(1, 30)
         self.day_spin.setValue(1)
         self.day_spin.setMinimumWidth(72)
-        box_layout.addLayout(_form_row_help("Day:", "caniucular_day", self.day_spin))
+        box_layout.addLayout(_form_row_help(tr("Day:"), "caniucular_day", self.day_spin))
 
         self.day_step = DayStepButtons()
-        box_layout.addLayout(_form_row_help("Step day:", "caniucular_offset", self.day_step))
+        box_layout.addLayout(_form_row_help(tr("Step day:"), "caniucular_offset", self.day_step))
 
         layout.addWidget(box)
 
@@ -719,11 +727,11 @@ class JDForm(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        box = QGroupBox("Julian Day Number")
+        box = QGroupBox(tr("Julian Day Number"))
         box_layout = QVBoxLayout(box)
         box_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        self.jd_edit = StepLineEdit("e.g. 2461231.5", step=1.0)
+        self.jd_edit = StepLineEdit(tr("e.g. 2461231.5"), step=1.0)
         validator = QDoubleValidator(0.0, 9_999_999.999999, 10)
         validator.setNotation(QDoubleValidator.Notation.StandardNotation)
         validator.setLocale(QLocale.c())
@@ -895,15 +903,15 @@ class CalendarPage(LazyPageMixin, QWidget):
 
         left_layout.addWidget(module_brand("calendar"))
 
-        mode_label = _label("Input mode:", bold=True)
+        mode_label = _label(tr("Input mode:"), bold=True)
         left_layout.addWidget(mode_label, alignment=Qt.AlignmentFlag.AlignTop)
 
         self.mode_group = QButtonGroup(self)
-        self.rb_mode_jg, row_jg = _input_mode_row("Julian / Gregorian", "julian_gregorian")
-        self.rb_mode_can, row_can = _input_mode_row("Caniucular", "caniucular")
-        self.rb_mode_jd, row_jd = _input_mode_row("Julian Day Number", "julian_day")
+        self.rb_mode_jg, row_jg = _input_mode_row(tr("Julian / Gregorian"), "julian_gregorian")
+        self.rb_mode_can, row_can = _input_mode_row(tr("Caniucular"), "caniucular")
+        self.rb_mode_jd, row_jd = _input_mode_row(tr("Julian Day Number"), "julian_day")
         self.rb_mode_hist, row_hist = _input_mode_row(
-            "Historical dates", "historical_dates", block="historical"
+            tr("Historical dates"), "historical_dates", block="historical"
         )
         self.rb_mode_jg.setChecked(True)
         for row in (row_jg, row_can, row_jd, row_hist):
@@ -948,7 +956,7 @@ class CalendarPage(LazyPageMixin, QWidget):
         right = QWidget()
         right_layout = QVBoxLayout(right)
         right_layout.setContentsMargins(6, 0, 0, 0)
-        right_layout.addWidget(_label("Conversion results:", bold=True))
+        right_layout.addWidget(_label(tr("Conversion results:"), bold=True))
 
         self.result_table = ResultTable()
         right_layout.addWidget(self.result_table)
@@ -1007,17 +1015,17 @@ class CalendarPage(LazyPageMixin, QWidget):
             label=data.get("label", ""),
             source=data.get("source", ""),
         )
-        self.status_message.emit(f"Loading historical date: {key} …")
+        self.status_message.emit(trf("Loading historical date: {key} ...", key=key))
         result = historical_date_to_all(key)
         self.result_table.update_result(result)
 
         if result.ok:
             self._fill_forms_from_result(result, full=True)
-            self.status_message.emit(f"Loaded: {key}")
+            self.status_message.emit(trf("Loaded: {key}", key=key))
             log_ui_event("historical date loaded", ok=True, key=key)
         else:
             log_ui_event("historical date load failed", ok=False, error=result.error)
-            self.status_message.emit(f"Error: {result.error}")
+            self.status_message.emit(trf("Error: {error}", error=result.error))
 
     def _fill_forms_from_result(self, result: ConversionResult, *, full: bool = False):
         """Update input forms from a conversion without re-triggering auto-convert."""
@@ -1051,7 +1059,7 @@ class CalendarPage(LazyPageMixin, QWidget):
             return
 
         f = self.form_can
-        self.status_message.emit("Converting …")
+        self.status_message.emit(tr("Converting ..."))
         log_ui_event(
             "caniucular step day",
             delta=delta,
@@ -1073,10 +1081,10 @@ class CalendarPage(LazyPageMixin, QWidget):
         if result.ok:
             log_ui_event("conversion complete", ok=True, step=delta)
             self._fill_forms_from_result(result, full=True)
-            self.status_message.emit("Conversion complete.")
+            self.status_message.emit(tr("Conversion complete."))
         else:
             log_ui_event("conversion failed", ok=False, error=result.error)
-            self.status_message.emit(f"Error: {result.error}")
+            self.status_message.emit(trf("Error: {error}", error=result.error))
 
     def _on_convert(self):
         if self._block_auto:
@@ -1084,7 +1092,7 @@ class CalendarPage(LazyPageMixin, QWidget):
         if self.rb_mode_hist.isChecked():
             return
 
-        self.status_message.emit("Converting …")
+        self.status_message.emit(tr("Converting ..."))
 
         if self.rb_mode_jg.isChecked():
             f = self.form_jg
@@ -1143,10 +1151,10 @@ class CalendarPage(LazyPageMixin, QWidget):
             self._fill_forms_from_result(result)
             if self.rb_mode_jg.isChecked():
                 self.form_jg._sync_calendar_page(day=self.form_jg.day, force=True)
-            self.status_message.emit("Conversion complete.")
+                self.status_message.emit(tr("Conversion complete."))
         else:
             log_ui_event("conversion failed", ok=False, error=result.error)
-            self.status_message.emit(f"Error: {result.error}")
+            self.status_message.emit(trf("Error: {error}", error=result.error))
 
     def _show_lets_python(self):
         """Open the Let's Python! code-viewer dialog."""

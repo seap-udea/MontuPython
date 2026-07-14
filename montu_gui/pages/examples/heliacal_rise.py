@@ -1,17 +1,17 @@
 # %pip install montu
-"""Heliacal-rise calculation with MontuPython Desktop default values."""
+"""Calculo de levantamientos heliacos con valores por defecto de MontuPython Desktop."""
 
 import montu
 
-# Default observer location in MontuPython Desktop: Thebes (Luxor).
+# Ubicacion por defecto del observador en MontuPython Desktop: Tebas (Luxor).
 observer = montu.Observer(lon=32.6422, lat=25.6967, height=0.076)
 
-# Default body and search interval: Sirius, first apokatastasis window, mixed calendar.
+# Cuerpo e intervalo por defecto: Sirio, ventana de primera apocatastasis, calendario mixto.
 sirius = montu.Stars(subset="bright", ProperName="Sirius")
 start = montu.Time("bce 2782-06-01", calendar="mixed")
 end = start + 10 * 365 * montu.DAY
 
-# Default Schaefer (1987) visibility model parameters.
+# Parametros por defecto del modelo de visibilidad Schaefer (1987).
 calculator = montu.HeliacalRise(
     model="schaefer1987",
     k=0.25,
@@ -22,10 +22,10 @@ calculator = montu.HeliacalRise(
 events = calculator.compute(sirius, observer, start, end)
 calculator.print_rises(
     events,
-    title="Heliacal rises of Sirius",
+    title="Levantamientos heliacos de Sirio",
     body_label="Sirius",
 )
 
-# Each row gives the detection instant, local time, body/Sun altitude and
-# azimuth, and the model's visibility quantities.
+# Cada fila reporta el instante de deteccion, hora local, altitud/azimut
+# del cuerpo y del Sol, y las cantidades de visibilidad del modelo.
 print(events)

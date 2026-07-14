@@ -6,24 +6,24 @@ import montu
 import plotly.graph_objects as go
 from montu.maps import mercator_sky_map
 
-# Khufu north shaft: az 0°, el 31.7°, observer at Giza
+# Ducto norte de Jufu: az 0°, el 31.7°, observador en Giza
 AZ, EL, LAT = 0.0, 31.7, 29.9792
 YEAR_START, YEAR_END = 2620, 2420
 MAG_LIMIT, DEC_TOL, N_EPOCHS = 4.0, 1.0, 7
 
-# Target declination of the sight line
+# Declinacion objetivo de la linea de mira
 az_r, el_r, lat_r = map(math.radians, (AZ, EL, LAT))
 sin_dec = math.sin(lat_r) * math.sin(el_r) + math.cos(lat_r) * math.cos(el_r) * math.cos(az_r)
 dec_target = math.degrees(math.asin(max(-1.0, min(1.0, sin_dec))))
 print(f"Target declination: {dec_target:+.3f}°")
 
-# Bright stars and sample epochs
-## Get all stars
+# Estrellas brillantes y epocas de muestreo
+## Obtener todas las estrellas
 allstars = montu.Stars()
-## From all stars filter those with magnitudes below MAG_LIMIT
+## Filtrar estrellas con magnitud menor o igual que MAG_LIMIT
 bright = allstars.get_stars(Vmag=[-3.0, MAG_LIMIT])
 
-## Start and end of the search window
+## Inicio y final de la ventana de busqueda
 t_start = montu.Time(f"bce {YEAR_START:04d}-07-01 00:00:00", calendar="proleptic")
 t_end = montu.Time(f"bce {YEAR_END:04d}-07-01 00:00:00", calendar="proleptic")
 jed_a, jed_b = min(t_start.jed, t_end.jed), max(t_start.jed, t_end.jed)
@@ -31,14 +31,14 @@ jed_step = (jed_b - jed_a) / max(1, N_EPOCHS - 1)
 
 star_best = {}
 for i in range(N_EPOCHS):
-    ## Build a time object for each sampled Julian day
+    ## Construir un objeto de tiempo para cada dia juliano muestreado
     mtime = montu.Time(jed_a + i * jed_step, format="jd", calendar="proleptic")
-    ## Fill mtime.readable with dates in every calendar format (for labels)
+    ## Rellenar mtime.readable con fechas en todos los formatos (para etiquetas)
     mtime.get_readable()
     epoch_label = mtime.readable.datespice.split()[:2]
     epoch_label = f"{epoch_label[0]} {epoch_label[1]}" if len(epoch_label) >= 2 else str(mtime.readable.datespice)
 
-    ## Precess the star catalogue to this epoch
+    ## Precesar el catalogo estelar a esta epoca
     precessed = bright.where_in_space(at=mtime)
     for idx, row in precessed.data.iterrows():
         dec_epoch = row.get("DecEpoch")
@@ -67,15 +67,15 @@ for row in aligned:
         f"Dec={row['DecEpoch']:+.2f}°  Δ={row['delta_dec']:.2f}°  ({row['epoch_label']})"
     )
 
-# Sky map at mid-epoch
+# Mapa del cielo en la epoca media
 jed_mid = 0.5 * (jed_a + jed_b)
 t_mid = montu.Time(jed_mid, format="jd", calendar="proleptic")
-## Fill t_mid.readable with dates in every calendar format (for the map title)
+## Rellenar t_mid.readable con fechas en todos los formatos (titulo del mapa)
 t_mid.get_readable()
-## Star positions at the mid-point of the search window
+## Posiciones estelares en el punto medio de la ventana de busqueda
 mid_sky = bright.where_in_space(at=t_mid).data
 
-## Base Mercator sky map with IAU boundaries and stars
+## Mapa base de Mercator con limites IAU y estrellas
 fig = mercator_sky_map(mid_sky, mag_limit=MAG_LIMIT, at=t_mid)
 fig.add_hrect(
     y0=dec_target - DEC_TOL, y1=dec_target + DEC_TOL,

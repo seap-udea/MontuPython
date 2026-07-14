@@ -11,6 +11,8 @@ import json
 import re
 from dataclasses import dataclass
 
+from montu_gui.utils.i18n import get_language
+
 # Fallback if JSON is missing (Thebes / Luxor)
 DEFAULT_LOCATION_ID = "thebes"
 DEFAULT_LAT = 25.6967
@@ -25,6 +27,7 @@ class LocationEntry:
     lat: float
     lon: float
     alt_m: float
+    name_es: str = ""
     region: str = ""
     era: str = ""
     description: str = ""
@@ -67,6 +70,7 @@ def _locations_file() -> str:
 
 def load_locations() -> list[LocationEntry]:
     """Load predefined locations from ``montu/data/locations.json``."""
+    active_lang = get_language()
     try:
         with open(_locations_file(), encoding="utf-8") as fh:
             data = json.load(fh)
@@ -75,9 +79,13 @@ def load_locations() -> list[LocationEntry]:
 
     entries = []
     for item in data.get("locations", []):
+        name_en = item.get("name", "Unknown")
+        name_es = item.get("name_es", name_en)
+        name = name_es if active_lang == "es" else name_en
         entries.append(LocationEntry(
             id=item.get("id", ""),
-            name=item.get("name", "Unknown"),
+            name=name,
+            name_es=name_es,
             lat=float(item.get("lat", 0)),
             lon=float(item.get("lon", 0)),
             alt_m=float(item.get("alt_m", 0)),

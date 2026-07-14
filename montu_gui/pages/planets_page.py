@@ -37,6 +37,7 @@ from montu_gui.modules.planets import (
     DEFAULT_PROPERTY,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.i18n import tr, trf
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
@@ -53,14 +54,14 @@ _PARAMS_MAX_WIDTH = 320
 _PLOT_DEBOUNCE_MS = 450
 
 _MONTH_NAMES = (
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    tr("January"), tr("February"), tr("March"), tr("April"), tr("May"), tr("June"),
+    tr("July"), tr("August"), tr("September"), tr("October"), tr("November"), tr("December"),
 )
 
 _PLANETS_EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "planets_ephemerides.py",
     download_name="montu_planets_ephemerides.py",
-    window_title="Let's Python!  —  Planetary Ephemerides Code",
+    window_title="¡A pythoniar!  —  Planetary Ephemerides Code",
     heading="Planetary ephemerides with MontuPython",
     subtitle=(
         "Copy or download the script to reproduce the Plotly chart shown in "
@@ -73,7 +74,7 @@ _PLANETS_EXAMPLE = LetsPythonExample(
 
 
 def _label(text: str, bold=False, size: Optional[int] = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -94,7 +95,7 @@ def _field_stack(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout
     """Label on top, input widget below."""
     col = QVBoxLayout()
     col.setSpacing(4)
-    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(HelpLink(tr(label_text), HELP_MODULE, "input", help_key, bold=True))
     col.addWidget(widget)
     return col
 
@@ -104,7 +105,7 @@ def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
     row = QHBoxLayout()
     row.setSpacing(4)
     row.addWidget(rb)
-    row.addWidget(HelpLink(label, HELP_MODULE, "input", help_key))
+    row.addWidget(HelpLink(tr(label), HELP_MODULE, "input", help_key))
     return row
 
 
@@ -278,7 +279,7 @@ class PlanetsPage(LazyPageMixin, QWidget):
 
         left_lay.addWidget(module_brand("planets"))
 
-        params_box = QGroupBox("Parameters")
+        params_box = QGroupBox(tr("Parameters"))
         params_lay = QVBoxLayout(params_box)
         params_lay.setSpacing(12)
 
@@ -328,7 +329,7 @@ class PlanetsPage(LazyPageMixin, QWidget):
         chart_lay.setContentsMargins(8, 12, 8, 8)
         chart_lay.setSpacing(8)
         chart_lay.addWidget(
-            HelpLink("Chart", HELP_MODULE, "chart", "chart", bold=True),
+            HelpLink(tr("Chart"), HELP_MODULE, "chart", "chart", bold=True),
         )
         self._chart = PlotlyView()
         self._chart.setSizePolicy(
@@ -375,7 +376,7 @@ class PlanetsPage(LazyPageMixin, QWidget):
             planets=planets,
             property=prop,
         )
-        self.status_message.emit("Computing planetary ephemerides …")
+        self.status_message.emit(tr("Computing planetary ephemerides ..."))
         self._plotting = True
 
         obs = self._location_state.coords
@@ -395,7 +396,7 @@ class PlanetsPage(LazyPageMixin, QWidget):
         if result.ok:
             self._chart.set_html(result.html)
             self.status_message.emit(
-                f"Plotted {result.n_rows} points — {result.title}"
+                trf("Plotted {rows} points - {title}", rows=result.n_rows, title=result.title)
             )
         else:
             self.status_message.emit(f"Error: {result.error}")

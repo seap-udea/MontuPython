@@ -50,6 +50,7 @@ from montu_gui.modules.alignment_presets import (
     AlignmentPreset,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.i18n import tr
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
@@ -68,7 +69,7 @@ _DEBOUNCE_MS  = 600
 _EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "star_alignments.py",
     download_name="montu_star_alignments.py",
-    window_title="Let's Python!  —  Star Alignments Code",
+    window_title="¡A pythoniar!  —  Star Alignments Code",
     heading="Star alignments with MontuPython",
     subtitle=(
         "Copy or download the script to reproduce the star-alignment search "
@@ -80,7 +81,7 @@ _EXAMPLE = LetsPythonExample(
 # ── small UI helpers ──────────────────────────────────────────────────────────
 
 def _label(text: str, bold=False, size: Optional[int] = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -100,7 +101,7 @@ def _hline() -> QFrame:
 def _field_col(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout:
     col = QVBoxLayout()
     col.setSpacing(4)
-    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(HelpLink(tr(label_text), HELP_MODULE, "input", help_key, bold=True))
     col.addWidget(widget)
     return col
 
@@ -125,7 +126,7 @@ def _double_spin(
 
 def _make_results_table() -> QTableWidget:
     tbl = QTableWidget(0, len(RESULT_TABLE_COLUMNS))
-    tbl.setHorizontalHeaderLabels(list(RESULT_TABLE_COLUMNS))
+    tbl.setHorizontalHeaderLabels([tr(col) for col in RESULT_TABLE_COLUMNS])
     tbl.verticalHeader().setVisible(False)
     tbl.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
     tbl.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
@@ -276,7 +277,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         left_lay.addWidget(module_brand("alignments"))
 
         # ── famous alignments preset ─────────────────────────────────────────
-        preset_box = QGroupBox("Famous alignments")
+        preset_box = QGroupBox(tr("Famous alignments"))
         preset_lay = QVBoxLayout(preset_box)
         preset_lay.setSpacing(6)
         self._preset_combo = QComboBox()
@@ -294,7 +295,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         left_lay.addWidget(preset_box)
 
         # ── location group ─────────────────────────────────────────────────
-        loc_box = QGroupBox("Observer")
+        loc_box = QGroupBox(tr("Observer"))
         loc_lay = QVBoxLayout(loc_box)
         loc_lay.setSpacing(6)
         self._loc_label = QLabel()
@@ -305,8 +306,9 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         )
         loc_lay.addWidget(self._loc_label)
         note = QLabel(
-            "<i>Set location in the 🧭 Observer module.  "
-            "For the Great Pyramid example use <b>Giza</b>.</i>"
+            tr(
+                "<i>Set location in the 🧭 Observer module.  For the Great Pyramid example use <b>Giza</b>.</i>"
+            )
         )
         note.setWordWrap(True)
         note.setTextFormat(Qt.TextFormat.RichText)
@@ -315,7 +317,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         left_lay.addWidget(loc_box)
 
         # ── direction group ────────────────────────────────────────────────
-        dir_box = QGroupBox("Alignment direction")
+        dir_box = QGroupBox(tr("Alignment direction"))
         dir_lay = QVBoxLayout(dir_box)
         dir_lay.setSpacing(10)
 
@@ -330,7 +332,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         # computed target declination label
         self._target_row = QHBoxLayout()
         self._target_row.setSpacing(6)
-        self._target_row.addWidget(_label("Target dec:", bold=True))
+        self._target_row.addWidget(_label(tr("Target dec:"), bold=True))
         self._target_dec_lbl = QLabel("—")
         self._target_dec_lbl.setStyleSheet(
             "color:#d4af37; font-weight:bold; font-size:13px;"
@@ -342,7 +344,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         left_lay.addWidget(dir_box)
 
         # ── date range group ───────────────────────────────────────────────
-        date_box = QGroupBox("Date range")
+        date_box = QGroupBox(tr("Date range"))
         date_lay = QVBoxLayout(date_box)
         date_lay.setSpacing(10)
 
@@ -359,7 +361,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         left_lay.addWidget(date_box)
 
         # ── filter group ───────────────────────────────────────────────────
-        filt_box = QGroupBox("Filters")
+        filt_box = QGroupBox(tr("Filters"))
         filt_lay = QVBoxLayout(filt_box)
         filt_lay.setSpacing(10)
 
@@ -607,14 +609,21 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         df = result.stars_df
         n = len(df)
         if n == 0:
-            count_line = "Found <b>0</b> stars"
+            count_line = tr("Found <b>0</b> stars")
         elif n == 1:
-            count_line = "Found <b>1</b> star"
+            count_line = tr("Found <b>1</b> star")
         else:
-            count_line = f"Found <b>{n}</b> stars"
+            count_line = tr("Found <b>{n}</b> stars").format(n=n)
         self._results_summary.setText(
-            f"{count_line} within ±{dec_tolerance:.1f}° of declination "
-            f"<b>{dec:+.2f}°</b>  ·  {observer_name}  ·  {era_range}"
+            tr(
+                "{count_line} within ±{dec_tolerance:.1f}° of declination <b>{dec:+.2f}°</b>  ·  {observer_name}  ·  {era_range}"
+            ).format(
+                count_line=count_line,
+                dec_tolerance=dec_tolerance,
+                dec=dec,
+                observer_name=observer_name,
+                era_range=era_range,
+            )
         )
 
         self._results_table.clearSpans()

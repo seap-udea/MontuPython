@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTextBrowser, QFrame, QFileDialog, QMessageBox, QSizePolicy,
 )
+from montu_gui.utils.i18n import tr, trf
 
 try:
     from pygments import highlight
@@ -37,11 +38,11 @@ def make_lets_python_button_row(
     """Compact left-aligned row for the Let's Python! button."""
     row = QHBoxLayout()
     row.setContentsMargins(0, 6, 0, 0)
-    btn = QPushButton("🐍  Let's Python!")
+    btn = QPushButton(f"🐍  {tr("Let's Python!")}")
     btn.setObjectName("lets_python_btn")
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-    btn.setToolTip(tooltip)
+    btn.setToolTip(tr(tooltip))
     btn.clicked.connect(callback)
     row.addWidget(btn, alignment=Qt.AlignmentFlag.AlignLeft)
     row.addStretch()
@@ -185,8 +186,11 @@ class LetsPythonDialog(QDialog):
         self._browser.setFont(QFont("Menlo", 12))
         if self._load_error:
             self._browser.setPlainText(
-                f"Could not read example file:\n{self._example.source_path}\n\n"
-                f"{self._load_error}"
+                trf(
+                    "Could not read example file:\n{path}\n\n{err}",
+                    path=self._example.source_path,
+                    err=self._load_error,
+                )
             )
         else:
             self._browser.setHtml(_code_to_html(self._code))
@@ -201,18 +205,19 @@ class LetsPythonDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
 
-        self._colab_btn = QPushButton("🧪  Copy and Test in Colab")
+        self._colab_btn = QPushButton(f"🧪  {tr('Copy and Test in Colab')}")
         self._colab_btn.setMinimumHeight(36)
         self._colab_btn.setToolTip(
-            "Copy the code to the clipboard and open the MontuPython "
-            "test notebook in Google Colab"
+            tr(
+                "Copy the code to the clipboard and open the MontuPython test notebook in Google Colab"
+            )
         )
         self._colab_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._colab_btn.clicked.connect(self._copy_and_test_in_colab)
         self._colab_btn.setEnabled(not self._load_error)
         btn_row.addWidget(self._colab_btn)
 
-        self._download_btn = QPushButton("⬇  Download .py")
+        self._download_btn = QPushButton(f"⬇  {tr('Download .py')}")
         self._download_btn.setMinimumHeight(36)
         self._download_btn.setToolTip(
             f"Save as {self._example.download_name}"
@@ -222,16 +227,16 @@ class LetsPythonDialog(QDialog):
         self._download_btn.setEnabled(not self._load_error)
         btn_row.addWidget(self._download_btn)
 
-        self._copy_btn = QPushButton("📋  Copy to clipboard")
+        self._copy_btn = QPushButton(f"📋  {tr('Copy to clipboard')}")
         self._copy_btn.setObjectName("primary")
         self._copy_btn.setMinimumHeight(36)
-        self._copy_btn.setToolTip("Copy the Python code to the clipboard")
+        self._copy_btn.setToolTip(tr("Copy the Python code to the clipboard"))
         self._copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._copy_btn.clicked.connect(self._copy_code)
         self._copy_btn.setEnabled(not self._load_error)
         btn_row.addWidget(self._copy_btn)
 
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(tr("Close"))
         close_btn.setMinimumHeight(36)
         close_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         close_btn.clicked.connect(self.accept)
@@ -241,27 +246,27 @@ class LetsPythonDialog(QDialog):
 
     def _copy_code(self):
         QGuiApplication.clipboard().setText(self._code)
-        self._copy_btn.setText("✓  Copied!")
+        self._copy_btn.setText(f"✓  {tr('Copied!')}")
         QTimer.singleShot(
             2200,
-            lambda: self._copy_btn.setText("📋  Copy to clipboard"),
+            lambda: self._copy_btn.setText(f"📋  {tr('Copy to clipboard')}"),
         )
 
     def _copy_and_test_in_colab(self):
         QGuiApplication.clipboard().setText(self._code)
         QDesktopServices.openUrl(QUrl(COLAB_TEST_NOTEBOOK_URL))
-        self._colab_btn.setText("✓  Copied — paste in Colab")
+        self._colab_btn.setText(f"✓  {tr('Copied - paste in Colab')}")
         QTimer.singleShot(
             3200,
-            lambda: self._colab_btn.setText("🧪  Copy and Test in Colab"),
+            lambda: self._colab_btn.setText(f"🧪  {tr('Copy and Test in Colab')}"),
         )
 
     def _download_code(self):
         path, _ = QFileDialog.getSaveFileName(
             self,
-            "Save Python example",
+            tr("Save Python example"),
             self._example.download_name,
-            "Python files (*.py);;All files (*)",
+            tr("Python files (*.py);;All files (*)"),
         )
         if not path:
             return
@@ -270,12 +275,12 @@ class LetsPythonDialog(QDialog):
         except OSError as exc:
             QMessageBox.warning(
                 self,
-                "Download failed",
-                f"Could not save file:\n{path}\n\n{exc}",
+                tr("Download failed"),
+                trf("Could not save file:\n{path}\n\n{exc}", path=path, exc=exc),
             )
             return
-        self._download_btn.setText("✓  Saved!")
+        self._download_btn.setText(f"✓  {tr('Saved!')}")
         QTimer.singleShot(
             2200,
-            lambda: self._download_btn.setText("⬇  Download .py"),
+            lambda: self._download_btn.setText(f"⬇  {tr('Download .py')}"),
         )

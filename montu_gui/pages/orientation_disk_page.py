@@ -45,6 +45,7 @@ from montu_gui.modules.orientation_disk import (
     DEFAULT_MAG_LIMIT,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.i18n import tr
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
@@ -64,7 +65,7 @@ _DEBOUNCE_MS  = 700
 _EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "orientation_disk.py",
     download_name="montu_orientation_disk.py",
-    window_title="Let's Python!  —  Orientation Disk Code",
+    window_title="¡A pythoniar!  —  Orientation Disk Code",
     heading="Orientation disk with MontuPython",
     subtitle=(
         "Copy or download the script to reproduce the extreme rise/set "
@@ -76,7 +77,7 @@ _EXAMPLE = LetsPythonExample(
 # ── small UI helpers ──────────────────────────────────────────────────────────
 
 def _label(text: str, bold: bool = False, size: Optional[int] = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -96,7 +97,7 @@ def _hline() -> QFrame:
 def _field_col(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout:
     col = QVBoxLayout()
     col.setSpacing(4)
-    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(HelpLink(tr(label_text), HELP_MODULE, "input", help_key, bold=True))
     col.addWidget(widget)
     return col
 
@@ -220,13 +221,13 @@ class BodyRow(QWidget):
         self._el_spin.setValue(cfg.horizon_el)
         self._el_spin.setSuffix("°")
         self._el_spin.setFixedWidth(72)
-        self._el_spin.setToolTip("Horizon elevation for this body")
+        self._el_spin.setToolTip(tr("Horizon elevation for this body"))
         lay.addWidget(self._el_spin)
 
         remove_btn = QPushButton("\u2716")  # ✖ heavy multiplication sign
         remove_btn.setObjectName("remove_body_btn")
         remove_btn.setFixedSize(30, 30)
-        remove_btn.setToolTip(f"Remove {cfg.name}")
+        remove_btn.setToolTip(tr("Remove") + f" {cfg.name}")
         remove_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         remove_btn.setStyleSheet(
             "QPushButton#remove_body_btn {"
@@ -342,7 +343,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         left_lay.addWidget(module_brand("orient_disk"))
 
         # ── reference year ────────────────────────────────────────────────────
-        year_box = QGroupBox("Reference year")
+        year_box = QGroupBox(tr("Reference year"))
         year_lay = QVBoxLayout(year_box)
         year_lay.setSpacing(6)
         self._year_input = _YearEraInput(DEFAULT_YEAR, DEFAULT_ERA)
@@ -356,7 +357,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         left_lay.addWidget(year_box)
 
         # ── observer ──────────────────────────────────────────────────────────
-        loc_box = QGroupBox("Observer")
+        loc_box = QGroupBox(tr("Observer"))
         loc_lay = QVBoxLayout(loc_box)
         loc_lay.setSpacing(6)
         self._loc_label = QLabel()
@@ -366,9 +367,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
             HelpLink("Location:", _COMMON_MODULE, "input", "observer_location", bold=True),
         )
         loc_lay.addWidget(self._loc_label)
-        note = QLabel(
-            "<i>Set location in the 🧭 Observer module.</i>"
-        )
+        note = QLabel(tr("<i>Set location in the 🧭 Observer module.</i>"))
         note.setWordWrap(True)
         note.setTextFormat(Qt.TextFormat.RichText)
         note.setStyleSheet("color:#888; font-size:11px;")
@@ -376,7 +375,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         left_lay.addWidget(loc_box)
 
         # ── bodies ────────────────────────────────────────────────────────────
-        bodies_box = QGroupBox("Celestial bodies")
+        bodies_box = QGroupBox(tr("Celestial bodies"))
         bodies_box.setSizePolicy(
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Expanding,
@@ -397,7 +396,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         )
         add_row.addWidget(self._body_combo, stretch=1)
 
-        add_btn = QPushButton("＋ Add")
+        add_btn = QPushButton(tr("＋ Add"))
         add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         add_btn.setFixedWidth(72)
         add_btn.clicked.connect(self._on_add_body)
@@ -412,7 +411,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         self._mag_spin = _double_spin(-2.0, 8.0, DEFAULT_MAG_LIMIT, step=0.5, decimals=1)
         self._mag_spin.setFixedWidth(72)
         self._mag_spin.setToolTip(
-            "Show only named stars brighter than this magnitude in the dropdown"
+            tr("Show only named stars brighter than this magnitude in the dropdown")
         )
         mag_row.addWidget(self._mag_spin)
         mag_row.addStretch()
@@ -421,7 +420,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         bodies_lay.addWidget(_hline())
 
         bodies_lay.addWidget(
-            _label("Bodies on the disk — each can have its own horizon altitude:", size=11)
+            _label(tr("Bodies on the disk — each can have its own horizon altitude:"), size=11)
         )
 
         # Scrollable list of BodyRow widgets

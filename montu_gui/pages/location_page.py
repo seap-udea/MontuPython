@@ -31,6 +31,7 @@ from montu_gui.modules.location import (
     ObserverCoords,
 )
 from montu_gui.utils.debug import log_ui_event
+from montu_gui.utils.i18n import tr, trf
 from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.utils.map_consent import (
@@ -51,7 +52,7 @@ _APPLY_DEBOUNCE_MS = 350
 _LOCATION_EXAMPLE = LetsPythonExample(
     source_path=Path(__file__).parent / "examples" / "observer_location.py",
     download_name="montu_observer_location.py",
-    window_title="Let's Python!  —  Observer Location Code",
+    window_title="¡A pythoniar!  —  Observer Location Code",
     heading="Defining an observer site with MontuPython",
     subtitle=(
         "Copy or download the script to see how the Observer Location module "
@@ -63,7 +64,7 @@ _LOCATION_EXAMPLE = LetsPythonExample(
 
 
 def _label(text: str, bold=False, size: Optional[int] = None) -> QLabel:
-    lbl = QLabel(text)
+    lbl = QLabel(tr(text))
     f = lbl.font()
     if bold:
         f.setBold(True)
@@ -83,7 +84,7 @@ def _hline() -> QFrame:
 def _field_stack(label_text: str, help_key: str, widget: QWidget) -> QVBoxLayout:
     col = QVBoxLayout()
     col.setSpacing(4)
-    col.addWidget(HelpLink(label_text, HELP_MODULE, "input", help_key, bold=True))
+    col.addWidget(HelpLink(tr(label_text), HELP_MODULE, "input", help_key, bold=True))
     col.addWidget(widget)
     return col
 
@@ -167,11 +168,11 @@ class LocationPage(LazyPageMixin, QWidget):
                 self._map_online = True
                 self._map.set_online_enabled(True)
                 self.status_message.emit(
-                    "Loading OpenStreetMap — click the map to pick a site."
+                    tr("Loading OpenStreetMap - click the map to pick a site.")
                 )
             else:
                 self.status_message.emit(
-                    "Map disabled — choose a predefined site or enter coordinates."
+                    tr("Map disabled - choose a predefined site or enter coordinates.")
                 )
         if self._map_online:
             self._map.set_label_lang(self._map_lang.currentData())
@@ -215,7 +216,7 @@ class LocationPage(LazyPageMixin, QWidget):
 
         left_lay.addWidget(module_brand("location"))
 
-        params_box = QGroupBox("Coordinates")
+        params_box = QGroupBox(tr("Coordinates"))
         params_lay = QVBoxLayout(params_box)
         params_lay.setSpacing(12)
 
@@ -240,10 +241,10 @@ class LocationPage(LazyPageMixin, QWidget):
         self._fmt_group.addButton(self._fmt_decimal, 0)
         self._fmt_group.addButton(self._fmt_sexagesimal, 1)
         format_row.addWidget(self._fmt_decimal)
-        format_row.addWidget(HelpLink("Decimal", HELP_MODULE, "input", "decimal"))
+        format_row.addWidget(HelpLink(tr("Decimal"), HELP_MODULE, "input", "decimal"))
         format_row.addSpacing(8)
         format_row.addWidget(self._fmt_sexagesimal)
-        format_row.addWidget(HelpLink("Sexagesimal", HELP_MODULE, "input", "sexagesimal"))
+        format_row.addWidget(HelpLink(tr("Sexagesimal"), HELP_MODULE, "input", "sexagesimal"))
         format_row.addStretch()
         params_lay.addLayout(format_row)
 
@@ -254,10 +255,10 @@ class LocationPage(LazyPageMixin, QWidget):
         dec_lay.setContentsMargins(0, 0, 0, 0)
         dec_lay.setSpacing(8)
         self._lat_dec = QLineEdit()
-        self._lat_dec.setPlaceholderText("e.g. 25.6967")
+        self._lat_dec.setPlaceholderText("p. ej. 25.6967")
         dec_lay.addLayout(_field_stack("Latitude (°):", "latitude", self._lat_dec))
         self._lon_dec = QLineEdit()
-        self._lon_dec.setPlaceholderText("e.g. 32.6422")
+        self._lon_dec.setPlaceholderText("p. ej. 32.6422")
         dec_lay.addLayout(_field_stack("Longitude (°):", "longitude", self._lon_dec))
         self._coord_stack.addWidget(dec_widget)
 
@@ -274,7 +275,7 @@ class LocationPage(LazyPageMixin, QWidget):
         params_lay.addWidget(self._coord_stack)
 
         self._alt = QLineEdit()
-        self._alt.setPlaceholderText("metres above sea level")
+        self._alt.setPlaceholderText(tr("metres above sea level"))
         params_lay.addLayout(_field_stack("Altitude (m):", "altitude", self._alt))
 
         self._summary = QLabel()
@@ -288,7 +289,7 @@ class LocationPage(LazyPageMixin, QWidget):
         left_scroll.setWidget(left_inner)
         splitter.addWidget(left_scroll)
 
-        map_box = QGroupBox("Map")
+        map_box = QGroupBox(tr("Map"))
         map_lay = QVBoxLayout(map_box)
         map_lay.setSpacing(8)
         map_lay.setContentsMargins(8, 12, 8, 8)
@@ -296,12 +297,12 @@ class LocationPage(LazyPageMixin, QWidget):
         lang_row = QHBoxLayout()
         lang_row.setSpacing(8)
         self._map_lang = QComboBox()
-        self._map_lang.addItem("Local names", "local")
-        self._map_lang.addItem("English names", "english")
+        self._map_lang.addItem(tr("Local names"), "local")
+        self._map_lang.addItem(tr("English names"), "english")
         saved_lang = get_map_label_lang()
         lang_idx = self._map_lang.findData(saved_lang)
         self._map_lang.setCurrentIndex(lang_idx if lang_idx >= 0 else 0)
-        lang_row.addWidget(HelpLink("Map labels:", HELP_MODULE, "input", "map_labels", bold=True))
+        lang_row.addWidget(HelpLink(tr("Map labels:"), HELP_MODULE, "input", "map_labels", bold=True))
         lang_row.addWidget(self._map_lang, stretch=1)
         map_lay.addLayout(lang_row)
 
@@ -340,8 +341,8 @@ class LocationPage(LazyPageMixin, QWidget):
         if self._map_online:
             self._map.set_label_lang(lang)
             self._map.reload_map()
-            label = "English" if lang == "english" else "Local"
-            self.status_message.emit(f"Map labels: {label}.")
+            label = tr("English") if lang == "english" else tr("Local names")
+            self.status_message.emit(trf("Map labels: {label}.", label=label))
 
     def _on_format_changed(self, fmt_id: int):
         if self._syncing:
@@ -419,7 +420,7 @@ class LocationPage(LazyPageMixin, QWidget):
             lat, lon = self._read_decimal_coords()
             alt_m = float(self._alt.text().strip())
         except ValueError:
-            self.status_message.emit("Error: invalid coordinate values.")
+            self.status_message.emit(tr("Error: invalid coordinate values."))
             return
 
         preset = self._find_by_name(self._loc_combo.currentText().strip())
@@ -442,7 +443,9 @@ class LocationPage(LazyPageMixin, QWidget):
         self._syncing = False
 
         log_ui_event("location set", name=name, lat=lat, lon=lon, alt_m=alt_m)
-        self.status_message.emit(f"Observer location: {self._state.summary()}")
+        self.status_message.emit(
+            trf("Observer location: {summary}", summary=self._state.summary())
+        )
 
     def _on_map_click(self, lat: float, lon: float):
         if self._syncing:
@@ -466,11 +469,16 @@ class LocationPage(LazyPageMixin, QWidget):
         self._apply_location()
         if elevation_ok:
             self.status_message.emit(
-                f"Map click: {lat:.4f}°, {lon:.4f}°, {alt_m:.0f} m (Open-Elevation)."
+                trf(
+                    "Map click: {lat:.4f}°, {lon:.4f}°, {alt_m:.0f} m (Open-Elevation).",
+                    lat=lat,
+                    lon=lon,
+                    alt_m=alt_m,
+                )
             )
         else:
             self.status_message.emit(
-                "Map click: coordinates set (Open-Elevation unavailable — altitude kept)."
+                tr("Map click: coordinates set (Open-Elevation unavailable - altitude kept).")
             )
 
     def _load_from_state(self, coords: ObserverCoords):

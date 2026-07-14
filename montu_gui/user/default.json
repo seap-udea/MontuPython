@@ -1,7 +1,8 @@
 {
   "schema_version": 1,
   "app": {
-    "last_page": "home"
+    "last_page": "home",
+    "language": "en"
   },
   "observer": {
     "location_id": "thebes",

@@ -7,6 +7,7 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import QLabel
 
 from montu_gui.utils.help_dialog import show_field_help
+from montu_gui.utils.i18n import tr
 
 
 class HelpLink(QLabel):
@@ -22,14 +23,14 @@ class HelpLink(QLabel):
         *,
         bold: bool = False,
     ):
-        super().__init__(text, parent)
+        super().__init__(tr(text), parent)
         self._module = module
         self._block = block
         self._key = key
         self.setObjectName("help_link")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setWordWrap(True)
-        self.setToolTip("Click for help")
+        self.setToolTip(tr("Click for help"))
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         font = QFont("Georgia", 12 if bold else 13)
         font.setBold(bold)

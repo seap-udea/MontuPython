@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -11,18 +12,41 @@ from PySide6.QtWidgets import (
 )
 
 from montu_gui.utils.bundle_paths import gui_asset
+from montu_gui.utils.i18n import get_language, tr
 
 _COMMON_MODULE = "_common"
 
 
 def load_help() -> dict:
     """Load the full help tree from JSON (re-reads each call so edits apply live)."""
-    path = gui_asset("help.json")
-    try:
-        with open(path, encoding="utf-8") as fh:
-            return json.load(fh)
-    except (OSError, json.JSONDecodeError):
-        return {}
+    def _read(path) -> dict:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                data = json.load(fh)
+            return data if isinstance(data, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    base = _read(gui_asset("help.json"))
+    lang = get_language()
+    if lang == "en":
+        return base
+
+    overlay = _read(gui_asset(f"help_{lang}.json"))
+    if not overlay:
+        return base
+
+    return _deep_merge(base, overlay)
+
+
+def _deep_merge(base: dict, overlay: dict) -> dict:
+    merged = deepcopy(base)
+    for key, value in overlay.items():
+        if isinstance(value, dict) and isinstance(merged.get(key), dict):
+            merged[key] = _deep_merge(merged[key], value)
+        else:
+            merged[key] = deepcopy(value)
+    return merged
 
 
 def _lookup_raw(tree: dict, module: str, block: str, key: str) -> dict:
@@ -102,7 +126,7 @@ def show_field_help(module: str, block: str, key: str, parent=None):
 
     btn_row = QHBoxLayout()
     btn_row.addStretch()
-    close_btn = QPushButton("Close")
+    close_btn = QPushButton(tr("Close"))
     close_btn.setObjectName("primary")
     close_btn.clicked.connect(dlg.accept)
     btn_row.addWidget(close_btn)
