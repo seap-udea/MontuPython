@@ -74,7 +74,7 @@ You may import the package using:
 from montu import *
 ```
 
-    MontuPython version 0.21.2. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.21.3. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
 
 
 or for a safe import:
@@ -697,7 +697,7 @@ Tebas.get_local_time(dusk_time), Tebas.get_local_time(dawn_time)
 
 
 
-    ('05:34:16.000', '18:55:22.000')
+    ('05:34:16.297', '18:55:22.094')
 
 
 
@@ -799,7 +799,9 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
 ```
 
     Precessing 6 stars over 1,000 epochs …
-    Done in 1.4 s.
+
+
+    Done in 3.1 s.
 
 
 Now plot declinations as a function of time:
@@ -846,12 +848,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-03 15:18:23.198401 (declination 89:31:55.715)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-06 08:09:51.7680 (declination 86:22:03.630)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-08 15:29:39.200640 (declination 89:56:04.720)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-26 03:38:42.708416 (declination 86:57:15.607)
-    Star Alderamin will be the closest to the pole at 7532-02-23 09:07:57.904288 (declination 87:58:42.995)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-12 23:36:40.803856 (declination 83:29:32.444)
+    Star Polaris will be the closest to the pole at 2086-08-04 18:29:35.606382 (declination 89:31:55.727)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-07 11:21:03.502016 (declination 86:22:03.633)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-09 18:40:51.695040 (declination 89:56:04.751)
+    Star Deneb will be the closest to the pole at 14732 B.C. 05-27 06:49:55.194240 (declination 86:57:15.607)
+    Star Alderamin will be the closest to the pole at 7532-02-24 12:19:10.398752 (declination 87:58:42.997)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-14 02:47:53.298256 (declination 83:29:32.445)
 
 
 ## Tutorial by example notebooks
