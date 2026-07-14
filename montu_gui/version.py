@@ -4,4 +4,4 @@ Bump ``version`` when releasing; the home page shows the file modification
 date of this module as the release date.
 """
 
-version = "0.2.2"
+version = "0.2.3"
