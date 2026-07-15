@@ -404,7 +404,7 @@ def _south_radius(dec_deg: float) -> float:
 
 
 def _observer_sidereal_time_hours(
-    obs_utc: str,
+    obs_utc,
     *,
     lat: float,
     lon: float,
@@ -412,7 +412,7 @@ def _observer_sidereal_time_hours(
 ) -> float:
     """Local apparent sidereal time [hours] at the observation instant."""
     observer = montu.Observer(lon=lon, lat=lat, height=height_km)
-    mtime = montu.Time(obs_utc, calendar="proleptic")
+    mtime = obs_utc if isinstance(obs_utc, montu.Time) else montu.Time(obs_utc, calendar="proleptic")
     observer.site.date = mtime.jed - montu.PYEPHEM_JD_REF
     return float(observer.site.sidereal_time() * montu.RAD / 15.0)
 
@@ -537,11 +537,34 @@ def _resolve_bodies(bodies: list[str] | None) -> list[str]:
 
 
 def _calendar_date_only(date_str: str) -> str:
-    """Return ``bce YYYY-MM-DD`` or ``YYYY-MM-DD`` without time."""
+    """Return a proleptic date string without time.
+
+    BCE input is converted from historical year numbering (``bce 2026``)
+    to astronomical year numbering (``-2025``), which is what
+    ``montu.Time(..., calendar='proleptic')`` expects for stable JDs.
+    """
     tokens = date_str.strip().split()
     if tokens and tokens[0].lower() == "bce":
-        return f"bce {tokens[1][:10]}"
+        year_s, month_s, day_s = tokens[1][:10].split("-")
+        astro_year = 1 - int(year_s)
+        return f"{astro_year:04d}-{month_s}-{day_s}"
     return tokens[0][:10]
+
+
+def local_solar_to_utc_time(
+    calendar_date: str,
+    hour: int,
+    minute: int,
+    second: int,
+    lon: float,
+) -> montu.Time:
+    """Convert local solar time at *lon* to a UTC ``montu.Time`` object."""
+    date_only = _calendar_date_only(calendar_date)
+    midnight = f"{date_only} 00:00:00"
+    local_decimal = hour + minute / 60.0 + second / 3600.0
+    utc_decimal = local_decimal - lon / 15.0
+    t0 = montu.Time(midnight, calendar="mixed")
+    return t0 + utc_decimal * montu.HOUR
 
 
 def local_solar_to_utc_datepro(
@@ -552,12 +575,7 @@ def local_solar_to_utc_datepro(
     lon: float,
 ) -> str:
     """Convert local solar time at *lon* to a proleptic UTC ``datepro`` string."""
-    date_only = _calendar_date_only(calendar_date)
-    midnight = f"{date_only} 00:00:00"
-    local_decimal = hour + minute / 60.0 + second / 3600.0
-    utc_decimal = local_decimal - lon / 15.0
-    t0 = montu.Time(midnight, calendar="proleptic")
-    t_obs = (t0 + utc_decimal * montu.HOUR).get_readable()
+    t_obs = local_solar_to_utc_time(calendar_date, hour, minute, second, lon).get_readable()
     return str(t_obs.readable.datepro)
 
 
@@ -575,7 +593,7 @@ def _sidereal_time_label(lst_hours: float) -> str:
 
 
 def _compute_body_positions(
-    obs_utc: str,
+    obs_utc,
     *,
     bodies: list[str],
     lat: float,
@@ -584,7 +602,7 @@ def _compute_body_positions(
 ) -> dict[str, tuple[float, float, float, float, float, float]]:
     """Return (RA°, Dec°, RA h, Dec°, az°, el°) for each selected body."""
     observer = montu.Observer(lon=lon, lat=lat, height=height_km)
-    mtime = montu.Time(obs_utc, calendar="proleptic")
+    mtime = obs_utc if isinstance(obs_utc, montu.Time) else montu.Time(obs_utc, calendar="proleptic")
     positions: dict[str, tuple[float, float, float, float, float, float]] = {}
     for name in bodies:
         body = _make_sky_body(name)
@@ -661,7 +679,7 @@ def _compute_ecliptic_curve(precession_date: str) -> tuple[np.ndarray, np.ndarra
     """Equatorial (RA°, Dec°) samples along the ecliptic at *precession_date*."""
     from pyplanets.core.coordinates import true_obliquity
 
-    mtime = montu.Time(precession_date, calendar="proleptic")
+    mtime = montu.Time(precession_date, calendar="mixed")
     eps = np.radians(float(true_obliquity(mtime.obj_pyplanet)))
     lam = np.linspace(0.0, 2.0 * np.pi, 361)
     dec_rad = np.arcsin(np.sin(eps) * np.sin(lam))
@@ -744,7 +762,7 @@ def _sky_curve_trace(
 
 
 def _compute_horizon_curve(
-    obs_utc: str,
+    obs_utc,
     *,
     lat: float,
     lon: float,
@@ -753,7 +771,7 @@ def _compute_horizon_curve(
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Equatorial samples and azimuth [°] along the el=0° horizon."""
     observer = montu.Observer(lon=lon, lat=lat, height=height_km)
-    mtime = montu.Time(obs_utc, calendar="proleptic")
+    mtime = obs_utc if isinstance(obs_utc, montu.Time) else montu.Time(obs_utc, calendar="proleptic")
     lst = _observer_sidereal_time_hours(
         obs_utc, lat=lat, lon=lon, height_km=height_km,
     )
@@ -838,7 +856,7 @@ def _horizon_azimuth_marks_trace(
 
 def _annotate_star_elevations(
     stars: pd.DataFrame,
-    obs_utc: str,
+    obs_utc,
     *,
     lat: float,
     lon: float,
@@ -1364,11 +1382,12 @@ def polar_sky_map(
     lon = float(observer.lon)
     height_km = float(observer.height)
 
-    obs_utc = local_solar_to_utc_datepro(
+    obs_time = local_solar_to_utc_time(
         calendar_date, local_hour, local_minute, local_second, lon,
     )
+    obs_utc = str(obs_time.get_readable().readable.datepro)
     lst_hours = _observer_sidereal_time_hours(
-        obs_utc, lat=lat, lon=lon, height_km=height_km,
+        obs_time, lat=lat, lon=lon, height_km=height_km,
     )
     lst_deg = lst_hours * 15.0
 
@@ -1378,7 +1397,7 @@ def polar_sky_map(
 
     if show_horizon_flag:
         horizon_ra, horizon_dec, horizon_az = _compute_horizon_curve(
-            obs_utc,
+            obs_time,
             lat=lat,
             lon=lon,
             height_km=height_km,
@@ -1390,7 +1409,7 @@ def polar_sky_map(
 
     body_positions = (
         _compute_body_positions(
-            obs_utc,
+            obs_time,
             bodies=selected,
             lat=lat,
             lon=lon,
@@ -1410,7 +1429,7 @@ def polar_sky_map(
     if show_horizon_flag:
         stars = _annotate_star_elevations(
             stars,
-            obs_utc,
+            obs_time,
             lat=lat,
             lon=lon,
             height_km=height_km,

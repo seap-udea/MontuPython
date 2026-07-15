@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTextBrowser, QFrame, QFileDialog, QMessageBox, QSizePolicy,
 )
-from montu_gui.utils.i18n import tr, trf
+from montu_gui.utils.i18n import get_language, tr, trf
 
 try:
     from pygments import highlight
@@ -63,28 +63,36 @@ class LetsPythonExample:
 def load_example_code(example: LetsPythonExample) -> str:
     """Read example script text from disk or the frozen app bundle."""
     path = example.source_path
-    if path.is_file():
-        return path.read_text(encoding="utf-8")
+    lang = get_language()
+    candidates = [path]
+    if lang != "en":
+        candidates.insert(0, path.with_name(f"{path.stem}_{lang}{path.suffix}"))
+
+    for candidate in candidates:
+        if candidate.is_file():
+            return candidate.read_text(encoding="utf-8")
 
     if getattr(sys, "frozen", False):
-        bundled = (
-            Path(getattr(sys, "_MEIPASS", ""))
-            / "montu_gui"
-            / "pages"
-            / "examples"
-            / path.name
-        )
-        if bundled.is_file():
-            return bundled.read_text(encoding="utf-8")
+        for candidate in candidates:
+            bundled = (
+                Path(getattr(sys, "_MEIPASS", ""))
+                / "montu_gui"
+                / "pages"
+                / "examples"
+                / candidate.name
+            )
+            if bundled.is_file():
+                return bundled.read_text(encoding="utf-8")
 
-    try:
-        return (
-            resources.files("montu_gui.pages.examples")
-            .joinpath(path.name)
-            .read_text(encoding="utf-8")
-        )
-    except (FileNotFoundError, ModuleNotFoundError, TypeError, OSError):
-        pass
+    for candidate in candidates:
+        try:
+            return (
+                resources.files("montu_gui.pages.examples")
+                .joinpath(candidate.name)
+                .read_text(encoding="utf-8")
+            )
+        except (FileNotFoundError, ModuleNotFoundError, TypeError, OSError):
+            continue
 
     raise FileNotFoundError(path)
 

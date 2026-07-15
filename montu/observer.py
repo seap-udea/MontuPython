@@ -201,7 +201,9 @@ class Observer(object):
         """
         if not isinstance(mtime, montu.Time):
             mtime = montu.Time(mtime, format='jd', scale='utc')
-        mtime.get_readable()
-        comps = mtime.readable.comps
-        hour = (comps[4] + comps[5] / 60.0 + comps[6] / 3600.0 + comps[7] / (1e6*3600.0)) + self.lon / 15
+        # Use the UTC Julian Day fraction directly. For ancient dates,
+        # readable calendar components may come from a different calendar
+        # representation and can shift the clock hour by many hours.
+        utc_hour = ((mtime.jed + 0.5) % 1.0) * 24.0
+        hour = (utc_hour + self.lon / 15.0) % 24.0
         return montu.D2H(hour) if hms else hour

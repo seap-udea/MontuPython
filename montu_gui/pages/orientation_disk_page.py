@@ -349,7 +349,7 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         self._year_input = _YearEraInput(DEFAULT_YEAR, DEFAULT_ERA)
         year_lay.addLayout(
             _field_col(
-                "Start year for the search window (max(2 yr, orbital period)):",
+                "Reference year",
                 "reference_year",
                 self._year_input,
             ),
@@ -419,9 +419,17 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
 
         bodies_lay.addWidget(_hline())
 
-        bodies_lay.addWidget(
-            _label(tr("Bodies on the disk — each can have its own horizon altitude:"), size=11)
+        disk_bodies_lbl = _label(
+            tr("Bodies on the disk — each can have its own horizon altitude:"),
+            size=11,
         )
+        disk_bodies_lbl.setWordWrap(True)
+        disk_bodies_lbl.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Fixed,
+        )
+        disk_bodies_lbl.setMaximumWidth(_PARAMS_MAX_W - 48)
+        bodies_lay.addWidget(disk_bodies_lbl)
 
         # Scrollable list of BodyRow widgets
         self._body_list_widget = QWidget()

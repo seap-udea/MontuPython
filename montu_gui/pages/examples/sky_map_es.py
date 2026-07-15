@@ -3,7 +3,7 @@
 import montu
 from montu.maps import LINE_ECLIPTIC, LINE_HORIZON, polar_sky_map
 
-# Observer at Giza; local evening on 1 January 2500 BCE
+# Observador en Giza; tarde local del 1 de enero de 2500 AEC
 DATE = "bce 2500-01-01"
 LOCAL_HOUR, LOCAL_MINUTE, LOCAL_SECOND = 18, 0, 0
 MAG_LIMIT = 3.5
@@ -13,7 +13,7 @@ LINES = [LINE_ECLIPTIC, LINE_HORIZON]
 
 observer = montu.Observer(lon=31.1342, lat=29.9792, height=0.075)
 
-## Precess the stellar catalogue to the map epoch (noon on DATE)
+## Precesar el catalogo estelar a la epoca del mapa (mediodia en DATE)
 mtime = montu.Time(f"{DATE} 12:00:00", calendar="proleptic")
 stars = montu.Stars().where_in_space(at=mtime)
 

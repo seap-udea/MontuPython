@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from copy import deepcopy
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -19,34 +18,52 @@ _COMMON_MODULE = "_common"
 
 def load_help() -> dict:
     """Load the full help tree from JSON (re-reads each call so edits apply live)."""
-    def _read(path) -> dict:
-        try:
-            with open(path, encoding="utf-8") as fh:
-                data = json.load(fh)
-            return data if isinstance(data, dict) else {}
-        except (OSError, json.JSONDecodeError):
-            return {}
-
-    base = _read(gui_asset("help.json"))
-    lang = get_language()
-    if lang == "en":
-        return base
-
-    overlay = _read(gui_asset(f"help_{lang}.json"))
-    if not overlay:
-        return base
-
-    return _deep_merge(base, overlay)
+    try:
+        with open(gui_asset("help.json"), encoding="utf-8") as fh:
+            data = json.load(fh)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return _localize_tree(data, get_language())
 
 
-def _deep_merge(base: dict, overlay: dict) -> dict:
-    merged = deepcopy(base)
-    for key, value in overlay.items():
-        if isinstance(value, dict) and isinstance(merged.get(key), dict):
-            merged[key] = _deep_merge(merged[key], value)
-        else:
-            merged[key] = deepcopy(value)
-    return merged
+def _localized_value(entry: dict, field: str, lang: str):
+    if not isinstance(entry, dict):
+        return None
+    return (
+        entry.get(f"{field}_{lang}")
+        or entry.get(f"{field}_en")
+        or entry.get(field)
+    )
+
+
+def _localize_tree(node, lang: str):
+    if isinstance(node, list):
+        return [_localize_tree(item, lang) for item in node]
+    if not isinstance(node, dict):
+        return node
+
+    out = {}
+    title = _localized_value(node, "title", lang)
+    body = _localized_value(node, "body", lang)
+    if title is not None:
+        out["title"] = title
+    if body is not None:
+        out["body"] = body
+
+    for key, value in node.items():
+        if key in {
+            "title",
+            "title_en",
+            "title_es",
+            "body",
+            "body_en",
+            "body_es",
+        }:
+            continue
+        out[key] = _localize_tree(value, lang)
+    return out
 
 
 def _lookup_raw(tree: dict, module: str, block: str, key: str) -> dict:

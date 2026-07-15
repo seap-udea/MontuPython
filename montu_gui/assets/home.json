@@ -1,6 +1,13 @@
 {
-  "title": "MontuPython Desktop",
-  "tagline": "Astronomical ephemerides for the ancient world",
+  "configuration": {
+    "reset_en": "Restores factory defaults. Use this to start fresh.",
+    "reset_es": "Restaura los valores de fabrica. Útil para comenzar de cero.",
+    "save_en": "Saves all module parameters and the observer location to your personal settings file. Restored automatically on the next launch.",
+    "save_es": "Guarda todos los parámetros de módulos y la ubicación del observador en tu archivo personal de configuración. Se restaura automáticamente en el siguiente inicio.",
+    "title_en": "Configuration",
+    "title_es": "Configuración"
+  },
+  "contact_email": "montupythonizer@gmail.com",
   "fonts": {
     "title": 31,
     "tagline": 15,
@@ -13,74 +20,97 @@
     "contact": 13,
     "links": 13
   },
-  "paragraphs": [
-    "<b>MontuPython</b> computes astronomical ephemerides thousands of years before the present — developed for ancient Egypt and useful at any archaeoastronomical site. <b>MontuPython Desktop</b> is its graphical front-end: open a module from the sidebar to run predefined calculations. Each module also offers Python code you can copy into your own projects."
-  ],
-  "modules": [
-    {
-      "icon": "📅",
-      "title": "Calendar Calculator",
-      "description": "Convert dates among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), Julian Day, and historical presets."
-    },
-    {
-      "icon": "🧭",
-      "title": "Observer Location",
-      "description": "Set the observer site (predefined ancient locations, map click, or manual coordinates). Shared by all sky modules."
-    },
-    {
-      "icon": "🌌",
-      "title": "Sky Map",
-      "description": "Azimuthal sky maps with precessed stars, asterisms, ecliptic, horizon, and solar-system bodies."
-    },
-    {
-      "icon": "🎑",
-      "title": "Seasons & Lunar Phases",
-      "description": "Exact dates of the four astronomical seasons and all lunar phases for any historical year."
-    },
-    {
-      "icon": "🪐",
-      "title": "Planetary Ephemerides",
-      "description": "Plot sky-condition properties for the Sun, Moon, and classical planets over a chosen time span."
-    },
-    {
-      "icon": "⭕",
-      "title": "Orientation Disk",
-      "description": "Extreme rise and set azimuths for the Sun, planets, and stars on an azimuth disk (N at top)."
-    },
-    {
-      "icon": "📐",
-      "title": "Star Alignments",
-      "description": "Find which bright stars passed through a fixed azimuth and elevation over a date range, with precession."
-    },
-    {
-      "icon": "🌅",
-      "title": "Heliacal Rises",
-      "description": "Find first visible morning appearances of named stars and planets using Schaefer or Belokrylov visibility models. For a list of historical Sirius heliacal rises see this link."
-    }
-  ],
-  "configuration": {
-    "title": "Configuration",
-    "save": "Saves all module parameters and the observer location to your personal settings file (config.json). Restored automatically on the next launch.",
-    "reset": "Restores factory defaults from default.json and overwrites config.json. Use this to start fresh."
-  },
-  "people": {
-    "author": "Jorge I. Zuluaga © 2023–present",
-    "contributors": "Juanita Agudelo (early web app), Luis Arroyo (online web app)",
-    "advisors": "Francisco Vivas (archaeoastronomy & egyptology), Jose Lull (archaeoastronomy, egiptology & astronomy)"
-  },
   "license": {
-    "name": "MIT License",
+    "name_en": "MIT License",
+    "name_es": "Licencia MIT",
     "url": "https://github.com/seap-udea/MontuPython/blob/main/LICENSE"
   },
   "links": [
     {
-      "label": "GitHub repository",
+      "label_en": "GitHub repository",
+      "label_es": "Repositorio en GitHub",
       "url": "https://github.com/seap-udea/MontuPython"
     },
     {
-      "label": "Documentation (Read the Docs)",
+      "label_en": "Documentation (Read the Docs)",
+      "label_es": "Documentación (Read the Docs)",
       "url": "https://montupython.readthedocs.io/en/latest/"
     }
   ],
-  "contact_email": "montupythonizer@gmail.com"
+  "modules": [
+    {
+      "description_en": "Convert dates among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), Julian Day, and historical presets.",
+      "description_es": "Convierte fechas entre Juliano/Gregoriano, Gregoriano proléptico, caniucular (civil egipcio), Día Juliano y fechas históricas predefinidas.",
+      "icon": "📅",
+      "title_en": "Calendar Calculator",
+      "title_es": "Calculadora de calendario"
+    },
+    {
+      "description_en": "Set the observer site (predefined ancient locations, map click, or manual coordinates). Shared by all sky modules.",
+      "description_es": "Define el sitio de observación (lugares antiguos predefinidos, clic en mapa o coordenadas manuales). Se comparte con todos los módulos del cielo.",
+      "icon": "🧭",
+      "title_en": "Observer Location",
+      "title_es": "Ubicación del observador"
+    },
+    {
+      "description_en": "Azimuthal sky maps with precessed stars, asterisms, ecliptic, horizon, and solar-system bodies.",
+      "description_es": "Mapas azimutales con estrellas precesadas, asterismos, ecliptica, horizonte y cuerpos del sistema solar.",
+      "icon": "🌌",
+      "title_en": "Sky Map",
+      "title_es": "Mapa del cielo"
+    },
+    {
+      "description_en": "Exact dates of the four astronomical seasons and all lunar phases for any historical year.",
+      "description_es": "Fechas exactas de las cuatro estaciones astronómicas y de todas las fases lunares para cualquier año histórico.",
+      "icon": "🎑",
+      "title_en": "Seasons & Lunar Phases",
+      "title_es": "Estaciones y fases lunares"
+    },
+    {
+      "description_en": "Plot sky-condition properties for the Sun, Moon, and classical planets over a chosen time span.",
+      "description_es": "Gráfica propiedades de condición del cielo para Sol, Luna y planetas clásicos en un intervalo de tiempo elegido.",
+      "icon": "🪐",
+      "title_en": "Planetary Ephemerides",
+      "title_es": "Efemerides planetarias"
+    },
+    {
+      "description_en": "Extreme rise and set azimuths for the Sun, planets, and stars on an azimuth disk (N at top).",
+      "description_es": "Azimuts extremos de salida y puesta para Sol, planetas y estrellas sobre un disco de azimut (N arriba).",
+      "icon": "⭕",
+      "title_en": "Orientation Disk",
+      "title_es": "Disco de orientacion"
+    },
+    {
+      "description_en": "Find which bright stars passed through a fixed azimuth and elevation over a date range, with precession.",
+      "description_es": "Encuentra que estrellas brillantes pasaron por un azimut y elevación fijos en un rango de fechas, con precesión.",
+      "icon": "📐",
+      "title_en": "Star Alignments",
+      "title_es": "Alineamientos estelares"
+    },
+    {
+      "description_en": "Find first visible morning appearances of named stars and planets using Schaefer or Belokrylov visibility models. For a list of historical Sirius heliacal rises see this link.",
+      "description_es": "Encuentra primeras apariciones matutinas visibles de estrellas y planetas usando modelos de visibilidad de Schaefer o Belokrylov. Para ver una lista de ortos helíacos históricos de Sirio, consulta este enlace.",
+      "icon": "🌅",
+      "title_en": "Heliacal Rises",
+      "title_es": "Ortos helíacos"
+    }
+  ],
+  "paragraphs_en": [
+    "<b>MontuPython</b> computes astronomical ephemerides thousands of years before the present — developed for ancient Egypt and useful at any archaeoastronomical site. <b>MontuPython Desktop</b> is its graphical front-end: open a module from the sidebar to run predefined calculations. Each module also offers Python code you can copy into your own projects."
+  ],
+  "paragraphs_es": [
+    "<b>MontuPython</b> calcula efemérides astronómicas miles de años antes del presente: fue desarrollado para el antiguo Egipto y es útil en cualquier sitio de arqueoastronomía. <b>MontuPython Desktop</b> es su interfaz gráfica: abre un módulo desde la barra lateral para ejecutar cálculos predefinidos. Cada módulo también ofrece código Python que puedes copiar a tus propios proyectos."
+  ],
+  "people": {
+    "advisors_en": "Francisco Vivas (archaeoastronomy & egyptology), José Lull (archaeoastronomy, egiptology & astronomy)",
+    "advisors_es": "Francisco Vivas (arqueoastronomía y egiptología), José Lull (arqueoastronomía, egiptología y astronomía)",
+    "author_en": "Jorge I. Zuluaga © 2023–present",
+    "author_es": "Jorge I. Zuluaga © 2023-presente",
+    "contributors_en": "Juanita Agudelo (early web app), Luis Arroyo (online web app)",
+    "contributors_es": "Juanita Agudelo (app web temprana), Luis Arroyo (app web en línea)"
+  },
+  "tagline_en": "Astronomical ephemerides for the ancient world",
+  "tagline_es": "Efemerides astronómicas para el mundo antiguo",
+  "title_en": "MontuPython Desktop",
+  "title_es": "MontuPython Desktop"
 }

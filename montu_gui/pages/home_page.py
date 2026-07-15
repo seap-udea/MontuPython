@@ -151,8 +151,7 @@ class HomePage(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        lang = get_language()
-        self._content_path = gui_asset(f"home_{lang}.json") if lang != "en" else gui_asset("home.json")
+        self._content_path = gui_asset("home.json")
         self._content_mtime: float = 0.0
         self._scroll: QScrollArea | None = None
         self._root: QVBoxLayout | None = None

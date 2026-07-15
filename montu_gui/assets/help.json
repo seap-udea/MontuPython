@@ -1,475 +1,679 @@
 {
   "_common": {
-    "observer_location": {
-      "title": "Observer location",
-      "body": "<p>Geographic observing site <b>shared by all sky modules</b>. Set latitude, longitude, and altitude in the <b>🧭 Observer Location</b> module; the label here shows the active site.</p><p>Latitude and longitude define the local horizon, sidereal time, and azimuth/elevation; altitude [m] is converted to kilometres for <code>montu.Observer</code>.</p>"
-    },
     "bce": {
-      "title": "BCE",
-      "body": "Before Common Era. Enter the historical year as a positive integer (e.g. 2500 for 2500 BCE). MontuPython converts internally to astronomical year numbering for computation."
+      "body_en": "Before Common Era. Enter the historical year as a positive integer (e.g. 2500 for 2500 BCE). MontuPython converts internally to astronomical year numbering for computation.",
+      "body_es": "Antes de la Era Comun. Ingresa el año histórico como entero positivo (p. ej. 2500 para 2500 AEC). MontuPython convierte internamente a numeración astronómica de años para el cálculo.",
+      "title_en": "BCE",
+      "title_es": "AEC"
     },
     "ce": {
-      "title": "CE",
-      "body": "Common Era (historically “AD”). Enter the year as a positive integer (e.g. 2026 for 2026 CE)."
+      "body_en": "Common Era (historically “AD”). Enter the year as a positive integer (e.g. 2026 for 2026 CE).",
+      "body_es": "Era Comun (históricamente \"d.C.\"). Ingresa el año como entero positivo (p. ej. 2026 para 2026 EC).",
+      "title_en": "CE",
+      "title_es": "EC"
     },
     "date_proleptic": {
-      "title": "Date (proleptic Gregorian)",
-      "body": "<p>Calendar date in the <b>proleptic Gregorian</b> system with historical BCE/CE years. Used to precess star coordinates to the selected epoch.</p><p>Choose era, then year, month, and day. Local time is set separately.</p>"
-    },
-    "year": {
-      "title": "Year",
-      "body": "<p>Calendar year as a positive integer together with the selected <b>BCE</b> or <b>CE</b> era.</p><p>Example: <code>2500</code> with <b>BCE</b> → year 2500 BCE.</p>"
-    },
-    "month": {
-      "title": "Month",
-      "body": "<p>Gregorian month (January–December) for the selected date.</p>"
+      "body_en": "<p>Calendar date in the <b>proleptic Gregorian</b> system with historical BCE/CE years. Used to precess star coordinates to the selected epoch.</p><p>Choose era, then year, month, and day. Local time is set separately.</p>",
+      "body_es": "<p>Fecha de calendario en el sistema <b>gregoriano proléptico</b> con años históricos AEC/EC. Se usa para precesar coordenadas estelares a la época seleccionada.</p><p>Elige era, luego año, mes y día. La hora local se define por separado.</p>",
+      "title_en": "Date (proleptic Gregorian)",
+      "title_es": "Fecha (gregoriano proléptico)"
     },
     "day": {
-      "title": "Day",
-      "body": "<p>Day of month (1–31) for the selected date. February length follows the proleptic Gregorian rules.</p>"
+      "body_en": "<p>Day of month (1–31) for the selected date. February length follows the proleptic Gregorian rules.</p>",
+      "body_es": "<p>Día del mes (1-31) para la fecha seleccionada. La longitud de febrero sigue las reglas gregorianas prolépticas.</p>",
+      "title_en": "Day",
+      "title_es": "Día"
     },
     "local_solar_time": {
-      "title": "Local time",
-      "body": "<p>Local <b>solar</b> civil time at the observer — hours, minutes, and seconds. With geographic longitude, MontuPython converts this instant to UTC for horizon lines, meridian view, and solar-system body positions.</p>"
+      "body_en": "<p>Local <b>solar</b> civil time at the observer — hours, minutes, and seconds. With geographic longitude, MontuPython converts this instant to UTC for horizon lines, meridian view, and solar-system body positions.</p>",
+      "body_es": "<p>Hora civil <b>solar</b> local del observador: horas, minutos y segundos. Con la longitud geográfica, MontuPython convierte este instante a UTC para líneas de horizonte, vista meridiana y posiciones de cuerpos del sistema solar.</p>",
+      "title_en": "Local time",
+      "title_es": "Hora local"
     },
     "mag_limit_v": {
-      "title": "Limiting magnitude (V)",
-      "body": "<p>Johnson <b>V</b>-band visual magnitude cutoff. Only objects <b>brighter than or equal to</b> this value are included (smaller numbers = brighter).</p><p>Reference: Sirius ≈ −1.5; naked-eye limit ≈ 6.5 under dark skies.</p>"
-    }
-  },
-  "calendar": {
-    "result": {
-      "weekday": {
-        "title": "Weekday",
-        "body": "<p>Day of the week for the converted instant (<code>Time.readable.weekday</code> and <code>weekday_name</code>).</p><p><b>Format:</b> English name + number in parentheses. MontuPython convention: <b>1 = Sunday</b> … <b>7 = Saturday</b>.</p><p><b>Examples:</b> <code>Friday (6)</code>, <code>Wednesday (4)</code>.</p>"
-      },
-      "spice": {
-        "title": "Gregorian proleptic (human)",
-        "body": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — caniucular datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>"
-      },
-      "proleptic": {
-        "title": "Gregorian proleptic (astronomical)",
-        "body": "<p>Proleptic Gregorian date in the <b>astronomical year convention</b> (<code>Time.readable.datepro</code>): year&nbsp;0 = 1&nbsp;BCE, year&nbsp;−1 = 2&nbsp;BCE, etc. Useful for continuous calculations without a gap at year&nbsp;1.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS.ffff</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS.ffff</code> for BCE dates (leading minus on the astronomical year)</li><li>ISO-like ordering: year, month, day, then 24-hour time</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:00.0000</code> — 7 March 2026 CE</li><li><code>-2780-06-27 00:00:00.0000</code> — astronomical year −2780 (= 2781 BCE)</li><li><code>-0001-01-01 00:00:00.0000</code> — 1 BCE (astronomical year 0 is 1 BCE in historical terms)</li></ul>"
-      },
-      "mixed": {
-        "title": "Mixed Julian/Gregorian",
-        "body": "<p>Calendar date in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward. This is the usual choice for real historical dates.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates (minus prefix on astronomical year)</li><li>Month lengths follow the active calendar (Julian or Gregorian) for that date</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:30</code> — modern date (Gregorian rules)</li><li><code>1582-10-04 00:00:00</code> — last Julian day before the 1582 reform (in affected countries)</li><li><code>-2780-07-20 00:00:00</code> — ancient date under Julian rules (near the caniucular datum)</li></ul>"
-      },
-      "caniucular": {
-        "title": "Caniucular (Egyptian civil)",
-        "body": "<p>Date in the Egyptian <b>civil (caniucular)</b> calendar (<code>Time.readable.datecan</code>): Horus year, month, season, and day. The year begins with the heliacal rise of Sirius (Sothis); the epoch is <code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20.</p><p><b>Format</b></p><ul><li><code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — Akhet, Peret, Shemu, or Mesut (intercalary)</li><li><b>DAY</b> — 1–30</li></ul><p><b>Examples</b></p><ul><li><code>hrw 0-I-Akhet-1</code> — caniucular epoch (datum)</li><li><code>hrw 1-I-Akhet-2</code> — day after the datum in Horus year 1</li><li><code>hrw 4809-III-Shemu-25</code> — 7 March 2026 CE in civil form</li></ul>"
-      },
-      "jd_utc": {
-        "title": "Julian Day — UTC",
-        "body": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch (1&nbsp;January&nbsp;4713&nbsp;BCE, 12:00&nbsp;TT). A pure number — not a calendar string.</p><p><b>Format</b></p><ul><li>Decimal number: <code>integer.fraction</code></li><li>Fraction 0.0 = noon at the beginning of that JD; 0.5 = midnight; add 0.5 to move from noon-based JD to midnight-based conventions if needed</li><li>Typically shown with 6 decimal places in this table</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 (2000-01-01 12:00 TT ≈ standard epoch)</li><li><code>2461231.5</code> — noon on a modern Julian day</li><li><code>705863.500000</code> — caniucular datum region (BCE 2782-07-20)</li></ul>"
-      },
-      "tt": {
-        "title": "TT ephemeris seconds (J2000)",
-        "body": "<p>Ephemeris seconds on the <b>TT (Terrestrial Time)</b> scale, measured from <b>J2000.0</b> (2000-01-01 12:00 TT). Corresponds to <code>Time.tt</code>. <b>Not a Julian Day</b> — it is a uniform atomic-time-style count used by SPICE and many ephemerides.</p><p><b>Format</b></p><ul><li>Decimal seconds (may be negative for dates before J2000)</li><li>Uniform scale — no leap seconds</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 epoch</li><li><code>86400.0</code> — one TT day after J2000.0</li><li>Large negative values for ancient dates (e.g. near BCE&nbsp;2782)</li></ul>"
-      },
-      "et": {
-        "title": "UTC ephemeris seconds (J2000)",
-        "body": "<p>Ephemeris seconds on the <b>UTC</b> scale, measured from J2000.0. Corresponds to <code>Time.et</code>. In MontuPython: <code>et = tt − deltat</code>.</p><p><b>Format</b></p><ul><li>Decimal seconds from J2000.0 (UTC)</li><li>Differs from TT by Delta-T (Earth rotation effects)</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 (UTC ephemeris time origin)</li><li>For any date, typically a few tens of seconds less than the TT value at the same instant (see Delta-T)</li></ul>"
-      },
-      "delta_t": {
-        "title": "Delta-T (seconds)",
-        "body": "<p>Difference <b>TT − UTC</b> in seconds (<code>Time.deltat</code>). Accounts for irregular Earth rotation (tidal braking and leap seconds). Required to convert between civil UTC and uniform TT.</p><p><b>Format</b></p><ul><li>Decimal seconds (positive in the modern era: TT runs ahead of UTC)</li><li>Tabulated internally by MontuPython for historical dates</li></ul><p><b>Examples</b></p><ul><li><code>67.184</code> — approximate value near 2020 CE</li><li><code>67692.000</code> — much larger for ancient dates (e.g. BCE&nbsp;2782), where extrapolation uncertainty is high</li></ul>"
-      }
+      "body_en": "<p>Johnson <b>V</b>-band visual magnitude cutoff. Only objects <b>brighter than or equal to</b> this value are included (smaller numbers = brighter).</p><p>Reference: Sirius ≈ −1.5; naked-eye limit ≈ 6.5 under dark skies.</p>",
+      "body_es": "<p>Corte de magnitud visual en banda Johnson <b>V</b>. Solo se incluyen objetos <b>más brillantes o iguales</b> a este valor (números más pequeños = más brillantes).</p><p>Referencia: Sirio ≈ -1.5; límite a simple vista ≈ 6.5 en cielos oscuros.</p>",
+      "title_en": "Limiting magnitude (V)",
+      "title_es": "Magnitud límite (V)"
     },
-    "input": {
-      "julian_gregorian": {
-        "title": "Julian / Gregorian",
-        "body": "Enter a date in the familiar Gregorian-style calendar. Choose BCE or CE, Mixed or Proleptic calendar type, then pick the date and time. Results update automatically as you change any field."
-      },
-      "caniucular": {
-        "title": "Caniucular",
-        "body": "Enter a date in the Egyptian civil calendar: Horus year, month (I–IV within the season), season name, and day (1–30). Each season has four months of 30 days."
-      },
-      "julian_day": {
-        "title": "Julian Day Number",
-        "body": "Enter a Julian Day Number (UTC scale), optionally with a fractional part for the time of day. Example: <code>2461231.5</code> is noon on that Julian day."
-      },
-      "historical_dates": {
-        "title": "Historical dates",
-        "body": "Select a preset date from Egyptology and astronomy literature. See also the full help under <b>Historical dates</b> (input mode) or <b>Historical Date</b> above the preset list for sources, including José Lull’s <i>La astronomía en el antiguo Egipto</i>."
-      },
-      "bce": {
-        "$ref": "_common/bce"
-      },
-      "ce": {
-        "$ref": "_common/ce"
-      },
-      "mixed": {
-        "title": "Mixed",
-        "body": "Use the historically correct calendar rules: Julian calendar before the 1582 reform, Gregorian calendar afterward. Recommended for real historical dates."
-      },
-      "proleptic": {
-        "title": "Proleptic",
-        "body": "Extend Gregorian calendar rules backward for the entire timeline. No Julian–Gregorian switch — useful for uniform astronomical or mathematical dating."
-      },
-      "date_grid_weekdays": {
-        "title": "Date (gregorian style, proleptic weekdays)",
-        "body": "<p>The month grid is a <b>date picker</b> in Gregorian style. Its weekday columns follow the <b>proleptic Gregorian</b> layout because Qt’s calendar widget and the desktop UI use that convention internally — not necessarily the weekday of your chosen <b>Mixed</b> or <b>BCE</b> calendar rules.</p><p>To know the true day of the week for the converted instant, read the <b>Weekday</b> row in the conversion results (from MontuPython).</p><p><b>Example:</b> <code>1582-10-04</code> in <b>Mixed</b> (still Julian) was a <b>Thursday</b> — output shows <code>Thursday (5)</code> — but the grid for October 1582 places the 4th under <b>Monday</b>, because the grid uses the proleptic Gregorian alignment for that civil date.</p>"
-      },
-      "horus_year": {
-        "title": "Horus Year",
-        "body": "<p>Year in the Egyptian civil calendar counted from the <b>Horus</b> (caniucular) epoch. Year&nbsp;0 is anchored at the first <i>apokatastasis</i> (<code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20).</p><p><b>Format</b></p><ul><li>Integer (may be negative for years before the epoch in some displays)</li><li>Appears as the first number in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>0</code> — epoch year (datum)</li><li><code>1</code> — one civil year after the datum</li><li><code>4809</code> — modern date in Horus years (e.g. 2026 CE)</li></ul>"
-      },
-      "caniucular_month": {
-        "title": "Month",
-        "body": "<p>Month within the current <b>season</b> in the Egyptian civil calendar. Each season has four months, numbered with Roman numerals I–IV (not the 12 Gregorian months).</p><p><b>Format</b></p><ul><li>One of: <code>I</code>, <code>II</code>, <code>III</code>, <code>IV</code></li><li>Third field in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>I</code> — first month of the season (days 1–30)</li><li><code>IV</code> — fourth and last month of the season</li><li><code>hrw 0-I-Akhet-1</code> — month I of season Akhet at the datum</li></ul>"
-      },
-      "caniucular_season": {
-        "title": "Season",
-        "body": "<p>Season name in the Egyptian civil calendar. The year is divided into three seasons of 120 days (Akhet, Peret, Shemu), plus an optional intercalary period (Mesut).</p><p><b>Format</b></p><ul><li>One of: <code>Akhet</code>, <code>Peret</code>, <code>Shemu</code>, <code>Mesut</code></li><li>Akhet — inundation; Peret — emergence; Shemu — harvest; Mesut — epagomenal days (5 days after Shemu IV-30)</li></ul><p><b>Examples</b></p><ul><li><code>Akhet</code> — first season; contains <code>hrw 0-I-Akhet-1</code></li><li><code>Shemu</code> — e.g. <code>hrw 4809-III-Shemu-25</code> for a modern March date</li><li><code>Mesut</code> — epagomenal days 1–5; e.g. day after <code>IV-Shemu-30</code> is <code>I-Mesut-1</code></li></ul>"
-      },
-      "caniucular_day": {
-        "title": "Day",
-        "body": "<p>Day within the current month and season. Regular seasons use days 1–30; the intercalary season <b>Mesut</b> uses days 1–5 only.</p><p><b>Format</b></p><ul><li>Integer day in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li>Range 1–30 (Akhet, Peret, Shemu) or 1–5 (Mesut)</li></ul><p><b>Examples</b></p><ul><li><code>1</code> — first day of the month/season block</li><li><code>30</code> — last day of a regular month (e.g. <code>IV-Shemu-30</code>)</li><li><code>3</code> on Mesut — third epagomenal day before the new year</li></ul>"
-      },
-      "caniucular_offset": {
-        "title": "Step day",
-        "body": "<p>Use <b>−</b> and <b>+</b> to move one civil day backward or forward from the current caniucular date. All input forms and the results table update immediately.</p><p><b>Examples</b></p><ul><li><code>IV-Shemu-30</code> then <b>+</b> → <code>I-Mesut-1</code></li><li><code>I-Mesut-5</code> then <b>+</b> → <code>I-Akhet-1</code> of the next Horus year</li><li><b>−</b> reverses the same transitions</li></ul>"
-      },
-      "julian_day_utc": {
-        "title": "Julian Day (UTC)",
-        "body": "<p>Julian Day Number on the <b>UTC</b> scale (<code>Time.jed</code>). Enter days and an optional fractional part for the time of day. This is the primary numeric input when converting from JD to all calendar formats.</p><p><b>Format</b></p><ul><li>Decimal: <code>integer.fraction</code></li><li>Fraction .0 = noon at the start of that JD; .5 = midnight in common conventions</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 epoch</li><li><code>2461231.5</code> — noon on that Julian day</li><li><code>625307.5</code> — default sample value in this form</li></ul>"
-      }
+    "month": {
+      "body_en": "<p>Gregorian month (January–December) for the selected date.</p>",
+      "body_es": "<p>Mes gregoriano (enero-diciembre) para la fecha seleccionada.</p>",
+      "title_en": "Month",
+      "title_es": "Mes"
     },
-    "historical": {
-      "historical_dates": {
-        "title": "Historical Dates",
-        "body": "<p>Preset <b>historical dates</b> from the past whose instant is known in more than one calendar system — typically as a Julian/Gregorian date <i>and</i> as an Egyptian civil (caniucular) date, and sometimes with a lunar or documentary context. Select an entry to load it into all input forms and the results table.</p><p>Most entries come from the astronomy of ancient Egypt as discussed by the Egyptologist <b>José Lull</b> in <i>La astronomía en el antiguo Egipto</i> (<i>Astronomy in Ancient Egypt</i>, Universitat de València). Page references below are to that book unless noted otherwise.</p><p><b>Presets and sources</b></p><ul><li><b>BCE 2782-07-20</b> — First <i>apokatastasis</i> (caniucular datum <code>hrw 0-I-Akhet-1</code>); Lull, calendar chapter</li><li><b>BCE 1322-07-20</b> — Second <i>apokatastasis</i>; Lull</li><li><b>CE 139-07-20</b> — Third <i>apokatastasis</i> (Censorinus); Lull, p.&nbsp;95</li><li><b>BCE 559-10-19</b> — Papyrus Louvre 7848 (civil + lunar dates); Lull, p.&nbsp;94</li><li><b>BCE 238-03-07</b> — Canopus decree; Lull, p.&nbsp;76</li><li><b>BCE 237-08-23</b> / <b>BCE 212-08-17</b> — Edfu temple inscriptions (25-year lunar cycle); Lull, p.&nbsp;92</li><li><b>CE 384-07-23</b> — Theon of Alexandria, heliacal rise of Sirius; Lull, p.&nbsp;98</li><li><b>BCE 688-06-11</b> — Papyrus Louvre E3228d (Taharqa, year 3); Lull, p.&nbsp;105</li><li><b>BCE 46-01-01</b> — Julian calendar reform (Sosigenes); Suetonius, <i>Divus Julius</i></li></ul>"
-      }
-    }
-  },
-  "seasons": {
-    "seasons": {
-      "northward_equinox": {
-        "title": "Northward equinox",
-        "body": "<p>The <b>northward (vernal) equinox</b>: the instant when the Sun crosses the celestial equator moving northward. Day and night are nearly equal in length.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>spring</b> (primavera)</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>autumn</b> (otoño)</li></ul><p>Computed with <code>Sun.next_seasons()</code> via PyEphem.</p>"
-      },
-      "northern_solstice": {
-        "title": "Northern solstice",
-        "body": "<p>The <b>northern (summer) solstice</b>: the instant when the Sun reaches its maximum declination north of the celestial equator.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>summer</b> (verano) — longest day of the year</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>winter</b> (invierno) — shortest day of the year</li></ul>"
-      },
-      "southward_equinox": {
-        "title": "Southward equinox",
-        "body": "<p>The <b>southward (autumnal) equinox</b>: the instant when the Sun crosses the celestial equator moving southward. Day and night are nearly equal in length.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>autumn</b> (otoño)</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>spring</b> (primavera)</li></ul>"
-      },
-      "southern_solstice": {
-        "title": "Southern solstice",
-        "body": "<p>The <b>southern (winter) solstice</b>: the instant when the Sun reaches its maximum declination south of the celestial equator.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>winter</b> (invierno) — shortest day of the year</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>summer</b> (verano) — longest day of the year</li></ul>"
-      }
+    "observer_location": {
+      "body_en": "<p>Geographic observing site <b>shared by all sky modules</b>. Set latitude, longitude, and altitude in the <b>🧭 Observer Location</b> module; the label here shows the active site.</p><p>Latitude and longitude define the local horizon, sidereal time, and azimuth/elevation; altitude [m] is converted to kilometres for <code>montu.Observer</code>.</p>",
+      "body_es": "<p>Sitio geográfico de observación <b>compartido por todos los módulos del cielo</b>. Define latitud, longitud y altitud en el módulo <b>🧭 Ubicación del observador</b>; la etiqueta aqui muestra el sitio activo.</p><p>La latitud y la longitud definen el horizonte local, el tiempo sideral y el azimut/elevación; la altitud [m] se convierte a kilómetros para <code>montu.Observer</code>.</p>",
+      "title_en": "Observer location",
+      "title_es": "Ubicación del observador"
     },
-    "phases": {
-      "new_moon": {
-        "title": "🌑 New Moon",
-        "body": "<p><b>New Moon</b> (<code>new</code>): the Moon is between Earth and the Sun; the illuminated hemisphere faces away from us. The Moon is invisible or barely visible as a thin crescent at dusk/dawn.</p><p>One synodic month ≈ 29.5 days from new moon to new moon.</p>"
-      },
-      "first_quarter": {
-        "title": "🌓 First Quarter",
-        "body": "<p><b>First Quarter</b> (<code>first</code>): the Moon has completed one quarter of its orbit since the last new moon. The eastern half of the disc is illuminated — a half-moon visible in the afternoon and evening sky.</p>"
-      },
-      "full_moon": {
-        "title": "🌕 Full Moon",
-        "body": "<p><b>Full Moon</b> (<code>full</code>): the Moon is opposite the Sun in the sky; the entire near-side disc is illuminated. Rises at sunset, sets at sunrise.</p>"
-      },
-      "last_quarter": {
-        "title": "🌗 Last Quarter",
-        "body": "<p><b>Last Quarter</b> (<code>last</code>): the Moon has completed three quarters of its orbit since the last new moon. The western half of the disc is illuminated — a half-moon visible in the late night and morning sky.</p>"
-      }
-    },
-    "input": {
-      "bce": {
-        "$ref": "_common/bce"
-      },
-      "ce": {
-        "$ref": "_common/ce"
-      }
-    },
-    "fields": {
-      "gregorian_proleptic": {
-        "title": "Gregorian proleptic",
-        "body": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>).</p><p><b>Format:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code> (CE) or <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (BCE).</p>"
-      },
-      "mixed": {
-        "title": "Mixed Julian/Gregorian",
-        "body": "<p>Date in the <b>mixed</b> calendar convention (<code>Time.readable.datemix</code>): Julian before 1582-10-15, Gregorian afterward.</p><p><b>Format:</b> <code>YYYY-MM-DD HH:MM:SS</code> (CE) or <code>-YYYY-MM-DD HH:MM:SS</code> (BCE, astronomical year).</p>"
-      },
-      "caniucular": {
-        "title": "Caniucular",
-        "body": "<p>Egyptian civil calendar date (<code>Time.readable.datecan</code>).</p><p><b>Format:</b> <code>hrw HYEAR-MONTH-SEASON-DAY</code></p>"
-      },
-      "season_delta_t": {
-        "title": "ΔT (days after previous season)",
-        "body": "<p>Elapsed time in <b>days</b> since the previous astronomical season event.</p><ul><li>For the <b>Northward equinox</b>, counted from the previous <b>Southern solstice</b>.</li><li>For subsequent seasons, counted from the immediately preceding season in the same year.</li></ul><p>Based on the difference of Julian Day numbers returned by MontuPython.</p>"
-      },
-      "quarter_delta_t": {
-        "title": "ΔT (since last quarter)",
-        "body": "<p>Elapsed time in <b>days</b> since the previous lunar quarter phase (new, first, full, or last).</p><p>For the first quarter listed in the year, counted from the last quarter before 1 January.</p><p>Typical values: ~7 days (new → first), ~7 days (first → full), ~7 days (full → last), ~7 days (last → new).</p>"
-      }
-    }
-  },
-  "planets": {
-    "input": {
-      "initial_date": {
-        "title": "Initial date (proleptic Gregorian)",
-        "body": "<p>Start of the ephemeris interval in the <b>proleptic Gregorian</b> calendar using <b>historical</b> BCE/CE years.</p><p>Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. Example: <b>1500 BCE</b>, 1 January is year&nbsp;1500 before the Common Era — internally converted to astronomical year&nbsp;−1499 for computation.</p><p>The chart axis shows astronomical proleptic dates (<code>datepro</code>); the title uses the human-readable SPICE-style form (<code>1500 B.C. 01-01</code>).</p>"
-      },
-      "bce": {
-        "$ref": "_common/bce"
-      },
-      "ce": {
-        "$ref": "_common/ce"
-      },
-      "time_span": {
-        "title": "Time span (years)",
-        "body": "<p>Duration of the sample interval in <b>years</b> (not days or months). The module builds an evenly spaced grid from the initial date through this span.</p><p>Example: initial date <code>-1500-01-01</code> and span <code>10</code> covers roughly 1500 BCE to 1490 BCE.</p>"
-      },
-      "num_points": {
-        "title": "Number of points",
-        "body": "<p>How many evenly spaced time steps to compute along the interval. More points give a smoother curve but take longer to calculate.</p><p>Minimum: 2. Default in Montu App: 120.</p>"
-      },
-      "planets": {
-        "title": "Planets (classic)",
-        "body": "<p>Select one or more <b>classical wanderers</b> to plot. In antiquity the word <i>planet</i> (Greek <i>planētēs</i>, “wanderer”) included the <b>Sun</b> and <b>Moon</b> along with Mercury, Venus, Mars, Jupiter, and Saturn — seven bodies that move against the fixed stars.</p><p>Available here: Sun, Moon, Mercury, Venus, Mars, Jupiter, Saturn. Each selection appears as a separate coloured line. Uranus, Neptune, and Earth are excluded.</p>"
-      },
-      "property": {
-        "title": "Property",
-        "body": "<p>Ephemeris quantity plotted on the Y-axis. The dropdown shows friendly quantity names; the full catalogue is loaded from <code>assets/planet_properties.json</code>.</p>"
-      }
-    },
-    "chart": {
-      "chart": {
-        "title": "Chart",
-        "body": "<p>The <b>initial date</b> in Parameters uses the <b>proleptic Gregorian</b> calendar with <b>historical</b> BCE/CE years — e.g. entering <b>1500 BCE</b> means the year 1500 before the Common Era.</p><p>The chart <b>X-axis</b> and the <b>hover tooltip</b> <code>datestr</code> show <b>proleptic Gregorian</b> dates in <b>astronomical</b> year numbering (e.g. <code>May 12, -1499</code> = 12 May 1500 BCE; there is no year&nbsp;0, so 1&nbsp;BCE = year&nbsp;0).</p><p>The plot <b>title</b> uses the human-readable proleptic form (e.g. <code>1500 B.C. 01-01</code>).</p><p><b>Hover</b> over any point on the curve to read <code>datestr</code> (proleptic Gregorian, astronomical), Julian day (JD), and the selected property value. Use the rangeslider below the plot to zoom the time axis.</p>"
-      }
+    "year": {
+      "body_en": "<p>Calendar year as a positive integer together with the selected <b>BCE</b> or <b>CE</b> era.</p><p>Example: <code>2500</code> with <b>BCE</b> → year 2500 BCE.</p>",
+      "body_es": "<p>Año de calendario como entero positivo junto con la era seleccionada <b>AEC</b> o <b>EC</b>.</p><p>Ejemplo: <code>2500</code> con <b>AEC</b> -> año 2500 AEC.</p>",
+      "title_en": "Year",
+      "title_es": "Año"
     }
   },
   "alignments": {
-    "input": {
-      "location": {
-        "$ref": "_common/observer_location"
+    "chart": {
+      "map": {
+        "body_en": "<p>Mercator sky map at the <b>midpoint epoch</b> of the search range (RA vs declination).</p><p><b>Elements:</b></p><ul><li><b>White circles</b> — bright stars in their precessed positions</li><li><b>Gold stars ★</b> — aligned stars</li><li><b>Gold dashed line</b> — target declination</li><li><b>Gold shaded band</b> — declination tolerance</li><li><b>Blue dotted line</b> — <b>circumpolar limit</b>: stars beyond this declination never set at the observer latitude (northern sites: dec ≥ limit; southern sites: dec ≤ limit).</li></ul><p><b>Hover</b> over any star for name, coordinates, magnitude, and alignment details.</p>",
+        "body_es": "<p>Mapa de cielo tipo Mercator en la época media del rango de búsqueda (AR vs declinación). Incluye estrellas, banda de tolerancia y línea de declinación objetivo.</p>",
+        "title_en": "Sky map",
+        "title_es": "Mapa celeste"
       },
-      "famous_alignments": {
-        "title": "Famous alignments",
-        "body": "<p>Load a documented archaeological sky alignment from <code>assets/alignments.json</code>. Selecting a preset fills the observer site, azimuth, elevation, date range, limiting magnitude, and declination tolerance.</p><p>Presets include:</p><ul><li><b>Khufu north/south shafts</b> — Great Pyramid of Giza (Old Kingdom)</li><li><b>Djoser serdab</b> — Step Pyramid at Saqqara (3rd Dynasty)</li><li><b>Senenmut TT353</b> — tomb-temple entrance at Deir el-Bahari (1472–1457 BCE)</li></ul>"
-      },
-      "azimuth": {
-        "title": "Azimuth",
-        "body": "<p>Horizontal compass bearing of the alignment direction, measured <b>clockwise from true North</b>.</p><ul><li>0° = North (e.g. the northern shafts of the Great Pyramid)</li><li>90° = East (objects rise due East only on the celestial equator)</li><li>180° = South (southern shafts of the Great Pyramid point here)</li><li>270° = West</li></ul><p>The azimuth, together with the elevation and the observer latitude, uniquely determines the <b>target declination</b> shown below the inputs.</p>"
-      },
-      "elevation": {
-        "title": "Elevation (altitude)",
-        "body": "<p>Angle above the horizon [degrees] of the alignment direction.</p><p>Examples from the Great Pyramid of Khufu:</p><ul><li><b>King's Chamber northern shaft</b> — elevation ≈ 31.7°</li><li><b>King's Chamber southern shaft</b> — elevation ≈ 44.5°</li><li><b>Queen's Chamber northern shaft</b> — elevation ≈ 39.6°</li><li><b>Queen's Chamber southern shaft</b> — elevation ≈ 39.6°</li></ul><p>Horizontal (0°) points to the horizon; vertical (90°) points to the zenith.</p>"
-      },
-      "year_start": {
-        "title": "From (year)",
-        "body": "<p>Start of the search interval. Enter a positive year and select <b>BCE</b> or <b>CE</b>.</p><p>The module will sample the stellar catalogue at several epochs between the start and end years, precessing each star's coordinates to the epoch-of-date system.</p><p>Default: 2620 BCE — slightly before the accepted construction date of the Great Pyramid (~2 560 BCE).</p>"
-      },
-      "year_end": {
-        "title": "To (year)",
-        "body": "<p>End of the search interval. Enter a positive year and select <b>BCE</b> or <b>CE</b>.</p><p>Default: 2420 BCE — about 140 years after the nominal construction date. Widening this range increases the chance of catching stars whose alignment window overlaps the range.</p>"
-      },
-      "mag_limit": {
-        "title": "Limiting magnitude (V)",
-        "body": "<p>Only stars with a Johnson V-band visual magnitude <b>brighter than or equal to</b> this value are included.</p><p>Examples of reference magnitudes:</p><ul><li>Sirius (brightest star) — V = −1.46</li><li>Thuban (α Draconis, Great Pyramid alignment) — V ≈ 3.65</li><li>Naked-eye limit under dark skies — V ≈ 6.5</li></ul><p>Lower values (e.g. 2) restrict the search to the very brightest stars; higher values (e.g. 6) include fainter ones but slow computation.</p>"
-      },
-      "dec_tolerance": {
-        "title": "Declination tolerance",
-        "body": "<p>Half-width of the declination band around the target [degrees]. A star is reported as <em>aligned</em> when its epoch-of-date declination falls within <code>target ± tolerance</code>.</p><p>Rule of thumb:</p><ul><li>0.5° ≈ 30 arcminutes — tight constraint, exact alignments only</li><li>1° — default in famous-alignment presets</li><li>2°+ — wider margin for shaft width and measurement uncertainty</li></ul>"
+      "table": {
+        "body_en": "<p>Lists every star whose precessed declination falls within ±tolerance of the target declination at any sampled epoch.</p><p><b>Columns:</b></p><ul><li><b>Star</b> — proper name (e.g. Thuban) or catalogue name</li><li><b>V mag</b> — Johnson V visual magnitude</li><li><b>RA at best epoch</b> — right ascension at the year of closest approach, in h m s</li><li><b>Dec at best epoch</b> — declination at the year of closest approach</li><li><b>Δ Dec</b> — absolute difference between star declination and target</li><li><b>Best year</b> — the sampled epoch at which the star was closest to the target declination</li></ul>",
+        "body_es": "<p>Lista cada estrella cuya declinación precesada cae dentro de ±tolerancia respecto a la declinación objetivo en algún época muestreada.</p>",
+        "title_en": "Results table",
+        "title_es": "Tabla de resultados"
       }
     },
-    "chart": {
-      "table": {
-        "title": "Results table",
-        "body": "<p>Lists every star whose precessed declination falls within ±tolerance of the target declination at any sampled epoch.</p><p><b>Columns:</b></p><ul><li><b>Star</b> — proper name (e.g. Thuban) or catalogue name</li><li><b>V mag</b> — Johnson V visual magnitude</li><li><b>RA at best epoch</b> — right ascension at the year of closest approach, in h m s</li><li><b>Dec at best epoch</b> — declination at the year of closest approach</li><li><b>Δ Dec</b> — absolute difference between star declination and target</li><li><b>Best year</b> — the sampled epoch at which the star was closest to the target declination</li></ul>"
-      },
-      "map": {
-        "title": "Sky map",
-        "body": "<p>Mercator sky map at the <b>midpoint epoch</b> of the search range (RA vs declination).</p><p><b>Elements:</b></p><ul><li><b>White circles</b> — bright stars in their precessed positions</li><li><b>Gold stars ★</b> — aligned stars</li><li><b>Gold dashed line</b> — target declination</li><li><b>Gold shaded band</b> — declination tolerance</li><li><b>Blue dotted line</b> — <b>circumpolar limit</b>: stars beyond this declination never set at the observer latitude (northern sites: dec ≥ limit; southern sites: dec ≤ limit).</li></ul><p><b>Hover</b> over any star for name, coordinates, magnitude, and alignment details.</p>"
-      }
-    }
-  },
-  "location": {
     "input": {
-      "predefined": {
-        "title": "Predefined site",
-        "body": "<p>Search or select an ancient-world location from <code>assets/locations.json</code>. Choosing a site fills latitude, longitude, and altitude automatically.</p><p>Default at startup: <b>Thebes (Luxor)</b>, capital of ancient Upper Egypt.</p>"
+      "azimuth": {
+        "body_en": "<p>Horizontal compass bearing of the alignment direction, measured <b>clockwise from true North</b>.</p><ul><li>0° = North (e.g. the northern shafts of the Great Pyramid)</li><li>90° = East (objects rise due East only on the celestial equator)</li><li>180° = South (southern shafts of the Great Pyramid point here)</li><li>270° = West</li></ul><p>The azimuth, together with the elevation and the observer latitude, uniquely determines the <b>target declination</b> shown below the inputs.</p>",
+        "body_es": "<p>Rumbo horizontal de la dirección de alineamiento, medido <b>en sentido horario desde el norte verdadero</b>.</p>",
+        "title_en": "Azimuth",
+        "title_es": "Azimut"
       },
-      "decimal": {
-        "title": "Decimal degrees",
-        "body": "<p>Enter coordinates as decimal degrees (DD.dddddd°). Positive latitude = north, negative = south. Positive longitude = east, negative = west.</p><p>Example: Luxor → lat <code>25.6967</code>, lon <code>32.6422</code>.</p>"
+      "dec_tolerance": {
+        "body_en": "<p>Half-width of the declination band around the target [degrees]. A star is reported as <em>aligned</em> when its epoch-of-date declination falls within <code>target ± tolerance</code>.</p><p>Rule of thumb:</p><ul><li>0.5° ≈ 30 arcminutes — tight constraint, exact alignments only</li><li>1° — default in famous-alignment presets</li><li>2°+ — wider margin for shaft width and measurement uncertainty</li></ul>",
+        "body_es": "<p>Semiancho de la banda de declinación alrededor del objetivo [grados].</p>",
+        "title_en": "Declination tolerance",
+        "title_es": "Tolerancia en declinación"
       },
-      "sexagesimal": {
-        "title": "Sexagesimal (DMS)",
-        "body": "<p>Enter coordinates as degrees, arcminutes, and arcseconds with a hemisphere letter (N/S for latitude, E/W for longitude). Altitude remains in metres.</p><p>Example: <code>25°41'48.1\"N</code>, <code>32°38'32.0\"E</code>.</p>"
+      "elevation": {
+        "body_en": "<p>Angle above the horizon [degrees] of the alignment direction.</p><p>Examples from the Great Pyramid of Khufu:</p><ul><li><b>King's Chamber northern shaft</b> — elevation ≈ 31.7°</li><li><b>King's Chamber southern shaft</b> — elevation ≈ 44.5°</li><li><b>Queen's Chamber northern shaft</b> — elevation ≈ 39.6°</li><li><b>Queen's Chamber southern shaft</b> — elevation ≈ 39.6°</li></ul><p>Horizontal (0°) points to the horizon; vertical (90°) points to the zenith.</p>",
+        "body_es": "<p>Angulo sobre el horizonte [grados] de la dirección de alineamiento.</p>",
+        "title_en": "Elevation (altitude)",
+        "title_es": "Elevacion (altitud)"
       },
-      "latitude": {
-        "title": "Latitude",
-        "body": "<p>Geodetic latitude of the observing site [degrees]. North positive, south negative. Range: −90° … +90°.</p>"
+      "famous_alignments": {
+        "body_en": "<p>Load a documented archaeological sky alignment from <code>assets/alignments.json</code>. Selecting a preset fills the observer site, azimuth, elevation, date range, limiting magnitude, and declination tolerance.</p><p>Presets include:</p><ul><li><b>Khufu north/south shafts</b> — Great Pyramid of Giza (Old Kingdom)</li><li><b>Djoser serdab</b> — Step Pyramid at Saqqara (3rd Dynasty)</li><li><b>Senenmut TT353</b> — tomb-temple entrance at Deir el-Bahari (1472–1457 BCE)</li></ul>",
+        "body_es": "<p>Carga un alineamiento arqueoastronómico documentado desde <code>assets/alignments.json</code>. El preset rellena sitio, azimut, elevación, rango temporal, magnitud límite y tolerancia en declinación.</p>",
+        "title_en": "Famous alignments",
+        "title_es": "Alineamientos famosos"
       },
-      "longitude": {
-        "title": "Longitude",
-        "body": "<p>Geodetic longitude of the observing site [degrees]. East positive, west negative. Range: −180° … +180°.</p>"
-      },
-      "altitude": {
-        "title": "Altitude",
-        "body": "<p>Elevation above mean sea level in <b>metres</b>. Converted internally to kilometres for <code>montu.Observer</code>. When you click the map, MontuPython queries the free <a href=\"https://open-elevation.com/\">Open-Elevation</a> service.</p>"
-      },
-      "map_labels": {
-        "title": "Map labels",
-        "body": "<p>Choose how place names appear on the map tiles.</p><ul><li><b>Local names</b> — standard OpenStreetMap tiles (e.g. Arabic in Egypt).</li><li><b>English names</b> — Wikimedia internationalized tiles that prefer <code>name:en</code> where available.</li></ul><p>Switching reloads the map. Your choice is remembered for future sessions.</p>"
-      }
-    }
-  },
-  "orientation_disk": {
-    "input": {
       "location": {
         "$ref": "_common/observer_location"
       },
-      "add_body": {
-        "title": "Add a body",
-        "body": "<p>Choose a <b>Sun</b>, <b>Moon</b>, planet, or named star from the dropdown and click <b>＋ Add</b>. Each body appears as a row on the disk with its own effective horizon altitude.</p><p>The star list respects the <b>V magnitude</b> filter below. Duplicate bodies are not allowed. At least one body must remain on the disk.</p><p>From the reference year, MontuPython sweeps max(2 years, orbital period) per body and finds the northernmost and southernmost rise (△) and set (▽) azimuths.</p>"
+      "mag_limit": {
+        "body_en": "<p>Only stars with a Johnson V-band visual magnitude <b>brighter than or equal to</b> this value are included.</p><p>Examples of reference magnitudes:</p><ul><li>Sirius (brightest star) — V = −1.46</li><li>Thuban (α Draconis, Great Pyramid alignment) — V ≈ 3.65</li><li>Naked-eye limit under dark skies — V ≈ 6.5</li></ul><p>Lower values (e.g. 2) restrict the search to the very brightest stars; higher values (e.g. 6) include fainter ones but slow computation.</p>",
+        "body_es": "<p>Solo se incluyen estrellas con magnitud visual Johnson V <b>más brillante o igual</b> a este valor.</p>",
+        "title_en": "Limiting magnitude (V)",
+        "title_es": "Magnitud límite (V)"
       },
-      "star_mag_filter": {
-        "title": "Stars with V mag ≤",
-        "body": "<p>Filters which <b>named stars</b> appear in the add-body dropdown. Only stars brighter than or equal to this Johnson V magnitude are listed.</p><p>Does not affect planets or the Sun/Moon. Lower values show fewer, brighter stars.</p>"
+      "year_end": {
+        "body_en": "<p>End of the search interval. Enter a positive year and select <b>BCE</b> or <b>CE</b>.</p><p>Default: 2420 BCE — about 140 years after the nominal construction date. Widening this range increases the chance of catching stars whose alignment window overlaps the range.</p>",
+        "body_es": "<p>Fin del intervalo de búsqueda. Ingresa un año positivo y selecciona <b>AEC</b> o <b>EC</b>.</p>",
+        "title_en": "To (year)",
+        "title_es": "Hasta (año)"
       },
-      "reference_year": {
-        "title": "Reference year",
-        "body": "<p>Start year of the search window. The sweep length is <b>max(2 years, orbital period)</b> for each body (the Sun uses 2 years). Select <b>BCE</b> or <b>CE</b> and enter the historical year.</p><p>Extreme rise/set azimuths are sampled over this interval at the observer site.</p>"
+      "year_start": {
+        "body_en": "<p>Start of the search interval. Enter a positive year and select <b>BCE</b> or <b>CE</b>.</p><p>The module will sample the stellar catalogue at several epochs between the start and end years, precessing each star's coordinates to the epoch-of-date system.</p><p>Default: 2620 BCE — slightly before the accepted construction date of the Great Pyramid (~2 560 BCE).</p>",
+        "body_es": "<p>Inicio del intervalo de búsqueda. Ingresa un año positivo y selecciona <b>AEC</b> o <b>EC</b>.</p>",
+        "title_en": "From (year)",
+        "title_es": "Desde (año)"
+      }
+    }
+  },
+  "calendar": {
+    "historical": {
+      "historical_dates": {
+        "body_en": "<p>Preset <b>historical dates</b> from the past whose instant is known in more than one calendar system — typically as a Julian/Gregorian date <i>and</i> as an Egyptian civil (caniucular) date, and sometimes with a lunar or documentary context. Select an entry to load it into all input forms and the results table.</p><p>Most entries come from the astronomy of ancient Egypt as discussed by the Egyptologist <b>José Lull</b> in <i>La astronomía en el antiguo Egipto</i> (<i>Astronomy in Ancient Egypt</i>, Universitat de València). Page references below are to that book unless noted otherwise.</p><p><b>Presets and sources</b></p><ul><li><b>BCE 2782-07-20</b> — First <i>apokatastasis</i> (caniucular datum <code>hrw 0-I-Akhet-1</code>); Lull, calendar chapter</li><li><b>BCE 1322-07-20</b> — Second <i>apokatastasis</i>; Lull</li><li><b>CE 139-07-20</b> — Third <i>apokatastasis</i> (Censorinus); Lull, p.&nbsp;95</li><li><b>BCE 559-10-19</b> — Papyrus Louvre 7848 (civil + lunar dates); Lull, p.&nbsp;94</li><li><b>BCE 238-03-07</b> — Canopus decree; Lull, p.&nbsp;76</li><li><b>BCE 237-08-23</b> / <b>BCE 212-08-17</b> — Edfu temple inscriptions (25-year lunar cycle); Lull, p.&nbsp;92</li><li><b>CE 384-07-23</b> — Theon of Alexandria, heliacal rise of Sirius; Lull, p.&nbsp;98</li><li><b>BCE 688-06-11</b> — Papyrus Louvre E3228d (Taharqa, year 3); Lull, p.&nbsp;105</li><li><b>BCE 46-01-01</b> — Julian calendar reform (Sosigenes); Suetonius, <i>Divus Julius</i></li></ul>",
+        "body_es": "<p>Fechas históricas predefinidas con correspondencias entre calendarios (juliano/gregoriano, caniucular, y en algunos casos contexto lunar o documental).</p><p>La mayoria de entradas provienen de la astronomía del antiguo Egipto descrita por José Lull en <i>La astronomía en el antiguo Egipto</i>.</p>",
+        "title_en": "Historical Dates",
+        "title_es": "Fechas históricas"
+      }
+    },
+    "input": {
+      "bce": {
+        "$ref": "_common/bce"
+      },
+      "caniucular": {
+        "body_en": "Enter a date in the Egyptian civil calendar: Horus year, month (I–IV within the season), season name, and day (1–30). Each season has four months of 30 days.",
+        "body_es": "Ingresa una fecha del calendario civil egipcio: año de Horus, mes (I-IV), estacion y día (1-30).",
+        "title_en": "Caniucular",
+        "title_es": "Caniucular"
+      },
+      "caniucular_day": {
+        "body_en": "<p>Day within the current month and season. Regular seasons use days 1–30; the intercalary season <b>Mesut</b> uses days 1–5 only.</p><p><b>Format</b></p><ul><li>Integer day in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li>Range 1–30 (Akhet, Peret, Shemu) or 1–5 (Mesut)</li></ul><p><b>Examples</b></p><ul><li><code>1</code> — first day of the month/season block</li><li><code>30</code> — last day of a regular month (e.g. <code>IV-Shemu-30</code>)</li><li><code>3</code> on Mesut — third epagomenal day before the new year</li></ul>",
+        "body_es": "<p>Día dentro del mes y estacion actuales. En estaciones regulares: 1-30. En Mesut: 1-5.</p>",
+        "title_en": "Day",
+        "title_es": "Día"
+      },
+      "caniucular_month": {
+        "body_en": "<p>Month within the current <b>season</b> in the Egyptian civil calendar. Each season has four months, numbered with Roman numerals I–IV (not the 12 Gregorian months).</p><p><b>Format</b></p><ul><li>One of: <code>I</code>, <code>II</code>, <code>III</code>, <code>IV</code></li><li>Third field in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>I</code> — first month of the season (days 1–30)</li><li><code>IV</code> — fourth and last month of the season</li><li><code>hrw 0-I-Akhet-1</code> — month I of season Akhet at the datum</li></ul>",
+        "body_es": "<p>Mes dentro de la estacion actual en calendario civil egipcio. Cada estacion tiene cuatro meses: I-IV.</p>",
+        "title_en": "Month",
+        "title_es": "Mes"
+      },
+      "caniucular_offset": {
+        "body_en": "<p>Use <b>−</b> and <b>+</b> to move one civil day backward or forward from the current caniucular date. All input forms and the results table update immediately.</p><p><b>Examples</b></p><ul><li><code>IV-Shemu-30</code> then <b>+</b> → <code>I-Mesut-1</code></li><li><code>I-Mesut-5</code> then <b>+</b> → <code>I-Akhet-1</code> of the next Horus year</li><li><b>−</b> reverses the same transitions</li></ul>",
+        "body_es": "<p>Usa <b>-</b> y <b>+</b> para mover un día civil hacia atras o adelante desde la fecha caniucular actual.</p>",
+        "title_en": "Step day",
+        "title_es": "Día de paso"
+      },
+      "caniucular_season": {
+        "body_en": "<p>Season name in the Egyptian civil calendar. The year is divided into three seasons of 120 days (Akhet, Peret, Shemu), plus an optional intercalary period (Mesut).</p><p><b>Format</b></p><ul><li>One of: <code>Akhet</code>, <code>Peret</code>, <code>Shemu</code>, <code>Mesut</code></li><li>Akhet — inundation; Peret — emergence; Shemu — harvest; Mesut — epagomenal days (5 days after Shemu IV-30)</li></ul><p><b>Examples</b></p><ul><li><code>Akhet</code> — first season; contains <code>hrw 0-I-Akhet-1</code></li><li><code>Shemu</code> — e.g. <code>hrw 4809-III-Shemu-25</code> for a modern March date</li><li><code>Mesut</code> — epagomenal days 1–5; e.g. day after <code>IV-Shemu-30</code> is <code>I-Mesut-1</code></li></ul>",
+        "body_es": "<p>Estacion del calendario civil egipcio: <code>Akhet</code>, <code>Peret</code>, <code>Shemu</code> o <code>Mesut</code>.</p>",
+        "title_en": "Season",
+        "title_es": "Estacion"
+      },
+      "ce": {
+        "$ref": "_common/ce"
+      },
+      "date_grid_weekdays": {
+        "body_en": "<p>The month grid is a <b>date picker</b> in Gregorian style. Its weekday columns follow the <b>proleptic Gregorian</b> layout because Qt’s calendar widget and the desktop UI use that convention internally — not necessarily the weekday of your chosen <b>Mixed</b> or <b>BCE</b> calendar rules.</p><p>To know the true day of the week for the converted instant, read the <b>Weekday</b> row in the conversion results (from MontuPython).</p><p><b>Example:</b> <code>1582-10-04</code> in <b>Mixed</b> (still Julian) was a <b>Thursday</b> — output shows <code>Thursday (5)</code> — but the grid for October 1582 places the 4th under <b>Monday</b>, because the grid uses the proleptic Gregorian alignment for that civil date.</p>",
+        "body_es": "<p>La cuadrícula de mes es un selector de fechas en estilo gregoriano. Sus columnas de día de semana siguen la convención gregoriana proleptica usada por Qt.</p><p>Para conocer el día de semana real del instante convertido, consulta la fila <b>Día de la semana</b> en resultados.</p>",
+        "title_en": "Date (gregorian style, proleptic weekdays)",
+        "title_es": "Fecha (estilo gregoriano, días de semana prolépticos)"
+      },
+      "historical_dates": {
+        "body_en": "Select a preset date from Egyptology and astronomy literature. See also the full help under <b>Historical dates</b> (input mode) or <b>Historical Date</b> above the preset list for sources, including José Lull’s <i>La astronomía en el antiguo Egipto</i>.",
+        "body_es": "Selecciona una fecha predefinida de literatura de egiptología y astronomía.",
+        "title_en": "Historical dates",
+        "title_es": "Fechas históricas"
+      },
+      "horus_year": {
+        "body_en": "<p>Year in the Egyptian civil calendar counted from the <b>Horus</b> (caniucular) epoch. Year&nbsp;0 is anchored at the first <i>apokatastasis</i> (<code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20).</p><p><b>Format</b></p><ul><li>Integer (may be negative for years before the epoch in some displays)</li><li>Appears as the first number in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>0</code> — epoch year (datum)</li><li><code>1</code> — one civil year after the datum</li><li><code>4809</code> — modern date in Horus years (e.g. 2026 CE)</li></ul>",
+        "body_es": "<p>Año del calendario civil egipcio contado desde la época caniucular (<code>hrw 0-I-Akhet-1</code>).</p>",
+        "title_en": "Horus Year",
+        "title_es": "Año de Horus"
+      },
+      "julian_day": {
+        "body_en": "Enter a Julian Day Number (UTC scale), optionally with a fractional part for the time of day. Example: <code>2461231.5</code> is noon on that Julian day.",
+        "body_es": "Ingresa un Numero de Día Juliano (escala UTC), opcionalmente con parte fraccionaria para la hora.",
+        "title_en": "Julian Day Number",
+        "title_es": "Numero de Día Juliano"
+      },
+      "julian_day_utc": {
+        "body_en": "<p>Julian Day Number on the <b>UTC</b> scale (<code>Time.jed</code>). Enter days and an optional fractional part for the time of day. This is the primary numeric input when converting from JD to all calendar formats.</p><p><b>Format</b></p><ul><li>Decimal: <code>integer.fraction</code></li><li>Fraction .0 = noon at the start of that JD; .5 = midnight in common conventions</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 epoch</li><li><code>2461231.5</code> — noon on that Julian day</li><li><code>625307.5</code> — default sample value in this form</li></ul>",
+        "body_es": "<p>Numero de Día Juliano en escala UTC (<code>Time.jed</code>). Ingresa días y fraccion opcional para la hora.</p>",
+        "title_en": "Julian Day (UTC)",
+        "title_es": "Día Juliano (UTC)"
+      },
+      "julian_gregorian": {
+        "body_en": "Enter a date in the familiar Gregorian-style calendar. Choose BCE or CE, Mixed or Proleptic calendar type, then pick the date and time. Results update automatically as you change any field.",
+        "body_es": "Ingresa una fecha en calendario tipo gregoriano. Elige AEC o EC, tipo mixto o proléptico, y luego fecha y hora.",
+        "title_en": "Julian / Gregorian",
+        "title_es": "Juliano / Gregoriano"
+      },
+      "mixed": {
+        "body_en": "Use the historically correct calendar rules: Julian calendar before the 1582 reform, Gregorian calendar afterward. Recommended for real historical dates.",
+        "body_es": "Usa reglas históricas: calendario juliano antes de 1582 y gregoriano despues.",
+        "title_en": "Mixed",
+        "title_es": "Mixto"
+      },
+      "proleptic": {
+        "body_en": "Extend Gregorian calendar rules backward for the entire timeline. No Julian–Gregorian switch — useful for uniform astronomical or mathematical dating.",
+        "body_es": "Extiende las reglas gregorianas hacia atras en toda la línea temporal.",
+        "title_en": "Proleptic",
+        "title_es": "Proleptico"
+      }
+    },
+    "result": {
+      "caniucular": {
+        "body_en": "<p>Date in the Egyptian <b>civil (caniucular)</b> calendar (<code>Time.readable.datecan</code>): Horus year, month, season, and day. The year begins with the heliacal rise of Sirius (Sothis); the epoch is <code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20.</p><p><b>Format</b></p><ul><li><code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — Akhet, Peret, Shemu, or Mesut (intercalary)</li><li><b>DAY</b> — 1–30</li></ul><p><b>Examples</b></p><ul><li><code>hrw 0-I-Akhet-1</code> — caniucular epoch (datum)</li><li><code>hrw 1-I-Akhet-2</code> — day after the datum in Horus year 1</li><li><code>hrw 4809-III-Shemu-25</code> — 7 March 2026 CE in civil form</li></ul>",
+        "body_es": "<p>Fecha en el calendario <b>civil egipcio (caniucular)</b> (<code>Time.readable.datecan</code>): año de Horus, mes, estacion y día.</p>",
+        "title_en": "Caniucular (Egyptian civil)",
+        "title_es": "Caniucular (civil egipcio)"
+      },
+      "delta_t": {
+        "body_en": "<p>Difference <b>TT − UTC</b> in seconds (<code>Time.deltat</code>). Accounts for irregular Earth rotation (tidal braking and leap seconds). Required to convert between civil UTC and uniform TT.</p><p><b>Format</b></p><ul><li>Decimal seconds (positive in the modern era: TT runs ahead of UTC)</li><li>Tabulated internally by MontuPython for historical dates</li></ul><p><b>Examples</b></p><ul><li><code>67.184</code> — approximate value near 2020 CE</li><li><code>67692.000</code> — much larger for ancient dates (e.g. BCE&nbsp;2782), where extrapolation uncertainty is high</li></ul>",
+        "body_es": "<p>Diferencia <b>TT - UTC</b> en segundos (<code>Time.deltat</code>). Considera la rotacion irregular de la Tierra y es necesaria para convertir entre UTC civil y TT uniforme.</p>",
+        "title_en": "Delta-T (seconds)",
+        "title_es": "Delta-T (segundos)"
+      },
+      "et": {
+        "body_en": "<p>Ephemeris seconds on the <b>UTC</b> scale, measured from J2000.0. Corresponds to <code>Time.et</code>. In MontuPython: <code>et = tt − deltat</code>.</p><p><b>Format</b></p><ul><li>Decimal seconds from J2000.0 (UTC)</li><li>Differs from TT by Delta-T (Earth rotation effects)</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 (UTC ephemeris time origin)</li><li>For any date, typically a few tens of seconds less than the TT value at the same instant (see Delta-T)</li></ul>",
+        "body_es": "<p>Segundos de efemérides en escala <b>UTC</b> medidos desde J2000.0. Corresponde a <code>Time.et</code>. En MontuPython: <code>et = tt - deltat</code>.</p>",
+        "title_en": "UTC ephemeris seconds (J2000)",
+        "title_es": "Segundos de efemérides UTC (J2000)"
+      },
+      "jd_utc": {
+        "body_en": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch (1&nbsp;January&nbsp;4713&nbsp;BCE, 12:00&nbsp;TT). A pure number — not a calendar string.</p><p><b>Format</b></p><ul><li>Decimal number: <code>integer.fraction</code></li><li>Fraction 0.0 = noon at the beginning of that JD; 0.5 = midnight; add 0.5 to move from noon-based JD to midnight-based conventions if needed</li><li>Typically shown with 6 decimal places in this table</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 (2000-01-01 12:00 TT ≈ standard epoch)</li><li><code>2461231.5</code> — noon on a modern Julian day</li><li><code>705863.500000</code> — caniucular datum region (BCE 2782-07-20)</li></ul>",
+        "body_es": "<p><b>Numero de Día Juliano</b> en escala UTC (<code>Time.jed</code>). Cuenta días y fraccion desde la época juliana. Es un numero, no una cadena de calendario.</p>",
+        "title_en": "Julian Day — UTC",
+        "title_es": "Día Juliano - UTC"
+      },
+      "mixed": {
+        "body_en": "<p>Calendar date in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward. This is the usual choice for real historical dates.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates (minus prefix on astronomical year)</li><li>Month lengths follow the active calendar (Julian or Gregorian) for that date</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:30</code> — modern date (Gregorian rules)</li><li><code>1582-10-04 00:00:00</code> — last Julian day before the 1582 reform (in affected countries)</li><li><code>-2780-07-20 00:00:00</code> — ancient date under Julian rules (near the caniucular datum)</li></ul>",
+        "body_es": "<p>Fecha de calendario en convención <b>mixta</b> (<code>Time.readable.datemix</code>): juliano antes del 15 de octubre de 1582 y gregoriano desde la reforma en adelante.</p>",
+        "title_en": "Mixed Julian/Gregorian",
+        "title_es": "Juliano/Gregoriano mixto"
+      },
+      "proleptic": {
+        "body_en": "<p>Proleptic Gregorian date in the <b>astronomical year convention</b> (<code>Time.readable.datepro</code>): year&nbsp;0 = 1&nbsp;BCE, year&nbsp;−1 = 2&nbsp;BCE, etc. Useful for continuous calculations without a gap at year&nbsp;1.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS.ffff</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS.ffff</code> for BCE dates (leading minus on the astronomical year)</li><li>ISO-like ordering: year, month, day, then 24-hour time</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:00.0000</code> — 7 March 2026 CE</li><li><code>-2780-06-27 00:00:00.0000</code> — astronomical year −2780 (= 2781 BCE)</li><li><code>-0001-01-01 00:00:00.0000</code> — 1 BCE (astronomical year 0 is 1 BCE in historical terms)</li></ul>",
+        "body_es": "<p>Fecha gregoriana proleptica en convención de <b>año astronómico</b> (<code>Time.readable.datepro</code>): año 0 = 1 AEC, año -1 = 2 AEC, etc.</p>",
+        "title_en": "Gregorian proleptic (astronomical)",
+        "title_es": "Gregoriano proléptico (astronómico)"
+      },
+      "spice": {
+        "body_en": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — caniucular datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>",
+        "body_es": "<p>Fecha gregoriana proleptica legible en estilo <b>SPICE / NASA</b> (<code>Time.readable.datespice</code>). El calendario gregoriano proléptico extiende las reglas gregorianas hacia atras sin la transición histórica juliano-gregoriana.</p>",
+        "title_en": "Gregorian proleptic (human)",
+        "title_es": "Gregoriano proléptico (humaño)"
+      },
+      "tt": {
+        "body_en": "<p>Ephemeris seconds on the <b>TT (Terrestrial Time)</b> scale, measured from <b>J2000.0</b> (2000-01-01 12:00 TT). Corresponds to <code>Time.tt</code>. <b>Not a Julian Day</b> — it is a uniform atomic-time-style count used by SPICE and many ephemerides.</p><p><b>Format</b></p><ul><li>Decimal seconds (may be negative for dates before J2000)</li><li>Uniform scale — no leap seconds</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 epoch</li><li><code>86400.0</code> — one TT day after J2000.0</li><li>Large negative values for ancient dates (e.g. near BCE&nbsp;2782)</li></ul>",
+        "body_es": "<p>Segundos de efemérides en escala <b>TT (Tiempo Terrestre)</b> medidos desde <b>J2000.0</b>. Corresponde a <code>Time.tt</code>.</p>",
+        "title_en": "TT ephemeris seconds (J2000)",
+        "title_es": "Segundos de efemérides TT (J2000)"
+      },
+      "weekday": {
+        "body_en": "<p>Day of the week for the converted instant (<code>Time.readable.weekday</code> and <code>weekday_name</code>).</p><p><b>Format:</b> English name + number in parentheses. MontuPython convention: <b>1 = Sunday</b> … <b>7 = Saturday</b>.</p><p><b>Examples:</b> <code>Friday (6)</code>, <code>Wednesday (4)</code>.</p>",
+        "body_es": "<p>Día de la semana para el instante convertido (<code>Time.readable.weekday</code> y <code>weekday_name</code>).</p><p><b>Formato:</b> nombre en inglés + numero entre parentesis. Convencion de MontuPython: <b>1 = domingo</b> ... <b>7 = sabado</b>.</p>",
+        "title_en": "Weekday",
+        "title_es": "Día de la semana"
       }
     }
   },
   "heliacal_rise": {
     "input": {
-      "body_type": {
-        "title": "Type of body",
-        "body": "<p>Select a <b>star</b> from the named bright-star catalogue or one of the visible classical <b>planets</b>. The calculation uses the catalogue V magnitude for stars and the ephemeris magnitude at each evaluated instant for planets.</p>"
+      "bce": {
+        "$ref": "_common/bce"
       },
-      "body": {
+      "body_en": {
         "title": "Celestial body",
         "body": "<p>Body whose first visible morning appearance is sought. A heliacal rise is reported when the body is visible under the selected model after having been invisible on the preceding morning.</p>"
       },
-      "initial_date": {
-        "title": "Initial date",
-        "body": "<p>First civil date of the search interval. Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. The default is <b>2782 BCE, 1 June</b> — near the first <i>apokatastasis</i> in the historical presets.</p>"
+      "body_es": {
+        "title": "Cuerpo celeste",
+        "body": "<p>Cuerpo cuya primera aparicion matutina visible se busca. Se reporta un orto helíaco cuando el cuerpo es visible segun el modelo seleccionado tras haber sido invisible la manana anterior.</p>"
       },
+      "body_type": {
+        "body_en": "<p>Select a <b>star</b> from the named bright-star catalogue or one of the visible classical <b>planets</b>. The calculation uses the catalogue V magnitude for stars and the ephemeris magnitude at each evaluated instant for planets.</p>",
+        "body_es": "<p>Selecciona una <b>estrella</b> del catálogo de estrellas brillantes con nombre o uno de los <b>planetas</b> clásicos visibles.</p>",
+        "title_en": "Type of body",
+        "title_es": "Tipo de cuerpo"
+      },
+      "calendar": {
+        "body_en": "<p>Select the calendar interpretation of the initial date.</p><ul><li><b>Mixed</b> — Julian calendar before 15 October 1582 and Gregorian thereafter. This is the default and is recommended for historical dates, including the 139 BCE caniucular context.</li><li><b>Proleptic</b> — Gregorian rules extended uniformly into the past. Use it for astronomical or mathematical date ranges that require a single calendar system.</li></ul>",
+        "body_es": "<p>Selecciona la interpretacion de calendario de la fecha inicial.</p><ul><li><b>Mixto</b>: juliano antes de 1582 y gregoriano despues.</li><li><b>Proleptico</b>: reglas gregorianas extendidas uniformemente al pasado.</li></ul>",
+        "title_en": "Calendar",
+        "title_es": "Calendario"
+      },
+      "ce": {
+        "$ref": "_common/ce"
+      },
+      "day": {
+        "$ref": "_common/day"
+      },
+      "initial_date": {
+        "body_en": "<p>First civil date of the search interval. Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. The default is <b>2782 BCE, 1 June</b> — near the first <i>apokatastasis</i> in the historical presets.</p>",
+        "body_es": "<p>Primera fecha civil del intervalo de búsqueda. Elige <b>AEC</b> o <b>EC</b>, luego año, mes y día.</p>",
+        "title_en": "Initial date",
+        "title_es": "Fecha inicial"
+      },
+      "k": {
+        "body_en": "<p>Visual atmospheric extinction coefficient in <b>magnitudes per air mass</b>. It dims objects nearer the horizon. Default: <code>0.25</code> mag/air mass.</p>",
+        "body_es": "<p>Coeficiente de extincion atmosferica visual en <b>magnitudes por masa de aire</b>.</p>",
+        "title_en": "Extinction k",
+        "title_es": "Extincion k"
+      },
+      "limiting_mag_zenith": {
+        "body_en": "<p>Faintest visible visual magnitude at the zenith for the Schaefer models. Smaller magnitudes are brighter; a larger value assumes a darker, more transparent sky. Default: <code>6.0</code>.</p>",
+        "body_es": "<p>Magnitud visual límite en el cenit para los modelos de Schaefer.</p>",
+        "title_en": "Zenith limiting magnitude",
+        "title_es": "Magnitud límite en cenit"
+      },
+      "model": {
+        "body_en": "<p>Observational model used to decide whether the body is visible at morning twilight.</p><ul><li><b>Schaefer 1985</b> — twilight sky brightness, atmospheric extinction, and a point-source threshold; reconstructed from the published <i>Sky &amp; Telescope</i> BASIC listing.</li><li><b>Schaefer 1987</b> — evaluates visibility at a fixed Sun depression using secant airmass and a zenith limiting magnitude.</li><li><b>Belokrylov et al. 2011</b> — atmospheric absorption, bright-star regressions, and a Sun–star separation correction.</li></ul><p>The bibliographic source for the active model appears below the results.</p>",
+        "body_es": "<p>Modelo observaciónal usado para decidir si el cuerpo es visible en el crepusculo matutino.</p>",
+        "title_en": "Visibility model",
+        "title_es": "Modelo de visibilidad"
+      },
+      "month": {
+        "$ref": "_common/month"
+      },
+      "reference_extinction": {
+        "body_en": "<p>Reference extinction in equation (6) of the Belokrylov et al. (2011) model, in magnitudes per air mass. Default: <code>0.25</code>.</p>",
+        "body_es": "<p>Extincion de referencia en la ecuacion (6) del modelo de Belokrylov et al. (2011).</p>",
+        "title_en": "Reference extinction",
+        "title_es": "Extincion de referencia"
+      },
+      "step_minutes": {
+        "body_en": "<p>Time step [minutes] used while scanning morning twilight in the Schaefer 1985 and Belokrylov 2011 models. Smaller steps locate the first visible instant more precisely but increase calculation time. Default: <code>2</code> minutes.</p>",
+        "body_es": "<p>Paso temporal [minutos] usado al escanear el crepusculo matutino en Schaefer 1985 y Belokrylov 2011.</p>",
+        "title_en": "Scan step",
+        "title_es": "Paso de escaneo"
+      },
+      "sun_depression": {
+        "body_en": "<p>Solar altitude below the horizon [degrees] at which the <b>Schaefer 1987</b> criterion is evaluated. It must be negative. Default: <code>−11°</code>.</p>",
+        "body_es": "<p>Altitud solar bajo el horizonte [grados] para evaluar el criterio de <b>Schaefer 1987</b>.</p>",
+        "title_en": "Sun depression",
+        "title_es": "Depresion solar"
+      },
+      "twilight_sunbelow": {
+        "body_en": "<p>Solar depression [degrees] that marks the start of the morning-twilight scan for Schaefer 1985 and Belokrylov 2011. Default: <code>−18°</code>, astronomical dawn.</p>",
+        "body_es": "<p>Depresion solar [grados] que marca el inicio del escaneo de crepusculo matutino.</p>",
+        "title_en": "Scan starts at Sun",
+        "title_es": "Escaneo inicia con Sol"
+      },
+      "year": {
+        "$ref": "_common/year"
+      },
+      "year_range": {
+        "body_en": "<p>Length of the search interval in years, starting at the initial date. The calculator evaluates the selected visibility model one morning at a time; longer intervals take proportionally longer.</p><p><b>Warning:</b> scan-based models and long intervals can take time to complete.</p>",
+        "body_es": "<p>Longitud del intervalo de búsqueda en años, desde la fecha inicial.</p>",
+        "title_en": "Year range",
+        "title_es": "Rango de años"
+      }
+    },
+    "result": {
+      "peret_sopedet": {
+        "body_en": "<p><b>Peret Sopedet</b> (emergence of Sopedet) is the Egyptian civil-year marker tied to the <b>heliacal rise</b> of Sirius — <i>Sothis</i> in Greek, <i>Sopedet</i> (<code>spdt</code>) in Egyptian. Its first morning visibility after a period of invisibility opened the season Akhet and the civil New Year (<code>hrw 0-I-Akhet-1</code>).</p><p>The illustration below depicts that heliacal rising of Sirius beside the pyramids on the Giza plateau.</p><p><b>Image credit</b></p><p>This illustration was generated with <b>Nano Banana</b>, edited in <b>Preview</b>, and is based on the realistic simulation created with Stellarium and GIMP by <b>Bob Moler</b> and published on <i>Bob Moler's Ephemeris Blog</i>: <a href=\"https://bobmoler.blog/2017/02/07/02072017-ephemeris-sirius-an-important-star-in-history/\">Sirius: an important star in history</a> (7 February 2017).</p>",
+        "body_es": "<p><b>Peret Sopedet</b> (emergencia de Sopedet) es el marcador del año civil egipcio ligado al <b>orto helíaco</b> de Sirio.</p>",
+        "title_en": "Peret Sopedet",
+        "title_es": "Peret Sopedet"
+      },
+      "table": {
+        "body_en": "<p>Each row is a morning on which the selected body became visible under the selected model after being invisible on the preceding morning.</p><ul><li><b>#</b> — event sequence number.</li><li><b>Date mixed</b>, <b>Date proleptic</b>, and <b>Date caniucular</b> — the same instant in <code>Time.readable.datemix</code>, <code>datepro</code>, and <code>datecan</code>.</li><li><b>Time from latest</b> — days since the prior heliacal rise; for event 1, days since the initial date.</li><li><b>Local time</b> — local solar time at the evaluated visible instant.</li><li><b>Altitude</b> and <b>azimuth</b> — apparent horizontal coordinates of the body and Sun in degrees. Azimuth is measured clockwise from North.</li></ul>",
+        "body_es": "<p>Cada fila corresponde a una manana en la que el cuerpo seleccionado se vuelve visible segun el modelo elegido, tras haber sido invisible la manana anterior.</p>",
+        "title_en": "Heliacal-rise results",
+        "title_es": "Resultados de ortos helíacos"
+      }
+    }
+  },
+  "location": {
+    "input": {
+      "altitude": {
+        "body_en": "<p>Elevation above mean sea level in <b>metres</b>. Converted internally to kilometres for <code>montu.Observer</code>. When you click the map, MontuPython queries the free <a href=\"https://open-elevation.com/\">Open-Elevation</a> service.</p>",
+        "body_es": "<p>Elevacion sobre el nivel medio del mar en <b>metros</b>. Se convierte internamente a kilómetros para <code>montu.Observer</code>.</p>",
+        "title_en": "Altitude",
+        "title_es": "Altitud"
+      },
+      "decimal": {
+        "body_en": "<p>Enter coordinates as decimal degrees (DD.dddddd°). Positive latitude = north, negative = south. Positive longitude = east, negative = west.</p><p>Example: Luxor → lat <code>25.6967</code>, lon <code>32.6422</code>.</p>",
+        "body_es": "<p>Ingresa coordenadas en grados decimales. Latitud positiva = norte, negativa = sur. Longitud positiva = este, negativa = oeste.</p>",
+        "title_en": "Decimal degrees",
+        "title_es": "Grados decimales"
+      },
+      "latitude": {
+        "body_en": "<p>Geodetic latitude of the observing site [degrees]. North positive, south negative. Range: −90° … +90°.</p>",
+        "body_es": "<p>Latitud geodesica del sitio de observación [grados]. Norte positivo, sur negativo.</p>",
+        "title_en": "Latitude",
+        "title_es": "Latitud"
+      },
+      "longitude": {
+        "body_en": "<p>Geodetic longitude of the observing site [degrees]. East positive, west negative. Range: −180° … +180°.</p>",
+        "body_es": "<p>Longitud geodesica del sitio de observación [grados]. Este positivo, oeste negativo.</p>",
+        "title_en": "Longitude",
+        "title_es": "Longitud"
+      },
+      "map_labels": {
+        "body_en": "<p>Choose how place names appear on the map tiles.</p><ul><li><b>Local names</b> — standard OpenStreetMap tiles (e.g. Arabic in Egypt).</li><li><b>English names</b> — Wikimedia internationalized tiles that prefer <code>name:en</code> where available.</li></ul><p>Switching reloads the map. Your choice is remembered for future sessions.</p>",
+        "body_es": "<p>Elige como se muestran los nombres de lugares en los mosaicos del mapa: <b>nombres locales</b> o <b>nombres en inglés</b>.</p>",
+        "title_en": "Map labels",
+        "title_es": "Etiquetas del mapa"
+      },
+      "predefined": {
+        "body_en": "<p>Search or select an ancient-world location from <code>assets/locations.json</code>. Choosing a site fills latitude, longitude, and altitude automatically.</p><p>Default at startup: <b>Thebes (Luxor)</b>, capital of ancient Upper Egypt.</p>",
+        "body_es": "<p>Busca o selecciona un lugar del mundo antiguo en <code>assets/locations.json</code>. Al elegirlo, se rellenan latitud, longitud y altitud automáticamente.</p>",
+        "title_en": "Predefined site",
+        "title_es": "Sitio predefinido"
+      },
+      "sexagesimal": {
+        "body_en": "<p>Enter coordinates as degrees, arcminutes, and arcseconds with a hemisphere letter (N/S for latitude, E/W for longitude). Altitude remains in metres.</p><p>Example: <code>25°41'48.1\"N</code>, <code>32°38'32.0\"E</code>.</p>",
+        "body_es": "<p>Ingresa coordenadas en grados, minutos y segundos con hemisferio (N/S para latitud, E/W para longitud).</p>",
+        "title_en": "Sexagesimal (DMS)",
+        "title_es": "Sexagesimal (GMS)"
+      }
+    }
+  },
+  "orientation_disk": {
+    "input": {
+      "add_body": {
+        "body_en": "<p>Choose a <b>Sun</b>, <b>Moon</b>, planet, or named star from the dropdown and click <b>＋ Add</b>. Each body appears as a row on the disk with its own effective horizon altitude.</p><p>The star list respects the <b>V magnitude</b> filter below. Duplicate bodies are not allowed. At least one body must remain on the disk.</p><p>From the reference year, MontuPython sweeps max(2 years, orbital period) per body and finds the northernmost and southernmost rise (△) and set (▽) azimuths.</p>",
+        "body_es": "<p>Elige Sol, Luna, planeta o estrella nombrada en el desplegable y haz clic en <b>+ Agregar</b>. Cada cuerpo aparece como una fila en el disco con su propia altitud efectiva de horizonte.</p>",
+        "title_en": "Add a body",
+        "title_es": "Agregar cuerpo"
+      },
+      "location": {
+        "$ref": "_common/observer_location"
+      },
+      "reference_year": {
+        "body_en": "<p>Start year of the search window. The sweep length is <b>max(2 years, orbital period)</b> for each body (the Sun uses 2 years). Select <b>BCE</b> or <b>CE</b> and enter the historical year.</p><p>Extreme rise/set azimuths are sampled over this interval at the observer site.</p>",
+        "body_es": "<p>Año de inicio de la ventana de búsqueda. La longitud del barrido es <b>max(2 años, período orbital)</b> para cada cuerpo.</p>",
+        "title_en": "Reference year",
+        "title_es": "Año de referencia"
+      },
+      "star_mag_filter": {
+        "body_en": "<p>Filters which <b>named stars</b> appear in the add-body dropdown. Only stars brighter than or equal to this Johnson V magnitude are listed.</p><p>Does not affect planets or the Sun/Moon. Lower values show fewer, brighter stars.</p>",
+        "body_es": "<p>Filtra que estrellas nombradas aparecen en el desplegable de agregar cuerpo. Solo se listan estrellas más brillantes o iguales a esa magnitud V.</p>",
+        "title_en": "Stars with V mag ≤",
+        "title_es": "Estrellas con V mag <="
+      }
+    }
+  },
+  "planets": {
+    "chart": {
+      "chart": {
+        "body_en": "<p>The <b>initial date</b> in Parameters uses the <b>proleptic Gregorian</b> calendar with <b>historical</b> BCE/CE years — e.g. entering <b>1500 BCE</b> means the year 1500 before the Common Era.</p><p>The chart <b>X-axis</b> and the <b>hover tooltip</b> <code>datestr</code> show <b>proleptic Gregorian</b> dates in <b>astronomical</b> year numbering (e.g. <code>May 12, -1499</code> = 12 May 1500 BCE; there is no year&nbsp;0, so 1&nbsp;BCE = year&nbsp;0).</p><p>The plot <b>title</b> uses the human-readable proleptic form (e.g. <code>1500 B.C. 01-01</code>).</p><p><b>Hover</b> over any point on the curve to read <code>datestr</code> (proleptic Gregorian, astronomical), Julian day (JD), and the selected property value. Use the rangeslider below the plot to zoom the time axis.</p>",
+        "body_es": "<p>Pasa el cursor sobre la curva para leer fecha, día juliano y valor de la propiedad seleccionada. Usa el rango inferior para acercar el eje de tiempo.</p>",
+        "title_en": "Chart",
+        "title_es": "Gráfica"
+      }
+    },
+    "input": {
       "bce": {
         "$ref": "_common/bce"
       },
       "ce": {
         "$ref": "_common/ce"
       },
-      "year": {
-        "$ref": "_common/year"
+      "initial_date": {
+        "body_en": "<p>Start of the ephemeris interval in the <b>proleptic Gregorian</b> calendar using <b>historical</b> BCE/CE years.</p><p>Choose <b>BCE</b> or <b>CE</b>, then year, month, and day. Example: <b>1500 BCE</b>, 1 January is year&nbsp;1500 before the Common Era — internally converted to astronomical year&nbsp;−1499 for computation.</p><p>The chart axis shows astronomical proleptic dates (<code>datepro</code>); the title uses the human-readable SPICE-style form (<code>1500 B.C. 01-01</code>).</p>",
+        "body_es": "<p>Inicio del intervalo de efemérides en calendario gregoriano proléptico usando años históricos AEC/EC.</p>",
+        "title_en": "Initial date (proleptic Gregorian)",
+        "title_es": "Fecha inicial (gregoriano proléptico)"
       },
-      "month": {
-        "$ref": "_common/month"
+      "num_points": {
+        "body_en": "<p>How many evenly spaced time steps to compute along the interval. More points give a smoother curve but take longer to calculate.</p><p>Minimum: 2. Default in Montu App: 120.</p>",
+        "body_es": "<p>Cantidad de pasos de tiempo equiespaciados a calcular en el intervalo.</p>",
+        "title_en": "Number of points",
+        "title_es": "Numero de puntos"
       },
-      "day": {
-        "$ref": "_common/day"
+      "planets": {
+        "body_en": "<p>Select one or more <b>classical wanderers</b> to plot. In antiquity the word <i>planet</i> (Greek <i>planētēs</i>, “wanderer”) included the <b>Sun</b> and <b>Moon</b> along with Mercury, Venus, Mars, Júpiter, and Saturn — seven bodies that move against the fixed stars.</p><p>Available here: Sun, Moon, Mercury, Venus, Mars, Júpiter, Saturn. Each selection appears as a separate coloured line. Uranus, Neptune, and Earth are excluded.</p>",
+        "body_es": "<p>Selecciona uno o más astros errantes clásicos para graficar: Sol, Luna, Mercurio, Venus, Marte, Júpiter y Saturno.</p>",
+        "title_en": "Planets (classic)",
+        "title_es": "Planetas (clásicos)"
       },
-      "calendar": {
-        "title": "Calendar",
-        "body": "<p>Select the calendar interpretation of the initial date.</p><ul><li><b>Mixed</b> — Julian calendar before 15 October 1582 and Gregorian thereafter. This is the default and is recommended for historical dates, including the 139 BCE caniucular context.</li><li><b>Proleptic</b> — Gregorian rules extended uniformly into the past. Use it for astronomical or mathematical date ranges that require a single calendar system.</li></ul>"
+      "property": {
+        "body_en": "<p>Ephemeris quantity plotted on the Y-axis. The dropdown shows friendly quantity names; the full catalogue is loaded from <code>assets/planet_properties.json</code>.</p>",
+        "body_es": "<p>Magnitud de efemérides a graficar en el eje Y.</p>",
+        "title_en": "Property",
+        "title_es": "Propiedad"
       },
-      "year_range": {
-        "title": "Year range",
-        "body": "<p>Length of the search interval in years, starting at the initial date. The calculator evaluates the selected visibility model one morning at a time; longer intervals take proportionally longer.</p><p><b>Warning:</b> scan-based models and long intervals can take time to complete.</p>"
+      "time_span": {
+        "body_en": "<p>Duration of the sample interval in <b>years</b> (not days or months). The module builds an evenly spaced grid from the initial date through this span.</p><p>Example: initial date <code>-1500-01-01</code> and span <code>10</code> covers roughly 1500 BCE to 1490 BCE.</p>",
+        "body_es": "<p>Duracion del intervalo de muestreo en <b>años</b> (no días ni meses).</p>",
+        "title_en": "Time span (years)",
+        "title_es": "Rango de tiempo (años)"
+      }
+    }
+  },
+  "seasons": {
+    "fields": {
+      "caniucular": {
+        "body_en": "<p>Egyptian civil calendar date (<code>Time.readable.datecan</code>).</p><p><b>Format:</b> <code>hrw HYEAR-MONTH-SEASON-DAY</code></p>",
+        "body_es": "<p>Fecha del calendario civil egipcio (<code>Time.readable.datecan</code>).</p>",
+        "title_en": "Caniucular",
+        "title_es": "Caniucular"
       },
-      "model": {
-        "title": "Visibility model",
-        "body": "<p>Observational model used to decide whether the body is visible at morning twilight.</p><ul><li><b>Schaefer 1985</b> — twilight sky brightness, atmospheric extinction, and a point-source threshold; reconstructed from the published <i>Sky &amp; Telescope</i> BASIC listing.</li><li><b>Schaefer 1987</b> — evaluates visibility at a fixed Sun depression using secant airmass and a zenith limiting magnitude.</li><li><b>Belokrylov et al. 2011</b> — atmospheric absorption, bright-star regressions, and a Sun–star separation correction.</li></ul><p>The bibliographic source for the active model appears below the results.</p>"
+      "gregorian_proleptic": {
+        "body_en": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>).</p><p><b>Format:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code> (CE) or <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (BCE).</p>",
+        "body_es": "<p>Fecha gregoriana proleptica legible en estilo SPICE / NASA.</p>",
+        "title_en": "Gregorian proleptic",
+        "title_es": "Gregoriano proléptico"
       },
-      "k": {
-        "title": "Extinction k",
-        "body": "<p>Visual atmospheric extinction coefficient in <b>magnitudes per air mass</b>. It dims objects nearer the horizon. Default: <code>0.25</code> mag/air mass.</p>"
+      "mixed": {
+        "body_en": "<p>Date in the <b>mixed</b> calendar convention (<code>Time.readable.datemix</code>): Julian before 1582-10-15, Gregorian afterward.</p><p><b>Format:</b> <code>YYYY-MM-DD HH:MM:SS</code> (CE) or <code>-YYYY-MM-DD HH:MM:SS</code> (BCE, astronomical year).</p>",
+        "body_es": "<p>Fecha en convención mixta: juliano antes de 1582-10-15, gregoriano despues.</p>",
+        "title_en": "Mixed Julian/Gregorian",
+        "title_es": "Juliano/Gregoriano mixto"
       },
-      "limiting_mag_zenith": {
-        "title": "Zenith limiting magnitude",
-        "body": "<p>Faintest visible visual magnitude at the zenith for the Schaefer models. Smaller magnitudes are brighter; a larger value assumes a darker, more transparent sky. Default: <code>6.0</code>.</p>"
+      "quarter_delta_t": {
+        "body_en": "<p>Elapsed time in <b>days</b> since the previous lunar quarter phase (new, first, full, or last).</p><p>For the first quarter listed in the year, counted from the last quarter before 1 January.</p><p>Typical values: ~7 days (new → first), ~7 days (first → full), ~7 days (full → last), ~7 days (last → new).</p>",
+        "body_es": "<p>Tiempo transcurrido en <b>días</b> desde la fase lunar de cuarto anterior.</p>",
+        "title_en": "ΔT (since last quarter)",
+        "title_es": "ΔT (desde el ultimo cuarto)"
       },
-      "sun_depression": {
-        "title": "Sun depression",
-        "body": "<p>Solar altitude below the horizon [degrees] at which the <b>Schaefer 1987</b> criterion is evaluated. It must be negative. Default: <code>−11°</code>.</p>"
+      "season_delta_t": {
+        "body_en": "<p>Elapsed time in <b>days</b> since the previous astronomical season event.</p><ul><li>For the <b>Northward equinox</b>, counted from the previous <b>Southern solstice</b>.</li><li>For subsequent seasons, counted from the immediately preceding season in the same year.</li></ul><p>Based on the difference of Julian Day numbers returned by MontuPython.</p>",
+        "body_es": "<p>Tiempo transcurrido en <b>días</b> desde el evento de estacion astronómica anterior.</p>",
+        "title_en": "ΔT (days after previous season)",
+        "title_es": "ΔT (días desde la estacion anterior)"
       },
-      "reference_extinction": {
-        "title": "Reference extinction",
-        "body": "<p>Reference extinction in equation (6) of the Belokrylov et al. (2011) model, in magnitudes per air mass. Default: <code>0.25</code>.</p>"
+      "sun_rise_az": {
+        "body_en": "<p>Azimuth of the <b>sunrise point</b> on the horizon for the observer site on the calendar day of this season event.</p><p>Measured in degrees <b>clockwise from true North</b>: 90° is due East, values below 90° are north of East, and values above 90° are south of East.</p>",
+        "body_es": "<p>Azimut del <b>punto de salida del Sol</b> en el horizonte para el sitio del observador en el día de calendario de este evento estacional.</p><p>Se mide en grados <b>en sentido horario desde el norte verdadero</b>: 90° es el Este exacto, valores menores de 90° quedan al norte del Este y valores mayores de 90° al sur del Este.</p>",
+        "title_en": "Sun rise azimuth",
+        "title_es": "Azimut de salida del Sol"
       },
-      "step_minutes": {
-        "title": "Scan step",
-        "body": "<p>Time step [minutes] used while scanning morning twilight in the Schaefer 1985 and Belokrylov 2011 models. Smaller steps locate the first visible instant more precisely but increase calculation time. Default: <code>2</code> minutes.</p>"
+      "sun_set_az": {
+        "body_en": "<p>Azimuth of the <b>sunset point</b> on the horizon for the observer site on the calendar day of this season event.</p><p>Measured in degrees <b>clockwise from true North</b>: 270° is due West, values below 270° are north of West, and values above 270° are south of West.</p>",
+        "body_es": "<p>Azimut del <b>punto de puesta del Sol</b> en el horizonte para el sitio del observador en el día de calendario de este evento estacional.</p><p>Se mide en grados <b>en sentido horario desde el norte verdadero</b>: 270° es el Oeste exacto, valores menores de 270° quedan al norte del Oeste y valores mayores de 270° al sur del Oeste.</p>",
+        "title_en": "Sun set azimuth",
+        "title_es": "Azimut de puesta del Sol"
       },
-      "twilight_sunbelow": {
-        "title": "Scan starts at Sun",
-        "body": "<p>Solar depression [degrees] that marks the start of the morning-twilight scan for Schaefer 1985 and Belokrylov 2011. Default: <code>−18°</code>, astronomical dawn.</p>"
+      "sun_rise_time": {
+        "body_en": "<p>Local solar time of <b>sunrise</b> for the observer site on the calendar day of this season event.</p><p>The value is computed from the shared observer location and shown as local solar clock time.</p>",
+        "body_es": "<p>Hora solar local de la <b>salida del Sol</b> para el sitio del observador en el día de calendario de este evento estacional.</p><p>El valor se calcula a partir de la ubicación compartida del observador y se muestra como hora de reloj solar local.</p>",
+        "title_en": "Sun rise time",
+        "title_es": "Hora de salida del Sol"
+      },
+      "sun_set_time": {
+        "body_en": "<p>Local solar time of <b>sunset</b> for the observer site on the calendar day of this season event.</p><p>The value is computed from the shared observer location and shown as local solar clock time.</p>",
+        "body_es": "<p>Hora solar local de la <b>puesta del Sol</b> para el sitio del observador en el día de calendario de este evento estacional.</p><p>El valor se calcula a partir de la ubicación compartida del observador y se muestra como hora de reloj solar local.</p>",
+        "title_en": "Sun set time",
+        "title_es": "Hora de puesta del Sol"
       }
     },
-    "result": {
-      "table": {
-        "title": "Heliacal-rise results",
-        "body": "<p>Each row is a morning on which the selected body became visible under the selected model after being invisible on the preceding morning.</p><ul><li><b>#</b> — event sequence number.</li><li><b>Date mixed</b>, <b>Date proleptic</b>, and <b>Date caniucular</b> — the same instant in <code>Time.readable.datemix</code>, <code>datepro</code>, and <code>datecan</code>.</li><li><b>Time from latest</b> — days since the prior heliacal rise; for event 1, days since the initial date.</li><li><b>Local time</b> — local solar time at the evaluated visible instant.</li><li><b>Altitude</b> and <b>azimuth</b> — apparent horizontal coordinates of the body and Sun in degrees. Azimuth is measured clockwise from North.</li></ul>"
+    "input": {
+      "bce": {
+        "$ref": "_common/bce"
       },
-      "peret_sopedet": {
-        "title": "Peret Sopedet",
-        "body": "<p><b>Peret Sopedet</b> (emergence of Sopedet) is the Egyptian civil-year marker tied to the <b>heliacal rise</b> of Sirius — <i>Sothis</i> in Greek, <i>Sopedet</i> (<code>spdt</code>) in Egyptian. Its first morning visibility after a period of invisibility opened the season Akhet and the civil New Year (<code>hrw 0-I-Akhet-1</code>).</p><p>The illustration below depicts that heliacal rising of Sirius beside the pyramids on the Giza plateau.</p><p><b>Image credit</b></p><p>This illustration was generated with <b>Nano Banana</b>, edited in <b>Preview</b>, and is based on the realistic simulation created with Stellarium and GIMP by <b>Bob Moler</b> and published on <i>Bob Moler's Ephemeris Blog</i>: <a href=\"https://bobmoler.blog/2017/02/07/02072017-ephemeris-sirius-an-important-star-in-history/\">Sirius: an important star in history</a> (7 February 2017).</p>"
+      "ce": {
+        "$ref": "_common/ce"
+      }
+    },
+    "phases": {
+      "first_quarter": {
+        "body_en": "<p><b>First Quarter</b> (<code>first</code>): the Moon has completed one quarter of its orbit since the last new moon. The eastern half of the disc is illuminated — a half-moon visible in the afternoon and evening sky.</p>",
+        "body_es": "<p><b>Cuarto creciente</b> (<code>first</code>): la Luna ha completado un cuarto de su órbita desde la ultima luna nueva.</p>",
+        "title_en": "🌓 First Quarter",
+        "title_es": "🌓 Cuarto creciente"
+      },
+      "full_moon": {
+        "body_en": "<p><b>Full Moon</b> (<code>full</code>): the Moon is opposite the Sun in the sky; the entire near-side disc is illuminated. Rises at sunset, sets at sunrise.</p>",
+        "body_es": "<p><b>Luna llena</b> (<code>full</code>): la Luna esta opuesta al Sol en el cielo; todo el disco cercaño aparece iluminado.</p>",
+        "title_en": "🌕 Full Moon",
+        "title_es": "🌕 Luna llena"
+      },
+      "last_quarter": {
+        "body_en": "<p><b>Last Quarter</b> (<code>last</code>): the Moon has completed three quarters of its orbit since the last new moon. The western half of the disc is illuminated — a half-moon visible in the late night and morning sky.</p>",
+        "body_es": "<p><b>Cuarto menguante</b> (<code>last</code>): la Luna ha completado tres cuartos de su órbita desde la ultima luna nueva.</p>",
+        "title_en": "🌗 Last Quarter",
+        "title_es": "🌗 Cuarto menguante"
+      },
+      "new_moon": {
+        "body_en": "<p><b>New Moon</b> (<code>new</code>): the Moon is between Earth and the Sun; the illuminated hemisphere faces away from us. The Moon is invisible or barely visible as a thin crescent at dusk/dawn.</p><p>One synodic month ≈ 29.5 days from new moon to new moon.</p>",
+        "body_es": "<p><b>Luna nueva</b> (<code>new</code>): la Luna esta entre la Tierra y el Sol; el hemisferio iluminado mira en sentido opuesto a nosotros.</p>",
+        "title_en": "🌑 New Moon",
+        "title_es": "🌑 Luna nueva"
+      }
+    },
+    "seasons": {
+      "northern_solstice": {
+        "body_en": "<p>The <b>northern (summer) solstice</b>: the instant when the Sun reaches its maximum declination north of the celestial equator.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>summer</b> (verano) — longest day of the year</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>winter</b> (invierno) — shortest day of the year</li></ul>",
+        "body_es": "<p><b>Solsticio norte (de verano)</b>: instante en que el Sol alcanza su declinación maxima al norte del ecuador celeste.</p>",
+        "title_en": "Northern solstice",
+        "title_es": "Solsticio norte"
+      },
+      "northward_equinox": {
+        "body_en": "<p>The <b>northward (vernal) equinox</b>: the instant when the Sun crosses the celestial equator moving northward. Day and night are nearly equal in length.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>spring</b> (primavera)</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>autumn</b> (otoño)</li></ul><p>Computed with <code>Sun.next_seasons()</code> via PyEphem.</p>",
+        "body_es": "<p><b>Equinoccio rumbo al norte (vernal)</b>: instante en que el Sol cruza el ecuador celeste moviendose hacia el norte.</p>",
+        "title_en": "Northward equinox",
+        "title_es": "Equinoccio rumbo al norte"
+      },
+      "southern_solstice": {
+        "body_en": "<p>The <b>southern (winter) solstice</b>: the instant when the Sun reaches its maximum declination south of the celestial equator.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>winter</b> (invierno) — shortest day of the year</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>summer</b> (verano) — longest day of the year</li></ul>",
+        "body_es": "<p><b>Solsticio sur (de invierno)</b>: instante en que el Sol alcanza su declinación maxima al sur del ecuador celeste.</p>",
+        "title_en": "Southern solstice",
+        "title_es": "Solsticio sur"
+      },
+      "southward_equinox": {
+        "body_en": "<p>The <b>southward (autumnal) equinox</b>: the instant when the Sun crosses the celestial equator moving southward. Day and night are nearly equal in length.</p><ul><li><b>Northern Hemisphere:</b> beginning of astronomical <b>autumn</b> (otoño)</li><li><b>Southern Hemisphere:</b> beginning of astronomical <b>spring</b> (primavera)</li></ul>",
+        "body_es": "<p><b>Equinoccio rumbo al sur (otonal)</b>: instante en que el Sol cruza el ecuador celeste moviendose hacia el sur.</p>",
+        "title_en": "Southward equinox",
+        "title_es": "Equinoccio rumbo al sur"
       }
     }
   },
   "sky_map": {
+    "chart": {
+      "map": {
+        "body_en": "<p>Celestial map in a fixed Mercator-style projection. Use the <b>Northern Hemisphere</b> and <b>Southern Hemisphere</b> tabs to switch views.</p><p><b>Window size</b> — give the map panel enough space by enlarging the application window or dragging the splitter between the controls and the map. The map is drawn at a fixed aspect ratio; if the panel is too narrow or too short, edges may be clipped.</p><p><b>No scroll bars</b> — when the map does not fit, clipped regions are not reachable; resize the window or splitter instead of expecting pan or scroll.</p><p><b>No zoom</b> — this projection does not support zoom or pan. Use <b>Limiting magnitude</b> and the display options on the left to change what is shown, and hover over stars and bodies for coordinates.</p>",
+        "body_es": "<p>Mapa celeste en proyeccion fija estilo Mercator. Usa las pestanas <b>Hemisferio norte</b> y <b>Hemisferio sur</b> para cambiar de vista.</p><p>Si el panel es pequeno, amplia la ventana o mueve el divisor entre controles y mapa.</p>",
+        "title_en": "Map",
+        "title_es": "Mapa"
+      }
+    },
     "input": {
-      "location": {
-        "$ref": "_common/observer_location"
-      },
-      "date": {
-        "$ref": "_common/date_proleptic"
-      },
-      "year": {
-        "$ref": "_common/year"
-      },
-      "month": {
-        "$ref": "_common/month"
-      },
-      "day": {
-        "$ref": "_common/day"
-      },
       "bce": {
         "$ref": "_common/bce"
+      },
+      "bodies_on_map": {
+        "body_en": "<p>Select solar-system bodies to plot as emoji symbols on the map: <b>Sun</b>, <b>Moon</b>, and the classical planets.</p><p>Positions use the observer site and local time. Bodies below the horizon can be shown when the <b>Horizon</b> line is enabled (stars below the horizon are tinted green).</p>",
+        "body_es": "<p>Selecciona cuerpos del sistema solar para graficar como símbolos: <b>Sol</b>, <b>Luna</b> y planetas clásicos.</p>",
+        "title_en": "Bodies on map",
+        "title_es": "Cuerpos en el mapa"
       },
       "ce": {
         "$ref": "_common/ce"
       },
+      "configuration": {
+        "body_en": "<p><b>Meridian view</b> — rotate the map so the local meridian (LST) is at the top. Angular grid labels show absolute RA meridians; otherwise RA increases clockwise from 0° at the top.</p>",
+        "body_es": "<p><b>Vista meridiana</b>: rota el mapa para que el meridiano local (LST) quede arriba.</p>",
+        "title_en": "Configuration",
+        "title_es": "Configuración"
+      },
+      "constellation_set": {
+        "body_en": "<p>Choose which asterism catalogue draws the stick figures and labels on the map. Stick figures and names are loaded from <code>constellationship_*.fab</code> and <code>constellation_names_*.fab</code> in <code>montu/data</code>.</p><ul><li><b>IAU Constellations</b> — the modern 88-constellation outlines used in contemporary astronomy.</li><li><b>Ancient Egyptian</b> — late and earlier Egyptian sky figures (decans and related lore). Names and line patterns follow Egyptian tradition rather than the Greco-Roman zodiac; for example, Cancer appears as the Scarab Beetle and a Lion figure near the Scales corresponds to Centaurus, not Leo. Planets were the “stars that knew no rest,” each with Egyptian epithets (e.g. Júpiter as <i>Horus Who Limits the Two Lands</i>).</li><li><b>Dendera Egyptian</b> — figures mapped onto the stars from the sculpted zodiac on the ceiling of the Hathor temple at Dendera (Ptolemaic/Roman period; commonly dated c. 54&nbsp;BCE). It is not a purely Egyptian sky: the zodiac and many surrounding figures blend Greco-Roman, Babylonian, and Egyptian iconography drawn in Egyptian style — e.g. Gemini as Shu &amp; Tefnut, Aquarius as the Nile god Hapi, and native Egyptian forms such as the Bull’s Thigh (Ursa Major) beside Babylonian Fox and Ewe.</li></ul><p><b>Source</b> — the Egyptian sets reproduce <a href=\"https://stellarium.org\">Stellarium</a> sky-culture data (historical, Northern Africa). <b>Ancient Egyptian</b> is based on Juan Antonio Belmonte’s <i>A Map of the Ancient Egyptian Firmament</i> (contributed by Karrie Berglund; planet names updated by misibacsi). <b>Dendera Egyptian</b> maps figures from Louvre photographs of the Dendera ceiling (Susanne M. Hoffmann).</p><p><b>Licence</b> — <b>Ancient Egyptian</b>: GNU GPL v2.0 (commercial and non-commercial use; adaptation and sharing allowed). <b>Dendera Egyptian</b>: CC BY-ND 4.0 (reuse with attribution; adapted versions may not be redistributed). See Stellarium for full sky-culture terms.</p>",
+        "body_es": "<p>Elige que catálogo de asterismos dibuja figuras y nombres en el mapa. Se cargan desde archivos <code>constellationship_*.fab</code> y <code>constellation_names_*.fab</code>.</p><ul><li><b>Constelaciones UAI</b>: 88 constelaciones modernas.</li><li><b>Egipcio antiguo</b>: figuras celestes egipcias tardías y tempranas.</li><li><b>Egipcio de Dendera</b>: figuras mapeadas desde el zodiaco de Dendera.</li></ul>",
+        "title_en": "Constellation set",
+        "title_es": "Conjunto de constelaciones"
+      },
+      "date": {
+        "$ref": "_common/date_proleptic"
+      },
+      "day": {
+        "$ref": "_common/day"
+      },
+      "lines_on_map": {
+        "body_en": "<p>Overlay great circles on the map:</p><ul><li><b>Ecliptic</b> — apparent path of the Sun, precessed to the selected date (dashed orange).</li><li><b>Horizon</b> — elevation 0° at the observer; enables azimuth labels and green below-horizon styling (solid green).</li></ul>",
+        "body_es": "<p>Superpone círculos mayores:</p><ul><li><b>Eclíptica</b>: trayectoria aparente del Sol.</li><li><b>Horizonte</b>: elevación 0° en el sitio del observador.</li></ul>",
+        "title_en": "Lines on map",
+        "title_es": "Líneas en el mapa"
+      },
       "local_time": {
         "$ref": "_common/local_solar_time"
       },
-      "constellation_set": {
-        "title": "Constellation set",
-        "body": "<p>Choose which asterism catalogue draws the stick figures and labels on the map. Stick figures and names are loaded from <code>constellationship_*.fab</code> and <code>constellation_names_*.fab</code> in <code>montu/data</code>.</p><ul><li><b>IAU Constellations</b> — the modern 88-constellation outlines used in contemporary astronomy.</li><li><b>Ancient Egyptian</b> — late and earlier Egyptian sky figures (decans and related lore). Names and line patterns follow Egyptian tradition rather than the Greco-Roman zodiac; for example, Cancer appears as the Scarab Beetle and a Lion figure near the Scales corresponds to Centaurus, not Leo. Planets were the “stars that knew no rest,” each with Egyptian epithets (e.g. Jupiter as <i>Horus Who Limits the Two Lands</i>).</li><li><b>Dendera Egyptian</b> — figures mapped onto the stars from the sculpted zodiac on the ceiling of the Hathor temple at Dendera (Ptolemaic/Roman period; commonly dated c. 54&nbsp;BCE). It is not a purely Egyptian sky: the zodiac and many surrounding figures blend Greco-Roman, Babylonian, and Egyptian iconography drawn in Egyptian style — e.g. Gemini as Shu &amp; Tefnut, Aquarius as the Nile god Hapi, and native Egyptian forms such as the Bull’s Thigh (Ursa Major) beside Babylonian Fox and Ewe.</li></ul><p><b>Source</b> — the Egyptian sets reproduce <a href=\"https://stellarium.org\">Stellarium</a> sky-culture data (historical, Northern Africa). <b>Ancient Egyptian</b> is based on Juan Antonio Belmonte’s <i>A Map of the Ancient Egyptian Firmament</i> (contributed by Karrie Berglund; planet names updated by misibacsi). <b>Dendera Egyptian</b> maps figures from Louvre photographs of the Dendera ceiling (Susanne M. Hoffmann).</p><p><b>Licence</b> — <b>Ancient Egyptian</b>: GNU GPL v2.0 (commercial and non-commercial use; adaptation and sharing allowed). <b>Dendera Egyptian</b>: CC BY-ND 4.0 (reuse with attribution; adapted versions may not be redistributed). See Stellarium for full sky-culture terms.</p>"
-      },
-      "bodies_on_map": {
-        "title": "Bodies on map",
-        "body": "<p>Select solar-system bodies to plot as emoji symbols on the map: <b>Sun</b>, <b>Moon</b>, and the classical planets.</p><p>Positions use the observer site and local time. Bodies below the horizon can be shown when the <b>Horizon</b> line is enabled (stars below the horizon are tinted green).</p>"
-      },
-      "lines_on_map": {
-        "title": "Lines on map",
-        "body": "<p>Overlay great circles on the map:</p><ul><li><b>Ecliptic</b> — apparent path of the Sun, precessed to the selected date (dashed orange).</li><li><b>Horizon</b> — elevation 0° at the observer; enables azimuth labels and green below-horizon styling (solid green).</li></ul>"
-      },
-      "configuration": {
-        "title": "Configuration",
-        "body": "<p><b>Meridian view</b> — rotate the map so the local meridian (LST) is at the top. Angular grid labels show absolute RA meridians; otherwise RA increases clockwise from 0° at the top.</p>"
+      "location": {
+        "$ref": "_common/observer_location"
       },
       "mag_limit": {
         "$ref": "_common/mag_limit_v"
-      }
-    },
-    "chart": {
-      "map": {
-        "title": "Map",
-        "body": "<p>Celestial map in a fixed Mercator-style projection. Use the <b>Northern Hemisphere</b> and <b>Southern Hemisphere</b> tabs to switch views.</p><p><b>Window size</b> — give the map panel enough space by enlarging the application window or dragging the splitter between the controls and the map. The map is drawn at a fixed aspect ratio; if the panel is too narrow or too short, edges may be clipped.</p><p><b>No scroll bars</b> — when the map does not fit, clipped regions are not reachable; resize the window or splitter instead of expecting pan or scroll.</p><p><b>No zoom</b> — this projection does not support zoom or pan. Use <b>Limiting magnitude</b> and the display options on the left to change what is shown, and hover over stars and bodies for coordinates.</p>"
+      },
+      "month": {
+        "$ref": "_common/month"
+      },
+      "year": {
+        "$ref": "_common/year"
       }
     }
   }

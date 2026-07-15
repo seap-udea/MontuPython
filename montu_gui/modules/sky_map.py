@@ -66,7 +66,7 @@ def _precession_epoch_string(calendar_date: str) -> str:
 
 
 def _date_jed(date_str: str) -> float:
-    return float(montu.Time(date_str, calendar="proleptic").jed)
+    return float(montu.Time(date_str, calendar="mixed").jed)
 
 
 def _years_apart(jed_a: float, jed_b: float) -> float:
@@ -103,7 +103,7 @@ def _get_precessed(calendar_date: str) -> pd.DataFrame:
 
     with timed_block(f"sky_map: precess stars → {epoch_str}"):
         catalog = _load_catalog()
-        mtime = montu.Time(epoch_str, calendar="proleptic")
+        mtime = montu.Time(epoch_str, calendar="mixed")
         precessed = montu.Stars(data=catalog).where_in_space(at=mtime).data.copy()
         precessed["ra_deg"] = precessed["RAEpoch"] * 15.0
         precessed["display_name"] = precessed.apply(_star_name, axis=1)

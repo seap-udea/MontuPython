@@ -251,6 +251,22 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         location_layout.addWidget(note)
         layout.addWidget(location_box)
 
+        warning = QLabel(
+            tr(
+                "⚠️ The search evaluates visibility morning by morning. "
+                "Calculations can take time, especially for long ranges or scan-based models."
+            )
+        )
+        warning.setWordWrap(True)
+        warning.setStyleSheet(
+            "padding:8px; border:1px solid #c79a37; border-radius:4px; color:#71500c;"
+        )
+        layout.addWidget(warning)
+        self._calculate_button = QPushButton(tr("Calculate heliacal rises"))
+        self._calculate_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._calculate_button.clicked.connect(self._calculate)
+        layout.addWidget(self._calculate_button)
+
         body_box = QGroupBox(tr("Celestial body"))
         body_form = QFormLayout(body_box)
         self._body_type = QComboBox()
@@ -340,21 +356,6 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
             self._parameter_rows[key] = (help_label, widget)
         layout.addWidget(model_box)
 
-        warning = QLabel(
-            tr(
-                "⚠️ The search evaluates visibility morning by morning. "
-                "Calculations can take time, especially for long ranges or scan-based models."
-            )
-        )
-        warning.setWordWrap(True)
-        warning.setStyleSheet(
-            "padding:8px; border:1px solid #c79a37; border-radius:4px; color:#71500c;"
-        )
-        layout.addWidget(warning)
-        self._calculate_button = QPushButton(tr("Calculate heliacal rises"))
-        self._calculate_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._calculate_button.clicked.connect(self._calculate)
-        layout.addWidget(self._calculate_button)
         layout.addLayout(make_lets_python_button_row(self._show_lets_python))
         layout.addStretch()
         controls_scroll.setWidget(controls)

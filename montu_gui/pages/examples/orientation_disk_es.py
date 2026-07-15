@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 
 YEAR, ERA = 2560, "bce"
 SPAN_YEARS, STEP_DAYS, HORIZON_EL = 3, 5, 0.0
-## Observer at Giza (lon/lat in degrees, height in km)
+## Observador en Giza (lon/lat en grados, altura en km)
 observer = montu.Observer(lon=31.1342, lat=29.9792, height=0.075)
 BODIES = ["Sun", "Moon", "Venus"]
 
@@ -41,7 +41,7 @@ def _copy_site(site, *, date=None, horizon_el=0.0):
 
 
 def rise_set_az(seba, site, horizon_el=0.0):
-    """Rise/set azimuths at the observer epoch already defined in *site*."""
+    """Azimuts de salida y puesta en la epoca del observador ya definida en *site*."""
     import ephem as pyephem
 
     rise_az = set_az = None
@@ -72,7 +72,7 @@ def rise_set_az(seba, site, horizon_el=0.0):
 
 
 def compute_extremes(name):
-    """Northern/southern extreme rise/set azimuths in the search window."""
+    """Azimuts extremos norte/sur de salida y puesta en la ventana de busqueda."""
     body = make_body(name)
     rise_azs, set_azs = [], []
     circumpolar = neverup = False
@@ -110,7 +110,7 @@ def _az_label(name, suffix):
 
 
 def build_disk_figure(extremes, *, year, era, observer_name="Giza", lat=29.9792):
-    """Polar orientation disk matching the MontuPython Desktop layout."""
+    """Disco polar de orientacion con la misma disposicion de MontuPython Desktop."""
     fig = go.Figure()
     theta_ring = list(range(361))
 

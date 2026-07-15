@@ -6,7 +6,7 @@ Release notes for the graphical front-end to MontuPython.
 
 - **Bilingual localization (ES/EN)** — expanded and normalized translations across labels, forms, results text, and module UI.
 - **Spanish terminology fixes** — updated wording for astronomical seasons and heliacal rises; standardized visible text from "ano" to "año".
-- **Spanish help content restored** — rebuilt `help_es.json` with a module/key structure aligned to `help.json` for consistent fallback behavior.
+- **Bilingual content consolidation** — `help.json` and `home.json` now keep English and Spanish text side by side in a single asset per resource for simpler maintenance and translation updates.
 
 ## Version 0.2.4
 
