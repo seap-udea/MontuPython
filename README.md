@@ -32,8 +32,8 @@ Pre-built installers for **macOS** and **Windows** are published on **[GitHub Re
 
 | Platform | File to download | How to run |
 |----------|------------------|------------|
-| **macOS** | `*-macos.dmg` or `*-macos.zip` | Open the `.dmg` and drag **MontuPython Desktop** to Applications, or unzip the `.zip` and open `MontuPython Desktop.app`. If macOS shows a security warning the first time, right-click the app and choose **Open**. |
-| **Windows** | `*-windows.zip` | Unzip the archive, open the `MontuPython-Desktop` folder, and double-click `MontuPython-Desktop.exe`. If SmartScreen warns you, choose **More info** → **Run anyway**. |
+| **[Descarga versión de macOS](https://jorgezuluaga.github.io/sh/montupython-desktop-macos)** | `*-macos.dmg` or `*-macos.zip` | Open the `.dmg` and drag **MontuPython Desktop** to Applications, or unzip the `.zip` and open `MontuPython Desktop.app`. If macOS shows a security warning the first time, right-click the app and choose **Open**. |
+| **[Descarga versión de Windows](https://jorgezuluaga.github.io/sh/montupython-desktop-windows)** | `*-windows.zip` | Unzip the archive, open the `MontuPython-Desktop` folder, and double-click `MontuPython-Desktop.exe`. If SmartScreen warns you, choose **More info** → **Run anyway**. |
 
 No Python installation is required. Most features work offline; the observer map (OpenStreetMap) needs an internet connection.
 
@@ -74,7 +74,7 @@ You may import the package using:
 from montu import *
 ```
 
-    MontuPython version 0.21.5. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.21.6. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)
 
 
 or for a safe import:
@@ -697,7 +697,7 @@ Tebas.get_local_time(dusk_time), Tebas.get_local_time(dawn_time)
 
 
 
-    ('05:34:16.297', '18:55:22.094')
+    ('05:34:16.262', '18:55:22.138')
 
 
 
@@ -801,7 +801,7 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
     Precessing 6 stars over 1,000 epochs …
 
 
-    Done in 1.7 s.
+    Done in 1.4 s.
 
 
 Now plot declinations as a function of time:
@@ -848,12 +848,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-05 12:16:54.698861 (declination 89:31:55.734)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-08 05:08:22.603136 (declination 86:22:03.635)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-10 12:28:10.796160 (declination 89:56:04.771)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-28 00:37:14.304000 (declination 86:57:15.606)
-    Star Alderamin will be the closest to the pole at 7532-02-25 06:06:29.499872 (declination 87:58:42.998)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-14 20:35:12.399360 (declination 83:29:32.445)
+    Star Polaris will be the closest to the pole at 2086-08-06 09:33:20.298223 (declination 89:31:55.744)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-09 02:24:48.202560 (declination 86:22:03.637)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-11 09:44:36.395520 (declination 89:56:04.796)
+    Star Deneb will be the closest to the pole at 14732 B.C. 05-28 21:53:39.903360 (declination 86:57:15.606)
+    Star Alderamin will be the closest to the pole at 7532-02-26 03:22:55.099200 (declination 87:58:43.000)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-15 17:51:37.998720 (declination 83:29:32.446)
 
 
 ## Tutorial by example notebooks
