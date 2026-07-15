@@ -2,13 +2,18 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.21.5 (Library)
+## Version 0.21.6 (minor)
+
+- Fixed time calculation errors in the azimuthal projection map algorithm.
+- Introduced Ptolemy's arcus visionis algorithm for heliacal rising calculation.
+
+## Version 0.21.5 (minor)
 
 - Localization and consistency updates to support the Desktop ES/EN bilingual experience.
 - Terminology alignment for seasons, heliacal-rise wording, and related Spanish text conventions.
 - Supporting notes/content refresh to keep library and Desktop documentation aligned.
 
-## Version 0.21.4
+## Version 0.21.4 (major)
 
 - **`montu/observer.py`** — predefined ancient-world observing sites bundled in `montu/data/locations.json` (same catalogue as MontuPython Desktop).
 - **`Observer(site=…)`** — construct an observer from a catalogue id (e.g. `montu.Observer(site='memphis')`); coordinates and altitude are taken from the JSON entry.
@@ -16,7 +21,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **`Observer.list(details=True)`** — return full metadata dicts (`id`, `name`, `lat`, `lon`, `alt_m`, `region`, `era`, `description`).
 - New attributes **`site_id`** and **`site_name`** when the observer is created via `site=…`.
 
-## Version 0.21.3
+## Version 0.21.3 (major)
 
 - **`montu/phenomena.py`** — new module for celestial phenomena predicted from observational visibility models.
 - **`HeliacalRise`** — class to search for heliacal-rise mornings over a date interval at an observer site; supports **Schaefer 1985**, **Schaefer 1987**, and **Belokrylov et al. 2011** models with configurable extinction, limiting magnitude, solar depression, and twilight-scan parameters.
@@ -25,13 +30,13 @@ This file collects the release notes and the main changes in MontuPython.
 - **`HELIACAL_RISE_MODELS`** / **`HELIACAL_RISE_SOURCES`** — model identifiers and bibliographic source strings exported at package level.
 - **Tests** — `montu/tests/test_phenomena.py` covers all three models, the function wrapper, and the third *apokatastasis* Sirius case (Thebes, Schaefer 1987).
 
-## Version 0.21.2
+## Version 0.21.2 (minor)
 
 - **Example notebooks** — `%matplotlib inline` moved to the `import montu` cell; `%load_ext autoreload` / `%autoreload 2` commented with a note that they fail on Google Colab (Python 3.12+, removed `imp` module). Applied in `examples/` and `docs/examples/`.
 - **`README.ipynb`** — pole-star precession loop prints a short start/finish message instead of a tqdm progress bar (cleaner output in Jupyter and Colab).
 - **`polar_sky_map`** — figure layout uses `autosize` rather than a fixed pixel height so azimuthal maps resize better when embedded in MontuPython Desktop.
 
-## Version 0.21.1
+## Version 0.21.1 (major)
 
 - **`montu/maps.py`** — new module that unifies Plotly sky-map plotting: equatorial Mercator and azimuthal (polar) projections live together instead of being split across `stars.py` and a separate helper module.
 - **`polar_sky_map`** — builds north- and south-hemisphere azimuthal maps from a precessed catalogue: limiting magnitude, optional **horizon** (elevation 0° with azimuth marks) and **ecliptic**, solar-system bodies, **meridian view**, and **LST** in the title. High-level API: `polar_sky_map(...)`; per-hemisphere: `polar_sky_map_figure(...)`.
@@ -40,7 +45,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **`Stars.polar_sky_map()`** — convenience wrapper on a precessed `Stars` catalogue (mirrors `Stars.mercator_sky_map()`).
 - **`local_solar_to_utc_datepro()`** — convert local solar time at an observer longitude to a proleptic UTC `datepro` string (used by polar sky maps and MontuPython Desktop).
 
-## Version 0.21.x
+## Version 0.21.0 (breakthrough)
 
 - **SPICE removed from the active package** — kernels are no longer loaded on import; time conversions use NumPy and PyMeeus instead of `spiceypy`. `spiceypy` was dropped from install dependencies.
 - **Archived SPICE code** — earlier cycle modules (`__cycle_*.py`) and NAIF kernels moved to `contrib/montu-deprecated/` (outside the installable package).
@@ -53,7 +58,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **Documentation** — corrected Read the Docs URL (`montupython.readthedocs.io`); README examples split into tutorial and advanced sections; logo images use WebP.
 - **Metadata** — CITATION.cff and `.zenodo.json` authorship updates.
 
-## Version 0.20.x
+## Version 0.20.x (breakthrough)
 
 - Renamed **`Util.dec2hex`** to **`Util.dec2sex`** (decimal → sexagesimal DMS/HMS); added inverse **`Util.sex2dec`**.
 - Removed the old `dec2hex` / `hex2dec` aliases; updated tests, notebooks, and examples to the new names.

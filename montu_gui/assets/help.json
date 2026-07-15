@@ -320,7 +320,7 @@
         "title_es": "Magnitud límite en cenit"
       },
       "model": {
-        "body_en": "<p>Observational model used to decide whether the body is visible at morning twilight.</p><ul><li><b>Schaefer 1985</b> — twilight sky brightness, atmospheric extinction, and a point-source threshold; reconstructed from the published <i>Sky &amp; Telescope</i> BASIC listing.</li><li><b>Schaefer 1987</b> — evaluates visibility at a fixed Sun depression using secant airmass and a zenith limiting magnitude.</li><li><b>Belokrylov et al. 2011</b> — atmospheric absorption, bright-star regressions, and a Sun–star separation correction.</li></ul><p>The bibliographic source for the active model appears below the results.</p>",
+        "body_en": "<p>Observational model used to decide whether the body is visible at morning twilight.</p><ul><li><b>Schaefer 1985</b> — twilight sky brightness, atmospheric extinction, and a point-source threshold; reconstructed from the published <i>Sky &amp; Telescope</i> BASIC listing.</li><li><b>Schaefer 1987</b> — evaluates visibility at a fixed Sun depression using secant airmass and a zenith limiting magnitude.</li><li><b>Belokrylov et al. 2011</b> — atmospheric absorption, bright-star regressions, and a Sun–star separation correction.</li><li><b>Ptolemy (Arcus Visionis)</b> — computes solar depression at the body's horizon crossing and compares it against a critical Arcus Visionis threshold.</li></ul><p>The bibliographic source for the active model appears below the results.</p>",
         "body_es": "<p>Modelo observaciónal usado para decidir si el cuerpo es visible en el crepusculo matutino.</p>",
         "title_en": "Visibility model",
         "title_es": "Modelo de visibilidad"
@@ -333,6 +333,18 @@
         "body_es": "<p>Extincion de referencia en la ecuacion (6) del modelo de Belokrylov et al. (2011).</p>",
         "title_en": "Reference extinction",
         "title_es": "Extincion de referencia"
+      },
+      "arcus_visionis_crit": {
+        "body_en": "<p>Critical Arcus Visionis threshold [degrees] for the Ptolemy model. The body is considered visible only when the computed Sun depression at horizon crossing is equal to or greater than this value.</p>",
+        "body_es": "<p>Umbral critico del Arcus Visionis [grados] para el modelo de Ptolomeo. El cuerpo se considera visible cuando la depresion solar calculada en el cruce del horizonte es mayor o igual a este valor.</p>",
+        "title_en": "Arcus visionis threshold",
+        "title_es": "Umbral de Arcus Visionis"
+      },
+      "ptolemy_refraction_deg": {
+        "body_en": "<p>Horizon refraction entered in <b>arcminutes</b> for the Ptolemy model when solving body horizon crossing. The app converts this value internally to degrees before calling MontuPython. Default is <b>0 arcmin</b>, since in this historical-use context the body is considered already emerged above the horizon and the correction is negligible.</p>",
+        "body_es": "<p>Refraccion de horizonte ingresada en <b>minutos de arco</b> para el modelo de Ptolomeo al resolver el cruce de horizonte del cuerpo. La app convierte este valor internamente a grados antes de llamar a MontuPython. El valor por defecto es <b>0 min de arco</b>, porque en este contexto historico se considera que el cuerpo ya habia emergido sobre el horizonte y la correccion es despreciable.</p>",
+        "title_en": "Horizon refraction",
+        "title_es": "Refraccion de horizonte"
       },
       "step_minutes": {
         "body_en": "<p>Time step [minutes] used while scanning morning twilight in the Schaefer 1985 and Belokrylov 2011 models. Smaller steps locate the first visible instant more precisely but increase calculation time. Default: <code>2</code> minutes.</p>",

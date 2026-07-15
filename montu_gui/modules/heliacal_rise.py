@@ -24,6 +24,8 @@ DEFAULT_MODEL_PARAMETERS = {
     "reference_extinction": 0.25,
     "step_minutes": 2.0,
     "twilight_sunbelow": -18.0,
+    "arcus_visionis_crit": 15.0,
+    "ptolemy_refraction_deg": 0.0,
 }
 HELIACAL_PLANETS = ("Mercury", "Venus", "Mars", "Jupiter", "Saturn")
 

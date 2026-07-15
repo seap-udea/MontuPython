@@ -252,6 +252,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
             "Reference extinction:": "Extincion de referencia:",
             "Scan step:": "Paso de escaneo:",
             "Scan starts at Sun:": "Escaneo inicia con Sol:",
+            "Arcus Visionis threshold:": "Umbral de Arcus Visionis:",
+            "Horizon refraction (arcmin):": "Refraccion de horizonte (min de arco):",
             "No body is available in the selected category.": "No hay cuerpo disponible en la categoria seleccionada.",
             "⚠️ The search evaluates visibility morning by morning. Calculations can take time, especially for long ranges or scan-based models.": "⚠️ La busqueda evalua la visibilidad manana por manana. Los calculos pueden tardar, especialmente con rangos largos o modelos basados en escaneo.",
         "Calculate heliacal rises": "Calcular ortos heliacos",

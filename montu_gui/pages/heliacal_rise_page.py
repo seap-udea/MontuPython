@@ -60,6 +60,14 @@ from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
 
 HELP_MODULE = "heliacal_rise"
 _COMMON_MODULE = "_common"
+_PTOLEMY_ARCUS_DEFAULTS = {
+    "venus": 5.0,
+    "jupiter": 10.0,
+    "mercury": 10.0,
+    "saturn": 11.0,
+    "mars": 11.5,
+    "star": 15.0,
+}
 _MONTH_NAMES = [
     tr("January"), tr("February"), tr("March"), tr("April"), tr("May"), tr("June"),
     tr("July"), tr("August"), tr("September"), tr("October"), tr("November"), tr("December"),
@@ -320,6 +328,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._model.addItem("Schaefer 1987", "schaefer1987")
         self._model.addItem("Schaefer 1985", "schaefer1985")
         self._model.addItem("Belokrylov et al. 2011", "belokrylov2011")
+        self._model.addItem("Ptolemy (Arcus Visionis)", "ptolemy")
         model_form.addRow(
             HelpLink("Model:", HELP_MODULE, "input", "model", bold=True), self._model
         )
@@ -340,7 +349,17 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
             "twilight_sunbelow": _spin(
                 DEFAULT_MODEL_PARAMETERS["twilight_sunbelow"], -30.0, -0.1, 0.5
             ),
+            "arcus_visionis_crit": _spin(
+                DEFAULT_MODEL_PARAMETERS["arcus_visionis_crit"], 0.0, 30.0, 0.5
+            ),
+            "ptolemy_refraction_deg": _spin(
+                DEFAULT_MODEL_PARAMETERS["ptolemy_refraction_deg"] * 60.0,
+                0.0,
+                120.0,
+                1.0,
+            ),
         }
+        self._parameter_widgets["ptolemy_refraction_deg"].setSuffix(" arcmin")
         self._parameter_rows: dict[str, tuple[QLabel, QWidget]] = {}
         for key, label in (
             ("k", "Extinction k:"),
@@ -349,6 +368,8 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
             ("reference_extinction", "Reference extinction:"),
             ("step_minutes", "Scan step:"),
             ("twilight_sunbelow", "Scan starts at Sun:"),
+            ("arcus_visionis_crit", "Arcus Visionis threshold:"),
+            ("ptolemy_refraction_deg", "Horizon refraction (arcmin):"),
         ):
             help_label = HelpLink(label, HELP_MODULE, "input", key, bold=True)
             widget = self._parameter_widgets[key]
@@ -431,10 +452,13 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         root.addWidget(splitter, stretch=1)
 
         self._body_type.currentIndexChanged.connect(self._populate_bodies)
+        self._body_type.currentIndexChanged.connect(self._on_body_changed)
+        self._body_name.currentIndexChanged.connect(self._on_body_changed)
         self._model.currentIndexChanged.connect(self._update_parameter_visibility)
         self._refresh_location()
         self._load_stars()
         self._update_parameter_visibility()
+        self._sync_ptolemy_defaults()
         self._sync_illustration_size()
 
     def resizeEvent(self, event):
@@ -484,16 +508,41 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
 
     def _update_parameter_visibility(self) -> None:
         model = self._model.currentData()
-        visible = {"k", "limiting_mag_zenith"}
+        visible: set[str] = set()
         if model == "schaefer1987":
-            visible.add("sun_depression")
+            visible.update({"k", "limiting_mag_zenith", "sun_depression"})
         elif model == "belokrylov2011":
-            visible.update({"reference_extinction", "step_minutes", "twilight_sunbelow"})
+            visible.update({
+                "k",
+                "reference_extinction",
+                "step_minutes",
+                "twilight_sunbelow",
+            })
+        elif model == "ptolemy":
+            visible.update({"arcus_visionis_crit", "ptolemy_refraction_deg"})
         else:
-            visible.update({"step_minutes", "twilight_sunbelow"})
+            visible.update({"k", "limiting_mag_zenith", "step_minutes", "twilight_sunbelow"})
         for key, (label, widget) in self._parameter_rows.items():
             label.setVisible(key in visible)
             widget.setVisible(key in visible)
+        self._sync_ptolemy_defaults()
+
+    def _ptolemy_default_arcus_for_selection(self) -> float:
+        selected = self._body_name.currentData() or {}
+        if self._body_type.currentData() == "planet":
+            key = str(selected.get("name", "")).strip().lower()
+            return _PTOLEMY_ARCUS_DEFAULTS.get(key, _PTOLEMY_ARCUS_DEFAULTS["star"])
+        return _PTOLEMY_ARCUS_DEFAULTS["star"]
+
+    def _sync_ptolemy_defaults(self) -> None:
+        if self._model.currentData() != "ptolemy":
+            return
+        self._parameter_widgets["arcus_visionis_crit"].setValue(
+            self._ptolemy_default_arcus_for_selection()
+        )
+
+    def _on_body_changed(self, *_args) -> None:
+        self._sync_ptolemy_defaults()
 
     def _calculate(self) -> None:
         selected = self._body_name.currentData()
@@ -505,6 +554,10 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self.status_message.emit(tr("Calculating heliacal rises - this may take a while ..."))
         QApplication.processEvents()
         parameters = {key: widget.value() for key, widget in self._parameter_widgets.items()}
+        model_name = self._model.currentData() or DEFAULT_MODEL
+        if model_name == "ptolemy":
+            # UI input is in arcminutes; library expects degrees.
+            parameters["ptolemy_refraction_deg"] = parameters["ptolemy_refraction_deg"] / 60.0
         result = compute_heliacal_rises(
             body_type=self._body_type.currentData(),
             body_name=selected["name"],
@@ -515,7 +568,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
             start_date=self._start_date.montu_date(),
             calendar="mixed" if self._mixed_radio.isChecked() else "proleptic",
             range_years=self._range_years.value(),
-            model=self._model.currentData() or DEFAULT_MODEL,
+            model=model_name,
             model_parameters=parameters,
         )
         self._calculate_button.setEnabled(True)
@@ -579,6 +632,12 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
 
     def export_config(self) -> dict:
         body = self._body_name.currentData() or {}
+        model_name = self._model.currentData()
+        model_params = {
+            key: widget.value() for key, widget in self._parameter_widgets.items()
+        }
+        if model_name == "ptolemy":
+            model_params["ptolemy_refraction_deg"] = model_params["ptolemy_refraction_deg"] / 60.0
         return {
             "body_type": self._body_type.currentData(),
             "body_name": body.get("name", "Sirius"),
@@ -590,10 +649,8 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
             },
             "calendar": "mixed" if self._mixed_radio.isChecked() else "proleptic",
             "range_years": self._range_years.value(),
-            "model": self._model.currentData(),
-            "model_parameters": {
-                key: widget.value() for key, widget in self._parameter_widgets.items()
-            },
+            "model": model_name,
+            "model_parameters": model_params,
         }
 
     def apply_config(self, cfg: dict) -> None:
@@ -624,5 +681,8 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._model.setCurrentIndex(max(0, model_index))
         for key, value in cfg.get("model_parameters", {}).items():
             if key in self._parameter_widgets:
-                self._parameter_widgets[key].setValue(float(value))
+                if key == "ptolemy_refraction_deg":
+                    self._parameter_widgets[key].setValue(float(value) * 60.0)
+                else:
+                    self._parameter_widgets[key].setValue(float(value))
         self._update_parameter_visibility()

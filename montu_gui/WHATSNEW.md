@@ -2,13 +2,19 @@
 
 Release notes for the graphical front-end to MontuPython.
 
-## Version 0.2.5 (Desktop)
+## Version 0.2.6 (minor)
+
+- Improved some appearance issues (overflows in inputs).
+- Introduced the arcus visionis algorithm.
+- Fixed spelling errors in the Spanish help files.
+
+## Version 0.2.5 (minor)
 
 - **Bilingual localization (ES/EN)** — expanded and normalized translations across labels, forms, results text, and module UI.
 - **Spanish terminology fixes** — updated wording for astronomical seasons and heliacal rises; standardized visible text from "ano" to "año".
 - **Bilingual content consolidation** — `help.json` and `home.json` now keep English and Spanish text side by side in a single asset per resource for simpler maintenance and translation updates.
 
-## Version 0.2.4
+## Version 0.2.4 (major)
 
 - **Observer sites from the library** — predefined locations now load from `montu/data/locations.json`; the Desktop uses the same catalogue as `montu.Observer.list()` / `montu.Observer(site=…)`.
 - **Module order** — sidebar and Home list reordered: Calendar, Observer Location, Sky Map, Seasons & Lunar Phases, Planetary Ephemerides, Orientation Disk, Star Alignments, Heliacal Rises (Home remains first in the sidebar).
@@ -18,7 +24,7 @@ Release notes for the graphical front-end to MontuPython.
 - **Seasons fix** — solstice sunrise azimuths now use that day’s sunrise/sunset (local noon anchor) and display degrees correctly (no erroneous `RAD` conversion).
 - **Heliacal Rises (🌅)** — module description extended with a **this link** to open a non-modal **Historical Sirius heliacal rises** window (`montu/data/historical-heliacal-rises.json`); application stays usable while the list is open.
 
-## Version 0.2.3
+## Version 0.2.3 (major)
 
 - **Heliacal Rises (🌅)** — new module to find first visible morning appearances of named bright stars and classical planets using the library’s `HeliacalRise` models (Schaefer 1985/1987, Belokrylov 2011).
 - **Inputs** — shared observer location; star/planet selector; initial date with BCE/CE and year/month/day spinboxes; mixed or proleptic calendar; year range (`StepSpinBox`); model-specific parameters (extinction, limiting magnitude, solar depression, scan step).
@@ -29,7 +35,7 @@ Release notes for the graphical front-end to MontuPython.
 - **Observer location fix** — Star Alignments no longer overwrites the global observer to Giza on startup; saved observer config is reapplied after all pages are built, and Observer Location refreshes from shared state when opened.
 - **Help** — `help.json` entries for all Heliacal Rises inputs, results, and Peret Sopedet; module listed on Home.
 
-## Version 0.2.2
+## Version 0.2.2 (major)
 
 - **Frozen-bundle assets** — new `montu_gui/utils/bundle_paths.py` resolves `home.json`, `help.json`, logos, and other files from the PyInstaller `_MEIPASS` tree; all `montu_gui/assets/` files are copied explicitly in `montu-desktop.spec`. Fixes empty Home page and “No help text found” dialogs on Windows installs.
 - **Windows icon** — `montu-python-logo-complete.ico` used for the `.exe` and taskbar; sidebar logo path fixed in frozen builds (`main.py` → `gui_asset()`).
@@ -38,7 +44,7 @@ Release notes for the graphical front-end to MontuPython.
 - **Plotly embed** — maps and charts fill the available panel height in tall windows and gain scroll bars when the view is shorter than the minimum map height (`plotly_html.py`; Sky Map minimum 560 px).
 - **Orientation Disk example** — `montu_gui/pages/examples/orientation_disk.py` redrawn to match the Desktop azimuth disk (four rise/set extremes per body, triangle markers, compass labels).
 
-## Version 0.2.0
+## Version 0.2.0 (breakthrough)
 
 - **Sky Map (🌌)** — new module with separate azimuthal maps for the northern and southern celestial hemispheres.
 - Precessed stars to the selected date; limiting magnitude filter; local solar time and observer site from **Observer Location**.
@@ -53,14 +59,14 @@ Release notes for the graphical front-end to MontuPython.
 - All main modules export and restore their parameters through `export_config` / `apply_config` (Calendar, Location, Planets, Seasons, Star Alignments, Orientation Disk, Sky Map).
 - **PlotlyView** — each embedded chart uses its own temp HTML file so multiple plots on one page do not overwrite each other.
 
-## Version 0.1.5
+## Version 0.1.5 (minor)
 
 - **Historical dates from the library** — Calendar Calculator and examples now use `montu.load_historical_dates()` and the catalogue bundled in `montu/data/historical_dates.json` (removed duplicate data from the Desktop PyInstaller spec).
 - **Calendar example** — added the Canopus Decree (`bce 238-03-07`) to `montu_gui/pages/examples/calendar_conversion.py`.
 - **Aligned with MontuPython 0.20.5** — Desktop works with the SPICE-free library (no kernel loading on import).
 - **Release tooling** — `release-pipeline.sh` supports Desktop releases via `--tag` (`desktop-release`, git tag, and `desktop-ci`).
 
-## Version 0.1.2
+## Version 0.1.2 (major)
 
 - **Desktop distribution** — PyInstaller packaging (`montu_gui/montu-desktop.spec`), local build scripts (`bin/build-desktop.sh`, `bin/build-desktop.ps1`), and GitHub Actions CI for macOS and Windows releases (tag `desktop-v*`).
 - **README** — download section for Desktop builds from [GitHub Releases](https://github.com/seap-udea/MontuPython/releases).
@@ -70,7 +76,7 @@ Release notes for the graphical front-end to MontuPython.
 - Colab-friendly example scripts for all six modules in `montu_gui/pages/examples/`; bundled in the PyInstaller build.
 - Examples updated for MontuPython **0.20.1**: `dec2sex` / `sex2dec` naming and explicit `mercator_sky_map` import in Star Alignments.
 
-## Version 0.1.1
+## Version 0.1.1 (major)
 
 - **Orientation Disk (⭕)** — new module for the northernmost and southernmost rise and set azimuths of celestial bodies on a polar disk.
 - Reference year with BCE / CE selector; computation sweeps a **3-year window** from 1 January (long enough to capture Venus’s synodic cycle).
@@ -87,7 +93,7 @@ Release notes for the graphical front-end to MontuPython.
 - **Star Alignments** — sky map expands horizontally when the window is maximised or the splitter is moved; removed the fixed-width scroll-area wrapper.
 - **Plotly embed** (`plotly_html.py`, `plotly_view.py`) — responsive width, `autosize`, and automatic `Plotly.Plots.resize()` on load and widget resize; benefits Star Alignments, Planetary Ephemerides, and Orientation Disk.
 
-## Version 0.1.0
+## Version 0.1.0 (breakthrough)
 
 - First packaged release of **MontuPython Desktop**, the PySide6 GUI for MontuPython.
 - **Home** page with project overview, credits, and quick links to the repository and documentation.

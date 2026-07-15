@@ -3,18 +3,17 @@
 Heliacal-rise algorithms implemented here draw on:
 
 * **schaefer1985** — Schaefer, B.E. 1985, "Predicting Heliacal Risings and
-  Settings", *Sky & Telescope* **70**, 261–263.  Reconstructed from the
-  published BASIC listing (lines 34–35, 55–81): twilight sky brightness,
-  extinction, and a point-source detection threshold.
-* **schaefer1987** — Operational reduction aligned with Schaefer's fixed
-  twilight framework (Schaefer 1987, *Archaeoastronomy* 11, S19–33, and the
-  1985 note): evaluate visibility when the Sun is at a prescribed depression
-  using secant airmass and a zenith-based limiting magnitude.
-* **belokrylov2011** — Belokrylov, R.O.; Belokrylov, S.V.; Nikiforov, M.G.
-  2011, "Model of the stellar visibility during twilight", *Bulgarian
-  Astronomical Journal* **16**.  Equations (4)–(8): atmospheric absorption,
-  bright-star regressions, and a sky-background correction for small Sun–star
-  separation.
+    Settings", *Sky & Telescope* **70**, 261–263.  Reconstructed from the
+    published BASIC listing (lines 34–35, 55–81): twilight sky brightness,
+    extinction, and a point-source detection threshold.
+* **schaefer1987** — Schaefer, B. E. (1987). "Heliacal rise phenomena".
+    *Journal for the History of Astronomy*, 18(11), 19-33.
+* **belokrylov2011** — Belokrylov, R. O., Belokrylov, S. V., &
+    Nickiforov, M. G. (2011). "Model of the stellar visibility during
+    twilight". *Bulgarian Astronomical Journal*, 16, 50-72.
+* **ptolemy** — Toomer, G. J. (1998). *Ptolemy's Almagest*.
+    Princeton University Press. Book XIII, Chapter 7: "On the heliacal
+    risings and settings of the planets".
 """
 ###############################################################
 # Montu interdependencies
@@ -38,14 +37,29 @@ HELIACAL_RISE_SOURCES = {
         '(BASIC listing, lines 34–35 and 55–81).'
     ),
     'schaefer1987': (
-        'Schaefer, B.E. 1987, Archaeoastronomy 11, S19–33; '
-        'fixed solar depression with secant airmass and zenith limiting magnitude.'
+        'Schaefer, B. E. (1987). "Heliacal rise phenomena". '
+        'Journal for the History of Astronomy, 18(11), 19-33.'
     ),
     'belokrylov2011': (
-        'Belokrylov et al. 2011, Bulgarian Astronomical Journal 16, eqs. (4)–(8).'
+        'Belokrylov, R. O., Belokrylov, S. V., & Nickiforov, M. G. (2011). '
+        '"Model of the stellar visibility during twilight". '
+        'Bulgarian Astronomical Journal, 16, 50-72.'
+    ),
+    'ptolemy': (
+        'Toomer, G. J. (1998). Ptolemy\'s Almagest. Princeton University Press. '
+        'Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".'
     ),
 }
 HELIACAL_RISE_MODELS = HELIACAL_RISE_SOURCES.keys()
+
+PTOLEMY_ARCUS_VISIONIS_DEFAULTS = {
+    'venus': 5.0,
+    'jupiter': 10.0,
+    'mercury': 10.0,
+    'saturn': 11.0,
+    'mars': 11.5,
+    'star_first_magnitude': 15.0,
+}
 
 class HeliacalRise:
     """Predict heliacal-rise mornings with a chosen visibility model.
@@ -55,7 +69,7 @@ class HeliacalRise:
 
     Parameters
     ----------
-    model : {'schaefer1985', 'schaefer1987', 'belokrylov2011'}
+    model : {'schaefer1985', 'schaefer1987', 'belokrylov2011', 'ptolemy'}
         Visibility algorithm (see module docstring for literature sources).
     k : float, optional
         Visual extinction coefficient [mag / air mass].
@@ -70,6 +84,18 @@ class HeliacalRise:
         ``belokrylov2011``.
     twilight_sunbelow : float, optional
         Solar depression [deg] marking the start of the morning scan window.
+    arcus_visionis_crit : float, optional
+        Critical Arcus Visionis threshold [deg] for ``ptolemy``.
+        If omitted, a body-dependent historical default is used when available
+        (Venus 5, Jupiter 10, Mercury 10, Saturn 11, Mars 11.5, stars 15).
+    ptolemy_refraction_deg : float, optional
+        Horizon refraction [deg] for the Ptolemaic horizon crossing equation.
+        Use ``0`` for a purely geometric horizon.
+    ptolemy_use_refraction : bool, optional
+        Whether to include horizon refraction in the Ptolemaic horizon step.
+    ptolemy_step_minutes : float, optional
+        Time step used to locate the body horizon crossing during morning
+        twilight in ``ptolemy``.
 
     Examples
     --------
@@ -95,7 +121,13 @@ class HeliacalRise:
         reference_extinction=0.25,
         step_minutes=2,
         twilight_sunbelow=-18.0,
+        arcus_visionis_crit=None,
+        ptolemy_refraction_deg=0.0,
+        ptolemy_use_refraction=True,
+        ptolemy_step_minutes=2,
     ):
+        if model == 'ptolemy_arcus_visionis':
+            model = 'ptolemy'
         if model not in self.MODELS:
             raise ValueError(f"model must be one of {self.MODELS}, got {model!r}")
         self.model = model
@@ -105,6 +137,10 @@ class HeliacalRise:
         self.reference_extinction = reference_extinction
         self.step_minutes = step_minutes
         self.twilight_sunbelow = twilight_sunbelow
+        self.arcus_visionis_crit = arcus_visionis_crit
+        self.ptolemy_refraction_deg = ptolemy_refraction_deg
+        self.ptolemy_use_refraction = ptolemy_use_refraction
+        self.ptolemy_step_minutes = ptolemy_step_minutes
 
     @property
     def source(self):
@@ -208,7 +244,161 @@ class HeliacalRise:
         """
         if self.model == 'schaefer1987':
             return self._evaluate_schaefer1987(day, body, observer)
+        if self.model == 'ptolemy':
+            return self._evaluate_ptolemy_arcus_visionis(day, body, observer, sun)
         return self._evaluate_twilight_scan(day, body, observer, sun)
+
+    def _evaluate_ptolemy_arcus_visionis(self, day, body, observer, sun):
+        """Ptolemaic Arcus Visionis at body horizon crossing.
+
+        Uses spherical trigonometry to solve the rising branch hour angle, then
+        finds the JED where local sidereal time matches ``RA_body + H_body``.
+        Arcus Visionis is evaluated from solar altitude at that same instant.
+        """
+        target_horizon_deg = (
+            -self.ptolemy_refraction_deg if self.ptolemy_use_refraction else 0.0
+        )
+
+        at_ref = montu.Time(day.jed, format='jd', scale='utc')
+        body_ra_h, body_dec_deg = self._body_equatorial_state(body, at_ref, observer)
+
+        phi = np.deg2rad(float(observer.lat))
+        dec_star = np.deg2rad(body_dec_deg)
+        h0 = np.deg2rad(target_horizon_deg)
+        denom = np.cos(phi) * np.cos(dec_star)
+        if np.isclose(denom, 0.0):
+            return {'visible': False}
+
+        cos_h_star = (np.sin(h0) - np.sin(phi) * np.sin(dec_star)) / denom
+        if cos_h_star < -1.0 or cos_h_star > 1.0:
+            return {'visible': False}
+        cos_h_star = np.clip(cos_h_star, -1.0, 1.0)
+
+        # Rising branch (east): negative hour angle.
+        h_star_rad = -np.arccos(cos_h_star)
+        h_star_hours = np.rad2deg(h_star_rad) / 15.0
+        lst_target_hours = np.mod(body_ra_h + h_star_hours, 24.0)
+        at_jed = self._jed_for_lst(day, observer, lst_target_hours)
+        at = montu.Time(at_jed, format='jd', scale='utc')
+
+        body_ra_h, body_dec_deg = self._body_equatorial_state(body, at, observer)
+        sun_ra_h, sun_dec_deg, sun_el_deg, sun_az_deg = self._sun_equatorial_state(sun, at, observer)
+        body_el, body_az, vmag = self._body_sky_state(body, at, observer)
+
+        observer.site.date = at_jed - montu.PYEPHEM_JD_REF
+        lst_hours = float(observer.site.sidereal_time() * montu.RAD / 15.0)
+        h_star_hours_epoch = ((lst_hours - body_ra_h + 12.0) % 24.0) - 12.0
+        h_sun_hours = ((lst_hours - sun_ra_h + 12.0) % 24.0) - 12.0
+
+        dec_sun = np.deg2rad(sun_dec_deg)
+        h_sun = np.deg2rad(h_sun_hours * 15.0)
+        sin_a_sun = (
+            np.sin(phi) * np.sin(dec_sun)
+            + np.cos(phi) * np.cos(dec_sun) * np.cos(h_sun)
+        )
+        sin_a_sun = np.clip(sin_a_sun, -1.0, 1.0)
+        a_sun = np.arcsin(sin_a_sun)
+        arcus_visionis_calc = -np.rad2deg(a_sun)
+        sun_alt_formula_deg = np.rad2deg(a_sun)
+
+        arcus_visionis_crit = self._resolve_arcus_visionis_crit(body, vmag)
+        visible = bool((arcus_visionis_calc >= arcus_visionis_crit) and (sun_alt_formula_deg < 0.0))
+
+        return {
+            'jed': float(at_jed),
+            'local_time': observer.get_local_time(at_jed),
+            'body_altitude_deg': float(body_el),
+            'body_azimuth_deg': float(body_az),
+            'sun_altitude_deg': float(sun_el_deg),
+            'sun_azimuth_deg': float(sun_az_deg),
+            'sun_altitude_formula_deg': float(sun_alt_formula_deg),
+            'vmag': float(vmag),
+            'target_horizon_deg': float(target_horizon_deg),
+            'body_ra_hours': float(body_ra_h),
+            'body_dec_deg': float(body_dec_deg),
+            'sun_ra_hours': float(sun_ra_h),
+            'sun_dec_deg': float(sun_dec_deg),
+            'h_star_deg': float(h_star_hours_epoch * 15.0),
+            'h_sun_deg': float(h_sun_hours * 15.0),
+            'arcus_visionis_calc_deg': float(arcus_visionis_calc),
+            'arcus_visionis_crit_deg': float(arcus_visionis_crit),
+            'visible': visible,
+        }
+
+    @staticmethod
+    def _jed_for_lst(day, observer, lst_target_hours):
+        """Approximate JED for target local sidereal time on ``day``."""
+        observer.site.date = day.jed - montu.PYEPHEM_JD_REF
+        lst0_hours = float(observer.site.sidereal_time() * montu.RAD / 15.0)
+        delta_lst_hours = np.mod(lst_target_hours - lst0_hours, 24.0)
+        sidereal_rate = 1.00273790935
+        delta_solar_hours = delta_lst_hours / sidereal_rate
+        return float(day.jed + delta_solar_hours / 24.0)
+
+    def _resolve_arcus_visionis_crit(self, body, vmag):
+        """Resolve Arcus Visionis threshold [deg] for Ptolemy model."""
+        if self.arcus_visionis_crit is not None:
+            return float(self.arcus_visionis_crit)
+
+        if isinstance(body, Sebau):
+            body_name = str(getattr(getattr(body, 'seba', None), 'name', '')).strip().lower()
+            if body_name in PTOLEMY_ARCUS_VISIONIS_DEFAULTS:
+                return float(PTOLEMY_ARCUS_VISIONIS_DEFAULTS[body_name])
+
+        if isinstance(body, Stars):
+            return float(PTOLEMY_ARCUS_VISIONIS_DEFAULTS['star_first_magnitude'])
+
+        body_seba = getattr(body, 'seba', None)
+        if body_seba is not None:
+            body_name = str(getattr(body_seba, 'name', '')).strip().lower()
+            if body_name in PTOLEMY_ARCUS_VISIONIS_DEFAULTS:
+                return float(PTOLEMY_ARCUS_VISIONIS_DEFAULTS[body_name])
+
+        # Conservative historical fallback.
+        return float(PTOLEMY_ARCUS_VISIONIS_DEFAULTS['star_first_magnitude'])
+
+    @staticmethod
+    def _body_equatorial_state(body, at, observer):
+        """Body epoch right ascension [hours] and declination [deg]."""
+        if isinstance(body, Stars):
+            body.where_in_sky(at, observer, inplace=True)
+            row = body.data.iloc[0]
+            return float(row.RAEpoch), float(row.DecEpoch)
+
+        if isinstance(body, Sebau):
+            body.where_in_sky(at, observer)
+            pos = getattr(body, 'position', None)
+            ra = getattr(pos, 'RAEpoch', None)
+            dec = getattr(pos, 'DecEpoch', None)
+            if ra is None or dec is None:
+                raise ValueError('Sebau position does not include RAEpoch/DecEpoch')
+            return float(ra), float(dec)
+
+        if hasattr(body, 'where_in_sky'):
+            body.where_in_sky(at, observer)
+            pos = getattr(body, 'position', None)
+            ra = getattr(pos, 'RAEpoch', None)
+            dec = getattr(pos, 'DecEpoch', None)
+            if ra is not None and dec is not None:
+                return float(ra), float(dec)
+            data = getattr(body, 'data', None)
+            if data is not None and len(data) and 'RAEpoch' in data.columns and 'DecEpoch' in data.columns:
+                row = data.iloc[0]
+                return float(row.RAEpoch), float(row.DecEpoch)
+            raise ValueError('Cannot determine RAEpoch/DecEpoch for body')
+
+        raise TypeError('body must be montu.Stars, montu.Sebau, or provide where_in_sky')
+
+    @staticmethod
+    def _sun_equatorial_state(sun, at, observer):
+        """Sun epoch right ascension [hours], declination [deg], altitude, azimuth."""
+        sun.where_in_sky(at, observer)
+        return (
+            float(sun.position.RAEpoch),
+            float(sun.position.DecEpoch),
+            float(sun.position.el),
+            float(sun.position.az),
+        )
 
     def _evaluate_schaefer1987(self, day, body, observer):
         """Schaefer fixed-depression criterion at morning twilight.
