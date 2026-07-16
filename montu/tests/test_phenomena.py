@@ -161,3 +161,46 @@ def test_sebau_body_uses_ephemeris_magnitude(thebes):
     )
     if not result.empty:
         assert result.vmag.notna().all()
+
+
+@pytest.fixture(scope="module")
+def solar_eclipses():
+    return montu.SolarEclipses()
+
+
+def test_solar_eclipses_catalogue_loads(solar_eclipses):
+    assert solar_eclipses.number == 11898
+    subset = solar_eclipses.get_eclipses(year=[-1400, -1200])
+    assert 400 < subset.number < 600
+    assert subset.get_eclipse(eclipse_type='T').number > 0
+
+
+def test_solar_eclipse_dallas_2024_totality(solar_eclipses):
+    """Dallas was inside the 2024-04-08 path of totality (~3m51s)."""
+    eclipse = solar_eclipses.get_eclipses(year=2024, month=4, day=8).eclipse(0)
+    dallas = montu.Observer(lon=-96.7970, lat=32.7767, height=0.14)
+    cond = eclipse.conditions_eclipse(dallas)
+
+    assert cond.kind == 'total'
+    assert cond.visible is True
+    assert cond.magnitude == pytest.approx(1.015, abs=0.01)
+    assert cond.duration_umbra_seconds == pytest.approx(231, abs=5)
+    assert cond.jed_c1 is not None and cond.jed_c4 is not None
+    assert cond.jed_c2 < cond.jed_max < cond.jed_c3
+
+
+def test_solar_eclipse_thebes_2024_below_horizon(solar_eclipses, thebes):
+    """Same eclipse is daytime in Texas but night in Egypt."""
+    eclipse = solar_eclipses.get_eclipses(year=2024, month=4, day=8).eclipse(0)
+    cond = eclipse.conditions_eclipse(thebes)
+    assert cond.kind == 'partial'
+    assert cond.visible is False
+    assert cond.sun_altitude_deg < 0
+
+
+def test_solar_eclipse_from_series_and_indexing(solar_eclipses):
+    subset = solar_eclipses.get_eclipses(year=2024, month=4, day=8)
+    by_index = subset[0]
+    by_series = montu.SolarEclipse(subset.data.iloc[0])
+    assert repr(by_index).startswith('<SolarEclipse')
+    assert by_index.data.year == by_series.data.year == 2024

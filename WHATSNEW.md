@@ -2,6 +2,18 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.22.0 (major)
+
+- **Solar eclipses** — new classes in `montu/phenomena.py` for local circumstances from polynomial Besselian elements:
+  - **`SolarEclipses`** — catalogue loader and filter (same conventions as `Stars.get_stars` / `get_eclipses`); alias `get_eclipse`.
+  - **`SolarEclipse`** — single-eclipse object with `conditions_eclipse(observer)` (kind, visibility, magnitude, obscuration, contacts C1–C4, umbral duration, solar altitude) for any `Observer` / city.
+  - Bundled NASA Five Millennium Catalog of Solar Eclipses (Espenak & Meeus): **11 898** eclipses from **−1999 to +3000**, file `montu/data/nasa_5mcse_besselian.csv`.
+  - **`SolarEclipse.__str__`** — human-readable catalogue summary with field explanations.
+- **Example notebooks**
+  - **`examples/MontuPython-HeliacalRises.ipynb`** — full step-by-step tutorial of heliacal-rise calculation (Ptolemy, Schaefer 1985/1987, Belokrylov 2011) from Thebes / Sirius.
+  - **`examples/MontuPython-SolarEclipses.ipynb`** — catalogue search, modern validation (Dallas 2024), and historical survey of eclipses visible from Thebes (case study −1257 July 27).
+- **Tests** — `montu/tests/test_phenomena.py` extended for catalogue loading and Dallas 2024 local totality.
+
 ## Version 0.21.6 (minor)
 
 - Fixed time calculation errors in the azimuthal projection map algorithm.

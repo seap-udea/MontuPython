@@ -45,9 +45,9 @@ ALLPLANETS = Util.load_planets()
 
 # Showing version 
 def welcome_version():
-    print(f"MontuPython version {version}. 𓋹 𓍘 𓋴 𓎛 𓂡 𓁘 (ii-ti m Htp, HkAx Hn'-k)")
+    print(f"MontuPython version {version}. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)")
 
 def welcome_translate():
-    print(f"𓋹 𓍘 𓋴 (ii-ti m Htp: Ii-ti em hotep = Welcome in peace) 𓎛 𓂡 𓁘 (HkAx Hn'-k: Heka hen-ek = May Heka (magic) be with you)")
+    print(f"𓇍𓇋𓇋𓏏𓅓𓊵 (ii-ti m Htp: Ii-ti em hotep = Welcome in peace) 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (HkAx Hn'-k: Heka hen-ek = May Heka (magic) be with you)")
 
 welcome_version()
