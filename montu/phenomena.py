@@ -58,8 +58,10 @@ PTOLEMY_ARCUS_VISIONIS_DEFAULTS = {
     'mercury': 10.0,
     'saturn': 11.0,
     'mars': 11.5,
-    'star_first_magnitude': 15.0,
+    'star_first_magnitude': 14.0,
 }
+
+PTOLEMY_DEFAULT_REFRACTION_DEG = 34.0 / 60.0
 
 class HeliacalRise:
     """Predict heliacal-rise mornings with a chosen visibility model.
@@ -87,15 +89,11 @@ class HeliacalRise:
     arcus_visionis_crit : float, optional
         Critical Arcus Visionis threshold [deg] for ``ptolemy``.
         If omitted, a body-dependent historical default is used when available
-        (Venus 5, Jupiter 10, Mercury 10, Saturn 11, Mars 11.5, stars 15).
+        (Venus 5, Jupiter 10, Mercury 10, Saturn 11, Mars 11.5, stars 14).
     ptolemy_refraction_deg : float, optional
         Horizon refraction [deg] for the Ptolemaic horizon crossing equation.
+        Default is 34 arcminutes (standard atmospheric refraction).
         Use ``0`` for a purely geometric horizon.
-    ptolemy_use_refraction : bool, optional
-        Whether to include horizon refraction in the Ptolemaic horizon step.
-    ptolemy_step_minutes : float, optional
-        Time step used to locate the body horizon crossing during morning
-        twilight in ``ptolemy``.
 
     Examples
     --------
@@ -104,7 +102,7 @@ class HeliacalRise:
     >>> sirius = montu.Stars(subset='bright', ProperName='Sirius')
     >>> start = montu.Time('139-07-01', calendar='mixed')
     >>> end = montu.Time('139-08-15', calendar='mixed')
-    >>> rise = montu.HeliacalRise(model='schaefer1987', sun_depression=-11)
+    >>> rise = montu.HeliacalRise(model='schaefer1987', sun_depression=-10)
     >>> rise.compute(sirius, tebas, start, end)
     """
 
@@ -117,14 +115,12 @@ class HeliacalRise:
         *,
         k=0.25,
         limiting_mag_zenith=6.0,
-        sun_depression=-11.0,
+        sun_depression=-10.0,
         reference_extinction=0.25,
         step_minutes=2,
         twilight_sunbelow=-18.0,
         arcus_visionis_crit=None,
-        ptolemy_refraction_deg=0.0,
-        ptolemy_use_refraction=True,
-        ptolemy_step_minutes=2,
+        ptolemy_refraction_deg=PTOLEMY_DEFAULT_REFRACTION_DEG,
     ):
         if model == 'ptolemy_arcus_visionis':
             model = 'ptolemy'
@@ -139,15 +135,13 @@ class HeliacalRise:
         self.twilight_sunbelow = twilight_sunbelow
         self.arcus_visionis_crit = arcus_visionis_crit
         self.ptolemy_refraction_deg = ptolemy_refraction_deg
-        self.ptolemy_use_refraction = ptolemy_use_refraction
-        self.ptolemy_step_minutes = ptolemy_step_minutes
 
     @property
     def source(self):
         """Bibliographic reference for the active model."""
         return self.SOURCES[self.model]
 
-    def compute(self, body, observer, start, end=None):
+    def compute(self, body, observer, start, end=None, verbose=False):
         """Search for heliacal-rise mornings in ``[start, end]``.
 
         A day counts when the body becomes visible under the model and was
@@ -165,6 +159,9 @@ class HeliacalRise:
             First civil date of the interval (inclusive).
         end : montu.Time, optional
             Last civil date (inclusive).  Defaults to *start* + 365 days.
+        verbose : bool, optional
+            If ``True``, print the active model parameters followed by the
+            visibility result obtained for each morning in the search.
 
         Returns
         -------
@@ -178,15 +175,23 @@ class HeliacalRise:
         elif not isinstance(end, montu.Time):
             end = montu.Time(end)
 
+        if verbose:
+            self._print_verbose_header(start, end)
+
         sun = montu.Sun()
         events = []
         prev_visible = False
 
         jed = start.jed
+        day_number = 0
         while jed <= end.jed + 1e-9:
+            day_number += 1
             day = montu.Time(jed, format='jd', scale='utc')
             result = self._day_visible(day, body, observer, sun)
             visible = bool(result.get('visible', False))
+
+            if verbose:
+                self._print_verbose_day(day_number, day, result)
 
             if visible and not prev_visible:
                 events.append({
@@ -195,11 +200,147 @@ class HeliacalRise:
                     'day_jed': jed,
                     **{key: value for key, value in result.items() if key != 'visible'},
                 })
+                if verbose:
+                    self._print_verbose_detection()
 
             prev_visible = visible
             jed += 1.0
 
         return pd.DataFrame(events)
+
+    def _verbose_parameters(self):
+        """Parameters used by the active visibility model."""
+        if self.model == 'ptolemy':
+            return {
+                'arcus_visionis_crit': (
+                    'automatic body default'
+                    if self.arcus_visionis_crit is None
+                    else self.arcus_visionis_crit
+                ),
+                'ptolemy_refraction_deg': self.ptolemy_refraction_deg,
+            }
+        if self.model == 'schaefer1987':
+            return {
+                'k': self.k,
+                'limiting_mag_zenith': self.limiting_mag_zenith,
+                'sun_depression': self.sun_depression,
+            }
+        if self.model == 'schaefer1985':
+            return {
+                'k': self.k,
+                'limiting_mag_zenith': self.limiting_mag_zenith,
+                'step_minutes': self.step_minutes,
+                'twilight_sunbelow': self.twilight_sunbelow,
+            }
+        return {
+            'k': self.k,
+            'reference_extinction': self.reference_extinction,
+            'step_minutes': self.step_minutes,
+            'twilight_sunbelow': self.twilight_sunbelow,
+        }
+
+    def _verbose_criterion(self):
+        """Human-readable visibility criterion for the active model."""
+        if self.model == 'ptolemy':
+            return 'AV_calc >= AV_crit and h_sun < 0°'
+        if self.model == 'schaefer1987':
+            return 'h_star > 0° and V_observed <= V_limit(local)'
+        if self.model == 'schaefer1985':
+            return 'h_star > 0° and V <= V_limit'
+        return 'h_star > 0° and h_sun <= h_theor'
+
+    def _verbose_quantity_definitions(self):
+        """Define the quantities printed by the active model."""
+        if self.model == 'ptolemy':
+            return (
+                't_rise: local object rise time; '
+                'AV: solar depression at object rise; '
+                'AV_crit: critical Arcus Visionis; h_sun: solar altitude'
+            )
+        if self.model == 'schaefer1987':
+            return (
+                'h_star: object altitude; X: air mass; '
+                'V_observed: extinguished object magnitude; '
+                'V_limit: limiting magnitude at object altitude'
+            )
+        if self.model == 'schaefer1985':
+            return (
+                'h_star: object altitude; h_sun: solar altitude; '
+                'V: object magnitude; V_limit: limiting magnitude at object '
+                'altitude; B: sky brightness'
+            )
+        return (
+            "h_star: object altitude; h_sun: solar altitude; "
+            "m': extinction-corrected magnitude; rho: Sun-object separation; "
+            "h_theor: limiting solar altitude"
+        )
+
+    def _print_verbose_header(self, start, end):
+        """Print model configuration before a verbose search."""
+        print(f'HeliacalRise verbose — model={self.model}')
+        print(f'  quantities: {self._verbose_quantity_definitions()}')
+        print(f'  interval: {start.readable.datemix} -> {end.readable.datemix}')
+        print('  model parameters:')
+        for name, value in self._verbose_parameters().items():
+            print(f'    {name}={value}')
+        print(f'  criterion: {self._verbose_criterion()}')
+        if self.model in ('schaefer1985', 'belokrylov2011'):
+            print(
+                f'  morning scan: h_sun={self.twilight_sunbelow}° to sunrise, '
+                f'every {self.step_minutes} minutes'
+            )
+
+    def _print_verbose_day(self, day_number, day, result):
+        """Print the partial visibility result for one morning."""
+        visible = bool(result.get('visible', False))
+        line = (
+            f'  day {day_number:03d} | {day.readable.datemix} | '
+            f'visible={visible}'
+        )
+        details = self._verbose_relevant_values(result)
+        if details:
+            line += ' | ' + details
+        print(line)
+
+    def _verbose_relevant_values(self, result):
+        """Format only quantities that participate in the active criterion."""
+        if 'jed' not in result:
+            return ''
+
+        if self.model == 'ptolemy':
+            return (
+                f't_rise={result["local_time"]} | '
+                f'AV={result["arcus_visionis_calc_deg"]:.3f}° | '
+                f'AV_crit={result["arcus_visionis_crit_deg"]:.3f}° | '
+                f'h_sun={result["sun_altitude_formula_deg"]:.3f}°'
+            )
+        if self.model == 'schaefer1987':
+            return (
+                f'h_star={result["body_altitude_deg"]:.3f}° | '
+                f'X={result["airmass"]:.3f} | '
+                f'V_observed={result["observed_magnitude"]:.3f} | '
+                f'V_limit={result["local_limiting_magnitude"]:.3f}'
+            )
+        if self.model == 'schaefer1985':
+            return (
+                f'h_star={result["body_altitude_deg"]:.3f}° | '
+                f'h_sun={result["sun_altitude_deg"]:.3f}° | '
+                f'V={result["vmag"]:.3f} | '
+                f'V_limit={result["limiting_magnitude"]:.3f} | '
+                f'B={result["sky_brightness"]:.3f}'
+            )
+        return (
+            f'h_star={result["body_altitude_deg"]:.3f}° | '
+            f'h_sun={result["sun_altitude_deg"]:.3f}° | '
+            f"m'={result['corrected_magnitude']:.3f} | "
+            f'rho={result["sun_star_separation_deg"]:.3f}° | '
+            f'h_theor={result["h_theor_deg"]:.3f}°'
+        )
+
+    def _print_verbose_detection(self):
+        """Explain why the event morning satisfies the model criterion."""
+        print('    -> heliacal rise detected')
+        print(f'       criterion satisfied: {self._verbose_criterion()}')
 
     def print_rises(self, result, title=None, body_label='body'):
         """Print a summary of detected heliacal-rise mornings.
@@ -235,6 +376,7 @@ class HeliacalRise:
                 f'Sun {event.sun_altitude_deg:.2f}°',
             )
         print(f'  source: {result.source.iloc[0]}')
+        return result
 
     def _day_visible(self, day, body, observer, sun):
         """Evaluate morning visibility for one civil day.
@@ -255,9 +397,7 @@ class HeliacalRise:
         finds the JED where local sidereal time matches ``RA_body + H_body``.
         Arcus Visionis is evaluated from solar altitude at that same instant.
         """
-        target_horizon_deg = (
-            -self.ptolemy_refraction_deg if self.ptolemy_use_refraction else 0.0
-        )
+        target_horizon_deg = -self.ptolemy_refraction_deg
 
         at_ref = montu.Time(day.jed, format='jd', scale='utc')
         body_ra_h, body_dec_deg = self._body_equatorial_state(body, at_ref, observer)
@@ -646,7 +786,7 @@ class HeliacalRise:
 
 def heliacal_rise(
     body, observer, start, end=None, *,
-    model='schaefer1987', title=None, body_label='body', **kwargs,
+    model='schaefer1987', title=None, body_label='body', verbose=False, **kwargs,
 ):
     """Convenience wrapper around :class:`HeliacalRise`.
 
@@ -656,6 +796,6 @@ def heliacal_rise(
     See :meth:`HeliacalRise.compute` for remaining parameter details.
     """
     calculator = HeliacalRise(model=model, **kwargs)
-    result = calculator.compute(body, observer, start, end)
+    result = calculator.compute(body, observer, start, end, verbose=verbose)
     calculator.print_rises(result, title=title, body_label=body_label)
     return result

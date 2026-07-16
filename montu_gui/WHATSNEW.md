@@ -30,7 +30,7 @@ Release notes for the graphical front-end to MontuPython.
 - **Inputs** — shared observer location; star/planet selector; initial date with BCE/CE and year/month/day spinboxes; mixed or proleptic calendar; year range (`StepSpinBox`); model-specific parameters (extinction, limiting magnitude, solar depression, scan step).
 - **Results** — summary line (interval, model source, elapsed time) and table with mixed, proleptic, and caniucular dates, local time, body/Sun altitude and azimuth, and days since the prior event.
 - **Peret Sopedet illustration** — full-width image below the table with English title *Illustration of Egyptian Peret Sopedet on the Giza plateau*; contextual help on the heliacal rise of Sirius (Sopedet) and image credits (Nano Banana / Preview, based on Bob Moler’s Stellarium–GIMP simulation).
-- **Defaults** — factory observer preset **Thebes (Luxor)**; Sirius, BCE 2782-06-01, 10-year range, Schaefer 1987 (`k=0.25`, `limiting_mag_zenith=6.5`, `sun_depression=−7.8`).
+- **Defaults** — factory observer preset **Thebes (Luxor)**; Sirius, CE 133-06-01, 10-year range, Schaefer 1987 (`k=0.25`, `limiting_mag_zenith=6.0`, `sun_depression=−10.0`); Ptolemy Arcus Visionis 14° and horizon refraction 34 arcmin.
 - **Let's Python!** — example script `montu_gui/pages/examples/heliacal_rise.py` reproduces the Desktop defaults.
 - **Observer location fix** — Star Alignments no longer overwrites the global observer to Giza on startup; saved observer config is reapplied after all pages are built, and Observer Location refreshes from shared state when opened.
 - **Help** — `help.json` entries for all Heliacal Rises inputs, results, and Peret Sopedet; module listed on Home.

@@ -10,8 +10,8 @@ from dataclasses import dataclass, field
 import re
 from time import perf_counter
 
-DEFAULT_START_ERA = "bce"
-DEFAULT_START_YEAR = 2782
+DEFAULT_START_ERA = "ce"
+DEFAULT_START_YEAR = 133
 DEFAULT_START_MONTH = 6
 DEFAULT_START_DAY = 1
 DEFAULT_CALENDAR = "mixed"
@@ -19,13 +19,13 @@ DEFAULT_RANGE_YEARS = 10
 DEFAULT_MODEL = "schaefer1987"
 DEFAULT_MODEL_PARAMETERS = {
     "k": 0.25,
-    "limiting_mag_zenith": 6.5,
-    "sun_depression": -7.8,
+    "limiting_mag_zenith": 6.0,
+    "sun_depression": -10.0,
     "reference_extinction": 0.25,
     "step_minutes": 2.0,
     "twilight_sunbelow": -18.0,
-    "arcus_visionis_crit": 15.0,
-    "ptolemy_refraction_deg": 0.0,
+    "arcus_visionis_crit": 14.0,
+    "ptolemy_refraction_deg": 34.0 / 60.0,
 }
 HELIACAL_PLANETS = ("Mercury", "Venus", "Mars", "Jupiter", "Saturn")
 

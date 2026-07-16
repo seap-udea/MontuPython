@@ -66,7 +66,7 @@ _PTOLEMY_ARCUS_DEFAULTS = {
     "mercury": 10.0,
     "saturn": 11.0,
     "mars": 11.5,
-    "star": 15.0,
+    "star": 14.0,
 }
 _MONTH_NAMES = [
     tr("January"), tr("February"), tr("March"), tr("April"), tr("May"), tr("June"),

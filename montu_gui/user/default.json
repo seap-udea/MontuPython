@@ -92,21 +92,23 @@
     "body_type": "star",
     "body_name": "Sirius",
     "start_date": {
-      "era": "bce",
-      "year": 2782,
+      "era": "ce",
+      "year": 133,
       "month": 6,
       "day": 1
     },
     "calendar": "mixed",
     "range_years": 10,
-    "model": "schaefer1987",
+    "model": "ptolemy",
     "model_parameters": {
       "k": 0.25,
-      "limiting_mag_zenith": 6.5,
-      "sun_depression": -12.0,
+      "limiting_mag_zenith": 6.0,
+      "sun_depression": -10.0,
       "reference_extinction": 0.25,
       "step_minutes": 2.0,
-      "twilight_sunbelow": -18.0
+      "twilight_sunbelow": -18.0,
+      "arcus_visionis_crit": 14.0,
+      "ptolemy_refraction_deg": 0.5666666666666666
     }
   },
   "calendar": {
