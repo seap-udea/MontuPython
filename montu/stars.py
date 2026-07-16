@@ -153,6 +153,92 @@ def _scalar_float(value):
     return float(arr[0])
 
 ###############################################################
+# Star Class
+###############################################################
+class Star(montu.Sebau):
+    """A single star as a celestial body.
+
+    Inherits all methods from :class:`montu.Sebau`.
+
+    Parameters
+    ----------
+    star_data : pandas.Series or dict, optional
+        Data for a single star. Must contain at least ``RAJ2000`` and ``DecJ2000``.
+    """
+    def __init__(self, star_data=None, **kwargs):
+        super().__init__()
+        import ephem as pyephem
+        self.seba = pyephem.FixedBody()
+
+        if star_data is not None:
+            self.seba._ra = float(star_data['RAJ2000']) * 15 * montu.DEG
+            self.seba._dec = float(star_data['DecJ2000']) * montu.DEG
+            self.seba._epoch = '2000/1/1 12:00:00'
+
+            name_val = star_data.get('Name')
+            proper_name_val = star_data.get('ProperName')
+            if name_val is not None and pd.notna(name_val):
+                self.seba.name = str(name_val)
+            elif proper_name_val is not None and pd.notna(proper_name_val):
+                self.seba.name = str(proper_name_val)
+            else:
+                self.seba.name = 'Star'
+
+            vmag_val = star_data.get('Vmag')
+            if vmag_val is not None and pd.notna(vmag_val):
+                self.seba.mag = float(vmag_val)
+
+            pmra_val = star_data.get('pmRA')
+            if pmra_val is not None and pd.notna(pmra_val):
+                self.seba._pmra = float(pmra_val)
+
+            pmdec_val = star_data.get('pmDec')
+            if pmdec_val is not None and pd.notna(pmdec_val):
+                self.seba._pmdec = float(pmdec_val)
+        else:
+            if 'RAJ2000' in kwargs:
+                self.seba._ra = float(kwargs['RAJ2000']) * 15 * montu.DEG
+            if 'DecJ2000' in kwargs:
+                self.seba._dec = float(kwargs['DecJ2000']) * montu.DEG
+            self.seba._epoch = '2000/1/1 12:00:00'
+            self.seba.name = kwargs.get('Name', kwargs.get('ProperName', 'Star'))
+            if 'Vmag' in kwargs:
+                self.seba.mag = float(kwargs['Vmag'])
+            if 'pmRA' in kwargs:
+                self.seba._pmra = float(kwargs['pmRA'])
+            if 'pmDec' in kwargs:
+                self.seba._pmdec = float(kwargs['pmDec'])
+
+        self.name = self.seba.name
+
+    def conditions_in_sky(self, at=None, observer=None, store=False):
+        """Compute full observational conditions for the star."""
+        self.where_in_sky(at, observer, store)
+        events = self._observer_events(observer)
+
+        condition = {
+            'tt': int(at.tt), 'jed': at.jed,
+            'Name': self.seba.name,
+            'ha': self.seba.ha * montu.RAD / 15,
+            'Vmag': self.seba.mag,
+            'rise_time': events['rise_time'] + montu.PYEPHEM_JD_REF,
+            'rise_az': events['rise_az'] * montu.RAD,
+            'set_time': events['set_time'] + montu.PYEPHEM_JD_REF,
+            'set_az': events['set_az'] * montu.RAD,
+            'transit_time': events['transit_time'] + montu.PYEPHEM_JD_REF,
+            'transit_el': events['transit_alt'] * montu.RAD,
+            'elongation': self.seba.elong * montu.RAD,
+            'is_circumpolar': events['is_circumpolar'],
+            'is_neverup': events['is_neverup'],
+        }
+
+        self.condition_store = store
+        if store:
+            self.condition += [condition]
+        else:
+            self.condition = montu.Dictobj(dict=condition)
+
+###############################################################
 # Stars Class
 ###############################################################
 class Stars(object):
@@ -599,13 +685,46 @@ class Stars(object):
         if not inplace:
             return data
         
-    def conditions_in_sky(self,at=None,site=None):
+    def conditions_in_sky(self,at=None,observer=None,inplace=False):
         """Determine rise, transit and set times for the stars.
 
-        .. note::
-            Not yet implemented.
+        Parameters
+        ----------
+        at : montu.Time, optional
+            Epoch of the observation. Defaults to the current time.
+        observer : montu.Observer
+            Observing site. Must be a valid :class:`montu.Observer` instance.
+        inplace : bool, optional
+            If ``True``, add columns to ``self.data`` and return ``None``.
+            If ``False`` (default), return a copy of the updated DataFrame.
         """
-        pass
+        # If at is not provide use present
+        if at is None:
+            at = montu.Time()
+
+        # Check inputs
+        if not isinstance(observer,montu.Observer):
+            raise ValueError("You must provide a valid montu.Observer")
+
+        # Determine which data to modify according to inplace
+        if inplace:
+            data = self.data
+        else:
+            data = copy.deepcopy(self.data)
+
+        def _get_conditions(row):
+            star = Star(row)
+            star.conditions_in_sky(at=at, observer=observer)
+            return pd.Series(star.condition.__dict__)
+
+        cond_df = data.apply(_get_conditions, axis=1)
+
+        for col in cond_df.columns:
+            if col not in ['Name', 'Vmag']:
+                data[col] = cond_df[col]
+
+        if not inplace:
+            return data
     
     def mercator_sky_map(self, **kwargs):
         """Build a base Mercator sky map for this catalogue (see :func:`montu.maps.mercator_sky_map`)."""
