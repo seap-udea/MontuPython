@@ -74,7 +74,7 @@ You may import the package using:
 from montu import *
 ```
 
-    MontuPython version 0.22.1. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.30.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 or for a safe import:
@@ -801,7 +801,7 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
     Precessing 6 stars over 1,000 epochs …
 
 
-    Done in 1.5 s.
+    Done in 1.3 s.
 
 
 Now plot declinations as a function of time:
@@ -848,12 +848,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-08 00:17:53.805120 (declination 89:31:55.761)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-10 17:09:21.605760 (declination 86:22:03.641)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-13 00:29:09.798720 (declination 89:56:04.840)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-30 12:38:13.297856 (declination 86:57:15.605)
-    Star Alderamin will be the closest to the pole at 7532-02-27 18:07:28.502400 (declination 87:58:43.002)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-17 08:36:11.401920 (declination 83:29:32.447)
+    Star Polaris will be the closest to the pole at 2086-08-08 16:32:23.398096 (declination 89:31:55.768)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-11 09:23:51.207360 (declination 86:22:03.643)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-13 16:43:39.400320 (declination 89:56:04.859)
+    Star Deneb will be the closest to the pole at 14732 B.C. 05-31 04:52:42.908160 (declination 86:57:15.605)
+    Star Alderamin will be the closest to the pole at 7532-02-28 10:21:58.104000 (declination 87:58:43.004)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-18 00:50:41.3520 (declination 83:29:32.447)
 
 
 ## Tutorial by example notebooks
