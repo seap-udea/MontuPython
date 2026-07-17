@@ -2,7 +2,7 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.22.0 (major)
+## Version 0.22.1 (major)
 
 - **Solar eclipses** — new classes in `montu/phenomena.py` for local circumstances from polynomial Besselian elements:
   - **`SolarEclipses`** — catalogue loader and filter (same conventions as `Stars.get_stars` / `get_eclipses`); alias `get_eclipse`.
