@@ -2,6 +2,15 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.30.0 (breakthrough)
+
+- **Sothic (Egyptian civil) calendar** — terminology and API updated from *caniucular* to **sothic** across the library, examples, and documentation (`calendar='sothic'`, `Time.readable.datesot`, `Time.parse_datesot()`).
+- **Mixed-year sothic input** — civil dates accept Horus year (`[hrw N]`), mixed historical BCE/CE (`[bce YYYY]`), astronomical year (`[-YYYY]`), and CE tags (`[ce YYYY]` / `[YYYY]`); see `montu/tests/test_sothic_mixed_year.py`.
+- **`Time.parse_datesot()`** — parse `[hrw YEAR] MONTH SEASON DAY` strings into Horus year, month, season, and day components.
+- **Historical dates catalogue** — updates in `montu/data/historical_dates.json` for sothic-era entries and civil-calendar cross-references.
+- **Example notebooks** — Egyptian calendar, MonTime, Heliacal Rises, and Basic Functions refreshed for sothic naming and mixed-year conventions.
+- **Tests** — `montu/tests/test_sothic_mixed_year.py` and docstring-example coverage extended for the new civil-date formats.
+
 ## Version 0.22.1 (major)
 
 - **Solar eclipses** — new classes in `montu/phenomena.py` for local circumstances from polynomial Besselian elements:

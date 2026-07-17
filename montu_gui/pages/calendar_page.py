@@ -34,9 +34,9 @@ from PySide6.QtGui import QFont, QDoubleValidator
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QComboBox, QLineEdit,
-    QGroupBox, QTableWidget, QTableWidgetItem, QRadioButton,
+    QGroupBox, QRadioButton,
     QButtonGroup, QSizePolicy, QFrame, QSplitter, QCalendarWidget,
-    QHeaderView, QAbstractItemView, QStackedWidget, QScrollArea,
+    QStackedWidget, QScrollArea,
 )
 
 # ── import converter module ───────────────────────────────────────────────────
@@ -67,10 +67,8 @@ from montu_gui.utils.debug import dbg, log_ui_event
 from montu_gui.utils.i18n import get_language, tr, trf
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.utils.location_state import LocationState
-from montu_gui.widgets.format_cell import FormatCell
-from montu_gui.widgets.sothic_value_cell import SothicValueCell
+from montu_gui.widgets.montu_time_result import MontuTimeResultPanel
 from montu_gui.widgets.sothic_calendar_dialog import show_sothic_calendar_dialog
-from montu_gui.widgets.table_utils import configure_wrapping_table, set_wrapping_header_labels
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
@@ -95,6 +93,21 @@ _CALENDAR_EXAMPLE = LetsPythonExample(
 )
 
 HELP_MODULE = "calendar"
+_COMMON_MODULE = "_common"
+
+
+def _local_zone_offset_str() -> str:
+    """Format the computer's UTC offset for montu zone input (e.g. UTC-5)."""
+    offset = datetime.now().astimezone().utcoffset()
+    if offset is None:
+        return "UTC"
+    total_minutes = int(offset.total_seconds() // 60)
+    sign = "+" if total_minutes >= 0 else "-"
+    total_minutes = abs(total_minutes)
+    hours, minutes = divmod(total_minutes, 60)
+    if minutes:
+        return f"UTC{sign}{hours}:{minutes:02d}"
+    return f"UTC{sign}{hours}"
 
 
 # ── small helpers ──────────────────────────────────────────────────────────────
@@ -303,96 +316,6 @@ def _month_names() -> list[str]:
     ]
 
 
-# ── result table ───────────────────────────────────────────────────────────────
-class ResultTable(QTableWidget):
-    """Two-column table (Format | Value) for conversion output."""
-
-    sothic_open_requested = Signal()
-
-    # label, result attribute, help.json key
-    ROWS = [
-        (tr("Weekday"), "weekday", "weekday"),
-        (tr("Gregorian proleptic (human)"), "spice", "spice"),
-        (tr("Gregorian proleptic (astronomical)"), "proleptic", "proleptic"),
-        (tr("Mixed Julian/Gregorian"), "mixed", "mixed"),
-        (tr("Sothic (Egyptian civil)"), "sothic", "sothic"),
-        (tr("Julian Day — UTC"), "jd_utc", "jd_utc"),
-        (tr("TT ephemeris seconds (J2000)"), "jd_tt", "tt"),
-        (tr("UTC ephemeris seconds (J2000)"), "et", "et"),
-        (tr("Delta-T (seconds)"), "delta_t", "delta_t"),
-    ]
-
-    def __init__(self, parent=None):
-        super().__init__(len(self.ROWS), 2, parent)
-        self.verticalHeader().setVisible(False)
-        self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.setAlternatingRowColors(True)
-        configure_wrapping_table(self)
-        self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
-
-        header = self.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setStretchLastSection(True)
-        header.setMinimumSectionSize(120)
-        set_wrapping_header_labels(self, [tr("Format"), tr("Value")])
-
-        for row, (label, _attr, help_key) in enumerate(self.ROWS):
-            self.setCellWidget(
-                row, 0,
-                FormatCell(label, HELP_MODULE, "result", help_key),
-            )
-
-            if _attr == "sothic":
-                cell = SothicValueCell()
-                cell.clicked.connect(self.sothic_open_requested.emit)
-                self.setCellWidget(row, 1, cell)
-                self._sothic_cell = cell
-            else:
-                val_item = QTableWidgetItem("—")
-                val_item.setTextAlignment(
-                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
-                )
-                val_item.setFlags(val_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                self.setItem(row, 1, val_item)
-
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-
-    def update_result(self, result: ConversionResult):
-        sothic_row = next(
-            i for i, (_, attr, _) in enumerate(self.ROWS) if attr == "sothic"
-        )
-        if not result.ok:
-            for row in range(self.rowCount()):
-                if row == sothic_row:
-                    self._sothic_cell.set_text("—")
-                    continue
-                item = self.item(row, 1)
-                if item is not None:
-                    item.setText("—")
-            err_item = self.item(0, 1)
-            err_text = trf("Error: {error}", error=result.error)
-            if err_item is not None:
-                err_item.setText(err_text)
-                err_item.setToolTip(err_text)
-            self.resizeRowsToContents()
-            return
-
-        for row, (_, attr, _help_key) in enumerate(self.ROWS):
-            value = str(getattr(result, attr, "—"))
-            if attr == "sothic":
-                self._sothic_cell.set_text(value)
-            else:
-                item = self.item(row, 1)
-                if item is not None:
-                    item.setText(value)
-                    item.setToolTip(value)
-
-        self.resizeRowsToContents()
-
-
 # ── Julian/Gregorian input form ────────────────────────────────────────────────
 class JulGregForm(QWidget):
     """Gregorian date + time input with Mac-style navigation."""
@@ -522,49 +445,31 @@ class JulGregForm(QWidget):
         time_row.addWidget(self.now_btn)
         date_layout.addLayout(time_row)
 
-        layout.addWidget(date_box)
-
-        observer_box = QGroupBox(tr("Observer"))
-        observer_layout = QVBoxLayout(observer_box)
-        observer_layout.setSpacing(6)
-
-        mode_row = QHBoxLayout()
-        mode_row.addWidget(
+        tz_row = QHBoxLayout()
+        tz_row.addWidget(
             HelpLink(tr("Time zone:"), HELP_MODULE, "input", "observer_time", bold=True)
         )
         self.obs_group = QButtonGroup(self)
         self.rb_obs_utc = QRadioButton(tr("UTC"))
         self.rb_obs_site = QRadioButton(tr("Site"))
         self.rb_obs_zone = QRadioButton(tr("Zone"))
-        self.rb_obs_utc.setChecked(True)
         for rb in (self.rb_obs_utc, self.rb_obs_site, self.rb_obs_zone):
             self.obs_group.addButton(rb)
-            mode_row.addWidget(rb)
-        mode_row.addStretch()
-        observer_layout.addLayout(mode_row)
-
-        self.site_label = QLabel()
-        self.site_label.setWordWrap(True)
-        self.site_label.setStyleSheet("color:#555; font-size:12px;")
-        observer_layout.addWidget(self.site_label)
+            tz_row.addWidget(rb)
+        tz_row.addStretch()
+        date_layout.addLayout(tz_row)
 
         zone_row = QHBoxLayout()
-        zone_row.addWidget(
-            HelpLink(tr("Zone offset:"), HELP_MODULE, "input", "zone_offset", bold=True)
+        self._zone_offset_link = HelpLink(
+            tr("Zone offset:"), HELP_MODULE, "input", "zone_offset", bold=True
         )
+        zone_row.addWidget(self._zone_offset_link)
         self.zone_edit = QLineEdit()
         self.zone_edit.setPlaceholderText(tr("e.g. UTC-5 or -5"))
-        self.zone_edit.setEnabled(False)
         zone_row.addWidget(self.zone_edit, stretch=1)
-        observer_layout.addLayout(zone_row)
+        date_layout.addLayout(zone_row)
 
-        site_note = QLabel(tr("<i>Change site in the 🧭 Observer Location module.</i>"))
-        site_note.setWordWrap(True)
-        site_note.setStyleSheet("color:#888; font-size:11px;")
-        observer_layout.addWidget(site_note)
-        self._site_note = site_note
-
-        layout.addWidget(observer_box)
+        layout.addWidget(date_box)
 
         # signals
         self.btn_prev.clicked.connect(self._prev_month)
@@ -580,9 +485,10 @@ class JulGregForm(QWidget):
         self.second_spin.valueChanged.connect(self._emit_changed)
         self.now_btn.clicked.connect(self._set_now)
         self.obs_group.buttonClicked.connect(self._on_observer_mode_changed)
-        self.zone_edit.textChanged.connect(self._emit_changed)
-        if self._location_state is not None:
-            self._location_state.changed.connect(self._refresh_observer_site)
+        self.zone_edit.textChanged.connect(self._on_zone_changed)
+        self.zone_edit.editingFinished.connect(self._on_zone_changed)
+        self.rb_obs_zone.setChecked(True)
+        self.zone_edit.setText(_local_zone_offset_str())
         self._refresh_observer_ui()
 
     @property
@@ -607,21 +513,15 @@ class JulGregForm(QWidget):
         self._refresh_observer_ui()
         self._emit_changed()
 
-    def _refresh_observer_site(self, *_args):
-        self._refresh_observer_ui()
-        if self.rb_obs_site.isChecked():
-            self._emit_changed()
+    def _on_zone_changed(self, *_args):
+        if self._syncing:
+            return
+        self._emit_changed()
 
     def _refresh_observer_ui(self):
-        mode = self.observer_mode
-        self.zone_edit.setEnabled(mode == "zone")
-        show_site = mode == "site"
-        self.site_label.setVisible(show_site)
-        self._site_note.setVisible(show_site)
-        if show_site and self._location_state is not None:
-            self.site_label.setText(self._location_state.coords.label_with_coords())
-        elif show_site:
-            self.site_label.setText(tr("No observer site configured."))
+        zone_mode = self.rb_obs_zone.isChecked()
+        self.zone_edit.setEnabled(zone_mode)
+        self._zone_offset_link.setEnabled(zone_mode)
 
     def set_observer_values(self, mode: str, zone_text: str = "") -> None:
         buttons = {
@@ -629,10 +529,13 @@ class JulGregForm(QWidget):
             "site": self.rb_obs_site,
             "zone": self.rb_obs_zone,
         }
-        btn = buttons.get(mode, self.rb_obs_utc)
+        btn = buttons.get(mode, self.rb_obs_zone)
         if not btn.isChecked():
             btn.setChecked(True)
-        self.zone_edit.setText(zone_text)
+        if zone_text:
+            self.zone_edit.setText(zone_text)
+        elif mode == "zone" and not self.zone_edit.text().strip():
+            self.zone_edit.setText(_local_zone_offset_str())
         self._refresh_observer_ui()
 
     def _emit_changed(self, *_args):
@@ -710,6 +613,9 @@ class JulGregForm(QWidget):
     def _set_now(self):
         now = datetime.now()
         self.set_values("ce", now.year, now.month, now.day, now.hour, now.minute, now.second)
+        self.rb_obs_zone.setChecked(True)
+        self.zone_edit.setText(_local_zone_offset_str())
+        self._refresh_observer_ui()
         self.changed.emit()
 
     @property
@@ -1153,7 +1059,20 @@ class CalendarPage(LazyPageMixin, QWidget):
         self._connect_auto_convert()
 
     def _activate_page(self) -> None:
+        self._refresh_location()
         self._on_convert()
+
+    def _refresh_location(self, _coords=None) -> None:
+        if self._location_state is None:
+            self._location_label.setText(tr("No observer site configured."))
+            return
+        observer = self._location_state.coords
+        self._location_label.setText(
+            f"<b>{observer.name}</b><br>lat {observer.lat:.4f}°, "
+            f"lon {observer.lon:.4f}°, altitude {observer.alt_m:.0f} m"
+        )
+        if hasattr(self, "form_jg") and self.form_jg.observer_mode == "site":
+            self._on_convert()
 
     # ── UI construction ────────────────────────────────────────────────────────
     def _build_ui(self):
@@ -1171,6 +1090,30 @@ class CalendarPage(LazyPageMixin, QWidget):
         left_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         left_layout.addWidget(module_brand("calendar"))
+
+        location_box = QGroupBox(tr("Location"))
+        location_layout = QVBoxLayout(location_box)
+        location_layout.addWidget(
+            HelpLink(
+                "Observer location:",
+                _COMMON_MODULE,
+                "input",
+                "observer_location",
+                bold=True,
+            )
+        )
+        self._location_label = QLabel()
+        self._location_label.setWordWrap(True)
+        self._location_label.setTextFormat(Qt.TextFormat.RichText)
+        location_layout.addWidget(self._location_label)
+        location_note = QLabel(
+            tr("<i>Change this in the 🧭 Observer Location module.</i>")
+        )
+        location_note.setStyleSheet("color:#888; font-size:11px;")
+        location_layout.addWidget(location_note)
+        left_layout.addWidget(location_box)
+        if self._location_state is not None:
+            self._location_state.changed.connect(self._refresh_location)
 
         mode_label = _label(tr("Input mode:"), bold=True)
         left_layout.addWidget(mode_label, alignment=Qt.AlignmentFlag.AlignTop)
@@ -1197,6 +1140,7 @@ class CalendarPage(LazyPageMixin, QWidget):
         self.form_can = SothicForm()
         self.form_jd = JDForm()
         self.form_hist = HistoricalDatesForm(self._historical)
+        self._refresh_location()
 
         self.form_stack = QStackedWidget()
         self.form_stack.addWidget(self.form_jg)
@@ -1223,13 +1167,14 @@ class CalendarPage(LazyPageMixin, QWidget):
         splitter.addWidget(left_scroll)
 
         right = QWidget()
+        right.setStyleSheet("background: #ffffff;")
         right_layout = QVBoxLayout(right)
         right_layout.setContentsMargins(6, 0, 0, 0)
         right_layout.addWidget(_label(tr("Conversion results:"), bold=True))
 
-        self.result_table = ResultTable()
-        self.result_table.sothic_open_requested.connect(self._open_sothic_calendar)
-        right_layout.addWidget(self.result_table)
+        self.result_panel = MontuTimeResultPanel()
+        self.result_panel.sothic_open_requested.connect(self._open_sothic_calendar)
+        right_layout.addWidget(self.result_panel)
 
         splitter.addWidget(right)
         splitter.setStretchFactor(0, 3)
@@ -1287,8 +1232,9 @@ class CalendarPage(LazyPageMixin, QWidget):
         )
         self.status_message.emit(trf("Loading historical date: {key} ...", key=key))
         result = historical_date_to_all(key)
-        self.result_table.update_result(result)
+        self.result_panel.update_result(result)
         self._last_result = result if result.ok else self._last_result
+        self._sync_sothic_calendar_button()
 
         if result.ok:
             self._fill_forms_from_result(result, full=True)
@@ -1356,8 +1302,9 @@ class CalendarPage(LazyPageMixin, QWidget):
             add_units="days",
             year_mode=f.year_mode,
         )
-        self.result_table.update_result(result)
+        self.result_panel.update_result(result)
         self._last_result = result if result.ok else self._last_result
+        self._sync_sothic_calendar_button()
 
         if result.ok:
             log_ui_event("conversion complete", ok=True, step=delta)
@@ -1429,8 +1376,9 @@ class CalendarPage(LazyPageMixin, QWidget):
         else:
             return
 
-        self.result_table.update_result(result)
+        self.result_panel.update_result(result)
         self._last_result = result if result.ok else self._last_result
+        self._sync_sothic_calendar_button()
 
         if result.ok:
             log_ui_event("conversion complete", ok=True)
@@ -1441,6 +1389,10 @@ class CalendarPage(LazyPageMixin, QWidget):
         else:
             log_ui_event("conversion failed", ok=False, error=result.error)
             self.status_message.emit(trf("Error: {error}", error=result.error))
+
+    def _sync_sothic_calendar_button(self) -> None:
+        enabled = self._last_result is not None and self._last_result.ok
+        self.result_panel.set_open_calendar_enabled(enabled)
 
     def _open_sothic_calendar(self):
         """Open the interactive Sothic year calendar for the current result."""
@@ -1537,8 +1489,8 @@ class CalendarPage(LazyPageMixin, QWidget):
                 calendar_type=jg.get("calendar_type", "proleptic"),
             )
             self.form_jg.set_observer_values(
-                jg.get("observer_mode", "utc"),
-                jg.get("zone", ""),
+                jg.get("observer_mode", "zone"),
+                jg.get("zone", "") or _local_zone_offset_str(),
             )
 
             can = cfg.get("sothic") or cfg.get("caniucular", {})

@@ -258,58 +258,106 @@
     },
     "result": {
       "sothic": {
-        "body_en": "<p>Date in the Egyptian <b>civil (sothic)</b> calendar (<code>Time.readable.datesot</code>): Horus year, month, season, and day. The year begins with the heliacal rise of Sirius (Sothis); the epoch is <code>[hrw 0] I <i>akhet</i> 1</code> = BCE&nbsp;2782-07-20.</p><p><b>Format</b></p><ul><li><code>[hrw HYEAR] MONTH SEASON DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — <i>akhet</i>, <i>peret</i>, <i>shemu</i>, or <i>mesut</i> (intercalary)</li><li><b>DAY</b> — 1–30</li></ul><p><b>Examples</b></p><ul><li><code>[hrw 0] I <i>akhet</i> 1</code> — sothic epoch (datum)</li><li><code>[hrw 1] I <i>akhet</i> 2</code> — day after the datum in Horus year 1</li><li><code>[hrw 4809] III <i>shemu</i> 25</code> — 7 March 2026 CE in civil form</li></ul>",
-        "body_es": "<p>Fecha en el calendario <b>civil egipcio (sótico)</b> (<code>Time.readable.datesot</code>): año de Horus, mes, estacion y día.</p>",
-        "title_en": "Sothic (Egyptian civil)",
-        "title_es": "Sótico (civil egipcio)"
+        "body_en": "<p>Date in the Egyptian <b>civil (sothic)</b> calendar (<code>Time.readable.datesot</code>): Horus year, month, season, and day. Click the underlined value to open the interactive Horus-year calendar on that civil day.</p><p><b>Format</b></p><ul><li><code>[hrw HYEAR] MONTH SEASON DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — <i>akhet</i>, <i>peret</i>, <i>shemu</i>, or <i>mesut</i> (intercalary)</li><li><b>DAY</b> — 1–30</li></ul>",
+        "body_es": "<p>Fecha en el calendario <b>civil egipcio (sótico)</b> (<code>Time.readable.datesot</code>): año de Horus, mes, estación y día. Haz clic en el valor subrayado para abrir el calendario interactivo del año de Horus en ese día civil.</p><p><b>Formato</b></p><ul><li><code>[hrw HYEAR] MONTH SEASON DAY</code></li><li><b>HYEAR</b> — año de Horus</li><li><b>MONTH</b> — numeral romano I–IV dentro de la estación</li><li><b>SEASON</b> — <i>akhet</i>, <i>peret</i>, <i>shemu</i> o <i>mesut</i></li><li><b>DAY</b> — 1–30</li></ul>",
+        "title_en": "Sothic (civil)",
+        "title_es": "Sótico (civil)"
       },
       "delta_t": {
-        "body_en": "<p>Difference <b>TT − UTC</b> in seconds (<code>Time.deltat</code>). Accounts for irregular Earth rotation (tidal braking and leap seconds). Required to convert between civil UTC and uniform TT.</p><p><b>Format</b></p><ul><li>Decimal seconds (positive in the modern era: TT runs ahead of UTC)</li><li>Tabulated internally by MontuPython for historical dates</li></ul><p><b>Examples</b></p><ul><li><code>67.184</code> — approximate value near 2020 CE</li><li><code>67692.000</code> — much larger for ancient dates (e.g. BCE&nbsp;2782), where extrapolation uncertainty is high</li></ul>",
-        "body_es": "<p>Diferencia <b>TT - UTC</b> en segundos (<code>Time.deltat</code>). Considera la rotacion irregular de la Tierra y es necesaria para convertir entre UTC civil y TT uniforme.</p>",
+        "body_en": "<p>Difference <b>TT − UTC</b> in seconds (<code>Time.deltat</code>). Accounts for irregular Earth rotation (tidal braking and leap seconds). Required to convert between civil UTC and uniform TT.</p><p><b>Format:</b> decimal seconds (positive in the modern era: TT runs ahead of UTC).</p><p><b>Examples:</b> <code>67.184</code> near 2020 CE; much larger values for ancient dates.</p>",
+        "body_es": "<p>Diferencia <b>TT − UTC</b> en segundos (<code>Time.deltat</code>). Refleja la rotación irregular de la Tierra (frenado tidal y segundos intercalares). Necesaria para convertir entre UTC civil y TT uniforme.</p><p><b>Formato:</b> segundos decimales (positivos en la era moderna: TT va adelantado respecto a UTC).</p><p><b>Ejemplos:</b> <code>67.184</code> cerca de 2020 EC; valores mucho mayores en fechas antiguas.</p>",
         "title_en": "Delta-T (seconds)",
         "title_es": "Delta-T (segundos)"
       },
       "et": {
-        "body_en": "<p>Ephemeris seconds on the <b>UTC</b> scale, measured from J2000.0. Corresponds to <code>Time.et</code>. In MontuPython: <code>et = tt − deltat</code>.</p><p><b>Format</b></p><ul><li>Decimal seconds from J2000.0 (UTC)</li><li>Differs from TT by Delta-T (Earth rotation effects)</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 (UTC ephemeris time origin)</li><li>For any date, typically a few tens of seconds less than the TT value at the same instant (see Delta-T)</li></ul>",
-        "body_es": "<p>Segundos de efemérides en escala <b>UTC</b> medidos desde J2000.0. Corresponde a <code>Time.et</code>. En MontuPython: <code>et = tt - deltat</code>.</p>",
-        "title_en": "UTC ephemeris seconds (J2000)",
-        "title_es": "Segundos de efemérides UTC (J2000)"
+        "body_en": "<p>Ephemeris seconds on the <b>UTC</b> scale, measured from J2000.0 (<code>Time.et</code>). In MontuPython: <code>et = tt − deltat</code>.</p><p><b>Format:</b> decimal seconds from J2000.0 (UTC).</p>",
+        "body_es": "<p>Segundos de efemérides en escala <b>UTC</b> medidos desde J2000.0 (<code>Time.et</code>). En MontuPython: <code>et = tt − deltat</code>.</p><p><b>Formato:</b> segundos decimales desde J2000.0 (UTC).</p>",
+        "title_en": "ET seconds (J2000)",
+        "title_es": "Segundos ET (J2000)"
       },
       "jd_utc": {
-        "body_en": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch (1&nbsp;January&nbsp;4713&nbsp;BCE, 12:00&nbsp;TT). A pure number — not a calendar string.</p><p><b>Format</b></p><ul><li>Decimal number: <code>integer.fraction</code></li><li>Fraction 0.0 = noon at the beginning of that JD; 0.5 = midnight; add 0.5 to move from noon-based JD to midnight-based conventions if needed</li><li>Typically shown with 6 decimal places in this table</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 (2000-01-01 12:00 TT ≈ standard epoch)</li><li><code>2461231.5</code> — noon on a modern Julian day</li><li><code>705863.500000</code> — sothic datum region (BCE 2782-07-20)</li></ul>",
-        "body_es": "<p><b>Numero de Día Juliano</b> en escala UTC (<code>Time.jed</code>). Cuenta días y fraccion desde la época juliana. Es un numero, no una cadena de calendario.</p>",
-        "title_en": "Julian Day — UTC",
-        "title_es": "Día Juliano - UTC"
+        "body_en": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch. A pure number — not a calendar string.</p><p><b>Format:</b> <code>integer.fraction</code> (typically six decimal places in this panel).</p><p><b>Example:</b> <code>2451545.0</code> — J2000.0.</p>",
+        "body_es": "<p><b>Número de día juliano</b> en escala UTC (<code>Time.jed</code>). Cuenta días y fracción desde la época juliana. Es un número, no una cadena de calendario.</p><p><b>Formato:</b> <code>entero.fracción</code> (normalmente seis decimales en este panel).</p><p><b>Ejemplo:</b> <code>2451545.0</code> — J2000.0.</p>",
+        "title_en": "Julian Day (UTC)",
+        "title_es": "Día Juliano (UTC)"
       },
       "mixed": {
-        "body_en": "<p>Calendar date in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward. This is the usual choice for real historical dates.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates (minus prefix on astronomical year)</li><li>Month lengths follow the active calendar (Julian or Gregorian) for that date</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:30</code> — modern date (Gregorian rules)</li><li><code>1582-10-04 00:00:00</code> — last Julian day before the 1582 reform (in affected countries)</li><li><code>-2780-07-20 00:00:00</code> — ancient date under Julian rules (near the sothic datum)</li></ul>",
-        "body_es": "<p>Fecha de calendario en convención <b>mixta</b> (<code>Time.readable.datemix</code>): juliano antes del 15 de octubre de 1582 y gregoriano desde la reforma en adelante.</p>",
-        "title_en": "Mixed Julian/Gregorian",
-        "title_es": "Juliano/Gregoriano mixto"
+        "body_en": "<p>Calendar date and time in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates</li></ul>",
+        "body_es": "<p>Fecha y hora en convención <b>mixta</b> (<code>Time.readable.datemix</code>): calendario juliano antes del 15 de octubre de 1582 y gregoriano desde la reforma.</p><p><b>Formato</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> para fechas EC</li><li><code>-YYYY-MM-DD HH:MM:SS</code> para fechas AEC</li></ul>",
+        "title_en": "Mixed calendar",
+        "title_es": "Calendario mixto"
       },
       "proleptic": {
-        "body_en": "<p>Proleptic Gregorian date in the <b>astronomical year convention</b> (<code>Time.readable.datepro</code>): year&nbsp;0 = 1&nbsp;BCE, year&nbsp;−1 = 2&nbsp;BCE, etc. Useful for continuous calculations without a gap at year&nbsp;1.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS.ffff</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS.ffff</code> for BCE dates (leading minus on the astronomical year)</li><li>ISO-like ordering: year, month, day, then 24-hour time</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:00.0000</code> — 7 March 2026 CE</li><li><code>-2780-06-27 00:00:00.0000</code> — astronomical year −2780 (= 2781 BCE)</li><li><code>-0001-01-01 00:00:00.0000</code> — 1 BCE (astronomical year 0 is 1 BCE in historical terms)</li></ul>",
-        "body_es": "<p>Fecha gregoriana proleptica en convención de <b>año astronómico</b> (<code>Time.readable.datepro</code>): año 0 = 1 AEC, año -1 = 2 AEC, etc.</p>",
-        "title_en": "Gregorian proleptic (astronomical)",
-        "title_es": "Gregoriano proléptico (astronómico)"
+        "body_en": "<p>Proleptic Gregorian date and time in the <b>astronomical year convention</b> (<code>Time.readable.datepro</code>).</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS.ffff</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS.ffff</code> for BCE dates</li></ul>",
+        "body_es": "<p>Fecha y hora gregoriana proleptica en convención de <b>año astronómico</b> (<code>Time.readable.datepro</code>).</p><p><b>Formato</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS.ffff</code> para fechas EC</li><li><code>-YYYY-MM-DD HH:MM:SS.ffff</code> para fechas AEC</li></ul>",
+        "title_en": "Proleptic (astronomical)",
+        "title_es": "Proleptico (astronomico)"
       },
       "spice": {
-        "body_en": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — sothic datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>",
-        "body_es": "<p>Fecha gregoriana proleptica legible en estilo <b>SPICE / NASA</b> (<code>Time.readable.datespice</code>). El calendario gregoriano proléptico extiende las reglas gregorianas hacia atras sin la transición histórica juliano-gregoriana.</p>",
-        "title_en": "Gregorian proleptic (human)",
-        "title_es": "Gregoriano proléptico (humaño)"
+        "body_en": "<p>Human-readable proleptic Gregorian date and time in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>).</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code></li></ul>",
+        "body_es": "<p>Fecha y hora gregoriana proleptica en estilo <b>SPICE / NASA</b> (<code>Time.readable.datespice</code>).</p><p><b>Formato</b></p><ul><li><b>EC:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>AEC:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code></li></ul>",
+        "title_en": "Proleptic (SPICE)",
+        "title_es": "Proleptico (SPICE)"
       },
       "tt": {
-        "body_en": "<p>Ephemeris seconds on the <b>TT (Terrestrial Time)</b> scale, measured from <b>J2000.0</b> (2000-01-01 12:00 TT). Corresponds to <code>Time.tt</code>. <b>Not a Julian Day</b> — it is a uniform atomic-time-style count used by SPICE and many ephemerides.</p><p><b>Format</b></p><ul><li>Decimal seconds (may be negative for dates before J2000)</li><li>Uniform scale — no leap seconds</li></ul><p><b>Examples</b></p><ul><li><code>0.0</code> — J2000.0 epoch</li><li><code>86400.0</code> — one TT day after J2000.0</li><li>Large negative values for ancient dates (e.g. near BCE&nbsp;2782)</li></ul>",
+        "body_en": "<p>Ephemeris seconds on the <b>TT (Terrestrial Time)</b> scale, measured from <b>J2000.0</b>. Corresponds to <code>Time.tt</code>.</p>",
         "body_es": "<p>Segundos de efemérides en escala <b>TT (Tiempo Terrestre)</b> medidos desde <b>J2000.0</b>. Corresponde a <code>Time.tt</code>.</p>",
-        "title_en": "TT ephemeris seconds (J2000)",
-        "title_es": "Segundos de efemérides TT (J2000)"
+        "title_en": "TT seconds (J2000)",
+        "title_es": "Segundos TT (J2000)"
       },
       "weekday": {
         "body_en": "<p>Day of the week for the converted instant (<code>Time.readable.weekday</code> and <code>weekday_name</code>).</p><p><b>Format:</b> English name + number in parentheses. MontuPython convention: <b>1 = Sunday</b> … <b>7 = Saturday</b>.</p><p><b>Examples:</b> <code>Friday (6)</code>, <code>Wednesday (4)</code>.</p>",
-        "body_es": "<p>Día de la semana para el instante convertido (<code>Time.readable.weekday</code> y <code>weekday_name</code>).</p><p><b>Formato:</b> nombre en inglés + numero entre parentesis. Convencion de MontuPython: <b>1 = domingo</b> ... <b>7 = sabado</b>.</p>",
+        "body_es": "<p>Día de la semana del instante convertido (<code>Time.readable.weekday</code> y <code>weekday_name</code>).</p><p><b>Formato:</b> nombre en inglés + número entre paréntesis. Convención MontuPython: <b>1 = domingo</b> … <b>7 = sábado</b>.</p><p><b>Ejemplos:</b> <code>Friday (6)</code>, <code>Wednesday (4)</code>.</p>",
         "title_en": "Weekday",
         "title_es": "Día de la semana"
+      },
+      "components": {
+        "body_en": "<p>Calendar components as a list (<code>Time.readable.comps</code>): weekday number, year, month, day, hour, minute, second, microsecond.</p>",
+        "body_es": "<p>Componentes de calendario como lista (<code>Time.readable.comps</code>): número de día de la semana, año, mes, día, hora, minuto, segundo, microsegundo.</p>",
+        "title_en": "Components",
+        "title_es": "Componentes"
+      },
+      "datetime64": {
+        "body_en": "<p>NumPy <code>datetime64</code> string for the instant (<code>Time.readable.obj_datetime64</code>).</p>",
+        "body_es": "<p>Cadena <code>datetime64</code> de NumPy para el instante (<code>Time.readable.obj_datetime64</code>).</p>",
+        "title_en": "NumPy datetime64",
+        "title_es": "NumPy datetime64"
+      },
+      "pyplanet": {
+        "body_en": "<p>PyMeeus <b>Epoch</b> (Julian Day) for the instant (<code>Time.obj_pyplanet</code>).</p>",
+        "body_es": "<p><b>Época</b> PyMeeus (día juliano) para el instante (<code>Time.obj_pyplanet</code>).</p>",
+        "title_en": "PyPlanet epoch",
+        "title_es": "Época PyPlanet"
+      },
+      "pyephem": {
+        "body_en": "<p>PyEphem date string for the instant (<code>Time.obj_pyephem</code>).</p>",
+        "body_es": "<p>Cadena de fecha PyEphem para el instante (<code>Time.obj_pyephem</code>).</p>",
+        "title_en": "PyEphem epoch",
+        "title_es": "Época PyEphem"
+      },
+      "bce": {
+        "body_en": "<p>Whether the date falls before the common era (<code>Time.bce</code>).</p>",
+        "body_es": "<p>Indica si la fecha es anterior a la era común (<code>Time.bce</code>).</p>",
+        "title_en": "Before common era",
+        "title_es": "Anterior a la era común"
+      },
+      "jtd": {
+        "body_en": "<p>Julian Day on the <b>TT</b> scale (<code>Time.jtd</code>).</p>",
+        "body_es": "<p>Día juliano en escala <b>TT</b> (<code>Time.jtd</code>).</p>",
+        "title_en": "Julian Day (TT)",
+        "title_es": "Día Juliano (TT)"
+      },
+      "htd": {
+        "body_en": "<p>Heliocentric Julian Day on the <b>TT</b> scale (<code>Time.htd</code>).</p>",
+        "body_es": "<p>Día juliano heliocéntrico en escala <b>TT</b> (<code>Time.htd</code>).</p>",
+        "title_en": "Heliocentric JD (TT)",
+        "title_es": "DJ heliocéntrico (TT)"
+      },
+      "hed": {
+        "body_en": "<p>Heliocentric Julian Day on the <b>UTC</b> scale (<code>Time.hed</code>).</p>",
+        "body_es": "<p>Día juliano heliocéntrico en escala <b>UTC</b> (<code>Time.hed</code>).</p>",
+        "title_en": "Heliocentric JD (UTC)",
+        "title_es": "DJ heliocéntrico (UTC)"
       }
     }
   },
@@ -849,6 +897,12 @@
         "body_es": "<p>Fecha de calendario del eclipse en notación histórica AEC/EC (año, mes, día). Las fechas siguen la numeración del catálogo NASA de cinco milenios.</p>",
         "title_en": "Date",
         "title_es": "Fecha"
+      },
+      "sothic": {
+        "body_en": "<p>Egyptian civil (sothic) date for the eclipse instant (<code>Time.readable.datesot</code>). Click the underlined value to open the interactive Horus-year calendar on that civil day.</p>",
+        "body_es": "<p>Fecha civil egipcia (sótica) del instante del eclipse (<code>Time.readable.datesot</code>). Haz clic en el valor subrayado para abrir el calendario interactivo del año de Horus en ese día civil.</p>",
+        "title_en": "Sothic",
+        "title_es": "Sótico"
       },
       "type": {
         "body_en": "<p>Eclipse classification at greatest eclipse: Total, Annular, Hybrid, or Partial, derived from the NASA catalogue type code.</p>",

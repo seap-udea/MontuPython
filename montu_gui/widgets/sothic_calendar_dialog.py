@@ -32,37 +32,51 @@ from montu_gui.utils.i18n import tr, trf
 
 # Layout: 1 month-header row + 6 day rows (5 days × 6 = 30) per season block.
 _SEASON_ROW_SPAN = 7
-_MESUT_ROW_SPAN = 3
+# Mesut: 1 month-header row + 1 day row (5 epagomenal days in one row).
+_MESUT_ROW_SPAN = 2
 _MONTH_COLS = 5
 _DAY_ROWS = 6
-_DAY_GRID_COLS = 4 * _MONTH_COLS
-_MONTH_DIVIDER = "1px solid #000000"
+_MONTH_SEP_WIDTH = 1
 _SEASON_DIVIDER = "2px solid #000000"
-_MIXED_TEXT_SCALE = 0.80
+_MIXED_FONT_BASE_PT = 10
+_MIXED_FONT_SCALE = 0.80
 
 
 class _MixedDateLabel(QWidget):
-    """Gregorian overlay drawn at reduced scale (Qt ignores very small font sizes)."""
+    """Gregorian date; QPainter scale bypasses global QWidget font-size (13px)."""
 
     def __init__(self, text: str, parent=None):
         super().__init__(parent)
         self._text = text
-        self.setFixedHeight(12)
+        self.setFixedHeight(11)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
 
     def paintEvent(self, _event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
-        painter.setPen(Qt.GlobalColor.black)
-        font = QFont("Helvetica", 9)
+        font = QFont("Helvetica", _MIXED_FONT_BASE_PT)
         painter.setFont(font)
         painter.save()
-        painter.scale(_MIXED_TEXT_SCALE, _MIXED_TEXT_SCALE)
-        w = max(1, int(self.width() / _MIXED_TEXT_SCALE))
-        h = max(1, int(self.height() / _MIXED_TEXT_SCALE))
-        painter.drawText(0, 0, w, h, int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop), self._text)
+        painter.scale(_MIXED_FONT_SCALE, _MIXED_FONT_SCALE)
+        w = max(1, int(self.width() / _MIXED_FONT_SCALE))
+        h = max(1, int(self.height() / _MIXED_FONT_SCALE))
+        painter.drawText(
+            0, 0, w, h,
+            int(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop),
+            self._text,
+        )
         painter.restore()
+
+
+def _month_start_col(col_block: int) -> int:
+    """Grid column of the first day in a month block (after season label col 0)."""
+    return 1 + col_block * (_MONTH_COLS + 1)
+
+
+def _month_sep_col(col_block: int) -> int:
+    """Grid column of the 1px separator after month block 0..2."""
+    return _month_start_col(col_block) + _MONTH_COLS
 
 
 class _DayCell(QFrame):
@@ -76,7 +90,6 @@ class _DayCell(QFrame):
         *,
         background: str,
         selected: bool,
-        month_border_left: bool = False,
         season_border_bottom: bool = False,
         parent=None,
     ):
@@ -85,7 +98,6 @@ class _DayCell(QFrame):
         self._season = info.season
         self._day = info.day
         self._background = background
-        self._month_border_left = month_border_left
         self._season_border_bottom = season_border_bottom
 
         self.setFrameShape(QFrame.Shape.NoFrame)
@@ -104,30 +116,24 @@ class _DayCell(QFrame):
         mixed = _MixedDateLabel(info.mixed_label)
         layout.addWidget(mixed)
 
-        day_lbl = QLabel(str(info.day))
+        if info.lunar_icon:
+            day_lbl = QLabel(info.lunar_icon)
+            day_lbl.setFont(QFont("Helvetica", 18))
+        else:
+            day_lbl = QLabel(str(info.day))
+            day_lbl.setFont(QFont("Helvetica", 14, QFont.Weight.Bold))
         day_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        day_lbl.setFont(QFont("Helvetica", 14, QFont.Weight.Bold))
         day_lbl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
         layout.addWidget(day_lbl, stretch=1)
 
     def _apply_style(self, selected: bool) -> None:
-        if selected:
-            self.setStyleSheet(
-                "QFrame {"
-                f"background-color: {SELECTED_COLOR};"
-                "border: 2px solid #000000;"
-                "margin: 0; padding: 0;"
-                "}"
-            )
-            return
+        bg = SELECTED_COLOR if selected else self._background
         rules = [
             "QFrame {",
-            f"background-color: {self._background};",
+            f"background-color: {bg};",
             "border: none;",
             "margin: 0; padding: 0;",
         ]
-        if self._month_border_left:
-            rules.append(f"border-left: {_MONTH_DIVIDER};")
         if self._season_border_bottom:
             rules.append(f"border-bottom: {_SEASON_DIVIDER};")
         rules.append("}")
@@ -141,15 +147,8 @@ class _DayCell(QFrame):
         super().mousePressEvent(event)
 
 
-def _month_header_style(*, month_border_left: bool = False) -> str:
-    rules = [
-        "background: #fafafa",
-        "border: none",
-        "margin: 0; padding: 0",
-    ]
-    if month_border_left:
-        rules.append(f"border-left: {_MONTH_DIVIDER}")
-    return "; ".join(rules) + ";"
+def _month_header_style() -> str:
+    return "background: #fafafa; border: none; margin: 0; padding: 0;"
 
 
 def _season_label_style() -> str:
@@ -193,9 +192,6 @@ class SothicCalendarWidget(QWidget):
         self._grid.setContentsMargins(4, 4, 4, 4)
         self._grid.setHorizontalSpacing(0)
         self._grid.setVerticalSpacing(0)
-        self._grid.setColumnStretch(0, 0)
-        for col in range(1, 1 + _DAY_GRID_COLS):
-            self._grid.setColumnStretch(col, 1)
         scroll.setWidget(self._grid_host)
 
         self._bottom_bar = QLabel("")
@@ -241,6 +237,27 @@ class SothicCalendarWidget(QWidget):
                 widget.deleteLater()
         self._cells.clear()
 
+    def _configure_grid_columns(self) -> None:
+        self._grid.setColumnStretch(0, 0)
+        for col_block in range(len(self._MONTHS)):
+            start = _month_start_col(col_block)
+            for offset in range(_MONTH_COLS):
+                self._grid.setColumnStretch(start + offset, 1)
+            if col_block < len(self._MONTHS) - 1:
+                sep_col = _month_sep_col(col_block)
+                self._grid.setColumnMinimumWidth(sep_col, _MONTH_SEP_WIDTH)
+                self._grid.setColumnStretch(sep_col, 0)
+
+    def _add_month_separator(self, row: int, col_block: int) -> None:
+        sep = QFrame()
+        sep.setFrameShape(QFrame.Shape.NoFrame)
+        sep.setFixedWidth(_MONTH_SEP_WIDTH)
+        sep.setStyleSheet(
+            "background-color: #000000; border: none; margin: 0; padding: 0;"
+        )
+        sep.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+        self._grid.addWidget(sep, row, _month_sep_col(col_block), _SEASON_ROW_SPAN, 1)
+
     def _add_day_cell(
         self,
         *,
@@ -248,7 +265,6 @@ class SothicCalendarWidget(QWidget):
         data: SothicYearData,
         grid_row: int,
         grid_col: int,
-        month_border_left: bool,
         season_border_bottom: bool = False,
     ) -> None:
         selected = self._selected == (info.month, info.season, info.day)
@@ -256,18 +272,17 @@ class SothicCalendarWidget(QWidget):
             info,
             background=cell_background(info, data),
             selected=selected,
-            month_border_left=month_border_left,
             season_border_bottom=season_border_bottom,
         )
         cell.clicked.connect(self._on_cell_clicked)
         self._cells[(info.month, info.season, info.day)] = cell
         self._grid.addWidget(cell, grid_row, grid_col)
 
-    def _add_month_header(self, row: int, start_col: int, month: str, *, month_border_left: bool) -> None:
+    def _add_month_header(self, row: int, start_col: int, month: str) -> None:
         header = QLabel(month)
         header.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header.setFont(QFont("Helvetica", 11, QFont.Weight.Bold))
-        header.setStyleSheet(_month_header_style(month_border_left=month_border_left))
+        header.setStyleSheet(_month_header_style())
         header.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         header.setMinimumHeight(22)
         self._grid.addWidget(header, row, start_col, 1, _MONTH_COLS)
@@ -285,6 +300,7 @@ class SothicCalendarWidget(QWidget):
         )
 
         self._clear_grid()
+        self._configure_grid_columns()
         row = 0
 
         for season in self._SEASON_ROWS:
@@ -296,15 +312,14 @@ class SothicCalendarWidget(QWidget):
             self._grid.addWidget(season_lbl, row, 0, _SEASON_ROW_SPAN, 1)
 
             for col_block, month in enumerate(self._MONTHS):
-                start_col = 1 + col_block * _MONTH_COLS
-                self._add_month_header(
-                    row, start_col, month,
-                    month_border_left=(col_block > 0),
-                )
+                start_col = _month_start_col(col_block)
+                self._add_month_header(row, start_col, month)
+                if col_block < len(self._MONTHS) - 1:
+                    self._add_month_separator(row, col_block)
 
             for sub_row in range(_DAY_ROWS):
                 for col_block, month in enumerate(self._MONTHS):
-                    start_col = 1 + col_block * _MONTH_COLS
+                    start_col = _month_start_col(col_block)
                     for offset in range(_MONTH_COLS):
                         day = sub_row * _MONTH_COLS + offset + 1
                         info = lookup[(month, season, day)]
@@ -313,7 +328,6 @@ class SothicCalendarWidget(QWidget):
                             data=data,
                             grid_row=row + 1 + sub_row,
                             grid_col=start_col + offset,
-                            month_border_left=(col_block > 0 and offset == 0),
                             season_border_bottom=(sub_row == _DAY_ROWS - 1),
                         )
 
@@ -326,7 +340,7 @@ class SothicCalendarWidget(QWidget):
         mesut_lbl.setFixedWidth(56)
         self._grid.addWidget(mesut_lbl, row, 0, _MESUT_ROW_SPAN, 1)
 
-        self._add_month_header(row, 1, "I", month_border_left=False)
+        self._add_month_header(row, 1, "I")
 
         for day in range(1, 6):
             info = lookup[("I", "mesut", day)]
@@ -335,7 +349,6 @@ class SothicCalendarWidget(QWidget):
                 data=data,
                 grid_row=row + 1,
                 grid_col=day,
-                month_border_left=False,
                 season_border_bottom=True,
             )
 
@@ -500,6 +513,7 @@ def show_sothic_calendar_dialog(
             dlg._calendar.set_year(horus_year, month=month, season=season, day=day)
             dlg._sync_year_edit()
             dlg._update_window_title()
+            dlg.showMaximized()
             dlg.raise_()
             dlg.activateWindow()
             return dlg
@@ -512,5 +526,5 @@ def show_sothic_calendar_dialog(
         parent=parent,
     )
     SothicCalendarDialog._open_dialogs.append(dlg)
-    dlg.show()
+    dlg.showMaximized()
     return dlg

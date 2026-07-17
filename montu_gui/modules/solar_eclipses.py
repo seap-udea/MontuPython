@@ -43,6 +43,7 @@ ECLIPSE_TYPE_LABELS: dict[str, str] = {
 RESULT_TABLE_COLUMNS = (
     "Eclipse",
     "Date",
+    "Sothic",
     "Type",
     "Saros",
     "Greatest eclipse location",
@@ -295,12 +296,28 @@ def _contact_rows(cond, observer, montu) -> list[dict[str, Any]]:
     return rows
 
 
-def _format_base_row(row: pd.Series) -> dict[str, Any]:
+def _sothic_fields(montu, year: int, month: int, day: int) -> dict[str, Any]:
+    """Civil (sothic) date for a catalogue row (astronomical year, month, day)."""
+    mtime = montu.Time(
+        f"{int(year):+05d}-{int(month):02d}-{int(day):02d} 12:00:00",
+        calendar="mixed",
+    )
+    hy, cmonth, season, cday = montu.Time.parse_datesot(mtime.readable.datesot)
+    return {
+        "sothic": mtime.readable.datesot,
+        "can_hyear": hy,
+        "can_month": cmonth,
+        "can_season": season,
+        "can_day": cday,
+    }
+
+
+def _format_base_row(row: pd.Series, montu) -> dict[str, Any]:
     year = int(row.year)
     month = int(row.month)
     day = int(row.day)
     eclipse_id = eclipse_identifier(row.get("cat_no"))
-    return {
+    base = {
         "eclipse_id": eclipse_id,
         "date": format_eclipse_date(year, month, day),
         "type": eclipse_type_label(str(row.get("eclipse_type", "?"))),
@@ -313,6 +330,8 @@ def _format_base_row(row: pd.Series) -> dict[str, Any]:
         "day": day,
         "cat_no": int(float(row.get("cat_no"))),
     }
+    base.update(_sothic_fields(montu, year, month, day))
+    return base
 
 
 def _append_local_columns(
@@ -517,7 +536,7 @@ def find_solar_eclipses(
                     azimuth_max_deg=azimuth_max_deg,
                 ):
                     continue
-                base_row = _format_base_row(series)
+                base_row = _format_base_row(series, montu)
                 rows.append(
                     _append_local_columns(
                         base_row,
@@ -538,7 +557,7 @@ def find_solar_eclipses(
                 before=catalogue_before,
             )
         else:
-            rows = [_format_base_row(row) for _, row in data.iterrows()]
+            rows = [_format_base_row(row, montu) for _, row in data.iterrows()]
             if location_provided:
                 location_note = tr(
                     "Latitude and longitude are both required for local visibility; "

@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from montu_gui.modules.date_converter import SOTHIC_MONTHS, SOTHIC_SEASONS, _import_montu
+from montu_gui.modules.seasons_lunar import QUARTER_ICONS
 from montu_gui.utils.i18n import get_language
 
 # Light blue / light purple bands in the mock-up.
@@ -28,6 +29,7 @@ class SothicDayInfo:
     sothic_label: str
     mixed_era: str
     mixed_hist_year: int
+    lunar_icon: str | None = None
 
 
 @dataclass(frozen=True)
@@ -82,10 +84,40 @@ def _sothic_mtime(horus_year: int, month: str, season: str, day: int):
     return montu.Time(cdate, calendar="sothic")
 
 
+def _build_lunar_phase_map(
+    horus_year: int,
+) -> dict[tuple[str, str, int], str]:
+    """Map civil (month, season, day) to a lunar-quarter emoji for one Horus year."""
+    montu = _import_montu()
+    start = montu.Time(f"[hrw {horus_year}] I akhet 1", calendar="sothic")
+    end = montu.Time(f"[hrw {horus_year + 1}] I akhet 1", calendar="sothic")
+    raw = montu.Moon.next_moon_quarters(
+        since=start,
+        starting_at="new",
+        numquarters=56,
+        output="mtime",
+        format="columns",
+    )
+
+    phases: dict[tuple[str, str, int], str] = {}
+    for item in raw:
+        mt = item["Datetime"]
+        if mt.jed >= end.jed:
+            break
+        hy, month, season, day = montu.Time.parse_datesot(mt.readable.datesot)
+        if hy != horus_year:
+            continue
+        icon = QUARTER_ICONS.get(item["Quarter"])
+        if icon:
+            phases[(month, season, day)] = icon
+    return phases
+
+
 def build_sothic_year(horus_year: int, *, lang: str | None = None) -> SothicYearData:
     """Return all civil days for one Horus year with mixed-calendar overlays."""
     lang = lang or get_language()
     days: list[SothicDayInfo] = []
+    lunar_phases = _build_lunar_phase_map(horus_year)
 
     for season in SOTHIC_SEASONS:
         if season == "mesut":
@@ -109,6 +141,7 @@ def build_sothic_year(horus_year: int, *, lang: str | None = None) -> SothicYear
                         sothic_label=_format_sothic_label(horus_year, month, season, day),
                         mixed_era=era,
                         mixed_hist_year=hist_year,
+                        lunar_icon=lunar_phases.get((month, season, day)),
                     )
                 )
 

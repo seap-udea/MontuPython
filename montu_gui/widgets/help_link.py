@@ -22,6 +22,7 @@ class HelpLink(QLabel):
         parent=None,
         *,
         bold: bool = False,
+        word_wrap: bool = True,
     ):
         super().__init__(tr(text), parent)
         self._module = module
@@ -29,7 +30,7 @@ class HelpLink(QLabel):
         self._key = key
         self.setObjectName("help_link")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setWordWrap(True)
+        self.setWordWrap(word_wrap)
         self.setToolTip(tr("Click for help"))
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         font = QFont("Georgia", 12 if bold else 13)

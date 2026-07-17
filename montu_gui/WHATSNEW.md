@@ -2,6 +2,17 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.3.0 (breakthrough)
+
+- **Interactive Sothic year calendar** — full-screen diagram of one Horus year (365 civil days) with mixed-calendar overlays, lunar-quarter emojis (🌑🌓🌕🌗), Horus-year navigation, and day selection; opened from the Calendar Calculator or Solar Eclipses table.
+- **Calendar Calculator — conversion results** — card layout grouped as *Calendar dates*, *Ephemeris scales*, and *Other representations* (replacing the old two-column table); contextual help on every field in English and Spanish.
+- **Calendar Calculator — Location** — observer site panel (shared with Heliacal Rises) shown before input mode; linked to the global 🧭 Observer Location module.
+- **Calendar Calculator — time zone** — UTC / Site / Zone moved into the Date block below the clock; **Zone** is the default with the computer’s UTC offset; **Now** resets to local zone; conversions recalculate when the zone changes.
+- **Calendar Calculator — sothic link** — clickable civil date in results plus **Open sothic calendar diagram** button below the calendar-dates card.
+- **Sothic input mode** — renamed from *Caniucular*; Horus year and mixed BCE/CE year formats aligned with the library.
+- **Solar Eclipses Finder** — new **Sothic** results column with clickable civil dates that open the year calendar on the eclipse day.
+- **Localization** — Spanish strings and `help.json` entries for all new calendar result fields, sothic calendar UI, and solar-eclipse sothic column.
+
 ## Version 0.2.7 (major)
 
 - **Solar Eclipses Finder (☀)** — new module to search the [NASA Five Millennium Catalogue of Solar Eclipses](https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html) (−1999 to +3000); filters by date range (Mixed Julian/Gregorian proleptic, BCE/CE), month/day, eclipse type, Saros, and central-line duration.

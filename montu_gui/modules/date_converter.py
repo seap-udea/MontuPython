@@ -39,6 +39,15 @@ class ConversionResult:
     et: str = ""          # UTC ephemeris seconds since J2000 (Time.et)
     delta_t: str = ""     # Delta-T (seconds)
     weekday: str = ""     # Day of week (Montu: Sunday=1 … Saturday=7)
+    comps: str = ""
+    obj_datetime64: str = ""
+    obj_pyplanet: str = ""
+    obj_pyephem: str = ""
+    bce: str = ""
+    isjulian: str = ""
+    jtd: str = ""
+    htd: str = ""
+    hed: str = ""
     # parsed components from mixed/proleptic for back-filling the form
     era: str = "bce"      # 'bce' | 'ce'
     year: int = 1
@@ -210,6 +219,15 @@ def _build_result_from_mtime(mtime) -> ConversionResult:
         et=f"{mtime.et:.3f}",
         delta_t=f"{mtime.deltat:.3f}",
         weekday=_format_weekday(mtime),
+        comps=str(r.comps),
+        obj_datetime64=str(r.obj_datetime64),
+        obj_pyplanet=str(mtime.obj_pyplanet),
+        obj_pyephem=str(mtime.obj_pyephem),
+        bce=str(mtime.bce),
+        isjulian=str(mtime.isjulian),
+        jtd=str(mtime.jtd),
+        htd=str(mtime.htd),
+        hed=str(mtime.hed),
         era=era,
         year=year,
         month=month,

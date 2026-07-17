@@ -45,6 +45,8 @@ from montu_gui.utils.i18n import tr, trf
 from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
+from montu_gui.widgets.sothic_calendar_dialog import show_sothic_calendar_dialog
+from montu_gui.widgets.sothic_value_cell import SothicValueCell
 from montu_gui.widgets.eclipse_map_dialog import (
     ContactsCell,
     GreatestEclipseLocationCell,
@@ -77,6 +79,7 @@ _ECLIPSE_TYPE_ROW_COLORS: dict[str, str] = {
 _RESULT_COLUMN_HELP = {
     "Eclipse": "eclipse",
     "Date": "date",
+    "Sothic": "sothic",
     "Type": "type",
     "Saros": "saros",
     "Greatest eclipse location": "greatest_location",
@@ -791,6 +794,20 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         for row_number, row in enumerate(result.eclipses):
             row_brush = _eclipse_type_row_brush(str(row.get("type", "")))
             for column, header in enumerate(columns):
+                if header == "Sothic":
+                    cell = SothicValueCell(compact=True)
+                    cell.set_sothic(
+                        str(row.get("sothic", "")),
+                        horus_year=int(row["can_hyear"]),
+                        month=str(row["can_month"]),
+                        season=str(row["can_season"]),
+                        day=int(row["can_day"]),
+                    )
+                    cell.sothic_requested.connect(self._open_sothic_calendar)
+                    set_colored_cell_widget(
+                        self._table, row_number, column, cell, row_brush
+                    )
+                    continue
                 if column == location_col:
                     cell = GreatestEclipseLocationCell(
                         row["greatest_location"],
@@ -849,6 +866,17 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
 
         resize_wrapped_rows(self._table)
         self.status_message.emit(trf("Solar eclipses: {n} match(es) found.", n=result.count))
+
+    def _open_sothic_calendar(
+        self, horus_year: int, month: str, season: str, day: int
+    ) -> None:
+        show_sothic_calendar_dialog(
+            self.window(),
+            horus_year,
+            month=month,
+            season=season,
+            day=day,
+        )
 
     def export_config(self) -> dict:
         return {
