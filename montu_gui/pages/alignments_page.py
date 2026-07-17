@@ -49,9 +49,9 @@ from montu_gui.modules.alignment_presets import (
     find_alignment_preset,
     AlignmentPreset,
 )
+from montu_gui.modules.location import ObserverCoords
 from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.i18n import tr
-from montu_gui.utils.location_state import LocationState
 from montu_gui.utils.lazy_page import LazyPageMixin
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
@@ -217,9 +217,10 @@ class AlignmentsPage(LazyPageMixin, QWidget):
 
     status_message = Signal(str)
 
-    def __init__(self, location_state: LocationState, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self._location_state = location_state
+        default_preset = get_default_alignment()
+        self._observer_coords = default_preset.to_observer_coords()
         self._computing = False
         self._pending   = False
         self._block_preset = False
@@ -230,22 +231,16 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         self._timer.timeout.connect(self._run)
 
         self._build_ui()
-        self._location_state.changed.connect(self._on_location_changed)
 
     # ── lazy activation ───────────────────────────────────────────────────────
 
     def _activate_page(self) -> None:
         self._schedule()
 
-    # ── location ──────────────────────────────────────────────────────────────
-
-    def _on_location_changed(self, _coords=None):
-        self._refresh_location_label()
-        self._update_target_label()
-        self._schedule()
+    # ── location (module-local; does not change global Observer Location) ─────
 
     def _refresh_location_label(self):
-        obs = self._location_state.coords
+        obs = self._observer_coords
         self._loc_label.setText(
             f"<b>{obs.name}</b>  "
             f"(lat {obs.lat:.4f}°, lon {obs.lon:.4f}°)"
@@ -307,7 +302,8 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         loc_lay.addWidget(self._loc_label)
         note = QLabel(
             tr(
-                "<i>Set location in the 🧭 Observer module.  For the Great Pyramid example use <b>Giza</b>.</i>"
+                "<i>Location is set by the selected preset and applies only to this module. "
+                "It does not change the global 🧭 Observer Location.</i>"
             )
         )
         note.setWordWrap(True)
@@ -445,7 +441,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         self._preset_combo.currentIndexChanged.connect(self._on_preset_selected)
 
         self._apply_preset(
-            get_default_alignment(), schedule=False, update_observer=False,
+            get_default_alignment(), schedule=False,
         )
         self._refresh_location_label()
         self._update_target_label()
@@ -463,7 +459,6 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         preset: AlignmentPreset | str,
         *,
         schedule: bool = True,
-        update_observer: bool = True,
     ) -> None:
         if isinstance(preset, str):
             found = find_alignment_preset(preset)
@@ -484,10 +479,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
             ):
                 widget.blockSignals(True)
             try:
-                if update_observer:
-                    self._location_state.set_coords(
-                        preset.to_observer_coords(), emit=False,
-                    )
+                self._observer_coords = preset.to_observer_coords()
                 self._az_spin.setValue(preset.az)
                 self._el_spin.setValue(preset.el)
                 self._year_start.set_values(preset.year_start, preset.era_start)
@@ -515,7 +507,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         self._schedule()
 
     def _update_target_label(self):
-        lat = self._location_state.coords.lat
+        lat = self._observer_coords.lat
         dec = compute_target_declination(
             self._az_spin.value(),
             self._el_spin.value(),
@@ -543,7 +535,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         es   = self._year_start.era
         ye   = self._year_end.year
         ee   = self._year_end.era
-        obs  = self._location_state.coords
+        obs  = self._observer_coords
 
         log_ui_event(
             "alignments run",
@@ -660,8 +652,16 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         dlg.exec()
 
     def export_config(self) -> dict:
+        obs = self._observer_coords
         return {
             "preset_id": self._preset_combo.currentData(),
+            "observer": {
+                "location_id": obs.location_id,
+                "name": obs.name,
+                "lat": obs.lat,
+                "lon": obs.lon,
+                "alt_m": obs.alt_m,
+            },
             "azimuth": float(self._az_spin.value()),
             "elevation": float(self._el_spin.value()),
             "year_start": {
@@ -680,11 +680,23 @@ class AlignmentsPage(LazyPageMixin, QWidget):
         self._block_preset = True
         try:
             preset_id = cfg.get("preset_id")
+            preset = find_alignment_preset(preset_id) if preset_id else None
+            observer_cfg = cfg.get("observer", {})
+            if isinstance(observer_cfg, dict) and observer_cfg:
+                self._observer_coords = ObserverCoords(
+                    name=str(observer_cfg.get("name", "")),
+                    lat=float(observer_cfg.get("lat", 0.0)),
+                    lon=float(observer_cfg.get("lon", 0.0)),
+                    alt_m=float(observer_cfg.get("alt_m", 0.0)),
+                    location_id=str(observer_cfg.get("location_id", "")),
+                )
+            elif preset:
+                self._observer_coords = preset.to_observer_coords()
+
             if preset_id:
                 idx = self._preset_combo.findData(preset_id)
                 if idx >= 0:
                     self._preset_combo.setCurrentIndex(idx)
-                    preset = find_alignment_preset(preset_id)
                     if preset:
                         self._preset_desc.setText(preset.description)
 
@@ -719,6 +731,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
                 int(year_end.get("year", DEFAULT_YEAR_END)),
                 year_end.get("era", DEFAULT_ERA_END),
             )
+            self._refresh_location_label()
             self._update_target_label()
         finally:
             self._block_preset = False

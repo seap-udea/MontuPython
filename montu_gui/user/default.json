@@ -75,6 +75,13 @@
   },
   "alignments": {
     "preset_id": "khufu_north_shaft",
+    "observer": {
+      "location_id": "giza",
+      "name": "Giza",
+      "lat": 29.9792,
+      "lon": 31.1342,
+      "alt_m": 75.0
+    },
     "azimuth": 0.0,
     "elevation": 31.7,
     "year_start": {
@@ -139,5 +146,29 @@
   "seasons": {
     "era": "ce",
     "human_year": 2026
+  },
+  "solar_eclipses": {
+    "location_id": "",
+    "lat": "",
+    "lon": "",
+    "alt_m": null,
+    "year_start": {
+      "era": "bce",
+      "year": 600
+    },
+    "year_end": {
+      "era": "bce",
+      "year": 500
+    },
+    "month": 0,
+    "day": "",
+    "types": {
+      "total": true,
+      "annular": true,
+      "partial": true,
+      "hybrid": true
+    },
+    "duration_min_s": "",
+    "duration_max_s": ""
   }
 }

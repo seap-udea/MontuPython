@@ -688,5 +688,211 @@
         "$ref": "_common/year"
       }
     }
+  },
+  "solar_eclipses": {
+    "input": {
+      "predefined_site": {
+        "body_en": "<p>Optional predefined ancient-world site. When selected, latitude, longitude, and altitude are filled automatically. Choose <b>optional</b> to search the global NASA catalogue without a specific observer.</p>",
+        "body_es": "<p>Sitio predefinido opcional del mundo antiguo. Al seleccionarlo se rellenan latitud, longitud y altitud. Elige <b>opcional</b> para buscar en el catálogo global NASA sin observador específico.</p>",
+        "title_en": "Predefined site",
+        "title_es": "Sitio predefinido"
+      },
+      "latitude": {
+        "body_en": "<p>Observer latitude in decimal degrees, north positive. Together with longitude, it defines the site used to compute local eclipse circumstances and to filter results to eclipses visible above the horizon.</p>",
+        "body_es": "<p>Latitud del observador en grados decimales, positiva al norte. Junto con la longitud define el sitio para calcular circunstancias locales y filtrar eclipses visibles.</p>",
+        "title_en": "Latitude",
+        "title_es": "Latitud"
+      },
+      "longitude": {
+        "body_en": "<p>Observer longitude in decimal degrees, east positive. Both latitude and longitude are required for local visibility filtering and for the local columns in the results table.</p>",
+        "body_es": "<p>Longitud del observador en grados decimales, positiva al este. Latitud y longitud son necesarias para el filtrado por visibilidad local.</p>",
+        "title_en": "Longitude",
+        "title_es": "Longitud"
+      },
+      "altitude": {
+        "body_en": "<p>Observer altitude above sea level in metres. Optional.</p>",
+        "body_es": "<p>Altitud del observador sobre el nivel del mar en metros. Opcional.</p>",
+        "title_en": "Altitude",
+        "title_es": "Altitud"
+      },
+      "year_start": {
+        "body_en": "<p>Start of the search interval. Use BCE/CE and a positive historical year (e.g. 1700 BCE).</p>",
+        "body_es": "<p>Inicio del intervalo de búsqueda. Usa AEC/EC y un año histórico positivo (p. ej. 1700 AEC).</p>",
+        "title_en": "From year",
+        "title_es": "Desde año"
+      },
+      "year_end": {
+        "body_en": "<p>End of the search interval. Years are converted internally to the NASA catalogue numbering.</p>",
+        "body_es": "<p>Fin del intervalo de búsqueda. Los años se convierten internamente a la numeración del catálogo NASA.</p>",
+        "title_en": "To year",
+        "title_es": "Hasta año"
+      },
+      "date": {
+        "body_en": "<p>Filter eclipses in the NASA Five Millennium catalogue by calendar date.</p><p>Eclipse years and the dates shown in the results table use MontuPython's <b>Mixed Julian/Gregorian proleptic</b> calendar (<code>Time.readable.datemix</code>): Julian rules before 15&nbsp;October&nbsp;1582, Gregorian rules from the historical reform onward, extended consistently for ancient dates. Years are entered and displayed as positive historical <b>BCE</b> or <b>CE</b> counts (e.g.&nbsp;596&nbsp;BCE, 2024&nbsp;CE).</p><p>Use <b>From year</b> and <b>To year</b> for the search interval; <b>Month</b> and <b>Day</b> optionally narrow it further.</p>",
+        "body_es": "<p>Filtra eclipses del catálogo NASA de cinco milenios por fecha de calendario.</p><p>Los años y las fechas mostradas en los resultados usan el calendario <b>juliano/gregoriano mixto proléptico</b> de MontuPython (<code>Time.readable.datemix</code>): reglas julianas antes del 15 de octubre de 1582 y gregorianas desde la reforma, extendidas de forma uniforme a fechas antiguas. Los años se ingresan y muestran como recuentos históricos positivos <b>AEC</b> o <b>EC</b> (p. ej.&nbsp;596&nbsp;AEC, 2024&nbsp;EC).</p><p>Usa <b>Desde año</b> y <b>Hasta año</b> para el intervalo de búsqueda; <b>Mes</b> y <b>Día</b> lo restringen opcionalmente.</p>",
+        "title_en": "Date",
+        "title_es": "Fecha"
+      },
+      "month": {
+        "body_en": "<p>Optional month filter. Choose <b>(any)</b> to include all months in the year range.</p>",
+        "body_es": "<p>Filtro opcional de mes. Elige <b>(cualquiera)</b> para incluir todos los meses del rango.</p>",
+        "title_en": "Month",
+        "title_es": "Mes"
+      },
+      "day": {
+        "body_en": "<p>Optional day filter, enabled when a month is selected. Use <b>(any)</b> to include all days of that month.</p>",
+        "body_es": "<p>Filtro opcional de día, activo cuando hay un mes seleccionado. Usa <b>(cualquiera)</b> para incluir todos los días de ese mes.</p>",
+        "title_en": "Day",
+        "title_es": "Día"
+      },
+      "eclipse_types": {
+        "body_en": "<p>Select which eclipse classes to include from the NASA Five Millennium catalogue. At least one type must remain checked.</p><ul><li><b>Total</b> — the Moon fully covers the solar disk along the central path (umbra).</li><li><b>Annular</b> — the Moon is too small to cover the Sun completely; a bright ring remains at greatest eclipse.</li><li><b>Hybrid</b> — along the path the eclipse appears total at some locations and annular at others (short central durations).</li><li><b>Partial</b> — only part of the Sun is obscured; the observer lies outside the central total/annular track.</li></ul><p>These filters apply to the catalogue classification at greatest eclipse, before any local visibility filter.</p>",
+        "body_es": "<p>Elige qué clases de eclipse incluir del catálogo NASA de cinco milenios. Debe permanecer al menos un tipo marcado.</p><ul><li><b>Total</b> — la Luna cubre por completo el disco solar a lo largo de la trayectoria central (umbra).</li><li><b>Anular</b> — la Luna es demasiado pequeña para cubrir el Sol por completo; queda un anillo brillante en el máximo.</li><li><b>Híbrido</b> — a lo largo de la trayectoria el eclipse es total en algunos lugares y anular en otros (duraciones centrales cortas).</li><li><b>Parcial</b> — solo parte del Sol queda oculta; el observador está fuera de la franja central total/anular.</li></ul><p>Estos filtros se aplican a la clasificación del catálogo en el eclipse máximo, antes de cualquier filtro de visibilidad local.</p>",
+        "title_en": "Eclipse types",
+        "title_es": "Tipos de eclipse"
+      },
+      "duration_min": {
+        "body_en": "<p>Minimum central-line duration in seconds. Applies to total, annular, and hybrid eclipses with a defined <code>duration_secs</code> in the catalogue. Leave empty for no lower limit.</p>",
+        "body_es": "<p>Duración mínima de la línea central en segundos. Aplica a eclipses totales, anulares e híbridos con <code>duration_secs</code> definido. Deja vacío para sin límite inferior.</p>",
+        "title_en": "Minimum duration",
+        "title_es": "Duración mínima"
+      },
+      "duration_max": {
+        "body_en": "<p>Maximum central-line duration in seconds. Leave empty for no upper limit.</p>",
+        "body_es": "<p>Duración máxima de la línea central en segundos. Deja vacío para sin límite superior.</p>",
+        "title_en": "Maximum duration",
+        "title_es": "Duración máxima"
+      },
+      "saros": {
+        "body_en": "<p>Optional Saros number from the NASA catalogue (e.g. 139 for the 2017 and 2024 total-eclipse series). Leave empty to include all Saros cycles in the date range.</p>",
+        "body_es": "<p>Número de Saros opcional del catálogo NASA (p. ej. 139 para la serie de eclipses totales de 2017 y 2024). Deja vacío para incluir todos los ciclos Saros en el rango de fechas.</p>",
+        "title_en": "Saros",
+        "title_es": "Saros"
+      },
+      "magnitude": {
+        "body_en": "<p>Filter by eclipse magnitude at maximum for the selected observer, expressed as a percentage of the Sun's apparent diameter covered by the Moon. Values below 100% indicate a partial eclipse at the site; 100% or more can occur for total, annular, or deep partial eclipses depending on type. Leave min or max empty for no limit.</p>",
+        "body_es": "<p>Filtra por la magnitud del eclipse en el máximo para el observador seleccionado, expresada como porcentaje del diámetro aparente del Sol cubierto por la Luna. Valores por debajo del 100% indican un eclipse parcial en el sitio; 100% o más pueden darse en eclipses totales, anulares o parciales profundos según el tipo. Deja min o max vacío para sin límite.</p>",
+        "title_en": "Magnitude (%)",
+        "title_es": "Magnitud (%)"
+      },
+      "elevation": {
+        "body_en": "<p>Filter by the Sun's altitude at maximum eclipse for the observer, in degrees above the astronomical horizon. Useful to exclude eclipses that occur too low in the sky. Leave min or max empty for no limit.</p>",
+        "body_es": "<p>Filtra por la altitud del Sol en el máximo del eclipse para el observador, en grados sobre el horizonte astronómico. Útil para excluir eclipses demasiado bajos en el cielo. Deja min o max vacío para sin límite.</p>",
+        "title_en": "Solar elevation",
+        "title_es": "Elevación solar"
+      },
+      "azimuth": {
+        "body_en": "<p>Filter by the Sun's azimuth at maximum eclipse for the observer, measured clockwise from north (0° = north, 90° = east). Leave min or max empty for no limit.</p>",
+        "body_es": "<p>Filtra por el azimut del Sol en el máximo del eclipse para el observador, medido en sentido horario desde el norte (0° = norte, 90° = este). Deja min o max vacío para sin límite.</p>",
+        "title_en": "Solar azimuth",
+        "title_es": "Azimut solar"
+      },
+      "local_duration": {
+        "body_en": "<p>Filter by the total duration of the eclipse as seen from the observer, in seconds from first to last contact (C1 to C4). This is the local eclipse duration, not the central-line duration in the catalogue. Leave min or max empty for no limit.</p>",
+        "body_es": "<p>Filtra por la duración total del eclipse vista desde el observador, en segundos desde el primer al último contacto (C1 a C4). Es la duración local, no la de la línea central del catálogo. Deja min o max vacío para sin límite.</p>",
+        "title_en": "Local duration (seconds)",
+        "title_es": "Duración local (segundos)"
+      }
+    },
+    "result": {
+      "eclipse": {
+        "body_en": "<p>MontuPython identifier for the catalogue entry: <code>em_nasa_</code> followed by the NASA catalogue number (<code>cat_no</code>).</p>",
+        "body_es": "<p>Identificador MontuPython de la entrada del catálogo: <code>em_nasa_</code> seguido del número de catálogo NASA (<code>cat_no</code>).</p>",
+        "title_en": "Eclipse",
+        "title_es": "Eclipse"
+      },
+      "date": {
+        "body_en": "<p>Calendar date of the eclipse in historical BCE/CE notation (year, month, day). Dates follow the NASA Five Millennium catalogue numbering.</p>",
+        "body_es": "<p>Fecha de calendario del eclipse en notación histórica AEC/EC (año, mes, día). Las fechas siguen la numeración del catálogo NASA de cinco milenios.</p>",
+        "title_en": "Date",
+        "title_es": "Fecha"
+      },
+      "type": {
+        "body_en": "<p>Eclipse classification at greatest eclipse: Total, Annular, Hybrid, or Partial, derived from the NASA catalogue type code.</p>",
+        "body_es": "<p>Clasificación del eclipse en el máximo: Total, Anular, Híbrido o Parcial, según el código de tipo del catálogo NASA.</p>",
+        "title_en": "Type",
+        "title_es": "Tipo"
+      },
+      "saros": {
+        "body_en": "<p>Saros cycle number assigned in the NASA catalogue. Eclipses separated by one Saros (~18 years 11 days) share similar geometry.</p>",
+        "body_es": "<p>Número de ciclo Saros asignado en el catálogo NASA. Eclipses separados por un Saros (~18 años 11 días) comparten geometría similar.</p>",
+        "title_en": "Saros",
+        "title_es": "Saros"
+      },
+      "greatest_location": {
+        "body_en": "<p>Geographic coordinates where the eclipse reaches its maximum on Earth's surface (latitude and longitude of greatest eclipse). The <b>( map )</b> link opens Xavier Jubier's interactive path map for the eclipse.</p>",
+        "body_es": "<p>Coordenadas geográficas donde el eclipse alcanza su máximo en la superficie terrestre (latitud y longitud del eclipse máximo). El enlace <b>( mapa )</b> abre el mapa interactivo de la trayectoria de Xavier Jubier.</p>",
+        "title_en": "Greatest eclipse location",
+        "title_es": "Ubicación del eclipse máximo"
+      },
+      "duration": {
+        "body_en": "<p>Duration of totality or annularity at greatest eclipse along the central line, from the NASA catalogue (<code>duration_secs</code>). Shown as <code>HH:MM:SS</code>. Hybrid and partial eclipses may show a very short or zero central duration.</p>",
+        "body_es": "<p>Duración de la totalidad o anularidad en el eclipse máximo a lo largo de la línea central, del catálogo NASA (<code>duration_secs</code>). Se muestra como <code>HH:MM:SS</code>. Eclipses híbridos y parciales pueden mostrar una duración central muy corta o cero.</p>",
+        "title_en": "Duration",
+        "title_es": "Duración"
+      },
+      "local_duration": {
+        "body_en": "<p>Total duration of the eclipse as seen from your observer site, from first contact (C1) to last contact (C4), computed by MontuPython from the Besselian elements.</p>",
+        "body_es": "<p>Duración total del eclipse vista desde tu sitio de observación, desde el primer contacto (C1) hasta el último (C4), calculada por MontuPython a partir de los elementos besselianos.</p>",
+        "title_en": "Local duration",
+        "title_es": "Duración local"
+      },
+      "maximum_local_time": {
+        "body_en": "<p>Local solar time at the observer when the eclipse reaches maximum obscuration (instant of greatest magnitude at the site).</p>",
+        "body_es": "<p>Hora solar local en el observador cuando el eclipse alcanza la máxima oscuración (instante de mayor magnitud en el sitio).</p>",
+        "title_en": "Maximum (local time)",
+        "title_es": "Máximo (hora local)"
+      },
+      "magnitude": {
+        "body_en": "<p>Eclipse magnitude at maximum for the observer: percentage of the Sun's apparent diameter covered by the Moon. Computed from the catalogue Besselian elements for your site.</p>",
+        "body_es": "<p>Magnitud del eclipse en el máximo para el observador: porcentaje del diámetro aparente del Sol cubierto por la Luna. Calculada a partir de los elementos besselianos del catálogo para tu sitio.</p>",
+        "title_en": "Magnitude (%)",
+        "title_es": "Magnitud (%)"
+      },
+      "sun_altitude": {
+        "body_en": "<p>Sun's altitude above the astronomical horizon at maximum eclipse for the observer, in degrees.</p>",
+        "body_es": "<p>Altitud del Sol sobre el horizonte astronómico en el máximo del eclipse para el observador, en grados.</p>",
+        "title_en": "Sun altitude",
+        "title_es": "Altitud solar"
+      },
+      "contacts": {
+        "body_en": "<p><b>Data</b> opens a table of local contact times and Sun position at each contact. <b>Map</b> opens Xavier Jubier's local-circumstance map centred on your observer site.</p>",
+        "body_es": "<p><b>Datos</b> abre una tabla de tiempos de contacto locales y posición del Sol en cada contacto. <b>Mapa</b> abre el mapa de circunstancias locales de Xavier Jubier centrado en tu sitio de observación.</p>",
+        "title_en": "Contacts",
+        "title_es": "Contactos"
+      }
+    },
+    "contacts": {
+      "contact": {
+        "body_en": "<p>Eclipse contact identifier: C1 (first contact), C2 (beginning of totality or annularity), Maximum, C3 (end of totality or annularity), C4 (last contact). Only contacts that occur above the horizon at your site are listed.</p>",
+        "body_es": "<p>Identificador de contacto del eclipse: C1 (primer contacto), C2 (inicio de totalidad o anularidad), Máximo, C3 (fin de totalidad o anularidad), C4 (último contacto). Solo se listan contactos que ocurren sobre el horizonte en tu sitio.</p>",
+        "title_en": "Contact",
+        "title_es": "Contacto"
+      },
+      "times_ut": {
+        "body_en": "<p>Instant of the contact expressed as UTC time (<code>HH:MM:SS</code>). Computed from the Besselian elements and the ΔT value assumed for the eclipse.</p>",
+        "body_es": "<p>Instante del contacto expresado como hora UTC (<code>HH:MM:SS</code>). Calculado a partir de los elementos besselianos y el valor de ΔT adoptado para el eclipse.</p>",
+        "title_en": "Times (UT)",
+        "title_es": "Tiempos (UT)"
+      },
+      "local_solar_time": {
+        "body_en": "<p>Local solar time at the observer for the contact, using MontuPython's longitude-based local time convention for the selected site.</p>",
+        "body_es": "<p>Hora solar local en el observador para el contacto, usando la convención de hora local basada en longitud de MontuPython para el sitio seleccionado.</p>",
+        "title_en": "Local solar time",
+        "title_es": "Hora solar local"
+      },
+      "sun_altitude": {
+        "body_en": "<p>Sun's altitude above the astronomical horizon at the contact instant, in degrees, for the observer.</p>",
+        "body_es": "<p>Altitud del Sol sobre el horizonte astronómico en el instante del contacto, en grados, para el observador.</p>",
+        "title_en": "Sun altitude",
+        "title_es": "Altitud solar"
+      },
+      "sun_azimuth": {
+        "body_en": "<p>Sun's azimuth at the contact instant, measured clockwise from north (0° = north, 90° = east), in degrees.</p>",
+        "body_es": "<p>Azimut del Sol en el instante del contacto, medido en sentido horario desde el norte (0° = norte, 90° = este), en grados.</p>",
+        "title_en": "Sun azimuth",
+        "title_es": "Azimut solar"
+      }
+    }
   }
 }

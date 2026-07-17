@@ -93,6 +93,13 @@
       "icon": "🌅",
       "title_en": "Heliacal Rises",
       "title_es": "Ortos helíacos"
+    },
+    {
+      "description_en": "Lists solar eclipses from the <a href=\"https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html\">NASA Five Millennium Catalog of Solar Eclipses</a> (−1999 to +3000) by Fred Espenak and Jean Meeus (<a href=\"https://eclipse.gsfc.nasa.gov/\">NASA/GSFC Eclipse Web Site</a>). When you choose an observer site, MontuPython computes local circumstances from the catalogue Besselian elements. Totality-path and local-circumstance maps open the interactive tools of <a href=\"http://xjubier.free.fr/en/site_pages/Solar_Eclipses.html\">Xavier Jubier</a>.",
+      "description_es": "Lista eclipses solares del <a href=\"https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html\">Catálogo NASA de eclipses solares de cinco milenios</a> (−1999 a +3000) de Fred Espenak y Jean Meeus (<a href=\"https://eclipse.gsfc.nasa.gov/\">sitio de eclipses NASA/GSFC</a>). Al elegir un sitio de observación, MontuPython calcula las circunstancias locales a partir de los elementos besselianos del catálogo. Los mapas de la zona de totalidad y de circunstancias locales abren las herramientas interactivas de <a href=\"http://xjubier.free.fr/en/site_pages/Solar_Eclipses.html\">Xavier Jubier</a>.",
+      "module_key": "solar_eclipses",
+      "title_en": "Solar Eclipses Finder",
+      "title_es": "Buscador de eclipses solares"
     }
   ],
   "paragraphs_en": [

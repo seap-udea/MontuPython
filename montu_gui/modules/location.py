@@ -122,6 +122,15 @@ def find_location(location_id: str) -> LocationEntry | None:
     return None
 
 
+def format_location_label(entry: LocationEntry) -> str:
+    """Site name with ancient region and era for picker lists."""
+    parts = [entry.name]
+    detail = " · ".join(part for part in (entry.region, entry.era) if part)
+    if detail:
+        parts.append(f"({detail})")
+    return " ".join(parts)
+
+
 def location_to_coords(entry: LocationEntry) -> ObserverCoords:
     return ObserverCoords(
         name=entry.name,

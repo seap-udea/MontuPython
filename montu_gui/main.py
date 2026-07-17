@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont, QPixmap, QIcon
+from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QStackedWidget, QFrame, QLabel, QSizePolicy,
@@ -60,6 +60,7 @@ from montu_gui.pages.alignments_page import AlignmentsPage
 from montu_gui.pages.heliacal_rise_page import HeliacalRisePage
 from montu_gui.pages.orientation_disk_page import OrientationDiskPage
 from montu_gui.pages.sky_map_page import SkyMapPage
+from montu_gui.pages.solar_eclipses_page import SolarEclipsesPage
 from montu_gui.utils.location_state import LocationState
 from montu_gui.modules.location import ObserverCoords
 from montu_gui.utils.user_config import (
@@ -70,6 +71,7 @@ from montu_gui.utils.user_config import (
     reset_config_file,
     save_config,
 )
+from montu_gui.utils.module_icons import module_icon_size, module_nav_icon
 
 
 from montu.version import version as MONTU_VERSION
@@ -89,6 +91,7 @@ NAV_ITEMS = [
     ("⭕", "Orientation disk", "orient_disk"),
     ("📐", "Star Alignments", "alignments"),
     ("🌅", "Heliacal Rises", "heliacal_rise"),
+    ("", "Solar Eclipses Finder", "solar_eclipses"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -106,6 +109,7 @@ class NavButton(QPushButton):
         self._icon = icon
         self._label = label
         self._compact = False
+        self._asset_icon = module_nav_icon(page_key)
         self.setObjectName("nav_btn")
         self.setCheckable(True)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -115,8 +119,17 @@ class NavButton(QPushButton):
         self._apply_text()
 
     def _apply_text(self):
+        if self._asset_icon is not None:
+            self.setIcon(self._asset_icon)
+            self.setIconSize(module_icon_size(self.page_key))
+        else:
+            self.setIcon(QIcon())
+
         if self._compact:
-            self.setText(self._icon)
+            if self._asset_icon is not None:
+                self.setText("")
+            else:
+                self.setText(self._icon)
             self.setObjectName("nav_btn_icon")
             self.setToolTip(self._label)
             self.setMinimumHeight(40)
@@ -125,7 +138,10 @@ class NavButton(QPushButton):
             self.setMaximumWidth(44)
             self.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         else:
-            self.setText(f"{self._icon}  {self._label}")
+            if self._asset_icon is not None:
+                self.setText(f"  {self._label}")
+            else:
+                self.setText(f"{self._icon}  {self._label}")
             self.setObjectName("nav_btn")
             self.setToolTip("")
             self.setMinimumHeight(42)
@@ -269,12 +285,15 @@ class MainWindow(QMainWindow):
         orient_disk_page = OrientationDiskPage(self._location_state)
         orient_disk_page.status_message.connect(self._show_status)
         self._add_page("orient_disk", orient_disk_page)
-        alignments_page = AlignmentsPage(self._location_state)
+        alignments_page = AlignmentsPage()
         alignments_page.status_message.connect(self._show_status)
         self._add_page("alignments", alignments_page)
         heliacal_rise_page = HeliacalRisePage(self._location_state)
         heliacal_rise_page.status_message.connect(self._show_status)
         self._add_page("heliacal_rise", heliacal_rise_page)
+        solar_eclipses_page = SolarEclipsesPage()
+        solar_eclipses_page.status_message.connect(self._show_status)
+        self._add_page("solar_eclipses", solar_eclipses_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
@@ -324,6 +343,7 @@ class MainWindow(QMainWindow):
             "orient_disk": "orientation_disk",
             "alignments": "alignments",
             "heliacal_rise": "heliacal_rise",
+            "solar_eclipses": "solar_eclipses",
             "calendar": "calendar",
             "seasons": "seasons",
         }
@@ -358,6 +378,7 @@ class MainWindow(QMainWindow):
             "orientation_disk": "orient_disk",
             "alignments": "alignments",
             "heliacal_rise": "heliacal_rise",
+            "solar_eclipses": "solar_eclipses",
             "calendar": "calendar",
             "seasons": "seasons",
         }

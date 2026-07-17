@@ -2,6 +2,19 @@
 
 Release notes for the graphical front-end to MontuPython.
 
+## Version 0.2.7 (major)
+
+- **Solar Eclipses Finder (☀)** — new module to search the [NASA Five Millennium Catalogue of Solar Eclipses](https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html) (−1999 to +3000); filters by date range (Mixed Julian/Gregorian proleptic, BCE/CE), month/day, eclipse type, Saros, and central-line duration.
+- **Module-specific observer site** — optional predefined ancient location or manual lat/lon/alt (independent of the global 🧭 Observer Location); when coordinates are set, results list only eclipses visible above the horizon and add local columns computed with `conditions_eclipse`.
+- **Eclipse conditions** — min/max filters for magnitude (%), solar elevation and azimuth at maximum, and local duration (seconds); panel shown only when a site is defined.
+- **Results table** — catalogue id (`em_nasa_<cat_no>`), date, type, Saros, greatest-eclipse location with **( map )** link (Xavier Jubier path map), central duration; with a site: local duration, maximum local time, magnitude, Sun altitude, and **Contacts** (**Data** | **Map**).
+- **Eclipse contacts dialog** — summary header (eclipse, observer site and coordinates, magnitude and duration at maximum), contact times (UT and local solar time) with Sun altitude/azimuth, contextual help on every column, and note on Besselian elements (Espenak & Meeus, NASA/GSFC).
+- **Module header & help** — branding text links to the NASA catalogue, NASA/GSFC eclipse pages, and [Xavier Jubier](http://xjubier.free.fr/en/site_pages/Solar_Eclipses.html) local-circumstance maps; `help.json` entries for all inputs, result columns, eclipse types, date convention, and contact fields.
+- **Localization** — full **Spanish (ES)** strings for the module UI, results, dialogs, and help bodies; example script `montu_gui/pages/examples/solar_eclipses_es.py`.
+- **Let's Python!** — `montu_gui/pages/examples/solar_eclipses.py` (Thales’ eclipse, 28 May 585 BCE, and total eclipses visible at Troy, 600–500 BCE).
+- **Illustration** — *Illustration of a hypothetical total solar eclipse observed at Stonehenge* below the results table.
+- **Ancient observer sites** — expanded `montu/data/locations.json` and GUI catalogue (Mesopotamia, Greece, and additional Egyptian sites including Amarna, Abydos, Saqqara, Heliopolis, Pi-Ramesses, Tanis, Edfu, Aswan, and others).
+
 ## Version 0.2.6 (minor)
 
 - Improved some appearance issues (overflows in inputs).

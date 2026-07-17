@@ -12,7 +12,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QUrl, Signal
-from PySide6.QtGui import QDesktopServices, QFont
+from PySide6.QtGui import QDesktopServices, QFont, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QPushButton,
     QScrollArea, QFrame,
@@ -23,6 +23,7 @@ import montu_gui.version as desktop_version
 from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.home_content import load_home_content
 from montu_gui.utils.i18n import get_language, tr
+from montu_gui.utils.module_icons import module_home_pixmap
 from montu_gui.utils.theme import PALETTE
 from montu_gui.widgets.version_link import VersionLink
 
@@ -120,17 +121,26 @@ def _module_row(
     *,
     title_size: int,
     body_size: int,
+    module_key: str = "",
 ) -> QWidget:
-    """One module: emoji icon + title + brief description."""
+    """One module: emoji or asset icon + title + brief description."""
     row = QWidget()
     lay = QHBoxLayout(row)
     lay.setContentsMargins(0, 2, 0, 2)
     lay.setSpacing(10)
 
-    icon_lbl = QLabel(icon)
-    icon_lbl.setFont(QFont("Apple Color Emoji", title_size + 4))
-    icon_lbl.setFixedWidth(max(36, title_size + 16))
-    icon_lbl.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+    icon_width = max(36, title_size + 16)
+    pixmap = module_home_pixmap(module_key, size=icon_width) if module_key else None
+    if pixmap is not None:
+        icon_lbl = QLabel()
+        icon_lbl.setPixmap(pixmap)
+        icon_lbl.setFixedSize(icon_width, icon_width)
+        icon_lbl.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
+    else:
+        icon_lbl = QLabel(icon)
+        icon_lbl.setFont(QFont("Apple Color Emoji", title_size + 4))
+        icon_lbl.setFixedWidth(icon_width)
+        icon_lbl.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignHCenter)
     lay.addWidget(icon_lbl)
 
     text_html = (
@@ -319,6 +329,7 @@ class HomePage(QWidget):
                     mod.get("icon", "•"),
                     mod.get("title", ""),
                     mod.get("description", ""),
+                    module_key=str(mod.get("module_key", "")),
                     title_size=mod_title_size,
                     body_size=mod_body_size,
                 )

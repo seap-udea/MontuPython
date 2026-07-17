@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QPushButton,
     QScrollArea,
@@ -259,22 +260,6 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         location_layout.addWidget(note)
         layout.addWidget(location_box)
 
-        warning = QLabel(
-            tr(
-                "⚠️ The search evaluates visibility morning by morning. "
-                "Calculations can take time, especially for long ranges or scan-based models."
-            )
-        )
-        warning.setWordWrap(True)
-        warning.setStyleSheet(
-            "padding:8px; border:1px solid #c79a37; border-radius:4px; color:#71500c;"
-        )
-        layout.addWidget(warning)
-        self._calculate_button = QPushButton(tr("Calculate heliacal rises"))
-        self._calculate_button.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._calculate_button.clicked.connect(self._calculate)
-        layout.addWidget(self._calculate_button)
-
         body_box = QGroupBox(tr("Celestial body"))
         body_form = QFormLayout(body_box)
         self._body_type = QComboBox()
@@ -386,6 +371,27 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._results_panel = results
         results_layout = QVBoxLayout(results)
         results_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._calculate_button = QPushButton(tr("Calculate heliacal rises"))
+        self._calculate_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._calculate_button.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+        )
+        self._calculate_button.clicked.connect(self._calculate)
+        results_layout.addWidget(self._calculate_button)
+
+        warning = QLabel(
+            tr(
+                "⚠️ The search evaluates visibility morning by morning. "
+                "Calculations can take time, especially for long ranges or scan-based models."
+            )
+        )
+        warning.setWordWrap(True)
+        warning.setStyleSheet(
+            "padding:8px; border:1px solid #c79a37; border-radius:4px; color:#71500c;"
+        )
+        results_layout.addWidget(warning)
+
         self._result_heading = QLabel(tr("Heliacal rises"))
         font = self._result_heading.font()
         font.setBold(True)
@@ -407,7 +413,9 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self._table.setAlternatingRowColors(True)
-        self._table.horizontalHeader().setStretchLastSection(True)
+        self._table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
         results_layout.addWidget(self._table, stretch=1)
         self._illustration_box = QWidget()
         illustration_layout = QVBoxLayout(self._illustration_box)
@@ -436,7 +444,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Fixed,
         )
-        illustration_path = gui_asset("peret-sopedt-illustration.webp")
+        illustration_path = gui_asset("illustrations/peret-sopedt-illustration.webp")
         if illustration_path.exists():
             self._illustration_source = QPixmap(str(illustration_path))
             self._illustration.setPixmap(self._illustration_source)
@@ -613,7 +621,6 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
                 item = QTableWidgetItem(row[key])
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
                 self._table.setItem(row_number, column, item)
-        self._table.resizeColumnsToContents()
         self.status_message.emit(trf("Heliacal rises: {n} event(s) found.", n=len(result.events)))
 
     def _show_historical_rises(self) -> None:
