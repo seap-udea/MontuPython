@@ -121,8 +121,8 @@
   "calendar": {
     "historical": {
       "historical_dates": {
-        "body_en": "<p>Preset <b>historical dates</b> from the past whose instant is known in more than one calendar system — typically as a Julian/Gregorian date <i>and</i> as an Egyptian civil (caniucular) date, and sometimes with a lunar or documentary context. Select an entry to load it into all input forms and the results table.</p><p>Most entries come from the astronomy of ancient Egypt as discussed by the Egyptologist <b>José Lull</b> in <i>La astronomía en el antiguo Egipto</i> (<i>Astronomy in Ancient Egypt</i>, Universitat de València). Page references below are to that book unless noted otherwise.</p><p><b>Presets and sources</b></p><ul><li><b>BCE 2782-07-20</b> — First <i>apokatastasis</i> (caniucular datum <code>hrw 0-I-Akhet-1</code>); Lull, calendar chapter</li><li><b>BCE 1322-07-20</b> — Second <i>apokatastasis</i>; Lull</li><li><b>CE 139-07-20</b> — Third <i>apokatastasis</i> (Censorinus); Lull, p.&nbsp;95</li><li><b>BCE 559-10-19</b> — Papyrus Louvre 7848 (civil + lunar dates); Lull, p.&nbsp;94</li><li><b>BCE 238-03-07</b> — Canopus decree; Lull, p.&nbsp;76</li><li><b>BCE 237-08-23</b> / <b>BCE 212-08-17</b> — Edfu temple inscriptions (25-year lunar cycle); Lull, p.&nbsp;92</li><li><b>CE 384-07-23</b> — Theon of Alexandria, heliacal rise of Sirius; Lull, p.&nbsp;98</li><li><b>BCE 688-06-11</b> — Papyrus Louvre E3228d (Taharqa, year 3); Lull, p.&nbsp;105</li><li><b>BCE 46-01-01</b> — Julian calendar reform (Sosigenes); Suetonius, <i>Divus Julius</i></li></ul>",
-        "body_es": "<p>Fechas históricas predefinidas con correspondencias entre calendarios (juliano/gregoriano, caniucular, y en algunos casos contexto lunar o documental).</p><p>La mayoria de entradas provienen de la astronomía del antiguo Egipto descrita por José Lull en <i>La astronomía en el antiguo Egipto</i>.</p>",
+        "body_en": "<p>Preset <b>historical dates</b> from the past whose instant is known in more than one calendar system — typically as a Julian/Gregorian date <i>and</i> as an Egyptian civil (sothic) date, and sometimes with a lunar or documentary context. Select an entry to load it into all input forms and the results table.</p><p>Most entries come from the astronomy of ancient Egypt as discussed by the Egyptologist <b>José Lull</b> in <i>La astronomía en el antiguo Egipto</i> (<i>Astronomy in Ancient Egypt</i>, Universitat de València). Page references below are to that book unless noted otherwise.</p><p><b>Presets and sources</b></p><ul><li><b>BCE 2782-07-20</b> — First <i>apokatastasis</i> (sothic datum <code>[hrw 0] I <i>akhet</i> 1</code>); Lull, calendar chapter</li><li><b>BCE 1322-07-20</b> — Second <i>apokatastasis</i>; Lull</li><li><b>CE 139-07-20</b> — Third <i>apokatastasis</i> (Censorinus); Lull, p.&nbsp;95</li><li><b>BCE 559-10-19</b> — Papyrus Louvre 7848 (civil + lunar dates); Lull, p.&nbsp;94</li><li><b>BCE 238-03-07</b> — Canopus decree; Lull, p.&nbsp;76</li><li><b>BCE 237-08-23</b> / <b>BCE 212-08-17</b> — Edfu temple inscriptions (25-year lunar cycle); Lull, p.&nbsp;92</li><li><b>CE 384-07-23</b> — Theon of Alexandria, heliacal rise of Sirius; Lull, p.&nbsp;98</li><li><b>BCE 688-06-11</b> — Papyrus Louvre E3228d (Taharqa, year 3); Lull, p.&nbsp;105</li><li><b>BCE 46-01-01</b> — Julian calendar reform (Sosigenes); Suetonius, <i>Divus Julius</i></li></ul>",
+        "body_es": "<p>Fechas históricas predefinidas con correspondencias entre calendarios (juliano/gregoriano, sótico, y en algunos casos contexto lunar o documental).</p><p>La mayoria de entradas provienen de la astronomía del antiguo Egipto descrita por José Lull en <i>La astronomía en el antiguo Egipto</i>.</p>",
         "title_en": "Historical Dates",
         "title_es": "Fechas históricas"
       }
@@ -131,33 +131,33 @@
       "bce": {
         "$ref": "_common/bce"
       },
-      "caniucular": {
+      "sothic": {
         "body_en": "Enter a date in the Egyptian civil calendar: Horus year, month (I–IV within the season), season name, and day (1–30). Each season has four months of 30 days.",
         "body_es": "Ingresa una fecha del calendario civil egipcio: año de Horus, mes (I-IV), estacion y día (1-30).",
-        "title_en": "Caniucular",
-        "title_es": "Caniucular"
+        "title_en": "Sothic",
+        "title_es": "Sótico"
       },
-      "caniucular_day": {
-        "body_en": "<p>Day within the current month and season. Regular seasons use days 1–30; the intercalary season <b>Mesut</b> uses days 1–5 only.</p><p><b>Format</b></p><ul><li>Integer day in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li>Range 1–30 (Akhet, Peret, Shemu) or 1–5 (Mesut)</li></ul><p><b>Examples</b></p><ul><li><code>1</code> — first day of the month/season block</li><li><code>30</code> — last day of a regular month (e.g. <code>IV-Shemu-30</code>)</li><li><code>3</code> on Mesut — third epagomenal day before the new year</li></ul>",
-        "body_es": "<p>Día dentro del mes y estacion actuales. En estaciones regulares: 1-30. En Mesut: 1-5.</p>",
+      "sothic_day": {
+        "body_en": "<p>Day within the current month and season. Regular seasons use days 1–30; the intercalary season <i>mesut</i> uses days 1–5 only.</p><p><b>Format</b></p><ul><li>Integer day in <code>[hrw HYEAR] MONTH SEASON DAY</code></li><li>Range 1–30 (<i>akhet</i>, <i>peret</i>, <i>shemu</i>) or 1–5 (<i>mesut</i>)</li></ul><p><b>Examples</b></p><ul><li><code>1</code> — first day of the month/season block</li><li><code>30</code> — last day of a regular month (e.g. <code>[hrw 280] IV <i>shemu</i> 30</code>)</li><li><code>3</code> on <i>mesut</i> — third epagomenal day before the new year</li></ul>",
+        "body_es": "<p>Día dentro del mes y estación actuales. En estaciones regulares: 1–30. En <i>mesut</i>: 1–5.</p><p><b>Formato</b></p><ul><li>Entero en <code>[hrw HYEAR] MONTH SEASON DAY</code></li><li>Rango 1–30 (<i>akhet</i>, <i>peret</i>, <i>shemu</i>) o 1–5 (<i>mesut</i>)</li></ul><p><b>Ejemplos</b></p><ul><li><code>30</code> — último día de un mes regular (p. ej. <code>[hrw 280] IV <i>shemu</i> 30</code>)</li></ul>",
         "title_en": "Day",
         "title_es": "Día"
       },
-      "caniucular_month": {
-        "body_en": "<p>Month within the current <b>season</b> in the Egyptian civil calendar. Each season has four months, numbered with Roman numerals I–IV (not the 12 Gregorian months).</p><p><b>Format</b></p><ul><li>One of: <code>I</code>, <code>II</code>, <code>III</code>, <code>IV</code></li><li>Third field in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>I</code> — first month of the season (days 1–30)</li><li><code>IV</code> — fourth and last month of the season</li><li><code>hrw 0-I-Akhet-1</code> — month I of season Akhet at the datum</li></ul>",
-        "body_es": "<p>Mes dentro de la estacion actual en calendario civil egipcio. Cada estacion tiene cuatro meses: I-IV.</p>",
+      "sothic_month": {
+        "body_en": "<p>Month within the current <b>season</b> in the Egyptian civil calendar. Each season has four months, numbered with Roman numerals I–IV (not the 12 Gregorian months).</p><p><b>Format</b></p><ul><li>One of: <code>I</code>, <code>II</code>, <code>III</code>, <code>IV</code></li><li>Second field in <code>[hrw HYEAR] MONTH SEASON DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>I</code> — first month of the season (days 1–30)</li><li><code>IV</code> — fourth and last month of the season</li><li><code>[hrw 0] I <i>akhet</i> 1</code> — month I of season <i>akhet</i> at the datum</li></ul>",
+        "body_es": "<p>Mes dentro de la estación actual en el calendario civil egipcio. Cada estación tiene cuatro meses: I–IV.</p><p><b>Ejemplo</b></p><ul><li><code>[hrw 0] I <i>akhet</i> 1</code> — mes I de la estación <i>akhet</i> en la época</li></ul>",
         "title_en": "Month",
         "title_es": "Mes"
       },
-      "caniucular_offset": {
-        "body_en": "<p>Use <b>−</b> and <b>+</b> to move one civil day backward or forward from the current caniucular date. All input forms and the results table update immediately.</p><p><b>Examples</b></p><ul><li><code>IV-Shemu-30</code> then <b>+</b> → <code>I-Mesut-1</code></li><li><code>I-Mesut-5</code> then <b>+</b> → <code>I-Akhet-1</code> of the next Horus year</li><li><b>−</b> reverses the same transitions</li></ul>",
-        "body_es": "<p>Usa <b>-</b> y <b>+</b> para mover un día civil hacia atras o adelante desde la fecha caniucular actual.</p>",
+      "sothic_offset": {
+        "body_en": "<p>Use <b>−</b> and <b>+</b> to move one civil day backward or forward from the current sothic date. All input forms and the results table update immediately.</p><p><b>Examples</b></p><ul><li><code>[hrw HYEAR] IV <i>shemu</i> 30</code> then <b>+</b> → <code>[hrw HYEAR] I <i>mesut</i> 1</code></li><li><code>[hrw HYEAR] I <i>mesut</i> 5</code> then <b>+</b> → <code>[hrw HYEAR+1] I <i>akhet</i> 1</code> of the next Horus year</li><li><b>−</b> reverses the same transitions</li></ul>",
+        "body_es": "<p>Usa <b>−</b> y <b>+</b> para mover un día civil hacia atrás o adelante desde la fecha sótica actual.</p><p><b>Ejemplos</b></p><ul><li><code>[hrw HYEAR] IV <i>shemu</i> 30</code> y <b>+</b> → <code>[hrw HYEAR] I <i>mesut</i> 1</code></li><li><code>[hrw HYEAR] I <i>mesut</i> 5</code> y <b>+</b> → <code>[hrw HYEAR+1] I <i>akhet</i> 1</code> del siguiente año de Horus</li></ul>",
         "title_en": "Step day",
         "title_es": "Día de paso"
       },
-      "caniucular_season": {
-        "body_en": "<p>Season name in the Egyptian civil calendar. The year is divided into three seasons of 120 days (Akhet, Peret, Shemu), plus an optional intercalary period (Mesut).</p><p><b>Format</b></p><ul><li>One of: <code>Akhet</code>, <code>Peret</code>, <code>Shemu</code>, <code>Mesut</code></li><li>Akhet — inundation; Peret — emergence; Shemu — harvest; Mesut — epagomenal days (5 days after Shemu IV-30)</li></ul><p><b>Examples</b></p><ul><li><code>Akhet</code> — first season; contains <code>hrw 0-I-Akhet-1</code></li><li><code>Shemu</code> — e.g. <code>hrw 4809-III-Shemu-25</code> for a modern March date</li><li><code>Mesut</code> — epagomenal days 1–5; e.g. day after <code>IV-Shemu-30</code> is <code>I-Mesut-1</code></li></ul>",
-        "body_es": "<p>Estacion del calendario civil egipcio: <code>Akhet</code>, <code>Peret</code>, <code>Shemu</code> o <code>Mesut</code>.</p>",
+      "sothic_season": {
+        "body_en": "<p>Season name in the Egyptian civil calendar. The year is divided into three seasons of 120 days (<i>akhet</i>, <i>peret</i>, <i>shemu</i>), plus an optional intercalary period (<i>mesut</i>).</p><p><b>Format</b></p><ul><li>One of: <code><i>akhet</i></code>, <code><i>peret</i></code>, <code><i>shemu</i></code>, <code><i>mesut</i></code></li><li><i>akhet</i> — inundation; <i>peret</i> — emergence; <i>shemu</i> — harvest; <i>mesut</i> — epagomenal days (5 days after <code>[hrw HYEAR] IV <i>shemu</i> 30</code>)</li></ul><p><b>Examples</b></p><ul><li><i>akhet</i> — first season; contains <code>[hrw 0] I <i>akhet</i> 1</code></li><li><i>shemu</i> — e.g. <code>[hrw 4809] III <i>shemu</i> 25</code> for a modern March date</li><li><i>mesut</i> — epagomenal days 1–5; e.g. day after <code>[hrw HYEAR] IV <i>shemu</i> 30</code> is <code>[hrw HYEAR] I <i>mesut</i> 1</code></li></ul>",
+        "body_es": "<p>Estación del calendario civil egipcio. El año se divide en tres estaciones de 120 días (<i>akhet</i>, <i>peret</i>, <i>shemu</i>), más un periodo intercalario opcional (<i>mesut</i>).</p><p><b>Formato</b></p><ul><li>Una de: <code><i>akhet</i></code>, <code><i>peret</i></code>, <code><i>shemu</i></code>, <code><i>mesut</i></code></li><li><i>akhet</i> — inundación; <i>peret</i> — emergencia; <i>shemu</i> — cosecha; <i>mesut</i> — días epagomenales (5 días después de <code>[hrw HYEAR] IV <i>shemu</i> 30</code>)</li></ul><p><b>Ejemplos</b></p><ul><li><i>akhet</i> — primera estación; contiene <code>[hrw 0] I <i>akhet</i> 1</code></li><li><i>shemu</i> — p. ej. <code>[hrw 4809] III <i>shemu</i> 25</code> para una fecha moderna de marzo</li><li><i>mesut</i> — días 1–5; p. ej. el día después de <code>[hrw HYEAR] IV <i>shemu</i> 30</code> es <code>[hrw HYEAR] I <i>mesut</i> 1</code></li></ul>",
         "title_en": "Season",
         "title_es": "Estacion"
       },
@@ -177,14 +177,45 @@
         "title_es": "Fechas históricas"
       },
       "horus_year": {
-        "body_en": "<p>Year in the Egyptian civil calendar counted from the <b>Horus</b> (caniucular) epoch. Year&nbsp;0 is anchored at the first <i>apokatastasis</i> (<code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20).</p><p><b>Format</b></p><ul><li>Integer (may be negative for years before the epoch in some displays)</li><li>Appears as the first number in <code>hrw HYEAR-MONTH-SEASON-DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>0</code> — epoch year (datum)</li><li><code>1</code> — one civil year after the datum</li><li><code>4809</code> — modern date in Horus years (e.g. 2026 CE)</li></ul>",
-        "body_es": "<p>Año del calendario civil egipcio contado desde la época caniucular (<code>hrw 0-I-Akhet-1</code>).</p>",
+        "body_en": "<p>Year in the Egyptian civil calendar counted from the <b>Horus</b> (sothic) epoch. Year&nbsp;0 is anchored at the first <i>apokatastasis</i> (<code>[hrw 0] I <i>akhet</i> 1</code> = BCE&nbsp;2782-07-20).</p><p><b>Format</b></p><ul><li>Integer (may be negative for years before the epoch in some displays)</li><li>Appears as the first number in <code>[hrw HYEAR] MONTH SEASON DAY</code></li></ul><p><b>Examples</b></p><ul><li><code>0</code> — epoch year (datum)</li><li><code>1</code> — one civil year after the datum</li><li><code>4809</code> — modern date in Horus years (e.g. 2026 CE)</li></ul>",
+        "body_es": "<p>Año en el calendario civil egipcio contado desde la época de <b>Horus</b> (sótico). El año&nbsp;0 está anclado en la primera <i>apokatastasis</i> (<code>[hrw 0] I <i>akhet</i> 1</code> = 20-07-2782 AEC).</p><p><b>Formato</b></p><ul><li>Entero (puede ser negativo para años antes de la época en algunas vistas)</li><li>Aparece como el primer número en <code>[hrw HYEAR] MONTH SEASON DAY</code></li></ul><p><b>Ejemplos</b></p><ul><li><code>0</code> — año de la época (dato base)</li><li><code>1</code> — un año civil después del dato base</li><li><code>4809</code> — fecha actual en años de Horus (por ejemplo, 2026 EC)</li></ul>",
         "title_en": "Horus Year",
         "title_es": "Año de Horus"
       },
+      "sothic_year": {
+        "body_en": "<p>Year used to build the sothic input string. Choose <b>Horus year</b> or <b>Mixed year</b> below the field. When <b>Mixed year</b> is selected, choose <b>BCE</b> or <b>CE</b> beside it to enter the mixed-calendar year as <code>[bce YYYY]</code> or <code>[YYYY]</code>.</p><p>When a date is loaded, <b>Horus year</b> is selected by default and the <b>Year</b> field shows the Horus count.</p><p><b>Examples</b> (Horus year 756, <code>I <i>akhet</i> 2</code>)</p><ul><li><b>Horus year</b> <code>756</code> → <code>[hrw 756] I <i>akhet</i> 2</code></li><li><b>Mixed year + BCE</b> <code>2026</code> → <code>[bce 2026] I <i>akhet</i> 2</code></li><li><b>Mixed year + CE</b> <code>2026</code> → <code>[2026] I <i>akhet</i> 2</code></li></ul>",
+        "body_es": "<p>Año usado para construir la cadena sótica. Elige <b>Año de Horus</b> o <b>Año mixto</b>. Con <b>Año mixto</b>, elige <b>AEC</b> o <b>EC</b> a su lado para ingresar el año como <code>[bce YYYY]</code> o <code>[YYYY]</code>.</p><p>Al cargar una fecha, se selecciona <b>Año de Horus</b> por defecto y el campo muestra el conteo de Horus.</p>",
+        "title_en": "Year",
+        "title_es": "Año"
+      },
+      "sothic_year_horus": {
+        "body_en": "Interpret the year as a <b>Horus year</b> (<code>[hrw HYEAR] …</code>). Year&nbsp;0 = first <i>apokatastasis</i> (BCE&nbsp;2782).",
+        "body_es": "Interpreta el año como <b>año de Horus</b> (<code>[hrw HYEAR] …</code>). Año 0 = primera <i>apokatastasis</i> (2782 AEC).",
+        "title_en": "Horus year",
+        "title_es": "Año de Horus"
+      },
+      "sothic_year_mixed": {
+        "body_en": "Interpret the year as an <b>astronomical mixed-calendar year</b> (<code>[-YYYY] …</code> or <code>[YYYY] …</code>). Example: <code>-2025</code> for BCE&nbsp;2026.",
+        "body_es": "Interpreta el año como <b>año astronómico del calendario mixto</b> (<code>[-YYYY] …</code> o <code>[YYYY] …</code>). Ejemplo: <code>-2025</code> para 2026 AEC.",
+        "title_en": "Mixed year",
+        "title_es": "Año mixto"
+      },
+      "sothic_year_bce": {
+        "body_en": "Interpret the year as a historical <b>BCE</b> count (<code>[bce YYYY] …</code>). Example: <code>2026</code> → BCE&nbsp;2026.",
+        "body_es": "Interpreta el año como conteo histórico <b>AEC</b> (<code>[bce YYYY] …</code>). Ejemplo: <code>2026</code> → 2026 AEC.",
+        "title_en": "BCE",
+        "title_es": "AEC"
+      },
+      "sothic_year_ce": {
+        "body_en": "Interpret the year as a <b>CE</b> count (<code>[YYYY] …</code> or <code>[ce YYYY] …</code>). Example: <code>2026</code> → CE&nbsp;2026.",
+        "body_es": "Interpreta el año como conteo <b>EC</b> (<code>[YYYY] …</code> o <code>[ce YYYY] …</code>). Ejemplo: <code>2026</code> → 2026 EC.",
+        "title_en": "CE",
+        "title_es": "EC"
+      },
       "julian_day": {
         "body_en": "Enter a Julian Day Number (UTC scale), optionally with a fractional part for the time of day. Example: <code>2461231.5</code> is noon on that Julian day.",
-        "body_es": "Ingresa un Numero de Día Juliano (escala UTC), opcionalmente con parte fraccionaria para la hora.",
+        "body_es": "Introduce un número de día juliano (escala UTC), opcionalmente con una parte fraccionaria para la hora del día. Ejemplo: <code>2461231.5</code> representa el mediodía de ese día juliano.",
+   
         "title_en": "Julian Day Number",
         "title_es": "Numero de Día Juliano"
       },
@@ -211,14 +242,26 @@
         "body_es": "Extiende las reglas gregorianas hacia atras en toda la línea temporal.",
         "title_en": "Proleptic",
         "title_es": "Proleptico"
+      },
+      "observer_time": {
+        "body_en": "<p>Interpret the <b>Time</b> fields as civil clock time in the selected zone before conversion to UTC.</p><ul><li><b>UTC</b> — input is already Universal Time.</li><li><b>Site</b> — use the longitude of the global 🧭 Observer Location (<code>lon / 15</code> hours).</li><li><b>Zone</b> — use a fixed offset such as <code>UTC-5</code> or <code>-5</code> (hours from UTC).</li></ul>",
+        "body_es": "<p>Interpreta los campos de <b>Hora</b> como hora civil en la zona seleccionada antes de convertir a UTC.</p><ul><li><b>UTC</b> — la entrada ya está en Tiempo Universal.</li><li><b>Sitio</b> — usa la longitud del observador global 🧭 (<code>lon / 15</code> horas).</li><li><b>Zona</b> — usa un desplazamiento fijo como <code>UTC-5</code> o <code>-5</code> (horas respecto a UTC).</li></ul>",
+        "title_en": "Time zone",
+        "title_es": "Zona horaria"
+      },
+      "zone_offset": {
+        "body_en": "<p>Fixed offset from UTC in hours when <b>Zone</b> is selected. Examples: <code>UTC-5</code>, <code>-5</code>, <code>5:30</code> for half-hour zones.</p>",
+        "body_es": "<p>Desplazamiento fijo respecto a UTC en horas cuando se elige <b>Zona</b>. Ejemplos: <code>UTC-5</code>, <code>-5</code>, <code>5:30</code>.</p>",
+        "title_en": "Zone offset",
+        "title_es": "Desplazamiento de zona"
       }
     },
     "result": {
-      "caniucular": {
-        "body_en": "<p>Date in the Egyptian <b>civil (caniucular)</b> calendar (<code>Time.readable.datecan</code>): Horus year, month, season, and day. The year begins with the heliacal rise of Sirius (Sothis); the epoch is <code>hrw 0-I-Akhet-1</code> = BCE&nbsp;2782-07-20.</p><p><b>Format</b></p><ul><li><code>hrw HYEAR-MONTH-SEASON-DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — Akhet, Peret, Shemu, or Mesut (intercalary)</li><li><b>DAY</b> — 1–30</li></ul><p><b>Examples</b></p><ul><li><code>hrw 0-I-Akhet-1</code> — caniucular epoch (datum)</li><li><code>hrw 1-I-Akhet-2</code> — day after the datum in Horus year 1</li><li><code>hrw 4809-III-Shemu-25</code> — 7 March 2026 CE in civil form</li></ul>",
-        "body_es": "<p>Fecha en el calendario <b>civil egipcio (caniucular)</b> (<code>Time.readable.datecan</code>): año de Horus, mes, estacion y día.</p>",
-        "title_en": "Caniucular (Egyptian civil)",
-        "title_es": "Caniucular (civil egipcio)"
+      "sothic": {
+        "body_en": "<p>Date in the Egyptian <b>civil (sothic)</b> calendar (<code>Time.readable.datesot</code>): Horus year, month, season, and day. The year begins with the heliacal rise of Sirius (Sothis); the epoch is <code>[hrw 0] I <i>akhet</i> 1</code> = BCE&nbsp;2782-07-20.</p><p><b>Format</b></p><ul><li><code>[hrw HYEAR] MONTH SEASON DAY</code></li><li><b>HYEAR</b> — year of Horus (integer, may be negative in display)</li><li><b>MONTH</b> — Roman numeral I–IV within the season</li><li><b>SEASON</b> — <i>akhet</i>, <i>peret</i>, <i>shemu</i>, or <i>mesut</i> (intercalary)</li><li><b>DAY</b> — 1–30</li></ul><p><b>Examples</b></p><ul><li><code>[hrw 0] I <i>akhet</i> 1</code> — sothic epoch (datum)</li><li><code>[hrw 1] I <i>akhet</i> 2</code> — day after the datum in Horus year 1</li><li><code>[hrw 4809] III <i>shemu</i> 25</code> — 7 March 2026 CE in civil form</li></ul>",
+        "body_es": "<p>Fecha en el calendario <b>civil egipcio (sótico)</b> (<code>Time.readable.datesot</code>): año de Horus, mes, estacion y día.</p>",
+        "title_en": "Sothic (Egyptian civil)",
+        "title_es": "Sótico (civil egipcio)"
       },
       "delta_t": {
         "body_en": "<p>Difference <b>TT − UTC</b> in seconds (<code>Time.deltat</code>). Accounts for irregular Earth rotation (tidal braking and leap seconds). Required to convert between civil UTC and uniform TT.</p><p><b>Format</b></p><ul><li>Decimal seconds (positive in the modern era: TT runs ahead of UTC)</li><li>Tabulated internally by MontuPython for historical dates</li></ul><p><b>Examples</b></p><ul><li><code>67.184</code> — approximate value near 2020 CE</li><li><code>67692.000</code> — much larger for ancient dates (e.g. BCE&nbsp;2782), where extrapolation uncertainty is high</li></ul>",
@@ -233,13 +276,13 @@
         "title_es": "Segundos de efemérides UTC (J2000)"
       },
       "jd_utc": {
-        "body_en": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch (1&nbsp;January&nbsp;4713&nbsp;BCE, 12:00&nbsp;TT). A pure number — not a calendar string.</p><p><b>Format</b></p><ul><li>Decimal number: <code>integer.fraction</code></li><li>Fraction 0.0 = noon at the beginning of that JD; 0.5 = midnight; add 0.5 to move from noon-based JD to midnight-based conventions if needed</li><li>Typically shown with 6 decimal places in this table</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 (2000-01-01 12:00 TT ≈ standard epoch)</li><li><code>2461231.5</code> — noon on a modern Julian day</li><li><code>705863.500000</code> — caniucular datum region (BCE 2782-07-20)</li></ul>",
+        "body_en": "<p><b>Julian Day Number</b> on the UTC scale (<code>Time.jed</code>). Counts days and fraction from the Julian epoch (1&nbsp;January&nbsp;4713&nbsp;BCE, 12:00&nbsp;TT). A pure number — not a calendar string.</p><p><b>Format</b></p><ul><li>Decimal number: <code>integer.fraction</code></li><li>Fraction 0.0 = noon at the beginning of that JD; 0.5 = midnight; add 0.5 to move from noon-based JD to midnight-based conventions if needed</li><li>Typically shown with 6 decimal places in this table</li></ul><p><b>Examples</b></p><ul><li><code>2451545.0</code> — J2000.0 (2000-01-01 12:00 TT ≈ standard epoch)</li><li><code>2461231.5</code> — noon on a modern Julian day</li><li><code>705863.500000</code> — sothic datum region (BCE 2782-07-20)</li></ul>",
         "body_es": "<p><b>Numero de Día Juliano</b> en escala UTC (<code>Time.jed</code>). Cuenta días y fraccion desde la época juliana. Es un numero, no una cadena de calendario.</p>",
         "title_en": "Julian Day — UTC",
         "title_es": "Día Juliano - UTC"
       },
       "mixed": {
-        "body_en": "<p>Calendar date in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward. This is the usual choice for real historical dates.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates (minus prefix on astronomical year)</li><li>Month lengths follow the active calendar (Julian or Gregorian) for that date</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:30</code> — modern date (Gregorian rules)</li><li><code>1582-10-04 00:00:00</code> — last Julian day before the 1582 reform (in affected countries)</li><li><code>-2780-07-20 00:00:00</code> — ancient date under Julian rules (near the caniucular datum)</li></ul>",
+        "body_en": "<p>Calendar date in the <b>mixed</b> convention (<code>Time.readable.datemix</code>): Julian calendar before 15&nbsp;October&nbsp;1582, Gregorian from the reform onward. This is the usual choice for real historical dates.</p><p><b>Format</b></p><ul><li><code>YYYY-MM-DD HH:MM:SS</code> for CE dates</li><li><code>-YYYY-MM-DD HH:MM:SS</code> for BCE dates (minus prefix on astronomical year)</li><li>Month lengths follow the active calendar (Julian or Gregorian) for that date</li></ul><p><b>Examples</b></p><ul><li><code>2026-03-07 14:30:30</code> — modern date (Gregorian rules)</li><li><code>1582-10-04 00:00:00</code> — last Julian day before the 1582 reform (in affected countries)</li><li><code>-2780-07-20 00:00:00</code> — ancient date under Julian rules (near the sothic datum)</li></ul>",
         "body_es": "<p>Fecha de calendario en convención <b>mixta</b> (<code>Time.readable.datemix</code>): juliano antes del 15 de octubre de 1582 y gregoriano desde la reforma en adelante.</p>",
         "title_en": "Mixed Julian/Gregorian",
         "title_es": "Juliano/Gregoriano mixto"
@@ -251,7 +294,7 @@
         "title_es": "Gregoriano proléptico (astronómico)"
       },
       "spice": {
-        "body_en": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — caniucular datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>",
+        "body_en": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>). The proleptic Gregorian calendar extends Gregorian rules backward without the historical Julian–Gregorian transition.</p><p><b>Format</b></p><ul><li><b>CE:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code></li><li><b>BCE:</b> <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (year shown as historical BCE count)</li><li>Month and day are <code>MM-DD</code> (not ISO order)</li><li>Fractional seconds use two or four digits after the decimal point</li></ul><p><b>Examples</b></p><ul><li><code>2026 A.D. 03-07 14:30:00.0000</code> — 7 March 2026, 14:30 CE</li><li><code>2781 B.C. 06-27 00:00:00.00</code> — sothic datum region (BCE 2782-07-20 input)</li><li><code>0100 B.C. 03-15 06:00:00.00</code> — 15 March 100 BCE</li></ul>",
         "body_es": "<p>Fecha gregoriana proleptica legible en estilo <b>SPICE / NASA</b> (<code>Time.readable.datespice</code>). El calendario gregoriano proléptico extiende las reglas gregorianas hacia atras sin la transición histórica juliano-gregoriana.</p>",
         "title_en": "Gregorian proleptic (human)",
         "title_es": "Gregoriano proléptico (humaño)"
@@ -290,7 +333,7 @@
         "title_es": "Tipo de cuerpo"
       },
       "calendar": {
-        "body_en": "<p>Select the calendar interpretation of the initial date.</p><ul><li><b>Mixed</b> — Julian calendar before 15 October 1582 and Gregorian thereafter. This is the default and is recommended for historical dates, including the 139 BCE caniucular context.</li><li><b>Proleptic</b> — Gregorian rules extended uniformly into the past. Use it for astronomical or mathematical date ranges that require a single calendar system.</li></ul>",
+        "body_en": "<p>Select the calendar interpretation of the initial date.</p><ul><li><b>Mixed</b> — Julian calendar before 15 October 1582 and Gregorian thereafter. This is the default and is recommended for historical dates, including the 139 BCE sothic context.</li><li><b>Proleptic</b> — Gregorian rules extended uniformly into the past. Use it for astronomical or mathematical date ranges that require a single calendar system.</li></ul>",
         "body_es": "<p>Selecciona la interpretacion de calendario de la fecha inicial.</p><ul><li><b>Mixto</b>: juliano antes de 1582 y gregoriano despues.</li><li><b>Proleptico</b>: reglas gregorianas extendidas uniformemente al pasado.</li></ul>",
         "title_en": "Calendar",
         "title_es": "Calendario"
@@ -376,13 +419,13 @@
     },
     "result": {
       "peret_sopedet": {
-        "body_en": "<p><b>Peret Sopedet</b> (emergence of Sopedet) is the Egyptian civil-year marker tied to the <b>heliacal rise</b> of Sirius — <i>Sothis</i> in Greek, <i>Sopedet</i> (<code>spdt</code>) in Egyptian. Its first morning visibility after a period of invisibility opened the season Akhet and the civil New Year (<code>hrw 0-I-Akhet-1</code>).</p><p>The illustration below depicts that heliacal rising of Sirius beside the pyramids on the Giza plateau.</p><p><b>Image credit</b></p><p>This illustration was generated with <b>Nano Banana</b>, edited in <b>Preview</b>, and is based on the realistic simulation created with Stellarium and GIMP by <b>Bob Moler</b> and published on <i>Bob Moler's Ephemeris Blog</i>: <a href=\"https://bobmoler.blog/2017/02/07/02072017-ephemeris-sirius-an-important-star-in-history/\">Sirius: an important star in history</a> (7 February 2017).</p>",
+        "body_en": "<p><b>Peret Sopedet</b> (emergence of Sopedet) is the Egyptian civil-year marker tied to the <b>heliacal rise</b> of Sirius — <i>Sothis</i> in Greek, <i>Sopedet</i> (<code>spdt</code>) in Egyptian. Its first morning visibility after a period of invisibility opened the season Akhet and the civil New Year (<code>[hrw 0] I <i>akhet</i> 1</code>).</p><p>The illustration below depicts that heliacal rising of Sirius beside the pyramids on the Giza plateau.</p><p><b>Image credit</b></p><p>This illustration was generated with <b>Nano Banana</b>, edited in <b>Preview</b>, and is based on the realistic simulation created with Stellarium and GIMP by <b>Bob Moler</b> and published on <i>Bob Moler's Ephemeris Blog</i>: <a href=\"https://bobmoler.blog/2017/02/07/02072017-ephemeris-sirius-an-important-star-in-history/\">Sirius: an important star in history</a> (7 February 2017).</p>",
         "body_es": "<p><b>Peret Sopedet</b> (emergencia de Sopedet) es el marcador del año civil egipcio ligado al <b>orto helíaco</b> de Sirio.</p>",
         "title_en": "Peret Sopedet",
         "title_es": "Peret Sopedet"
       },
       "table": {
-        "body_en": "<p>Each row is a morning on which the selected body became visible under the selected model after being invisible on the preceding morning.</p><ul><li><b>#</b> — event sequence number.</li><li><b>Date mixed</b>, <b>Date proleptic</b>, and <b>Date caniucular</b> — the same instant in <code>Time.readable.datemix</code>, <code>datepro</code>, and <code>datecan</code>.</li><li><b>Time from latest</b> — days since the prior heliacal rise; for event 1, days since the initial date.</li><li><b>Local time</b> — local solar time at the evaluated visible instant.</li><li><b>Altitude</b> and <b>azimuth</b> — apparent horizontal coordinates of the body and Sun in degrees. Azimuth is measured clockwise from North.</li></ul>",
+        "body_en": "<p>Each row is a morning on which the selected body became visible under the selected model after being invisible on the preceding morning.</p><ul><li><b>#</b> — event sequence number.</li><li><b>Date mixed</b>, <b>Date proleptic</b>, and <b>Date sothic</b> — the same instant in <code>Time.readable.datemix</code>, <code>datepro</code>, and <code>datesot</code>.</li><li><b>Time from latest</b> — days since the prior heliacal rise; for event 1, days since the initial date.</li><li><b>Local time</b> — local solar time at the evaluated visible instant.</li><li><b>Altitude</b> and <b>azimuth</b> — apparent horizontal coordinates of the body and Sun in degrees. Azimuth is measured clockwise from North.</li></ul>",
         "body_es": "<p>Cada fila corresponde a una manana en la que el cuerpo seleccionado se vuelve visible segun el modelo elegido, tras haber sido invisible la manana anterior.</p>",
         "title_en": "Heliacal-rise results",
         "title_es": "Resultados de ortos helíacos"
@@ -510,11 +553,11 @@
   },
   "seasons": {
     "fields": {
-      "caniucular": {
-        "body_en": "<p>Egyptian civil calendar date (<code>Time.readable.datecan</code>).</p><p><b>Format:</b> <code>hrw HYEAR-MONTH-SEASON-DAY</code></p>",
-        "body_es": "<p>Fecha del calendario civil egipcio (<code>Time.readable.datecan</code>).</p>",
-        "title_en": "Caniucular",
-        "title_es": "Caniucular"
+      "sothic": {
+        "body_en": "<p>Egyptian civil calendar date (<code>Time.readable.datesot</code>).</p><p><b>Format:</b> <code>[hrw HYEAR] MONTH SEASON DAY</code></p>",
+        "body_es": "<p>Fecha del calendario civil egipcio (<code>Time.readable.datesot</code>).</p>",
+        "title_en": "Sothic",
+        "title_es": "Sótico"
       },
       "gregorian_proleptic": {
         "body_en": "<p>Human-readable proleptic Gregorian date in <b>SPICE / NASA</b> style (<code>Time.readable.datespice</code>).</p><p><b>Format:</b> <code>YYYY A.D. MM-DD HH:MM:SS.μμ</code> (CE) or <code>YYYY B.C. MM-DD HH:MM:SS.μμ</code> (BCE).</p>",

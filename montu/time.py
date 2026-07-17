@@ -75,13 +75,28 @@ ROUND_DAY_LEVEL = int(abs(np.log10((ROUND_SECOND_LEVEL+1)/DAY)))+3
 ROUND_SECONDS = lambda seconds:round(seconds,ROUND_SECOND_LEVEL)
 ROUND_JULIANDAYS = lambda days:round(days,ROUND_DAY_LEVEL)
 
-# Egyptian civil calendar (caniucular)
+# Egyptian civil calendar (sothic)
 HORUS_MONTH = dict(I=1,II=2,III=3,IV=4)
 HORUS_SEASON = dict(AKHET=1,PERET=2,SHEMU=3,
                     A=1,P=2,S=3,
                     AKH=1,PER=2,SHE=3)
 MONTH_HORUS = {str(v): k for k, v in HORUS_MONTH.items()}
 SEASON_HORUS = {'0':'Mesut','1':'Akhet','2':'Peret','3':'Shemu'}
+
+# Sothic date: '[hrw HYEAR] MONTH SEASON DAY'  e.g. '[hrw 0] I akhet 1'
+SOTHIC_DATE_RE = re.compile(
+    r'^\[hrw\s+(-?\d+)\]\s+(\S+)\s+(\S+)\s+(\d+)\s*$',
+    re.IGNORECASE,
+)
+# Mixed-year sothic: '[bce 2026] I akhet 2' or '[-2025] I akhet 2'
+SOTHIC_MIXED_DATE_RE = re.compile(
+    r'^\[(?P<year_tag>(?!hrw\s)(?:[^\]]+))\]\s+'
+    r'(?P<month>\S+)\s+(?P<season>\S+)\s+(?P<day>\d+)\s*$',
+    re.IGNORECASE,
+)
+SOTHIC_TIME_RE = re.compile(
+    r'\s(\d{1,2}:\d{2}(?::\d{2})?(?:\.\d+)?)\s*$'
+)
 
 # Julian day of the first apokatastasis (coincidence heliakal rise of sopedet and I-Akhet-1)
 JED_APOKATASTASIS = 705497.5 # bce 2782-07-20
@@ -151,7 +166,7 @@ class Time(object):
 
     This is the central class of MontuPython.  It converts dates between the
     proleptic Gregorian calendar, the mixed Julian/Gregorian calendar, the
-    ancient Egyptian civil (caniucular) calendar, and several numerical
+    ancient Egyptian civil (sothic) calendar, and several numerical
     time-scales used by the underlying ephemeris engines (PyEphem,
     PyMeeus, PyPlanets).
 
@@ -167,18 +182,21 @@ class Time(object):
             '1001 b.c.e. 03-21 06:00:00'   # verbose BCE notation
             '2024-05-01 19:00:00'           # CE date
 
-        When ``format='caniucular'``, the Egyptian civil date format is::
+        When ``calendar='sothic'``, the Egyptian civil date format is::
 
-            '0-II-Akhet-1'                  # Year 0 (≈2782 BCE), I-Akhet-1
+            '[hrw 0] I akhet 1'             # Horus year 0 (≈2782 BCE), I akhet 1
+            '[bce 2782] I akhet 1'          # same instant, mixed calendar year (BCE)
+            '[-2781] I akhet 1'             # same instant, astronomical mixed year
+            '[hrw 1461] I akhet 1 12:00:00' # with civil time of day
 
         When ``format='jd'``, *date* should be a Julian Day number (float).
         When ``format='tt'``, *date* should be ephemeris seconds past J2000.
-    format : {'iso', 'tt', 'jd', 'caniucular'}, optional
+    format : {'iso', 'tt', 'jd', 'sothic'}, optional
         Format of *date*.  Default ``'iso'``.
     scale : {'utc', 'tt'}, optional
         Time scale of the input.  ``'utc'`` (default) treats *date* as a
         UTC epoch; ``'tt'`` treats it as Terrestrial Time (TT).
-    calendar : {'proleptic', 'mixed', 'caniucular'}, optional
+    calendar : {'proleptic', 'mixed', 'sothic'}, optional
         Calendar system for ISO strings. ``'proleptic'`` (default) extends the
         Gregorian calendar before 1582; ``'mixed'`` uses the Julian calendar
         before the Gregorian reform date.
@@ -213,7 +231,7 @@ class Time(object):
         * ``datepro`` — proleptic Gregorian string (``'-1000-03-21 06:00:00'``)
         * ``datemix`` — mixed calendar string
         * ``datespice`` — SPICE-format date string
-        * ``datecan`` — Egyptian civil (caniucular) date string
+        * ``datesot`` — Egyptian civil (sothic) date string
         * ``comps`` — tuple ``(sign, year, month, day, h, m, s, us)``
         * ``year``, ``month``, ``day``, ``hour``, ``minute``, ``second``
         * ``weekday`` — day of week as int (1 = Sunday … 7 = Saturday)
@@ -274,8 +292,8 @@ class Time(object):
             scale = 'tt'
 
         """
-        # Date is provided in Caniucular (civil egyptian)
-        if calendar == 'caniucular':
+        # Date is provided in Sothic (civil egyptian)
+        if calendar == 'sothic':
 
             format = 'iso'
             calendar = 'mixed'
@@ -367,24 +385,17 @@ class Time(object):
                 # Initialize object according to tt
                 self.update_time(tt,format='tt',scale='tt')
 
-            elif calendar=='caniucular':
+            elif calendar=='sothic':
 
-                # Parse input date
-                comps = date.split(' ')
-
-                # Extract time
-                if ':' in comps[-1]:
-                    time = comps[-1]
-                    hh,mm,ss = (float(c) for c in time.split(":"))
+                # Parse input date (optional trailing civil time)
+                cdate = date.strip()
+                djed = 0
+                time_match = SOTHIC_TIME_RE.search(cdate)
+                if time_match:
+                    time_str = time_match.group(1)
+                    cdate = cdate[:time_match.start()].strip()
+                    hh, mm, ss = (float(c) for c in time_str.split(":"))
                     djed = (hh + mm/60 + ss/3600)/24
-                else:
-                    djed = 0
-
-                # Check input format
-                if '-' in comps[1].upper():
-                    cdate = comps[0]+comps[1]
-                else:
-                    cdate = comps[0]
 
                 # Compute horus day and julian day
                 self.hed = Time._horus_date_to_days(cdate)
@@ -629,8 +640,8 @@ class Time(object):
         >>> mtime = montu.Time('-1000-03-21 06:00:00').get_readable()
         >>> print(mtime.readable.datepro)
         '-1000-03-21 06:00:00.0'
-        >>> print(mtime.readable.datecan)
-        'hrw ...-...-...-...'
+        >>> print(mtime.readable.datesot)
+        '[hrw ...] ... ... ...'
         """
 
         # Update time
@@ -657,8 +668,8 @@ class Time(object):
                 f'{int(hour):02d}:{int(minute):02d}:{second:04.1f}'
             )
 
-        # Convert to caniucular
-        self.readable.datecan = Time._jed_to_caniucular(self.jed)
+        # Convert to sothic
+        self.readable.datesot = Time._jed_to_sothic(self.jed)
 
         # Parse string
         self._parse_datestr(datestr)
@@ -804,7 +815,7 @@ Readable:
     Date in proleptic UTC (.readable.datepro): {self.readable.datepro}
     Date in mixed UTC (.readable.datemix): {self.readable.datemix}
     Date in SPICE format (.readable.datespice): {self.readable.datespice}
-    Date in caniucular format (.readable.datecan): {self.readable.datecan}
+    Date in sothic format (.readable.datesot): {self.readable.datesot}
     Weekday (.readable.weekday): {self.readable.weekday} ({self.readable.weekday_name})
     Components (.readable.comps): {self.readable.comps}
 Objects:
@@ -831,7 +842,7 @@ Uniform scales:
         self._ensure_readable()
         return (
             f"Time('{self.readable.datepro}'/'{self.readable.datemix}'/"
-            f"'{self.readable.datecan}'/JED {self.jed}/JTD {self.jtd})"
+            f"'{self.readable.datesot}'/JED {self.jed}/JTD {self.jtd})"
         )
 
     def strftime(self,timefmt='%Y'):
@@ -959,62 +970,143 @@ Uniform scales:
         return D
 
     @staticmethod
-    def _horus_date_to_days(caniucular_date):
+    def _mixed_datemix_astronomical_year(datemix: str) -> int:
+        """Return the astronomical year from a ``readable.datemix`` date part."""
+        part = datemix.strip().split()[0]
+        if part.startswith('-'):
+            return -int(part.split('-')[1])
+        return int(part.split('-')[0])
+
+    @staticmethod
+    def _mixed_year_tag_to_astronomical(year_tag: str) -> int:
+        """Convert a sothic mixed-year tag to an astronomical calendar year."""
+        tag = year_tag.strip()
+        lower = tag.lower()
+        if lower.startswith('bce'):
+            year = int(re.sub(r'^bce\s*', '', lower, flags=re.I).strip())
+            return -(year - 1)
+        if lower.startswith('ce'):
+            year = int(re.sub(r'^ce\s*', '', lower, flags=re.I).strip())
+            return year
+        return int(tag)
+
+    @staticmethod
+    def _horus_year_from_mixed_astronomical(astro_year: int) -> int:
+        """Horus year whose civil I akhet 1 falls in the given mixed astronomical year."""
+        lo = max(0, astro_year + 2700)
+        hi = astro_year + 2850
+        for horus in range(lo, hi):
+            hd = Time._horus_days(horus, 'I', 'AKHET', 1)
+            mtime = Time(hd + JED_APOKATASTASIS, format='jd', scale='utc', calendar='mixed')
+            mtime.get_readable()
+            if Time._mixed_datemix_astronomical_year(mtime.readable.datemix) == astro_year:
+                return horus
+        raise ValueError(
+            f"No Horus year matches mixed calendar astronomical year {astro_year}."
+        )
+
+    @staticmethod
+    def _parse_sothic_msd(sothic_date: str) -> tuple[int, str, str, int]:
+        """Parse month, season, day and resolve Horus year from a sothic date string."""
+        text = sothic_date.strip()
+        match = SOTHIC_DATE_RE.match(text)
+        if match:
+            return (
+                int(match.group(1)),
+                match.group(2).upper(),
+                match.group(3).upper(),
+                int(match.group(4)),
+            )
+
+        match = SOTHIC_MIXED_DATE_RE.match(text)
+        if match:
+            astro_year = Time._mixed_year_tag_to_astronomical(match.group('year_tag'))
+            horus = Time._horus_year_from_mixed_astronomical(astro_year)
+            return (
+                horus,
+                match.group('month').upper(),
+                match.group('season').upper(),
+                int(match.group('day')),
+            )
+
+        raise ValueError(
+            f"Cannot parse sothic date '{sothic_date}'. "
+            "Expected '[hrw YEAR] MONTH SEASON DAY', "
+            "'[bce YEAR] MONTH SEASON DAY', or '[-YEAR] MONTH SEASON DAY' "
+            "(e.g. '[hrw 0] I akhet 1' or '[bce 2782] I akhet 1')."
+        )
+
+    @staticmethod
+    def _horus_date_to_days(sothic_date):
         """Obtain the number of days since I-Akhet-1 of the
         year of the first ancient egyptian apokotástasis (2782 b.c.e.).
 
         Parameters:
-            caniucular_date: string:
-                Format: CCYY-MM-SS-DD
+            sothic_date: string:
+                Horus-year format: ``[hrw HYEAR] MONTH SEASON DAY``
 
-                where: 
-                    CCYY: Horus year, 0 = 2782 bce.
-                    MM: Number of month (I, II, III, IV)
-                    SS: Name (letter of abreviation) of season:
-                        Akhet (akh,a), Peret (per,p), Shemu (she,s)
-                    DD: Number of day
+                or mixed-year format: ``[bce YEAR] MONTH SEASON DAY``,
+                ``[ce YEAR] MONTH SEASON DAY``, ``[-YEAR] …``, ``[YEAR] …``
+                where the bracketed year is the mixed Julian/Gregorian year
+                of civil I akhet 1 for that Horus year.
+
+                MONTH: I, II, III, IV
+                SEASON: Akhet, Peret, Shemu (or Mesut for epagomenal days)
+                DAY: 1–30 (1–5 for Mesut)
 
         Return:
             hd: int:
                 Horus days. Number of days since 2782 bce I-Akhet-1.
         """
-        comps = caniucular_date.split('-')
-        
-        # Adjust ranges
-        comps[0] = int(comps[0].strip('hHrw ')) # Horus year
-        comps[1] = comps[1].upper() # Month (I, II, III, IV)
-        comps[2] = comps[2].upper() # Season (Akhet, Peret, Shemu, Mesut)
-        comps[3] = int(comps[3]) # Day (1..30, or 1..5 for Mesut)
+        horus, month, season, day = Time._parse_sothic_msd(sothic_date)
 
-        if comps[2] == 'MESUT':
-            if comps[3] < 1 or comps[3] > 5:
+        if season == 'MESUT':
+            if day < 1 or day > 5:
                 raise ValueError(
-                    f"Day '{comps[3]}' out of range for Mesut in '{caniucular_date}'. "
+                    f"Day '{day}' out of range for Mesut in '{sothic_date}'. "
                     "Epagomenal days must be between 1 and 5."
                 )
-            return int(comps[0]) * 365 + 360 + (comps[3] - 1)
+            return horus * 365 + 360 + (day - 1)
 
-        if comps[1] not in HORUS_MONTH.keys():
+        if month not in HORUS_MONTH.keys():
             raise ValueError(
-                f"Month '{comps[1]}' not recognized in '{caniucular_date}', "
+                f"Month '{month}' not recognized in '{sothic_date}', "
                 f"it must be among {tuple(HORUS_MONTH.keys())}"
             )
-        if comps[2] not in HORUS_SEASON.keys():
+        if season not in HORUS_SEASON.keys():
             raise ValueError(
-                f"Season '{comps[2]}' not recognized in '{caniucular_date}', "
+                f"Season '{season}' not recognized in '{sothic_date}', "
                 f"it must be among {tuple(HORUS_SEASON.keys())} or Mesut"
             )
-        if (int(comps[3])>30) or (int(comps[3])<1):
+        if day < 1 or day > 30:
             raise ValueError(
-                f"Day '{comps[3]}' out of range in '{caniucular_date}'. "
+                f"Day '{day}' out of range in '{sothic_date}'. "
                 "It must be between 1 and 30."
             )
 
-        return Time._horus_days(*comps)
+        return Time._horus_days(horus, month, season, day)
 
     @staticmethod
-    def _horus_day_to_caniucular(hd):
-        """Convert from Horus day to caniucular date
+    def parse_datesot(datesot):
+        """Parse ``readable.datesot`` into Horus year, month, season, and day.
+
+        Returns season in lowercase (akhet, peret, shemu, mesut).
+        """
+        match = SOTHIC_DATE_RE.match(str(datesot).strip())
+        if not match:
+            raise ValueError(
+                f"Cannot parse sothic date '{datesot}'. "
+                "Expected format: '[hrw YEAR] MONTH SEASON DAY'."
+            )
+        hyear = int(match.group(1))
+        month = match.group(2).upper()
+        season = match.group(3).lower()
+        day = int(match.group(4))
+        return hyear, month, season, day
+
+    @staticmethod
+    def _horus_day_to_sothic(hd):
+        """Convert from Horus day to sothic date
 
         Parameters:
             hd: int:
@@ -1025,31 +1117,34 @@ Uniform scales:
 
         Return:
             cdate: string:
-                Caniucular date in the format CCYY-MM-SS-DD where: 
-                    CCYY: Horus year, 0 = 2782 bce.
-                    MM: Number of month (I, II, III, IV)
-                    SS: Name (letter of abreviation) of season:
+                Sothic date in the format ``[hrw HYEAR] MONTH SEASON DAY``
+                where:
+                    HYEAR: Horus year, 0 = 2782 bce.
+                    MONTH: Number of month (I, II, III, IV)
+                    SEASON: Name (letter of abreviation) of season:
                         Akhet (akh,a), Peret (per,p), Shemu (she,s)
-                    DD: Number of day
+                    DAY: Number of day
         """
-        prefix = 'hrw '
-        hy = int(hd/365) 
+        hy = int(hd/365)
         dy = hd%365
         if dy<360:
             s = int(dy/120) + 1
             ds = dy - 120*(s-1)
             m = int(ds/30) + 1
             d = int(ds - 30*(m-1)) + 1
-            caniucular = f"{prefix}" + str(hy) + "-" + MONTH_HORUS[str(m)] + "-" + SEASON_HORUS[str(s)] + "-" + str(d)
+            sothic = (
+                f"[hrw {hy}] {MONTH_HORUS[str(m)]} "
+                f"{SEASON_HORUS[str(s)].lower()} {d}"
+            )
         else:
             # Epagomenos
             d = int(dy - 360 + 1)
-            caniucular = f"{prefix}" + str(hy) + "-" + "I" + "-" + SEASON_HORUS['0'] + "-" + str(d)
-        return caniucular
+            sothic = f"[hrw {hy}] I {SEASON_HORUS['0'].lower()} {d}"
+        return sothic
 
     @staticmethod
-    def _mixed_to_caniucular(datemix):
-        """Convert a mixed-calendar date string to a caniucular date string.
+    def _mixed_to_sothic(datemix):
+        """Convert a mixed-calendar date string to a sothic date string.
 
         Parameters
         ----------
@@ -1059,17 +1154,17 @@ Uniform scales:
         Returns
         -------
         str
-            Egyptian civil date in the caniucular format
-            (e.g. ``'hrw 300-II-Akhet-15'``).
+            Egyptian civil date in the sothic format
+            (e.g. ``'[hrw 300] II akhet 15'``).
         """
         # Create montu.Time object
         mtime = montu.Time(datemix,calendar='mixed')
 
-        return Time._jed_to_caniucular(mtime.jed)
+        return Time._jed_to_sothic(mtime.jed)
     
     @staticmethod
-    def _jed_to_caniucular(jed):
-        """Convert a Julian Day (UTC) to a caniucular (Egyptian civil) date.
+    def _jed_to_sothic(jed):
+        """Convert a Julian Day (UTC) to a sothic (Egyptian civil) date.
 
         Parameters
         ----------
@@ -1079,18 +1174,18 @@ Uniform scales:
         Returns
         -------
         str
-            Egyptian civil date string (e.g. ``'hrw 300-II-Akhet-15'``).
+            Egyptian civil date string (e.g. ``'[hrw 300] II akhet 15'``).
 
         Examples
         --------
-        >>> montu.Time._jed_to_caniucular(705497.5)
-        'hrw 0-I-Akhet-1'
+        >>> montu.Time._jed_to_sothic(705497.5)
+        '[hrw 0] I akhet 1'
         """
         # Compute yhe horus day
         hd = jed - JED_APOKATASTASIS
 
-        # Compute the caniucular date
-        cdate = Time._horus_day_to_caniucular(hd)
+        # Compute the sothic date
+        cdate = Time._horus_day_to_sothic(hd)
         return cdate
 
 # (docstring moved into class body above)

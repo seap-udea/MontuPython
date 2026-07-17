@@ -39,8 +39,8 @@
   ],
   "modules": [
     {
-      "description_en": "Convert dates among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), Julian Day, and historical presets.",
-      "description_es": "Convierte fechas entre Juliano/Gregoriano, Gregoriano proléptico, caniucular (civil egipcio), Día Juliano y fechas históricas predefinidas.",
+      "description_en": "Convert dates among Julian/Gregorian, proleptic Gregorian, sothic (Egyptian civil), Julian Day, and historical presets.",
+      "description_es": "Convierte fechas entre Juliano/Gregoriano, Gregoriano proléptico, sothic (civil egipcio), Día Juliano y fechas históricas predefinidas.",
       "icon": "📅",
       "title_en": "Calendar Calculator",
       "title_es": "Calculadora de calendario"

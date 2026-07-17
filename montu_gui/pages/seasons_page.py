@@ -36,6 +36,7 @@ from montu_gui.widgets.lets_python_dialog import (
 )
 from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.step_spinbox import StepSpinBox
+from montu_gui.widgets.table_utils import configure_wrapping_table, set_wrapping_header_labels, wrapping_table_item
 
 HELP_MODULE = "seasons"
 
@@ -48,7 +49,7 @@ _SEASONS_EXAMPLE = LetsPythonExample(
         "Copy or download the script to reproduce the calculations shown in "
         "the Seasons &amp; Lunar Phases module. The example computes the four "
         "astronomical seasons of <b>this year</b> and all lunar quarters, "
-        "showing dates in Mixed Julian/Gregorian and Caniucular formats."
+        "showing dates in Mixed Julian/Gregorian and Sothic formats."
     ),
 )
 
@@ -100,14 +101,13 @@ def _field_row(label: str, help_key: str, value: str) -> QHBoxLayout:
 
 def _make_table(col_labels: list[str]) -> QTableWidget:
     tbl = QTableWidget(0, len(col_labels))
-    tbl.setHorizontalHeaderLabels(col_labels)
+    set_wrapping_header_labels(tbl, col_labels)
     tbl.verticalHeader().setVisible(False)
     tbl.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
     tbl.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
     tbl.setFocusPolicy(Qt.FocusPolicy.NoFocus)
     tbl.setAlternatingRowColors(True)
-    tbl.setWordWrap(False)
-    tbl.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+    configure_wrapping_table(tbl)
     tbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
     hdr = tbl.horizontalHeader()
     hdr.setStretchLastSection(True)
@@ -115,10 +115,7 @@ def _make_table(col_labels: list[str]) -> QTableWidget:
 
 
 def _item(text: str, align=Qt.AlignmentFlag.AlignLeft) -> QTableWidgetItem:
-    it = QTableWidgetItem(text)
-    it.setTextAlignment(align | Qt.AlignmentFlag.AlignVCenter)
-    it.setFlags(it.flags() & ~Qt.ItemFlag.ItemIsEditable)
-    return it
+    return wrapping_table_item(text, align=align)
 
 
 def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
@@ -197,8 +194,8 @@ def _season_card(season: dict) -> QFrame:
         season.get("mixed", "—"),
     ))
     lay.addLayout(_field_row(
-        tr("Caniucular:"), "caniucular",
-        season.get("caniucular", "—"),
+        tr("Sothic:"), "sothic",
+        season.get("sothic", "—"),
     ))
     for label, key, field in (
         ("Sun rise azimuth:", "sun_rise_az", "sun_rise_az"),
@@ -312,7 +309,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         for _ in SEASON_LABELS:
             card = _season_card({
                 "label": "—", "help_key": "", "proleptic": "—",
-                "mixed": "—", "caniucular": "—", "delta_t": "—",
+                "mixed": "—", "sothic": "—", "delta_t": "—",
             })
             self._season_cards.append(card)
             self._seasons_box_lay.addWidget(card)
@@ -339,7 +336,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
         hdr_row.addSpacing(34)  # icon column
         for label, key in (
             (tr("Mixed Julian/Greg."), "mixed"),
-            (tr("Caniucular"), "caniucular"),
+            (tr("Sothic"), "sothic"),
             (tr("ΔT (since last quarter)"), "quarter_delta_t"),
         ):
             hdr_row.addWidget(
@@ -348,7 +345,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
             )
         lunar_box_lay.addLayout(hdr_row)
 
-        self._lunar_table = _make_table(["", tr("Mixed Julian/Greg."), tr("Caniucular"), "ΔT"])
+        self._lunar_table = _make_table(["", tr("Mixed Julian/Greg."), tr("Sothic"), "ΔT"])
         hdr = self._lunar_table.horizontalHeader()
         hdr.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         self._lunar_table.setColumnWidth(0, 34)
@@ -448,7 +445,7 @@ class SeasonsPage(LazyPageMixin, QWidget):
             icon_item.setToolTip(QUARTER_LABELS.get(q.get("quarter", ""), ""))
             tbl.setItem(row, 0, icon_item)
             tbl.setItem(row, 1, _item(q.get("mixed", "—")))
-            tbl.setItem(row, 2, _item(q.get("caniucular", "—")))
+            tbl.setItem(row, 2, _item(q.get("sothic", "—")))
             tbl.setItem(row, 3, _item(q.get("delta_t", "—")))
         tbl.resizeRowsToContents()
 

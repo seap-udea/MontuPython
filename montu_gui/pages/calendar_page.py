@@ -1,7 +1,7 @@
 """
 CalendarPage — unified date-converter panel for MontuPython GUI.
 
-Replaces montu-app/pages/caniucular.py + calendar.py in a single PySide6 widget.
+Replaces montu-app/pages/sothic.py + calendar.py in a single PySide6 widget.
 
 Layout
 ------
@@ -13,8 +13,8 @@ Layout
 │  ─────────   │  ──────────────────────────────────────────   │
 │  ● Julian/   │  Gregorian proleptic (SPICE)  │ value         │
 │    Gregorian │  Gregorian proleptic (astron) │ value         │
-│  ○ Caniucular│  Mixed (Julian/Gregorian)     │ value         │
-│  ○ Julian Day│  Caniucular (Egyptian civil)  │ value         │
+│  ○ Sothic│  Mixed (Julian/Gregorian)     │ value         │
+│  ○ Julian Day│  Sothic (Egyptian civil)  │ value         │
 │              │  Julian Day (UTC)             │ value         │
 │  [form]      │  Julian Day (TT)              │ value         │
 │              │  Ephemeris seconds (TT)       │ value         │
@@ -44,22 +44,33 @@ _HERE = Path(__file__).parent.parent
 sys.path.insert(0, str(_HERE.parent))
 
 from montu_gui.modules.date_converter import (
-    julian_gregorian_to_caniucular,
-    caniucular_to_julian_gregorian,
+    julian_gregorian_to_sothic,
+    sothic_to_julian_gregorian,
     historical_date_to_all,
     julian_day_to_all,
     load_historical_dates,
     qcalendar_proxy_page,
     ConversionResult,
-    CANIUCULAR_SEASONS,
-    CANIUCULAR_MONTHS,
+    SOTHIC_SEASONS,
+    SOTHIC_MONTHS,
+    SOTHIC_YEAR_HORUS,
+    SOTHIC_YEAR_MIXED,
+    SOTHIC_YEAR_BCE,
+    SOTHIC_YEAR_CE,
+    sothic_display_year,
+    sothic_horus_from_year,
+    sothic_era_year_mode,
     CALENDAR_MIXED,
     CALENDAR_PROLEPTIC,
 )
 from montu_gui.utils.debug import dbg, log_ui_event
 from montu_gui.utils.i18n import get_language, tr, trf
 from montu_gui.utils.lazy_page import LazyPageMixin
+from montu_gui.utils.location_state import LocationState
 from montu_gui.widgets.format_cell import FormatCell
+from montu_gui.widgets.sothic_value_cell import SothicValueCell
+from montu_gui.widgets.sothic_calendar_dialog import show_sothic_calendar_dialog
+from montu_gui.widgets.table_utils import configure_wrapping_table, set_wrapping_header_labels
 from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
@@ -76,8 +87,8 @@ _CALENDAR_EXAMPLE = LetsPythonExample(
         "Copy or download the script below to reproduce the conversions shown "
         "in the Calendar Calculator. Example 1 converts <b>today</b> to the "
         "Egyptian civil calendar; Example 2 recovers the Gregorian date of the "
-        "<b>First Apokatastasis</b> (epoch of the caniucular calendar, "
-        "Horus year 0, <code>hrw 0-I-Akhet-1</code>); Example 3 loads the "
+        "<b>First Apokatastasis</b> (epoch of the Sothic calendar, "
+        "Horus year 0, <code>[hrw 0] I <i>akhet</i> 1</code>); Example 3 loads the "
         "<b>Canopus Decree</b> from the historical-dates catalogue and compares "
         "its known civil date with MontuPython's conversion."
     ),
@@ -172,7 +183,7 @@ def _option_row(rb: QRadioButton, label: str, help_key: str) -> QHBoxLayout:
 
 
 class DayStepButtons(QWidget):
-    """− / + buttons to step the caniucular date by one civil day."""
+    """− / + buttons to step the sothic date by one civil day."""
 
     stepRequested = Signal(int)
 
@@ -296,13 +307,15 @@ def _month_names() -> list[str]:
 class ResultTable(QTableWidget):
     """Two-column table (Format | Value) for conversion output."""
 
+    sothic_open_requested = Signal()
+
     # label, result attribute, help.json key
     ROWS = [
         (tr("Weekday"), "weekday", "weekday"),
         (tr("Gregorian proleptic (human)"), "spice", "spice"),
         (tr("Gregorian proleptic (astronomical)"), "proleptic", "proleptic"),
         (tr("Mixed Julian/Gregorian"), "mixed", "mixed"),
-        (tr("Caniucular (Egyptian civil)"), "caniucular", "caniucular"),
+        (tr("Sothic (Egyptian civil)"), "sothic", "sothic"),
         (tr("Julian Day — UTC"), "jd_utc", "jd_utc"),
         (tr("TT ephemeris seconds (J2000)"), "jd_tt", "tt"),
         (tr("UTC ephemeris seconds (J2000)"), "et", "et"),
@@ -311,13 +324,12 @@ class ResultTable(QTableWidget):
 
     def __init__(self, parent=None):
         super().__init__(len(self.ROWS), 2, parent)
-        self.setHorizontalHeaderLabels([tr("Format"), tr("Value")])
         self.verticalHeader().setVisible(False)
         self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setAlternatingRowColors(True)
-        self.setWordWrap(True)
+        configure_wrapping_table(self)
         self.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
 
         header = self.horizontalHeader()
@@ -325,6 +337,7 @@ class ResultTable(QTableWidget):
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setStretchLastSection(True)
         header.setMinimumSectionSize(120)
+        set_wrapping_header_labels(self, [tr("Format"), tr("Value")])
 
         for row, (label, _attr, help_key) in enumerate(self.ROWS):
             self.setCellWidget(
@@ -332,18 +345,30 @@ class ResultTable(QTableWidget):
                 FormatCell(label, HELP_MODULE, "result", help_key),
             )
 
-            val_item = QTableWidgetItem("—")
-            val_item.setTextAlignment(
-                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
-            )
-            val_item.setFlags(val_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-            self.setItem(row, 1, val_item)
+            if _attr == "sothic":
+                cell = SothicValueCell()
+                cell.clicked.connect(self.sothic_open_requested.emit)
+                self.setCellWidget(row, 1, cell)
+                self._sothic_cell = cell
+            else:
+                val_item = QTableWidgetItem("—")
+                val_item.setTextAlignment(
+                    Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
+                )
+                val_item.setFlags(val_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                self.setItem(row, 1, val_item)
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def update_result(self, result: ConversionResult):
+        sothic_row = next(
+            i for i, (_, attr, _) in enumerate(self.ROWS) if attr == "sothic"
+        )
         if not result.ok:
             for row in range(self.rowCount()):
+                if row == sothic_row:
+                    self._sothic_cell.set_text("—")
+                    continue
                 item = self.item(row, 1)
                 if item is not None:
                     item.setText("—")
@@ -357,10 +382,13 @@ class ResultTable(QTableWidget):
 
         for row, (_, attr, _help_key) in enumerate(self.ROWS):
             value = str(getattr(result, attr, "—"))
-            item = self.item(row, 1)
-            if item is not None:
-                item.setText(value)
-                item.setToolTip(value)
+            if attr == "sothic":
+                self._sothic_cell.set_text(value)
+            else:
+                item = self.item(row, 1)
+                if item is not None:
+                    item.setText(value)
+                    item.setToolTip(value)
 
         self.resizeRowsToContents()
 
@@ -371,8 +399,9 @@ class JulGregForm(QWidget):
 
     changed = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, location_state: LocationState | None = None, parent=None):
         super().__init__(parent)
+        self._location_state = location_state
         self._syncing = False
         self._last_era: str | None = None
         self._last_calendar: str | None = None
@@ -495,6 +524,48 @@ class JulGregForm(QWidget):
 
         layout.addWidget(date_box)
 
+        observer_box = QGroupBox(tr("Observer"))
+        observer_layout = QVBoxLayout(observer_box)
+        observer_layout.setSpacing(6)
+
+        mode_row = QHBoxLayout()
+        mode_row.addWidget(
+            HelpLink(tr("Time zone:"), HELP_MODULE, "input", "observer_time", bold=True)
+        )
+        self.obs_group = QButtonGroup(self)
+        self.rb_obs_utc = QRadioButton(tr("UTC"))
+        self.rb_obs_site = QRadioButton(tr("Site"))
+        self.rb_obs_zone = QRadioButton(tr("Zone"))
+        self.rb_obs_utc.setChecked(True)
+        for rb in (self.rb_obs_utc, self.rb_obs_site, self.rb_obs_zone):
+            self.obs_group.addButton(rb)
+            mode_row.addWidget(rb)
+        mode_row.addStretch()
+        observer_layout.addLayout(mode_row)
+
+        self.site_label = QLabel()
+        self.site_label.setWordWrap(True)
+        self.site_label.setStyleSheet("color:#555; font-size:12px;")
+        observer_layout.addWidget(self.site_label)
+
+        zone_row = QHBoxLayout()
+        zone_row.addWidget(
+            HelpLink(tr("Zone offset:"), HELP_MODULE, "input", "zone_offset", bold=True)
+        )
+        self.zone_edit = QLineEdit()
+        self.zone_edit.setPlaceholderText(tr("e.g. UTC-5 or -5"))
+        self.zone_edit.setEnabled(False)
+        zone_row.addWidget(self.zone_edit, stretch=1)
+        observer_layout.addLayout(zone_row)
+
+        site_note = QLabel(tr("<i>Change site in the 🧭 Observer Location module.</i>"))
+        site_note.setWordWrap(True)
+        site_note.setStyleSheet("color:#888; font-size:11px;")
+        observer_layout.addWidget(site_note)
+        self._site_note = site_note
+
+        layout.addWidget(observer_box)
+
         # signals
         self.btn_prev.clicked.connect(self._prev_month)
         self.btn_next.clicked.connect(self._next_month)
@@ -508,6 +579,61 @@ class JulGregForm(QWidget):
         self.minute_spin.valueChanged.connect(self._emit_changed)
         self.second_spin.valueChanged.connect(self._emit_changed)
         self.now_btn.clicked.connect(self._set_now)
+        self.obs_group.buttonClicked.connect(self._on_observer_mode_changed)
+        self.zone_edit.textChanged.connect(self._emit_changed)
+        if self._location_state is not None:
+            self._location_state.changed.connect(self._refresh_observer_site)
+        self._refresh_observer_ui()
+
+    @property
+    def observer_mode(self) -> str:
+        if self.rb_obs_site.isChecked():
+            return "site"
+        if self.rb_obs_zone.isChecked():
+            return "zone"
+        return "utc"
+
+    def zone_for_montu(self):
+        if self.rb_obs_utc.isChecked():
+            return 0
+        if self.rb_obs_site.isChecked():
+            if self._location_state is not None:
+                return self._location_state.coords.to_observer()
+            return 0
+        text = self.zone_edit.text().strip()
+        return text if text else 0
+
+    def _on_observer_mode_changed(self, *_args):
+        self._refresh_observer_ui()
+        self._emit_changed()
+
+    def _refresh_observer_site(self, *_args):
+        self._refresh_observer_ui()
+        if self.rb_obs_site.isChecked():
+            self._emit_changed()
+
+    def _refresh_observer_ui(self):
+        mode = self.observer_mode
+        self.zone_edit.setEnabled(mode == "zone")
+        show_site = mode == "site"
+        self.site_label.setVisible(show_site)
+        self._site_note.setVisible(show_site)
+        if show_site and self._location_state is not None:
+            self.site_label.setText(self._location_state.coords.label_with_coords())
+        elif show_site:
+            self.site_label.setText(tr("No observer site configured."))
+
+    def set_observer_values(self, mode: str, zone_text: str = "") -> None:
+        buttons = {
+            "utc": self.rb_obs_utc,
+            "site": self.rb_obs_site,
+            "zone": self.rb_obs_zone,
+        }
+        btn = buttons.get(mode, self.rb_obs_utc)
+        if not btn.isChecked():
+            btn.setChecked(True)
+        self.zone_edit.setText(zone_text)
+        self._refresh_observer_ui()
 
     def _emit_changed(self, *_args):
         if not self._syncing:
@@ -648,53 +774,160 @@ class JulGregForm(QWidget):
             self._syncing = False
 
 
-# ── Caniucular input form ──────────────────────────────────────────────────────
-class CaniucularForm(QWidget):
-    """Form for caniucular (Egyptian civil) date input."""
+# ── Sothic input form ──────────────────────────────────────────────────────
+class SothicForm(QWidget):
+    """Form for sothic (Egyptian civil) date input."""
 
     changed = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._syncing = False
+        self._last_year_mode = SOTHIC_YEAR_HORUS
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
-        box = QGroupBox(tr("Caniucular Date"))
+        box = QGroupBox(tr("Sothic Date"))
         box_layout = QVBoxLayout(box)
 
-        self.hyear_spin = StepSpinBox()
-        self.hyear_spin.setRange(-99999, 99999)
-        self.hyear_spin.setValue(0)
-        self.hyear_spin.setMinimumWidth(100)
-        box_layout.addLayout(_form_row_help(tr("Horus Year:"), "horus_year", self.hyear_spin))
+        year_widget = QWidget()
+        year_layout = QVBoxLayout(year_widget)
+        year_layout.setContentsMargins(0, 0, 0, 0)
+        year_layout.setSpacing(4)
+
+        self.year_spin = StepSpinBox()
+        self.year_spin.setRange(-99999, 99999)
+        self.year_spin.setValue(0)
+        self.year_spin.setMinimumWidth(100)
+        year_layout.addWidget(self.year_spin)
+
+        format_row = QHBoxLayout()
+        format_row.setSpacing(8)
+        self.year_format_group = QButtonGroup(self)
+        self.rb_year_horus = QRadioButton()
+        self.rb_year_mixed = QRadioButton()
+        self.rb_year_horus.setChecked(True)
+        for rb in (self.rb_year_horus, self.rb_year_mixed):
+            self.year_format_group.addButton(rb)
+        format_row.addLayout(
+            _option_row(self.rb_year_horus, "Horus year", "sothic_year_horus")
+        )
+        format_row.addLayout(
+            _option_row(self.rb_year_mixed, "Mixed year", "sothic_year_mixed")
+        )
+        self.era_widget = QWidget()
+        era_inner = QHBoxLayout(self.era_widget)
+        era_inner.setContentsMargins(0, 0, 0, 0)
+        era_inner.setSpacing(8)
+        self.era_group = QButtonGroup(self)
+        self.rb_era_bce = QRadioButton()
+        self.rb_era_ce = QRadioButton()
+        self.rb_era_bce.setChecked(True)
+        self.era_group.addButton(self.rb_era_bce)
+        self.era_group.addButton(self.rb_era_ce)
+        era_inner.addLayout(_option_row(self.rb_era_bce, "BCE", "bce"))
+        era_inner.addLayout(_option_row(self.rb_era_ce, "CE", "ce"))
+        format_row.addWidget(self.era_widget)
+        self.era_widget.setVisible(False)
+        format_row.addStretch()
+        year_layout.addLayout(format_row)
+
+        box_layout.addLayout(_form_row_help(tr("Year:"), "sothic_year", year_widget))
 
         self.month_combo = QComboBox()
-        self.month_combo.addItems(CANIUCULAR_MONTHS)
-        box_layout.addLayout(_form_row_help(tr("Month:"), "caniucular_month", self.month_combo))
+        self.month_combo.addItems(SOTHIC_MONTHS)
+        box_layout.addLayout(_form_row_help(tr("Month:"), "sothic_month", self.month_combo))
 
         self.season_combo = QComboBox()
-        self.season_combo.addItems(CANIUCULAR_SEASONS)
-        box_layout.addLayout(_form_row_help(tr("Season:"), "caniucular_season", self.season_combo))
+        self.season_combo.addItems(SOTHIC_SEASONS)
+        box_layout.addLayout(_form_row_help(tr("Season:"), "sothic_season", self.season_combo))
 
         self.day_spin = StepSpinBox()
         self.day_spin.setRange(1, 30)
         self.day_spin.setValue(1)
         self.day_spin.setMinimumWidth(72)
-        box_layout.addLayout(_form_row_help(tr("Day:"), "caniucular_day", self.day_spin))
+        box_layout.addLayout(_form_row_help(tr("Day:"), "sothic_day", self.day_spin))
 
         self.day_step = DayStepButtons()
-        box_layout.addLayout(_form_row_help(tr("Step day:"), "caniucular_offset", self.day_step))
+        box_layout.addLayout(_form_row_help(tr("Step day:"), "sothic_offset", self.day_step))
 
         layout.addWidget(box)
 
-        for w in (self.hyear_spin, self.day_spin):
+        for w in (self.year_spin, self.day_spin):
             w.valueChanged.connect(lambda: self.changed.emit())
         self.month_combo.currentIndexChanged.connect(lambda: self.changed.emit())
         self.season_combo.currentIndexChanged.connect(self._on_season_changed)
+        self.rb_year_horus.toggled.connect(self._on_year_format_changed)
+        self.rb_year_mixed.toggled.connect(self._on_year_format_changed)
+        self.rb_era_bce.toggled.connect(self._on_era_changed)
+        self.rb_era_ce.toggled.connect(self._on_era_changed)
+        self._update_era_visibility()
         self._on_season_changed()
 
+    @property
+    def year_mode(self) -> str:
+        if self.rb_year_horus.isChecked():
+            return SOTHIC_YEAR_HORUS
+        return self.era
+
+    @property
+    def era(self) -> str:
+        return SOTHIC_YEAR_BCE if self.rb_era_bce.isChecked() else SOTHIC_YEAR_CE
+
+    def _update_era_visibility(self) -> None:
+        self.era_widget.setVisible(self.rb_year_mixed.isChecked())
+
+    def _set_year_format(self, use_mixed: bool) -> None:
+        btn = self.rb_year_mixed if use_mixed else self.rb_year_horus
+        if not btn.isChecked():
+            btn.setChecked(True)
+
+    def _set_era(self, era: str) -> None:
+        btn = self.rb_era_bce if era == SOTHIC_YEAR_BCE else self.rb_era_ce
+        if not btn.isChecked():
+            btn.setChecked(True)
+
+    def _sync_era_from_horus(self, horus_year: int) -> None:
+        self._set_era(sothic_era_year_mode(horus_year))
+
+    def _on_year_format_changed(self, checked: bool = False):
+        if self._syncing or not checked:
+            return
+        self._syncing = True
+        try:
+            horus = sothic_horus_from_year(
+                self.year_spin.value(), self._last_year_mode
+            )
+            self._update_era_visibility()
+            if self.rb_year_horus.isChecked():
+                self.year_spin.setValue(horus)
+                self._last_year_mode = SOTHIC_YEAR_HORUS
+            else:
+                self._sync_era_from_horus(horus)
+                new_mode = self.year_mode
+                self.year_spin.setValue(sothic_display_year(horus, new_mode))
+                self._last_year_mode = new_mode
+        finally:
+            self._syncing = False
+        self.changed.emit()
+
+    def _on_era_changed(self, checked: bool = False):
+        if self._syncing or not checked or not self.rb_year_mixed.isChecked():
+            return
+        self._syncing = True
+        try:
+            horus = sothic_horus_from_year(
+                self.year_spin.value(), self._last_year_mode
+            )
+            new_mode = self.era
+            self.year_spin.setValue(sothic_display_year(horus, new_mode))
+            self._last_year_mode = new_mode
+        finally:
+            self._syncing = False
+        self.changed.emit()
+
     def _on_season_changed(self):
-        if self.season_combo.currentText() == "Mesut":
+        if self.season_combo.currentText() == "mesut":
             self.day_spin.setRange(1, 5)
             if self.day_spin.value() > 5:
                 self.day_spin.setValue(5)
@@ -703,15 +936,49 @@ class CaniucularForm(QWidget):
             self.day_spin.setRange(1, 30)
         self.changed.emit()
 
-    def set_values(self, hyear: int, month: str, season: str, day: int):
-        self.hyear_spin.setValue(hyear)
-        idx = self.month_combo.findText(month)
-        if idx >= 0:
-            self.month_combo.setCurrentIndex(idx)
-        idx = self.season_combo.findText(season)
-        if idx >= 0:
-            self.season_combo.setCurrentIndex(idx)
-        self.day_spin.setValue(day)
+    def set_values(
+        self,
+        horus_year: int,
+        month: str,
+        season: str,
+        day: int,
+        *,
+        year_mode: str | None = None,
+    ):
+        self._syncing = True
+        try:
+            if year_mode is None or year_mode == SOTHIC_YEAR_HORUS:
+                self._set_year_format(False)
+                self._sync_era_from_horus(horus_year)
+                self._update_era_visibility()
+                self.year_spin.setValue(horus_year)
+                self._last_year_mode = SOTHIC_YEAR_HORUS
+            elif year_mode in (SOTHIC_YEAR_MIXED, SOTHIC_YEAR_BCE, SOTHIC_YEAR_CE):
+                era = (
+                    year_mode
+                    if year_mode in (SOTHIC_YEAR_BCE, SOTHIC_YEAR_CE)
+                    else sothic_era_year_mode(horus_year)
+                )
+                self._set_year_format(True)
+                self._set_era(era)
+                self._update_era_visibility()
+                self.year_spin.setValue(sothic_display_year(horus_year, era))
+                self._last_year_mode = era
+            else:
+                self._set_year_format(False)
+                self._sync_era_from_horus(horus_year)
+                self._update_era_visibility()
+                self.year_spin.setValue(horus_year)
+                self._last_year_mode = SOTHIC_YEAR_HORUS
+            idx = self.month_combo.findText(month)
+            if idx >= 0:
+                self.month_combo.setCurrentIndex(idx)
+            idx = self.season_combo.findText(season.lower())
+            if idx >= 0:
+                self.season_combo.setCurrentIndex(idx)
+            self.day_spin.setValue(day)
+        finally:
+            self._syncing = False
 
 
 # ── Julian Day input form ──────────────────────────────────────────────────────
@@ -867,7 +1134,7 @@ class HistoricalDatesForm(QWidget):
 # ── main page widget ───────────────────────────────────────────────────────────
 class CalendarPage(LazyPageMixin, QWidget):
     """
-    Unified calendar / caniucular conversion page.
+    Unified calendar / sothic conversion page.
 
     Emits `status_message(str)` so the main window can display it in the
     status bar.
@@ -875,10 +1142,12 @@ class CalendarPage(LazyPageMixin, QWidget):
 
     status_message = Signal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, location_state: LocationState | None = None, parent=None):
         super().__init__(parent)
+        self._location_state = location_state
         self._historical = load_historical_dates()
         self._block_auto = False
+        self._last_result: ConversionResult | None = None
         dbg(f"loaded {len(self._historical)} historical dates from JSON")
         self._build_ui()
         self._connect_auto_convert()
@@ -908,7 +1177,7 @@ class CalendarPage(LazyPageMixin, QWidget):
 
         self.mode_group = QButtonGroup(self)
         self.rb_mode_jg, row_jg = _input_mode_row(tr("Julian / Gregorian"), "julian_gregorian")
-        self.rb_mode_can, row_can = _input_mode_row(tr("Caniucular"), "caniucular")
+        self.rb_mode_can, row_can = _input_mode_row(tr("Sothic"), "sothic")
         self.rb_mode_jd, row_jd = _input_mode_row(tr("Julian Day Number"), "julian_day")
         self.rb_mode_hist, row_hist = _input_mode_row(
             tr("Historical dates"), "historical_dates", block="historical"
@@ -924,8 +1193,8 @@ class CalendarPage(LazyPageMixin, QWidget):
 
         left_layout.addWidget(_hline())
 
-        self.form_jg = JulGregForm()
-        self.form_can = CaniucularForm()
+        self.form_jg = JulGregForm(self._location_state)
+        self.form_can = SothicForm()
         self.form_jd = JDForm()
         self.form_hist = HistoricalDatesForm(self._historical)
 
@@ -959,6 +1228,7 @@ class CalendarPage(LazyPageMixin, QWidget):
         right_layout.addWidget(_label(tr("Conversion results:"), bold=True))
 
         self.result_table = ResultTable()
+        self.result_table.sothic_open_requested.connect(self._open_sothic_calendar)
         right_layout.addWidget(self.result_table)
 
         splitter.addWidget(right)
@@ -987,7 +1257,7 @@ class CalendarPage(LazyPageMixin, QWidget):
             mode = "julian_gregorian"
             self.form_stack.setCurrentIndex(0)
         elif self.rb_mode_can.isChecked():
-            mode = "caniucular"
+            mode = "sothic"
             self.form_stack.setCurrentIndex(1)
         elif self.rb_mode_jd.isChecked():
             mode = "julian_day"
@@ -1018,6 +1288,7 @@ class CalendarPage(LazyPageMixin, QWidget):
         self.status_message.emit(trf("Loading historical date: {key} ...", key=key))
         result = historical_date_to_all(key)
         self.result_table.update_result(result)
+        self._last_result = result if result.ok else self._last_result
 
         if result.ok:
             self._fill_forms_from_result(result, full=True)
@@ -1041,8 +1312,15 @@ class CalendarPage(LazyPageMixin, QWidget):
             # from montu output (mixed format may not preserve seconds faithfully).
 
             if full or not self.rb_mode_can.isChecked():
+                year_mode = None
+                if full and self.rb_mode_can.isChecked():
+                    year_mode = self.form_can.year_mode
                 self.form_can.set_values(
-                    result.can_hyear, result.can_month, result.can_season, result.can_day
+                    result.can_hyear,
+                    result.can_month,
+                    result.can_season,
+                    result.can_day,
+                    year_mode=year_mode,
                 )
 
             if full or not self.rb_mode_jd.isChecked():
@@ -1054,29 +1332,32 @@ class CalendarPage(LazyPageMixin, QWidget):
             self._block_auto = False
 
     def _on_can_step_day(self, delta: int):
-        """Advance or rewind the caniucular date by one civil day."""
+        """Advance or rewind the sothic date by one civil day."""
         if self._block_auto:
             return
 
         f = self.form_can
         self.status_message.emit(tr("Converting ..."))
         log_ui_event(
-            "caniucular step day",
+            "sothic step day",
             delta=delta,
-            hyear=f.hyear_spin.value(),
+            year=f.year_spin.value(),
+            year_mode=f.year_mode,
             month=f.month_combo.currentText(),
             season=f.season_combo.currentText(),
             day=f.day_spin.value(),
         )
-        result = caniucular_to_julian_gregorian(
-            hyear=f.hyear_spin.value(),
+        result = sothic_to_julian_gregorian(
+            year=f.year_spin.value(),
             month=f.month_combo.currentText(),
             season=f.season_combo.currentText(),
             day=f.day_spin.value(),
             add=delta,
             add_units="days",
+            year_mode=f.year_mode,
         )
         self.result_table.update_result(result)
+        self._last_result = result if result.ok else self._last_result
 
         if result.ok:
             log_ui_event("conversion complete", ok=True, step=delta)
@@ -1107,8 +1388,9 @@ class CalendarPage(LazyPageMixin, QWidget):
                 minute=f.minute,
                 second=f.second,
                 calendar=f.calendar_type,
+                zone=f.observer_mode,
             )
-            result = julian_gregorian_to_caniucular(
+            result = julian_gregorian_to_sothic(
                 era=f.era,
                 year=f.year,
                 month=f.month,
@@ -1117,22 +1399,25 @@ class CalendarPage(LazyPageMixin, QWidget):
                 hour=f.hour,
                 minute=f.minute,
                 second=f.second,
+                zone=f.zone_for_montu(),
             )
         elif self.rb_mode_can.isChecked():
             f = self.form_can
             log_ui_event(
                 "auto convert",
-                mode="caniucular",
-                hyear=f.hyear_spin.value(),
+                mode="sothic",
+                year=f.year_spin.value(),
+                year_mode=f.year_mode,
                 month=f.month_combo.currentText(),
                 season=f.season_combo.currentText(),
                 day=f.day_spin.value(),
             )
-            result = caniucular_to_julian_gregorian(
-                hyear=f.hyear_spin.value(),
+            result = sothic_to_julian_gregorian(
+                year=f.year_spin.value(),
                 month=f.month_combo.currentText(),
                 season=f.season_combo.currentText(),
                 day=f.day_spin.value(),
+                year_mode=f.year_mode,
             )
         elif self.rb_mode_jd.isChecked():
             log_ui_event(
@@ -1145,6 +1430,7 @@ class CalendarPage(LazyPageMixin, QWidget):
             return
 
         self.result_table.update_result(result)
+        self._last_result = result if result.ok else self._last_result
 
         if result.ok:
             log_ui_event("conversion complete", ok=True)
@@ -1156,6 +1442,26 @@ class CalendarPage(LazyPageMixin, QWidget):
             log_ui_event("conversion failed", ok=False, error=result.error)
             self.status_message.emit(trf("Error: {error}", error=result.error))
 
+    def _open_sothic_calendar(self):
+        """Open the interactive Sothic year calendar for the current result."""
+        result = self._last_result
+        if result is None or not result.ok:
+            return
+        log_ui_event(
+            "open sothic calendar",
+            hyear=result.can_hyear,
+            month=result.can_month,
+            season=result.can_season,
+            day=result.can_day,
+        )
+        show_sothic_calendar_dialog(
+            self.window(),
+            result.can_hyear,
+            month=result.can_month,
+            season=result.can_season,
+            day=result.can_day,
+        )
+
     def _show_lets_python(self):
         """Open the Let's Python! code-viewer dialog."""
         log_ui_event("open lets_python dialog")
@@ -1164,7 +1470,7 @@ class CalendarPage(LazyPageMixin, QWidget):
 
     def export_config(self) -> dict:
         if self.rb_mode_can.isChecked():
-            mode = "caniucular"
+            mode = "sothic"
         elif self.rb_mode_jd.isChecked():
             mode = "julian_day"
         elif self.rb_mode_hist.isChecked():
@@ -1182,9 +1488,17 @@ class CalendarPage(LazyPageMixin, QWidget):
                 "hour": self.form_jg.hour,
                 "minute": self.form_jg.minute,
                 "second": self.form_jg.second,
+                "observer_mode": self.form_jg.observer_mode,
+                "zone": self.form_jg.zone_edit.text().strip(),
             },
-            "caniucular": {
-                "hyear": self.form_can.hyear_spin.value(),
+            "sothic": {
+                "year_mode": self.form_can.year_mode,
+                "era": self.form_can.era,
+                "year": self.form_can.year_spin.value(),
+                "hyear": sothic_horus_from_year(
+                    self.form_can.year_spin.value(),
+                    self.form_can.year_mode,
+                ),
                 "month": self.form_can.month_combo.currentText(),
                 "season": self.form_can.season_combo.currentText(),
                 "day": self.form_can.day_spin.value(),
@@ -1197,9 +1511,11 @@ class CalendarPage(LazyPageMixin, QWidget):
         self._block_auto = True
         try:
             mode = cfg.get("input_mode", "julian_gregorian")
+            if mode == "caniucular":
+                mode = "sothic"
             mode_buttons = {
                 "julian_gregorian": self.rb_mode_jg,
-                "caniucular": self.rb_mode_can,
+                "sothic": self.rb_mode_can,
                 "julian_day": self.rb_mode_jd,
                 "historical_dates": self.rb_mode_hist,
             }
@@ -1220,13 +1536,28 @@ class CalendarPage(LazyPageMixin, QWidget):
                 int(jg.get("second", 0)),
                 calendar_type=jg.get("calendar_type", "proleptic"),
             )
+            self.form_jg.set_observer_values(
+                jg.get("observer_mode", "utc"),
+                jg.get("zone", ""),
+            )
 
-            can = cfg.get("caniucular", {})
+            can = cfg.get("sothic") or cfg.get("caniucular", {})
+            saved_mode = can.get("year_mode")
+            saved_era = can.get("era")
+            if saved_mode == SOTHIC_YEAR_MIXED and saved_era:
+                effective_mode = saved_era
+            else:
+                effective_mode = saved_mode
+            if "year" in can and effective_mode:
+                horus_year = sothic_horus_from_year(int(can["year"]), effective_mode)
+            else:
+                horus_year = int(can.get("hyear", 0))
             self.form_can.set_values(
-                int(can.get("hyear", 0)),
+                horus_year,
                 can.get("month", "I"),
-                can.get("season", "Akhet"),
+                can.get("season", "akhet"),
                 int(can.get("day", 1)),
+                year_mode=effective_mode,
             )
 
             jd = cfg.get("julian_day", {})

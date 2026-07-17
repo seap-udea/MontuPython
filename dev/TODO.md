@@ -10,7 +10,7 @@
   - Full set of examples.
 
 - Create a year calendar:
-  - Day by day with the day in Julian, Gregorian Proleptic and Caniucular.
+  - Day by day with the day in Julian, Gregorian Proleptic and Sothic.
 
 - Compute the first day of lunar cycle: first appearance of the moon after New moon.
 

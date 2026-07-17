@@ -16,6 +16,13 @@ from PySide6.QtWidgets import (
 
 import montu
 
+from montu_gui.widgets.table_utils import (
+    configure_wrapping_table,
+    resize_wrapped_rows,
+    set_wrapping_header_labels,
+    wrapping_table_item,
+)
+
 
 def _load_records() -> list[dict]:
     path = montu.Util._data_path("historical-heliacal-rises.json", check=True)
@@ -57,20 +64,21 @@ class HistoricalHeliacalRisesDialog(QDialog):
         root.addWidget(intro)
 
         table = QTableWidget(0, 5)
-        table.setHorizontalHeaderLabels(
+        set_wrapping_header_labels(
+            table,
             [
                 "Egyptian date",
                 "Julian year",
                 "Original source",
                 "Modern source",
                 "Comment",
-            ]
+            ],
         )
         table.verticalHeader().setVisible(False)
         table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         table.setAlternatingRowColors(True)
-        table.setWordWrap(True)
+        configure_wrapping_table(table)
         hdr = table.horizontalHeader()
         hdr.setStretchLastSection(True)
         hdr.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
@@ -90,8 +98,6 @@ class HistoricalHeliacalRisesDialog(QDialog):
                 rec.get("comment", "—"),
             )
             for col, text in enumerate(values):
-                item = QTableWidgetItem(str(text))
-                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                table.setItem(row, col, item)
-        table.resizeRowsToContents()
+                table.setItem(row, col, wrapping_table_item(str(text)))
+        resize_wrapped_rows(table)
         root.addWidget(table, stretch=1)

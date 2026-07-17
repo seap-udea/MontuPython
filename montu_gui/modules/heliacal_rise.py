@@ -140,7 +140,7 @@ def _format_event_rows(events, start_jed: float, observer) -> list[dict]:
                 "number": str(number),
                 "mixed": _historical_date(readable.datemix),
                 "proleptic": _historical_date(readable.datepro),
-                "caniucular": readable.datecan,
+                "sothic": readable.datesot,
                 "time_from_latest": _format_elapsed_days(float(event["jed"]) - previous_jed),
                 "local_time": str(event["local_time"]),
                 "body_altitude": f'{float(event["body_altitude_deg"]):.2f}°',

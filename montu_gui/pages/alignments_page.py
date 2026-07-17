@@ -58,6 +58,12 @@ from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
 from montu_gui.widgets.module_brand import module_brand
+from montu_gui.widgets.table_utils import (
+    configure_wrapping_table,
+    resize_wrapped_rows,
+    set_wrapping_header_labels,
+    wrapping_table_item,
+)
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepSpinBox, StepDoubleSpinBox
 
@@ -126,26 +132,20 @@ def _double_spin(
 
 def _make_results_table() -> QTableWidget:
     tbl = QTableWidget(0, len(RESULT_TABLE_COLUMNS))
-    tbl.setHorizontalHeaderLabels([tr(col) for col in RESULT_TABLE_COLUMNS])
+    set_wrapping_header_labels(tbl, [tr(col) for col in RESULT_TABLE_COLUMNS])
     tbl.verticalHeader().setVisible(False)
     tbl.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
     tbl.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
     tbl.setFocusPolicy(Qt.FocusPolicy.NoFocus)
     tbl.setAlternatingRowColors(True)
-    tbl.setWordWrap(False)
-    tbl.setHorizontalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
+    configure_wrapping_table(tbl)
     tbl.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-    hdr = tbl.horizontalHeader()
-    hdr.setStretchLastSection(True)
-    hdr.setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+    tbl.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
     return tbl
 
 
 def _table_item(text: str, align=Qt.AlignmentFlag.AlignLeft) -> QTableWidgetItem:
-    it = QTableWidgetItem(text)
-    it.setTextAlignment(align | Qt.AlignmentFlag.AlignVCenter)
-    it.setFlags(it.flags() & ~Qt.ItemFlag.ItemIsEditable)
-    return it
+    return wrapping_table_item(text, align=align)
 
 
 def _era_range_label(era_start: str, year_start: int, era_end: str, year_end: int) -> str:
@@ -397,7 +397,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
 
         self._results_table = _make_results_table()
         self._results_table.setMinimumHeight(120)
-        results_lay.addWidget(self._results_table)
+        results_lay.addWidget(self._results_table, stretch=1)
 
         map_box = QGroupBox()
         map_box.setSizePolicy(
@@ -644,7 +644,7 @@ class AlignmentsPage(LazyPageMixin, QWidget):
                 self._results_table.setItem(
                     row_idx, col_idx, _table_item(text, align),
                 )
-        self._results_table.resizeRowsToContents()
+        resize_wrapped_rows(self._results_table)
 
     def _show_lets_python(self):
         log_ui_event("open lets_python dialog", module="alignments")

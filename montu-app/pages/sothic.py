@@ -11,8 +11,8 @@ from utils.theme import egyptian_palette
 # Preliminary data
 ################################################################
 module_quickstart_doc = """
-This module allows you to convert between the gregorian or julian calendar and the Egyptian civil calendar, which was called by greeks the [*caniucular*](https://books.google.com.co/books?id=xKKPUpDOTKAC&pg=PA334&lpg=PA334&dq=kunikon+annus+magnus&source=bl&ots=_OUZw0Rg8m&sig=ACfU3U3M917f-R6xil1uziu4P0NMMwnsrg&hl=es-419&sa=X&ved=2ahUKEwiAsPeG18GCAxUfRTABHa3qDzQQ6AF6BAgIEAM#v=onepage&q=kunikon%20annus%20magnus&f=false) calendar since it is based on the heliacal rise of Sirus (*sothis* or *sepedet* for the Egyptian), the Dog-star.
-Please provide a julian/gregorian date and the module will convert it to the corresponding caniucular date. The reverse operation is also available.
+This module allows you to convert between the gregorian or julian calendar and the Egyptian civil calendar, which was called by greeks the [*Sothic*](https://books.google.com.co/books?id=xKKPUpDOTKAC&pg=PA334&lpg=PA334&dq=kunikon+annus+magnus&source=bl&ots=_OUZw0Rg8m&sig=ACfU3U3M917f-R6xil1uziu4P0NMMwnsrg&hl=es-419&sa=X&ved=2ahUKEwiAsPeG18GCAxUfRTABHa3qDzQQ6AF6BAgIEAM#v=onepage&q=kunikon%20annus%20magnus&f=false) calendar since it is based on the heliacal rise of Sirus (*sothis* or *sepedet* for the Egyptian), the Dog-star.
+Please provide a julian/gregorian date and the module will convert it to the corresponding sothic date. The reverse operation is also available.
 """
 
 module_field_doc = """
@@ -20,7 +20,7 @@ module_field_doc = """
 - **Datetime**: Date and time of quarter in UTC.
 - **delta-t**: Time since last quarter in days.
 - **delta-0**: Time since initial date in days.
-- **Caniucular**: Date in *caniucular* calendar, ie. civil egyptian calendar. In this calendar the datum, namely *horus* year 0 or `hrw 0-I-Akhet-1`, corresponds to bce 2782-07-20 00:00:00.
+- **Sothic**: Date in *Sothic* calendar, ie. civil egyptian calendar. In this calendar the datum, namely *horus* year 0 or `[hrw 0] I *akhet* 1`, corresponds to bce 2782-07-20 00:00:00.
 """
 
 font_text = '1.2em'
@@ -147,8 +147,8 @@ layout = html.Div([
                         ], width=6),
                     ]),
                     dbc.Button(
-                        "Convert to Caniucular",
-                        id='button-to-caniucular',
+                        "Convert to Sothic",
+                        id='button-to-sothic',
                         color="primary",
                         className="w-100 mt-2",
                         style=button_style
@@ -161,9 +161,9 @@ layout = html.Div([
                 ])
             ], className="mb-4"),
 
-            # Caniucular date section
+            # Sothic date section
             dbc.Card([
-                dbc.CardHeader(html.H5("Caniucular Date", className="text-center")),
+                dbc.CardHeader(html.H5("Sothic Date", className="text-center")),
                 dbc.CardBody([
                     dbc.Row([
                         dbc.Col([
@@ -190,8 +190,8 @@ layout = html.Div([
                         dbc.Col([
                             dbc.Select(
                                 id='cdate-season',
-                                options=['Akhet','Peret','Shemu','Mesut'],
-                                value='Akhet',
+                                options=['akhet','peret','shemu','mesut'],
+                                value='akhet',
                                 style=input_style,
                                 className="mb-2"
                             ),
@@ -322,13 +322,12 @@ def convert_historical(button,hdate):
         era = 'ce'
     datemix = f'{bce} {comps[0]} - {comps[1]} - {comps[2]}'
 
-    # Get components of caniucular
-    comps_can = mtime.readable.datecan.split(' ')
-    comps_can = comps_can[1].split('-')
+    # Get components of sothic
+    hyear, month, season, day = montu.Time.parse_datesot(mtime.readable.datesot)
     
     return (
-        datemix, mtime.readable.datecan,
-        comps_can[0], comps_can[1], comps_can[2], comps_can[3], 
+        datemix, mtime.readable.datesot,
+        hyear, month, season, day,
         era, comps[0], comps[1], comps[2], 
         dcc.Markdown(_historical_markdown(historical_dates[hdate]))
     )
@@ -344,7 +343,7 @@ def convert_historical(button,hdate):
     
 
     # Inputs
-    Input('button-to-caniucular', 'n_clicks'),
+    Input('button-to-sothic', 'n_clicks'),
     State('gdate-era', 'value'),
     State('gdate-year', 'value'),
     State('gdate-month', 'value'),
@@ -354,7 +353,7 @@ def convert_historical(button,hdate):
 
     prevent_initial_call=True
 )
-def julian_to_caniucular(button,era,year,month,day,add=0,add_units='days'):
+def julian_to_sothic(button,era,year,month,day,add=0,add_units='days'):
 
     # Is bce?
     bce='bce' if era == 'bce' else ''
@@ -387,11 +386,10 @@ def julian_to_caniucular(button,era,year,month,day,add=0,add_units='days'):
         bce = 'C.E.'
     datemix = f'{bce} {comps[0]} - {comps[1]} - {comps[2]}'
 
-    # Get components of caniucular
-    comps = mtime.readable.datecan.split(' ')
-    comps = comps[1].split('-')
+    # Get components of sothic
+    hyear, month, season, day = montu.Time.parse_datesot(mtime.readable.datesot)
     
-    return datemix, mtime.readable.datecan, comps[0], comps[1], comps[2], comps[3], 
+    return datemix, mtime.readable.datesot, hyear, month, season, day, 
 
 @callback(
     # Outputs
@@ -412,10 +410,10 @@ def julian_to_caniucular(button,era,year,month,day,add=0,add_units='days'):
     State('cdate-add-units', 'value'),
     prevent_initial_call=True
 )
-def caniucular_to_julian(button,hyear,month,season,day,add=0,add_units='days'):
+def sothic_to_julian(button,hyear,month,season,day,add=0,add_units='days'):
 
-    cdate = f'hrw {hyear}-{month}-{season}-{int(day)}'
-    mtime = montu.Time(cdate,calendar='caniucular')
+    cdate = f'[hrw {hyear}] {month} {season.lower()} {int(day)}'
+    mtime = montu.Time(cdate,calendar='sothic')
 
     if int(add)>0:
         # Add 
@@ -442,4 +440,4 @@ def caniucular_to_julian(button,hyear,month,season,day,add=0,add_units='days'):
         
     datemix = f'{bce} {comps[0]} - {comps[1]} - {comps[2]}'
 
-    return datemix, mtime.readable.datecan, era, comps[0], comps[1], comps[2] 
+    return datemix, mtime.readable.datesot, era, comps[0], comps[1], comps[2] 

@@ -33,7 +33,7 @@ Release notes for the graphical front-end to MontuPython.
 - **Module order** — sidebar and Home list reordered: Calendar, Observer Location, Sky Map, Seasons & Lunar Phases, Planetary Ephemerides, Orientation Disk, Star Alignments, Heliacal Rises (Home remains first in the sidebar).
 - **Orientation Disk (⭕)** — search window per body is **max(2 years, orbital period)** (Sun fixed at 2 years; Jupiter and Saturn use their sidereal periods); help text and reference-year label updated.
 - **Sky Map (🌌) defaults** — date **June** 2500 BCE; **Horizon** and **Meridian view** on by default; bodies **Sun, Moon, Mercury, and Venus** selected (`default.json` updated).
-- **Seasons & Lunar Phases (🎑)** — below **Caniucular** on each season card: Sun rise/set **azimuth** and **local time** for the observing site on that season’s calendar day; below the year selector: **Observing site** line from the global location; module listens to **LocationState** and recalculates on site change.
+- **Seasons & Lunar Phases (🎑)** — below **Sothic** on each season card: Sun rise/set **azimuth** and **local time** for the observing site on that season’s calendar day; below the year selector: **Observing site** line from the global location; module listens to **LocationState** and recalculates on site change.
 - **Seasons fix** — solstice sunrise azimuths now use that day’s sunrise/sunset (local noon anchor) and display degrees correctly (no erroneous `RAD` conversion).
 - **Heliacal Rises (🌅)** — module description extended with a **this link** to open a non-modal **Historical Sirius heliacal rises** window (`montu/data/historical-heliacal-rises.json`); application stays usable while the list is open.
 
@@ -41,7 +41,7 @@ Release notes for the graphical front-end to MontuPython.
 
 - **Heliacal Rises (🌅)** — new module to find first visible morning appearances of named bright stars and classical planets using the library’s `HeliacalRise` models (Schaefer 1985/1987, Belokrylov 2011).
 - **Inputs** — shared observer location; star/planet selector; initial date with BCE/CE and year/month/day spinboxes; mixed or proleptic calendar; year range (`StepSpinBox`); model-specific parameters (extinction, limiting magnitude, solar depression, scan step).
-- **Results** — summary line (interval, model source, elapsed time) and table with mixed, proleptic, and caniucular dates, local time, body/Sun altitude and azimuth, and days since the prior event.
+- **Results** — summary line (interval, model source, elapsed time) and table with mixed, proleptic, and sothic dates, local time, body/Sun altitude and azimuth, and days since the prior event.
 - **Peret Sopedet illustration** — full-width image below the table with English title *Illustration of Egyptian Peret Sopedet on the Giza plateau*; contextual help on the heliacal rise of Sirius (Sopedet) and image credits (Nano Banana / Preview, based on Bob Moler’s Stellarium–GIMP simulation).
 - **Defaults** — factory observer preset **Thebes (Luxor)**; Sirius, CE 133-06-01, 10-year range, Schaefer 1987 (`k=0.25`, `limiting_mag_zenith=6.0`, `sun_depression=−10.0`); Ptolemy Arcus Visionis 14° and horizon refraction 34 arcmin.
 - **Let's Python!** — example script `montu_gui/pages/examples/heliacal_rise.py` reproduces the Desktop defaults.
@@ -111,7 +111,7 @@ Release notes for the graphical front-end to MontuPython.
 - First packaged release of **MontuPython Desktop**, the PySide6 GUI for MontuPython.
 - **Home** page with project overview, credits, and quick links to the repository and documentation.
 - **Observer Location** — set observer latitude, longitude, and altitude; map view and named presets.
-- **Calendar Calculator** — convert among Julian/Gregorian, proleptic Gregorian, caniucular (Egyptian civil), and Julian Day formats; historical date presets; runnable Python example export.
+- **Calendar Calculator** — convert among Julian/Gregorian, proleptic Gregorian, sothic (Egyptian civil), and Julian Day formats; historical date presets; runnable Python example export.
 - **Seasons & Lunar Phases** — solstices, equinoxes, and lunar phase tables for a chosen year and site.
 - **Planetary Ephemerides** — time-series charts of ephemeris properties for selected planets.
 - **Star Alignments** — find stars passing through a fixed azimuth/elevation direction over a date range, with Mercator sky map.

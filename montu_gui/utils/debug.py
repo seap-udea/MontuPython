@@ -103,7 +103,7 @@ def log_conversion(
 
     if result.ok:
         dbg("output:")
-        for attr in ("mixed", "caniucular", "proleptic", "spice", "jd_utc", "jd_tt", "et", "delta_t"):
+        for attr in ("mixed", "sothic", "proleptic", "spice", "jd_utc", "jd_tt", "et", "delta_t"):
             val = getattr(result, attr, None)
             if val is not None:
                 dbg(f"{attr:<12} {val}", indent=1)
@@ -120,8 +120,8 @@ def log_conversion(
         if hasattr(result, "can_hyear"):
             try:
                 dbg(
-                    f"parsed can:  hrw {result.can_hyear}-"
-                    f"{result.can_month}-{result.can_season}-{result.can_day}",
+                    f"parsed can:  [hrw {result.can_hyear}] "
+                    f"{result.can_month} {result.can_season.lower()} {result.can_day}",
                     indent=1,
                 )
             except Exception:

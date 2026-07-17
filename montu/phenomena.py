@@ -385,7 +385,7 @@ class HeliacalRise:
             print(
                 f'  [{n}] {date.readable.datemix}  {event.local_time}  '
                 f'{date.readable.datepro}  '
-                f'{date.readable.datecan}  '
+                f'{date.readable.datesot}  '
                 f'{body_label} {event.body_altitude_deg:.2f}°  '
                 f'Sun {event.sun_altitude_deg:.2f}°',
             )

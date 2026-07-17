@@ -131,6 +131,15 @@ QLabel#help_link {{
 QLabel#help_link:hover {{
     color: {PALETTE['accent_hover']};
 }}
+QLabel#sothic_date_link {{
+    color: {PALETTE['accent']};
+    background: transparent;
+    border: none;
+    padding: 0;
+}}
+QLabel#sothic_date_link:hover {{
+    color: {PALETTE['accent_hover']};
+}}
 QLabel#home_title, QLabel#home_tagline, QLabel#home_version,
 QLabel#home_body, QLabel#home_credits, QLabel#home_contact {{
     background: transparent;

@@ -57,8 +57,8 @@ sidebar = html.Div(
                     style=menu_item_style,
                 ),
                 dbc.NavLink(
-                    [html.Div("Caniucular")],
-                    href="/caniucular",
+                    [html.Div("Sótico")],
+                    href="/sothic",
                     active="exact",
                     style=menu_item_style,
                 ),

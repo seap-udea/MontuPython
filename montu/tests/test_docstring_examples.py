@@ -72,7 +72,7 @@ def test_time_lazy_readable():
     
     # Prior to accessing attributes, the object is a ReadableTime, which behaves like a Dictobj
     # and populates on demand.
-    assert mtime.readable.datecan is not None
+    assert mtime.readable.datesot is not None
     assert mtime.readable.datepro is not None
     assert mtime.readable.datemix is not None
     

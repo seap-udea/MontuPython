@@ -4,7 +4,7 @@ Date conversion logic for MontuPython GUI.
 Wraps montu.Time to convert between:
   - Mixed (Julian / Gregorian) calendar
   - Proleptic Gregorian calendar
-  - Caniucular (Egyptian civil) calendar
+  - Sothic (Egyptian civil) calendar
   - Julian Day Number
 
 All public functions return plain dicts so the UI layer stays decoupled
@@ -13,13 +13,12 @@ from montu internals.
 
 from __future__ import annotations
 
-import re
 import sys
 import time
 from dataclasses import dataclass, field
 from datetime import date as greg_date
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 from montu_gui.utils.debug import log_conversion
 
@@ -34,7 +33,7 @@ class ConversionResult:
     spice: str = ""       # Gregorian proleptic (SPICE style)
     proleptic: str = ""   # Gregorian proleptic (astronomical)
     mixed: str = ""       # Mixed Julian/Gregorian
-    caniucular: str = ""  # Egyptian civil
+    sothic: str = ""  # Egyptian civil
     jd_utc: str = ""      # Julian Day (UTC)
     jd_tt: str = ""       # TT ephemeris seconds since J2000 (Time.tt)
     et: str = ""          # UTC ephemeris seconds since J2000 (Time.et)
@@ -47,7 +46,7 @@ class ConversionResult:
     day: int = 1
     can_hyear: int = 0
     can_month: str = "I"
-    can_season: str = "Akhet"
+    can_season: str = "akhet"
     can_day: int = 1
     error: str = ""
 
@@ -88,22 +87,100 @@ def _parse_datemix(datemix_str: str) -> tuple[str, int, int, int]:
     return era, year, month, day
 
 
-def _parse_datecan(datecan_str: str) -> tuple[int, str, str, int]:
+def _parse_datesot(datesot_str: str) -> tuple[int, str, str, int]:
     """
-    Parse montu readable.datecan into (hyear, month_roman, season, day).
+    Parse montu readable.datesot into (hyear, month_roman, season, day).
 
-    Format: 'hrw HYEAR-MONTH-SEASON-DAY'  e.g. 'hrw 0-I-Akhet-1'
+    Format: '[hrw HYEAR] MONTH SEASON DAY'  e.g. '[hrw 0] I akhet 1'
     """
     try:
-        body = datecan_str.strip().split(" ", 1)[1]  # '0-I-Akhet-1'
-        parts = body.split("-")
-        hyear = int(parts[0])
-        month = parts[1]
-        season = parts[2]
-        day = int(parts[3])
-        return hyear, month, season, day
+        montu = _import_montu()
+        return montu.Time.parse_datesot(datesot_str)
     except Exception:
-        return 0, "I", "Akhet", 1
+        return 0, "I", "akhet", 1
+
+
+SOTHIC_YEAR_HORUS = "horus"
+SOTHIC_YEAR_MIXED = "mixed"
+SOTHIC_YEAR_BCE = "bce"
+SOTHIC_YEAR_CE = "ce"
+SOTHIC_YEAR_MODES = (
+    SOTHIC_YEAR_HORUS,
+    SOTHIC_YEAR_MIXED,
+    SOTHIC_YEAR_BCE,
+    SOTHIC_YEAR_CE,
+)
+
+
+def _astronomical_year_from_datemix(datemix_str: str) -> int:
+    """Return the astronomical year from a ``readable.datemix`` date part."""
+    date_part = datemix_str.strip().split(" ")[0]
+    if date_part.startswith("-"):
+        return -int(date_part.lstrip("-").split("-")[0])
+    return int(date_part.split("-")[0])
+
+
+def _format_sothic(
+    year: int,
+    month: str,
+    season: str,
+    day: int,
+    *,
+    year_mode: str = SOTHIC_YEAR_HORUS,
+) -> str:
+    """Build a sothic date string for montu.Time(calendar='sothic')."""
+    season = season.lower()
+    day = int(day)
+    if year_mode == SOTHIC_YEAR_HORUS:
+        tag = f"hrw {year}"
+    elif year_mode == SOTHIC_YEAR_MIXED:
+        tag = str(year)
+    elif year_mode == SOTHIC_YEAR_BCE:
+        tag = f"bce {year}"
+    else:
+        tag = str(year)
+    return f"[{tag}] {month} {season} {day}"
+
+
+def sothic_horus_from_year(year: int, year_mode: str = SOTHIC_YEAR_HORUS) -> int:
+    """Resolve the Horus year for a sothic year field in the given mode."""
+    if year_mode == SOTHIC_YEAR_HORUS:
+        return year
+    montu = _import_montu()
+    cdate = _format_sothic(year, "I", "akhet", 1, year_mode=year_mode)
+    mtime = montu.Time(cdate, calendar="sothic")
+    return montu.Time.parse_datesot(mtime.readable.datesot)[0]
+
+
+def sothic_display_year(hyear: int, year_mode: str = SOTHIC_YEAR_HORUS) -> int:
+    """Show the sothic year field value for a Horus year in the given mode."""
+    if year_mode == SOTHIC_YEAR_HORUS:
+        return hyear
+    montu = _import_montu()
+    mtime = montu.Time(f"[hrw {hyear}] I akhet 1", calendar="sothic")
+    astro = _astronomical_year_from_datemix(mtime.readable.datemix)
+    if year_mode == SOTHIC_YEAR_MIXED:
+        return astro
+    if year_mode == SOTHIC_YEAR_BCE:
+        if astro >= 0:
+            return astro
+        return -astro + 1
+    return astro
+
+
+def sothic_era_year_mode(hyear: int) -> str:
+    """Return BCE or CE for the mixed era of civil I akhet 1."""
+    montu = _import_montu()
+    mtime = montu.Time(f"[hrw {hyear}] I akhet 1", calendar="sothic")
+    astro = _astronomical_year_from_datemix(mtime.readable.datemix)
+    return SOTHIC_YEAR_BCE if astro < 0 else SOTHIC_YEAR_CE
+
+
+def sothic_normalize_year_mode(hyear: int, year_mode: str) -> str:
+    """Pick BCE/CE mode that matches the mixed era of civil I akhet 1."""
+    if year_mode not in (SOTHIC_YEAR_BCE, SOTHIC_YEAR_CE):
+        return year_mode
+    return sothic_era_year_mode(hyear)
 
 
 def _format_weekday(mtime) -> str:
@@ -120,14 +197,14 @@ def _build_result_from_mtime(mtime) -> ConversionResult:
     """Build a ConversionResult from a montu.Time object."""
     r = mtime.readable
     era, year, month, day = _parse_datemix(r.datemix)
-    hyear, cmonth, cseason, cday = _parse_datecan(r.datecan)
+    hyear, cmonth, cseason, cday = _parse_datesot(r.datesot)
 
     return ConversionResult(
         ok=True,
         spice=r.datespice,
         proleptic=r.datepro,
         mixed=r.datemix,
-        caniucular=r.datecan,
+        sothic=r.datesot,
         jd_utc=f"{mtime.jed:.6f}",
         jd_tt=f"{mtime.tt:.6f}",
         et=f"{mtime.et:.3f}",
@@ -155,8 +232,8 @@ ADD_UNITS = {
     "years": None,
 }
 
-CANIUCULAR_SEASONS = ["Akhet", "Peret", "Shemu", "Mesut"]
-CANIUCULAR_MONTHS = ["I", "II", "III", "IV"]
+SOTHIC_SEASONS = ["akhet", "peret", "shemu", "mesut"]
+SOTHIC_MONTHS = ["I", "II", "III", "IV"]
 
 
 def _montu_weekday_mon0(jed: float) -> int:
@@ -205,7 +282,7 @@ def qcalendar_proxy_page(
     return best_year
 
 
-def julian_gregorian_to_caniucular(
+def julian_gregorian_to_sothic(
     era: str,
     year: int,
     month: int,
@@ -216,9 +293,10 @@ def julian_gregorian_to_caniucular(
     second: int = 0,
     add: float = 0,
     add_units: str = "days",
+    zone: Any = 0,
 ) -> ConversionResult:
     """
-    Convert a Julian/Gregorian/proleptic date to caniucular and all other formats.
+    Convert a Julian/Gregorian/proleptic date to sothic and all other formats.
 
     era      : 'bce' | 'ce'
     year     : historical year (1-based, 1 BCE = year 1)
@@ -242,7 +320,7 @@ def julian_gregorian_to_caniucular(
                 f"{hour:02d}:{minute:02d}:{second:02d}"
             )
 
-        mtime = montu.Time(date_str, calendar=calendar)
+        mtime = montu.Time(date_str, calendar=calendar, zone=zone)
 
         if add and float(add) != 0:
             factor = _add_factor(montu, add_units)
@@ -263,6 +341,7 @@ def julian_gregorian_to_caniucular(
                 "second": second,
                 "add": add,
                 "add_units": add_units,
+                "zone": repr(zone),
             },
             result,
             time.perf_counter() - t0,
@@ -280,30 +359,34 @@ def julian_gregorian_to_caniucular(
         return result
 
 
-def caniucular_to_julian_gregorian(
-    hyear: int,
+def sothic_to_julian_gregorian(
+    year: int,
     month: str,
     season: str,
     day: int,
     add: float = 0,
     add_units: str = "days",
+    *,
+    year_mode: str = SOTHIC_YEAR_HORUS,
 ) -> ConversionResult:
-    """Convert a caniucular (Egyptian civil) date to all other formats."""
+    """Convert a sothic (Egyptian civil) date to all other formats."""
     try:
         t0 = time.perf_counter()
         montu = _import_montu()
-        cdate = f"hrw {hyear}-{month}-{season}-{int(day)}"
-        mtime = montu.Time(cdate, calendar="caniucular")
+        cdate = _format_sothic(year, month, season, day, year_mode=year_mode)
+        mtime = montu.Time(cdate, calendar="sothic")
 
         if add and float(add) != 0:
-            factor = _add_factor(montu, add_units, caniucular=True)
+            factor = _add_factor(montu, add_units, sothic=True)
             mtime = mtime.add(float(add) * factor).get_readable()
 
         result = _build_result_from_mtime(mtime)
         log_conversion(
-            "caniucular → all",
+            "sothic → all",
             {
-                "hyear": hyear,
+                "year": year,
+                "year_mode": year_mode,
+                "hyear": result.can_hyear,
                 "month": month,
                 "season": season,
                 "day": day,
@@ -319,7 +402,7 @@ def caniucular_to_julian_gregorian(
     except Exception as exc:
         result = ConversionResult(ok=False, error=str(exc))
         log_conversion(
-            "caniucular → all",
+            "sothic → all",
             {"hyear": hyear, "month": month, "season": season, "day": day},
             result,
             0.0,
@@ -368,12 +451,12 @@ def julian_day_to_all(jd: float, scale: str = "utc") -> ConversionResult:
 
 
 # ── internal helpers ──────────────────────────────────────────────────────────
-def _add_factor(montu, units: str, caniucular: bool = False) -> float:
+def _add_factor(montu, units: str, sothic: bool = False) -> float:
     if units == "weeks":
         return 7 * montu.DAY
     elif units == "months":
-        return (30 if caniucular else 29.5) * montu.DAY
+        return (30 if sothic else 29.5) * montu.DAY
     elif units == "years":
-        return montu.CALYEAR if caniucular else montu.JULYEAR
+        return montu.CALYEAR if sothic else montu.JULYEAR
     else:
         return montu.DAY

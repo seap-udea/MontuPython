@@ -114,17 +114,16 @@ def _format_gregorian_display(raw: str) -> str:
     return raw
 
 
-def _format_caniucular_display(raw: str) -> str:
+def _format_sothic_display(raw: str) -> str:
     """
     Drop Horus year prefix; keep month-season-day only.
 
-    Example: hrw 807-I-Akhet-11  →  I-Akhet-11
+    Example: [hrw 807] I akhet 11  →  I akhet 11
     """
     raw = raw.strip()
-    if raw.lower().startswith("hrw "):
-        body = raw.split(None, 1)[1]
-        if "-" in body:
-            return body.split("-", 1)[1]
+    match = re.match(r'^\[hrw\s+-?\d+\]\s+(.+)$', raw, re.IGNORECASE)
+    if match:
+        return match.group(1)
     return raw
 
 
@@ -143,7 +142,7 @@ def _mtime_to_row(
         "help_key": help_key,
         "proleptic": _format_gregorian_display(r.datespice),
         "mixed": _format_gregorian_display(r.datemix),
-        "caniucular": _format_caniucular_display(r.datecan),
+        "sothic": _format_sothic_display(r.datesot),
     }
     if delta_days is not None:
         row["delta_t"] = _format_days(delta_days)
@@ -337,7 +336,7 @@ def compute_lunar_quarters(era: str, human_year: int) -> LunarResult:
                 "quarter":    q_key,
                 "help_key":   QUARTER_HELP_KEYS.get(q_key, q_key),
                 "mixed":      _format_gregorian_display(mt.readable.datemix),
-                "caniucular": _format_caniucular_display(mt.readable.datecan),
+                "sothic": _format_sothic_display(mt.readable.datesot),
             }
             if delta_days is not None:
                 row["delta_t"] = _format_days(delta_days)

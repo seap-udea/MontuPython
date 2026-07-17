@@ -1,66 +1,66 @@
 {
   "bce 2782-07-20": {
     "label": "BCE 2782-07-20 — First Apokatastasis",
-    "description": "First <i>apokatastasis</i>: I-Akhet-1 coincides with the heliacal rise of Sopedet (Sirius). This defines the datum of the caniucular calendar: <i>Horus</i> year 0, <code>hrw 0-I-Akhet-1</code>.",
-    "details": "The Egyptian civil year of 365 days drifted through the seasons by one day every four years. When Sirius (Sothis) again rose heliacally at the start of the civil year, Egyptians spoke of an <i>apokatastasis</i> — a “return” of the calendar to the sky. This first anchor, near the Old Kingdom, is the epoch MontuPython uses for Horus year 0 and for converting between the caniucular calendar and Julian/Gregorian dates.",
+    "description": "First <i>apokatastasis</i>: I <i>akhet</i> 1 coincides with the heliacal rise of Sopedet (Sirius). This defines the datum of the Sothic calendar: <i>Horus</i> year 0, <code>[hrw 0] I <i>akhet</i> 1</code>.",
+    "details": "The Egyptian civil year of 365 days drifted through the seasons by one day every four years. When Sirius (Sothis) again rose heliacally at the start of the civil year, Egyptians spoke of an <i>apokatastasis</i> — a “return” of the calendar to the sky. This first anchor, near the Old Kingdom, is the epoch MontuPython uses for Horus year 0 and for converting between the Sothic calendar and Julian/Gregorian dates.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. calendar chapter",
-    "egyptian_date": "I-Akhet-1"
+    "egyptian_date": "I akhet 1"
   },
   "bce 1322-07-20": {
     "label": "BCE 1322-07-20 — Second Apokatastasis",
-    "description": "Second <i>apokatastasis</i>: I-Akhet-1 again coincides with the heliacal rise of Sopedet (Sirius), in the middle of the New Kingdom.",
-    "details": "Roughly 1,460 years after the first anchor, the wandering civil calendar completed a full Sothic cycle relative to the tropical year. The New Kingdom (ca. 1550–1070 BCE) is the period of empire, monumental temple building, and rich astronomical texts. This second apokatastasis is a fixed point for testing long-range caniucular chronology across more than a millennium.",
+    "description": "Second <i>apokatastasis</i>: I <i>akhet</i> 1 again coincides with the heliacal rise of Sopedet (Sirius), in the middle of the New Kingdom.",
+    "details": "Roughly 1,460 years after the first anchor, the wandering civil calendar completed a full Sothic cycle relative to the tropical year. The New Kingdom (ca. 1550–1070 BCE) is the period of empire, monumental temple building, and rich astronomical texts. This second apokatastasis is a fixed point for testing long-range sothic chronology across more than a millennium.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València.",
-    "egyptian_date": "I-Akhet-1"
+    "egyptian_date": "I akhet 1"
   },
   "139-07-20": {
     "label": "CE 139-07-20 — Third Apokatastasis",
-    "description": "Third <i>apokatastasis</i>: I-Akhet-1 coincides with the heliacal rise of Sopedet. Identified in the Latin work of Censorinus (Lull, p. 95).",
+    "description": "Third <i>apokatastasis</i>: I <i>akhet</i> 1 coincides with the heliacal rise of Sopedet. Identified in the Latin work of Censorinus (Lull, p. 95).",
     "details": "In CE 139, Censorinus described a coincidence of the civil New Year with Sirius’s heliacal rising — the third such return since the epoch used in modern reconstructions. His account is a rare Greco-Roman witness to Egyptian calendrical astronomy and remains a cornerstone for aligning pharaonic dates with the Julian calendar.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 95 (Censorinus)",
-    "egyptian_date": "I-Akhet-1"
+    "egyptian_date": "I akhet 1"
   },
   "bce 559-10-19": {
     "label": "BCE 559-10-19 — Papyrus Louvre 7848",
-    "description": "Date from Papyrus Louvre 7848 with both civil and lunar dates recorded (Lull, p. 94; civil date there III-Shemu-13).",
+    "description": "Date from Papyrus Louvre 7848 with both civil and lunar dates recorded (Lull, p. 94; civil date there III <i>shemu</i> 13).",
     "details": "This Saite-period document (26th dynasty) records the same moment in the 365-day civil calendar and in a lunar scheme — evidence that Egyptian scribes tracked more than one calendar at once. Such double dates are invaluable for checking MontuPython conversions and for understanding how festivals and temple rituals were scheduled in the late first millennium BCE.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 94",
-    "egyptian_date": "III-Shemu-13"
+    "egyptian_date": "III shemu 13"
   },
   "bce 238-03-07": {
     "label": "BCE 238-03-07 — Canopus Decree",
-    "description": "Date of the Canopus decree: Ptolemy III Euergetes ordered an intercalary day every four years to keep the civil year aligned with the seasons (Lull, p. 76; civil date there I-Peret-17).",
+    "description": "Date of the Canopus decree: Ptolemy III Euergetes ordered an intercalary day every four years to keep the civil year aligned with the seasons (Lull, p. 76; civil date there I <i>peret</i> 17).",
     "details": "Issued at a synod of priests in 238 BCE, the decree attempted to reform the drifting civil calendar by adding a sixth epagomenal day every four years — a measure analogous in spirit to the later Julian leap year. The reform was not permanently adopted, but the stele documents Ptolemaic awareness of the problem that would eventually link Egyptian and Roman calendrics.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 76",
-    "egyptian_date": "I-Peret-17"
+    "egyptian_date": "I peret 17"
   },
   "bce 237-08-23": {
     "label": "BCE 237-08-23 — Edfu Temple Inscription (25-yr lunar cycle)",
-    "description": "Inscription in the Ptolemaic temple of Edfu showing that Egyptians knew the 25-year lunar cycle (Lull, p. 92; civil date there III-Shemu-7).",
+    "description": "Inscription in the Ptolemaic temple of Edfu showing that Egyptians knew the 25-year lunar cycle (Lull, p. 92; civil date there III <i>shemu</i> 7).",
     "details": "The Edfu texts describe intercalary months on a 25-year pattern — a rule for keeping lunar months in step with the solar year over long periods. This inscription belongs to the Ptolemaic rebuilding of the Horus temple and shows continuity of astronomical knowledge from pharaonic tradition into the Hellenistic age.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 92",
-    "egyptian_date": "III-Shemu-7"
+    "egyptian_date": "III shemu 7"
   },
   "bce 212-08-17": {
     "label": "BCE 212-08-17 — Edfu Temple Inscription II",
-    "description": "Second inscription at Edfu confirming knowledge of the 25-year lunar cycle (Lull, p. 92; civil date there III-Shemu-7).",
+    "description": "Second inscription at Edfu confirming knowledge of the 25-year lunar cycle (Lull, p. 92; civil date there III <i>shemu</i> 7).",
     "details": "A companion record to the 237 BCE Edfu date, this entry provides an independent check on the same calendrical doctrine. Multiple dated witnesses from one temple complex strengthen confidence in the civil-date readings and in the astronomical interpretation of the 25-year cycle.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 92",
-    "egyptian_date": "III-Shemu-7"
+    "egyptian_date": "III shemu 7"
   },
   "384-07-23": {
     "label": "CE 384-07-23 — Theon's Heliacal Rise",
-    "description": "Heliacal rise of Sopedet (Sirius) according to the computation of Theon of Alexandria (Lull, p. 98; civil date there I-Akhet-1).",
+    "description": "Heliacal rise of Sopedet (Sirius) according to the computation of Theon of Alexandria (Lull, p. 98; civil date there I <i>akhet</i> 1).",
     "details": "Theon (ca. 335–405 CE) was a mathematician and commentator on Ptolemy; his school preserved advanced astronomical calculation into late antiquity. His computed Sirius rise is a bridge between Egyptian civil dating and Greco-Roman positional astronomy — useful for verifying modern ephemerides thousands of years after the pharaohs.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 98",
-    "egyptian_date": "I-Akhet-1"
+    "egyptian_date": "I akhet 1"
   },
   "bce 688-06-11": {
     "label": "BCE 688-06-11 — Papyrus Louvre E3228d",
-    "description": "Earliest document with a firm Egyptian chronology: hieratic Papyrus Louvre E3228d, year 3 of king Taharqa (Lull, p. 105; civil date there I-Peret-10).",
+    "description": "Earliest document with a firm Egyptian chronology: hieratic Papyrus Louvre E3228d, year 3 of king Taharqa (Lull, p. 105; civil date there I <i>peret</i> 10).",
     "details": "Taharqa ruled as pharaoh of the 25th (Kushite) dynasty while also controlling Nubia and parts of the Levant. Year 3 of his reign, tied to a precise civil date, anchors the chronology of the late eighth century BCE — a period critical for biblical, Assyrian, and Egyptian synchronisms.",
     "source": "Lull, J. (2020). La astronomía en el antiguo Egipto (Vol. 110). Universitat de València. p. 105",
-    "egyptian_date": "I-Peret-10"
+    "egyptian_date": "I peret 10"
   },
   "bce 46-01-01": {
     "label": "BCE 46-01-01 — Julian Calendar Reform",

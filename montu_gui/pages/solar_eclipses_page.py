@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QFont, QPixmap
+from PySide6.QtGui import QBrush, QColor, QFont, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -56,9 +56,23 @@ from montu_gui.widgets.lets_python_dialog import (
 )
 from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.step_spinbox import StepSpinBox
+from montu_gui.widgets.table_utils import (
+    configure_wrapping_table,
+    resize_wrapped_rows,
+    set_colored_cell_widget,
+    set_wrapping_header_labels,
+    wrapping_table_item,
+)
 
 HELP_MODULE = "solar_eclipses"
 _OPTIONAL_SITE_LABEL = "optional"
+
+_ECLIPSE_TYPE_ROW_COLORS: dict[str, str] = {
+    "Total": "#ffeaf4",
+    "Partial": "#ecfaee",
+    "Annular": "#fffadc",
+    "Hybrid": "#ebf4ff",
+}
 
 _RESULT_COLUMN_HELP = {
     "Eclipse": "eclipse",
@@ -188,11 +202,37 @@ def _min_max_row(min_edit: QLineEdit, max_edit: QLineEdit) -> QWidget:
     layout.setSpacing(8)
     min_edit.setPlaceholderText(tr("optional"))
     max_edit.setPlaceholderText(tr("optional"))
+    min_edit.setMinimumWidth(72)
+    max_edit.setMinimumWidth(72)
     layout.addWidget(QLabel(tr("min")))
     layout.addWidget(min_edit, stretch=1)
     layout.addWidget(QLabel(tr("max")))
     layout.addWidget(max_edit, stretch=1)
     return row
+
+
+def _labeled_min_max_block(
+    label: str,
+    help_key: str,
+    min_edit: QLineEdit,
+    max_edit: QLineEdit,
+) -> QWidget:
+    block = QWidget()
+    layout = QVBoxLayout(block)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.setSpacing(4)
+    layout.addWidget(
+        HelpLink(label, HELP_MODULE, "input", help_key, bold=True)
+    )
+    layout.addWidget(_min_max_row(min_edit, max_edit))
+    return block
+
+
+def _eclipse_type_row_brush(eclipse_type: str) -> QBrush | None:
+    color_hex = _ECLIPSE_TYPE_ROW_COLORS.get(eclipse_type)
+    if color_hex is None:
+        return None
+    return QBrush(QColor(color_hex))
 
 
 class SolarEclipsesPage(LazyPageMixin, QWidget):
@@ -205,6 +245,7 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         self._locations = load_locations()
         self._syncing_site = False
         self._illustration_source: QPixmap | None = None
+        self._illustration_hidden = False
         self._build_ui()
 
     def _activate_page(self) -> None:
@@ -280,37 +321,51 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         layout.addWidget(location_box)
 
         self._conditions_box = QGroupBox(tr("Eclipse conditions"))
-        conditions_form = QFormLayout(self._conditions_box)
-        conditions_form.setFieldGrowthPolicy(
-            QFormLayout.FieldGrowthPolicy.ExpandingFieldsGrow
-        )
+        conditions_layout = QVBoxLayout(self._conditions_box)
+        conditions_layout.setSpacing(10)
 
         self._magnitude_min = QLineEdit()
         self._magnitude_max = QLineEdit()
-        conditions_form.addRow(
-            HelpLink(tr("Magnitude (%):"), HELP_MODULE, "input", "magnitude", bold=True),
-            _min_max_row(self._magnitude_min, self._magnitude_max),
+        conditions_layout.addWidget(
+            _labeled_min_max_block(
+                tr("Magnitude (%):"),
+                "magnitude",
+                self._magnitude_min,
+                self._magnitude_max,
+            )
         )
 
         self._elevation_min = QLineEdit()
         self._elevation_max = QLineEdit()
-        conditions_form.addRow(
-            HelpLink(tr("Solar elevation (°):"), HELP_MODULE, "input", "elevation", bold=True),
-            _min_max_row(self._elevation_min, self._elevation_max),
+        conditions_layout.addWidget(
+            _labeled_min_max_block(
+                tr("Solar elevation (°):"),
+                "elevation",
+                self._elevation_min,
+                self._elevation_max,
+            )
         )
 
         self._azimuth_min = QLineEdit()
         self._azimuth_max = QLineEdit()
-        conditions_form.addRow(
-            HelpLink(tr("Solar azimuth (°):"), HELP_MODULE, "input", "azimuth", bold=True),
-            _min_max_row(self._azimuth_min, self._azimuth_max),
+        conditions_layout.addWidget(
+            _labeled_min_max_block(
+                tr("Solar azimuth (°):"),
+                "azimuth",
+                self._azimuth_min,
+                self._azimuth_max,
+            )
         )
 
         self._local_duration_min = QLineEdit()
         self._local_duration_max = QLineEdit()
-        conditions_form.addRow(
-            HelpLink(tr("Duration (secs):"), HELP_MODULE, "input", "local_duration", bold=True),
-            _min_max_row(self._local_duration_min, self._local_duration_max),
+        conditions_layout.addWidget(
+            _labeled_min_max_block(
+                tr("Duration (secs):"),
+                "local_duration",
+                self._local_duration_min,
+                self._local_duration_max,
+            )
         )
 
         self._conditions_box.setVisible(False)
@@ -447,12 +502,16 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         results_layout.addWidget(self._table_help_row)
 
         self._table = QTableWidget(0, len(RESULT_TABLE_COLUMNS))
-        self._table.setHorizontalHeaderLabels([tr(c) for c in RESULT_TABLE_COLUMNS])
+        set_wrapping_header_labels(
+            self._table, [tr(c) for c in RESULT_TABLE_COLUMNS]
+        )
         self._table.verticalHeader().setVisible(False)
         self._table.horizontalHeader().setVisible(False)
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
-        self._table.setAlternatingRowColors(True)
+        self._table.setAlternatingRowColors(False)
+        self._table.setShowGrid(False)
+        configure_wrapping_table(self._table)
         self._table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
         )
@@ -511,8 +570,16 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         super().resizeEvent(event)
         self._sync_illustration_size()
 
+    def _hide_illustration_once(self) -> None:
+        if self._illustration_hidden:
+            return
+        self._illustration_hidden = True
+        self._illustration_box.hide()
+
     def _sync_illustration_size(self) -> None:
         """Scale the solar-eclipse illustration to the results panel width."""
+        if self._illustration_hidden:
+            return
         if (
             self._illustration_source is None
             or self._illustration_source.isNull()
@@ -598,6 +665,7 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         return _optional_float(self._alt_edit.text())
 
     def _search(self) -> None:
+        self._hide_illustration_once()
         try:
             duration_min = _optional_float(self._duration_min.text())
             duration_max = _optional_float(self._duration_max.text())
@@ -673,12 +741,18 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
             if widget is not None:
                 widget.deleteLater()
         for column in columns:
+            cell = QWidget()
+            cell_layout = QVBoxLayout(cell)
+            cell_layout.setContentsMargins(2, 0, 2, 0)
+            cell_layout.setSpacing(0)
             help_key = _RESULT_COLUMN_HELP.get(column)
             if help_key:
                 widget = HelpLink(tr(column), HELP_MODULE, "result", help_key, bold=True)
             else:
                 widget = QLabel(tr(column))
-            self._table_help_layout.addWidget(widget, stretch=1)
+                widget.setWordWrap(True)
+            cell_layout.addWidget(widget)
+            self._table_help_layout.addWidget(cell, stretch=1)
 
     def _fill_results(self, result) -> None:
         if not result.ok:
@@ -688,7 +762,7 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
 
         columns = result.table_columns
         self._table.setColumnCount(len(columns))
-        self._table.setHorizontalHeaderLabels([tr(c) for c in columns])
+        set_wrapping_header_labels(self._table, [tr(c) for c in columns])
         self._table.setRowCount(len(result.eclipses))
         self._rebuild_result_column_help(list(columns))
 
@@ -715,17 +789,17 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         )
 
         for row_number, row in enumerate(result.eclipses):
+            row_brush = _eclipse_type_row_brush(str(row.get("type", "")))
             for column, header in enumerate(columns):
                 if column == location_col:
-                    self._table.setCellWidget(
-                        row_number,
-                        column,
-                        GreatestEclipseLocationCell(
-                            row["greatest_location"],
-                            row.get("map_url", ""),
-                            row["eclipse_id"],
-                            self._table,
-                        ),
+                    cell = GreatestEclipseLocationCell(
+                        row["greatest_location"],
+                        row.get("map_url", ""),
+                        row["eclipse_id"],
+                        self._table,
+                    )
+                    set_colored_cell_widget(
+                        self._table, row_number, column, cell, row_brush
                     )
                     continue
                 if contacts_col is not None and column == contacts_col:
@@ -741,16 +815,15 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
                         "observer_lon": row.get("observer_lon"),
                         "observer_alt_m": row.get("observer_alt_m"),
                     }
-                    self._table.setCellWidget(
-                        row_number,
-                        column,
-                        ContactsCell(
-                            row.get("contacts", []),
-                            row.get("observer_map_url", ""),
-                            contact_info,
-                            f"{row['eclipse_id']} ({row['date']})",
-                            self._table,
-                        ),
+                    cell = ContactsCell(
+                        row.get("contacts", []),
+                        row.get("observer_map_url", ""),
+                        contact_info,
+                        f"{row['eclipse_id']} ({row['date']})",
+                        self._table,
+                    )
+                    set_colored_cell_widget(
+                        self._table, row_number, column, cell, row_brush
                     )
                     continue
 
@@ -769,10 +842,12 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
                 value = str(row.get(key, ""))
                 if header == "Type":
                     value = tr(value)
-                item = QTableWidgetItem(value)
-                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
+                item = wrapping_table_item(value)
+                if row_brush is not None:
+                    item.setBackground(row_brush)
                 self._table.setItem(row_number, column, item)
 
+        resize_wrapped_rows(self._table)
         self.status_message.emit(trf("Solar eclipses: {n} match(es) found.", n=result.count))
 
     def export_config(self) -> dict:

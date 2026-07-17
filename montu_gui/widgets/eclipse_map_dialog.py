@@ -27,6 +27,11 @@ except ImportError:
 
 from montu_gui.utils.i18n import get_language, tr, trf
 from montu_gui.widgets.help_link import HelpLink
+from montu_gui.widgets.table_utils import (
+    configure_wrapping_table,
+    resize_wrapped_rows,
+    wrapping_table_item,
+)
 
 _HELP_MODULE = "solar_eclipses"
 
@@ -210,7 +215,8 @@ class GreatestEclipseLocationCell(QWidget):
 
         coords = QLabel(location_text)
         coords.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        layout.addWidget(coords)
+        coords.setWordWrap(True)
+        layout.addWidget(coords, stretch=1)
 
         if map_url:
             open_paren = QLabel("(")
@@ -351,6 +357,7 @@ class EclipseContactsDialog(QDialog):
         table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         table.verticalHeader().setVisible(False)
         table.horizontalHeader().setVisible(False)
+        configure_wrapping_table(table)
         table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
         )
@@ -359,22 +366,23 @@ class EclipseContactsDialog(QDialog):
             table.setItem(
                 row,
                 0,
-                QTableWidgetItem(tr(str(contact.get("label", "")))),
+                wrapping_table_item(tr(str(contact.get("label", "")))),
             )
-            table.setItem(row, 1, QTableWidgetItem(str(contact.get("ut_time", ""))))
-            table.setItem(row, 2, QTableWidgetItem(str(contact.get("local_time", ""))))
+            table.setItem(row, 1, wrapping_table_item(str(contact.get("ut_time", ""))))
+            table.setItem(row, 2, wrapping_table_item(str(contact.get("local_time", ""))))
             alt = contact.get("alt_deg")
             az = contact.get("az_deg")
             table.setItem(
                 row,
                 3,
-                QTableWidgetItem(f"{alt:.1f}°" if alt is not None else "—"),
+                wrapping_table_item(f"{alt:.1f}°" if alt is not None else "—"),
             )
             table.setItem(
                 row,
                 4,
-                QTableWidgetItem(f"{az:.1f}°" if az is not None else "—"),
+                wrapping_table_item(f"{az:.1f}°" if az is not None else "—"),
             )
+        resize_wrapped_rows(table)
 
         layout.addWidget(table)
 

@@ -23,7 +23,7 @@ module_field_doc = """
 - **Datetime**: Date and time of quarter in UTC.
 - **Delta_t ($\Delta t$)**: Time since last quarter in days ($\Delta t$).
 - **Delta_0 ($\Delta t_0$)**: Time since initial date in days.
-- **Caniucular**: Date in *caniucular* calendar, ie. civil egyptian calendar. In this calendar the datum, namely *horus* year 0 or `hrw 0-I-Akhet-1`, corresponds to bce 2782-07-20 00:00:00.
+- **Sothic**: Date in *Sothic* calendar, ie. civil egyptian calendar. In this calendar the datum, namely *horus* year 0 or `[hrw 0] I *akhet* 1`, corresponds to bce 2782-07-20 00:00:00.
 """
 
 ################################################################
@@ -136,9 +136,9 @@ layout = html.Div([
                     dbc.Checklist(
                         id='options',
                         options=[
-                            {'label': 'Show caniucular', 'value': 'show_caniucular'},
+                            {'label': 'Show sothic', 'value': 'show_sothic'},
                         ],
-                        value=['show_caniucular'],
+                        value=['show_sothic'],
                         inline=True
                     ),
                 ], width=12, className="mb-3"),
@@ -208,10 +208,10 @@ def update_table(since, calendar, starting_at, nummonths, options):
         format='columns'
     )
 
-    # Show caniucular
-    if 'show_caniucular' in options:
+    # Show sothic
+    if 'show_sothic' in options:
         for date in quarter_dates:
             mtime = montu.Time(date['Datetime'], calendar=calendar)
-            date['Caniucular'] = mtime.readable.datecan
+            date['Sothic'] = mtime.readable.datesot
 
     return quarter_dates

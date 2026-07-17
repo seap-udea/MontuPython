@@ -23,7 +23,7 @@ button_group = html.Div(
             options=[
                 {"label": "Calendar", "value": "calendar"},
                 {"label": "Julian day", "value": "julian day"},
-                {"label": "Sothic", "value": "sothic"}
+                {"label": "Sótico", "value": "sothic"}
             ],
             value="calendar",
         ),

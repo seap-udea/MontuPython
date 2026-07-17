@@ -177,7 +177,7 @@ print(mtime)
         Date in proleptic UTC (.readable.datepro): -2500-01-01 12:00:00.000000
         Date in mixed UTC (.readable.datemix): -2500-01-22 12:00:00
         Date in SPICE format (.readable.datespice): 2501 B.C. 01-01 12:00:00.00
-        Date in caniucular format (.readable.datecan): hrw 280-I-Shemu-17
+        Date in sothic format (.readable.datesot): [hrw 280] I shemu 17
         Weekday (.readable.weekday): 2 (monday)
         Components (.readable.comps): [-1, 2500, 1, 1, 12, 0, 0, 0]
     Objects:
@@ -204,13 +204,13 @@ Notice that the date in Gregorian proleptic will be **bce 2501-01-01** but in th
 
 #### Egyptian civil calendar
 
-In the previous output you may also notice that the class `montu.Time` automatically convert the gregorian/julian date into the *civil egyptian calendar* or the *caniucular* calendar. In the previous example, the date bce 2501-01-22 (julian) correspond to the civil egyptian date of **I-Shemu-17**. Since the years in the *caniucular calendar* were regularly referred to specific king's reigns, we have introduced in `MontuPython` the so-called *Horus years* (abreviated *hrw*). The zero *Horus year* is bce 2782 which corresponds to the first *apokatastasis*, namely the year when the day **I-Akhet-1** coincide with the heliacal rise of Sirius. 
+In the previous output you may also notice that the class `montu.Time` automatically convert the gregorian/julian date into the *civil egyptian calendar* or the *Sothic* calendar. In the previous example, the date bce 2501-01-22 (julian) correspond to the civil egyptian date of **I-*shemu*-17** (MontuPython: `[hrw 280] I shemu 17`). Since the years in the *Sothic calendar* were regularly referred to specific king's reigns, we have introduced in `MontuPython` the so-called *Horus years* (abreviated *hrw*). The zero *Horus year* is bce 2782 which corresponds to the first *apokatastasis*, namely the year when the day **I-*akhet*-1** coincide with the heliacal rise of Sirius. 
 
-You may also provide a date in the *caniucular calendar* and obtain the corresponding julian date:
+You may also provide a date in the *Sothic calendar* and obtain the corresponding julian date:
 
 
 ```python
-mtime = montu.Time('hrw 1461-I-Akhet-1',calendar='caniucular')
+mtime = montu.Time('[hrw 1461] I akhet 1',calendar='sothic')
 print(mtime)
 ```
 
@@ -220,7 +220,7 @@ print(mtime)
         Date in proleptic UTC (.readable.datepro): -1321-07-20 08:45:50.8
         Date in mixed UTC (.readable.datemix): -1321-07-20 00:00:00
         Date in SPICE format (.readable.datespice): 1322 B.C. 07-20 08:45:50.800000
-        Date in caniucular format (.readable.datecan): hrw 1461-I-Akhet-1
+        Date in sothic format (.readable.datesot): [hrw 1461] I akhet 1
         Weekday (.readable.weekday): 3 (tuesday)
         Components (.readable.comps): [-1, 1321, 7, 20, 8, 45, 50, 800000]
     Objects:
@@ -243,7 +243,7 @@ print(mtime)
     
 
 
-As you may see, this is the second *apokatastasis*, ie. in bce 1322-07-20, the heliacal rise of Sirius happened again at I-Akhet-1.
+As you may see, this is the second *apokatastasis*, ie. in bce 1322-07-20, the heliacal rise of Sirius happened again at I-*akhet*-1.
 
 #### Operations with dates
 
@@ -262,11 +262,11 @@ mtime = montu.Time('2001-01-01 12:00:00',format='iso')
 
 
 
-    (Time('2001-01-01 12:00:00.000000'/'2001-01-01 12:00:00'/'hrw 4784-I-Shemu-14'/JED 2451911.0/JTD 2451911.0007419),
-     Time('2001-01-01 00:00:00.000000'/'2001-01-01 00:00:00'/'hrw 4784-I-Shemu-14'/JED 2451910.5/JTD 2451910.5007419),
-     Time('2001-01-02 12:00:00.000000'/'2001-01-02 12:00:00'/'hrw 4784-I-Shemu-15'/JED 2451912.0/JTD 2451912.0007419),
-     Time('1998-01-02 12:00:01.097278'/'1998-01-02 12:00:00'/'hrw 4781-I-Shemu-14'/JED 2450816.0000127/JTD 2450816.0007419),
-     Time('2021-01-01 11:59:51.904328'/'2021-01-01 11:59:59'/'hrw 4804-I-Shemu-19'/JED 2459215.9999063/JTD 2459216.0007419))
+    (Time('2001-01-01 12:00:00.000000'/'2001-01-01 12:00:00'/'[hrw 4784] I shemu 14'/JED 2451911.0/JTD 2451911.0007419),
+     Time('2001-01-01 00:00:00.000000'/'2001-01-01 00:00:00'/'[hrw 4784] I shemu 14'/JED 2451910.5/JTD 2451910.5007419),
+     Time('2001-01-02 12:00:00.000000'/'2001-01-02 12:00:00'/'[hrw 4784] I shemu 15'/JED 2451912.0/JTD 2451912.0007419),
+     Time('1998-01-02 12:00:01.097278'/'1998-01-02 12:00:00'/'[hrw 4781] I shemu 14'/JED 2450816.0000127/JTD 2450816.0007419),
+     Time('2021-01-01 11:59:51.904328'/'2021-01-01 11:59:59'/'[hrw 4804] I shemu 19'/JED 2459215.9999063/JTD 2459216.0007419))
 
 
 
@@ -287,7 +287,7 @@ print(mtime2)
         Date in proleptic UTC (.readable.datepro): 2002-01-01 12:00:00.000000
         Date in mixed UTC (.readable.datemix): 2002-01-01 12:00:00
         Date in SPICE format (.readable.datespice): 2002-01-01 12:00:00.000000
-        Date in caniucular format (.readable.datecan): hrw 4785-I-Shemu-14
+        Date in sothic format (.readable.datesot): [hrw 4785] I shemu 14
         Weekday (.readable.weekday): 3 (tuesday)
         Components (.readable.comps): [1, 2002, 1, 1, 12, 0, 0, 0]
     Objects:
@@ -719,10 +719,10 @@ vernal, summer, autumn, winter = montu.Sun.next_seasons(at=mtime)
 
 
 
-    (Time('2023-03-20 21:25:28.5'/'2023-03-20 21:24:24'/'hrw 4806-IV-Shemu-7'/JED 2460024.3918415/JTD 2460024.392691),
-     Time('2023-06-21 14:59:09.1'/'2023-06-21 14:57:57'/'hrw 4807-III-Akhet-5'/JED 2460117.123559/JTD 2460117.1244109),
-     Time('2023-09-23 06:51:14.0'/'2023-09-23 06:50:50'/'hrw 4807-II-Peret-9'/JED 2460210.7847257/JTD 2460210.7855787),
-     Time('2023-12-22 03:28:23.1'/'2023-12-22 03:27:27'/'hrw 4807-I-Shemu-9'/JED 2460300.6438576/JTD 2460300.6447118))
+    (Time('2023-03-20 21:25:28.5'/'2023-03-20 21:24:24'/'[hrw 4806] IV shemu 7'/JED 2460024.3918415/JTD 2460024.392691),
+     Time('2023-06-21 14:59:09.1'/'2023-06-21 14:57:57'/'[hrw 4807] III akhet 5'/JED 2460117.123559/JTD 2460117.1244109),
+     Time('2023-09-23 06:51:14.0'/'2023-09-23 06:50:50'/'[hrw 4807] II peret 9'/JED 2460210.7847257/JTD 2460210.7855787),
+     Time('2023-12-22 03:28:23.1'/'2023-12-22 03:27:27'/'[hrw 4807] I shemu 9'/JED 2460300.6438576/JTD 2460300.6447118))
 
 
 
@@ -865,7 +865,7 @@ The following notebooks introduce MontuPython step by step. Open any of them in 
 
    **File**: `MontuPython-BasicFunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-BasicFunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb)
 
-- **Time: Basic time functionalities** Illustrates the `montu.Time` class across its full range of calendars and time scales. Parse dates in ISO, SPICE, Julian day, and terrestrial time; convert between proleptic Gregorian, mixed Julian/Gregorian, ancient Egyptian civil, and caniucular (Horus year) calendars; and add or subtract calendar periods.
+- **Time: Basic time functionalities** Illustrates the `montu.Time` class across its full range of calendars and time scales. Parse dates in ISO, SPICE, Julian day, and terrestrial time; convert between proleptic Gregorian, mixed Julian/Gregorian, ancient Egyptian civil, and sothic (Horus year) calendars; and add or subtract calendar periods.
 
    **File**: `MontuPython-MonTime.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-MonTime.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb)
 

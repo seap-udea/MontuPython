@@ -100,7 +100,7 @@
     "dec_tolerance": 1.0
   },
   "calendar": {
-    "input_mode": "caniucular",
+    "input_mode": "sothic",
     "julian_gregorian": {
       "era": "ce",
       "calendar_type": "proleptic",
@@ -111,10 +111,10 @@
       "minute": 0,
       "second": 0
     },
-    "caniucular": {
+    "sothic": {
       "hyear": 5000,
       "month": "I",
-      "season": "Akhet",
+      "season": "akhet",
       "day": 1
     },
     "julian_day": {

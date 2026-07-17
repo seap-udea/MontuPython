@@ -287,7 +287,7 @@ def get_date_output_table(mtime):
     spice = mtime.readable.datespice
     proleptic = mtime.readable.datepro
     mixed = mtime.readable.datemix
-    caniucular = mtime.readable.datecan
+    sothic = mtime.readable.datesot
     jd_utc = mtime.jed
     jd = mtime.tt
     es = mtime.et
@@ -324,8 +324,8 @@ def get_date_output_table(mtime):
                     html.Td(mixed),
                 ]),
                 html.Tr([
-                    html.Td(html.Strong("Caniucular (civil egyptian)")),
-                    html.Td(caniucular),
+                    html.Td(html.Strong("Sothic (civil egyptian)")),
+                    html.Td(sothic),
                 ]),
             ]),
         ],

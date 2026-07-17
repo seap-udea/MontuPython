@@ -267,7 +267,7 @@ class MainWindow(QMainWindow):
         home_page = HomePage()
         home_page.language_requested.connect(self._set_language)
         self._add_page("home", home_page)
-        cal_page = CalendarPage()
+        cal_page = CalendarPage(self._location_state)
         cal_page.status_message.connect(self._show_status)
         self._add_page("calendar", cal_page)
         loc_page = LocationPage(self._location_state)

@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QFont, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -58,6 +58,12 @@ from montu_gui.widgets.lets_python_dialog import (
 from montu_gui.widgets.historical_heliacal_dialog import HistoricalHeliacalRisesDialog
 from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
+from montu_gui.widgets.table_utils import (
+    configure_wrapping_table,
+    resize_wrapped_rows,
+    set_wrapping_header_labels,
+    wrapping_table_item,
+)
 
 HELP_MODULE = "heliacal_rise"
 _COMMON_MODULE = "_common"
@@ -219,6 +225,11 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._location_state = location_state
         self._stars: list[dict] = []
         self._illustration_source: QPixmap | None = None
+        self._illustration_hidden = False
+        self._illustration_sync_timer = QTimer(self)
+        self._illustration_sync_timer.setSingleShot(True)
+        self._illustration_sync_timer.setInterval(50)
+        self._illustration_sync_timer.timeout.connect(self._sync_illustration_size)
         self._historical_dialog: HistoricalHeliacalRisesDialog | None = None
         self._build_ui()
         self._location_state.changed.connect(self._refresh_location)
@@ -227,7 +238,11 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._refresh_location()
         if not self._stars:
             self._load_stars()
-        self._sync_illustration_size()
+        self._schedule_illustration_sync()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._schedule_illustration_sync()
 
     def _build_ui(self) -> None:
         root = QVBoxLayout(self)
@@ -402,17 +417,19 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._result_note.setWordWrap(True)
         results_layout.addWidget(self._result_note)
         self._table = QTableWidget(0, 10)
-        self._table.setHorizontalHeaderLabels(
+        set_wrapping_header_labels(
+            self._table,
             [
-                "#", tr("Date mixed"), tr("Date proleptic"), tr("Date caniucular"),
+                "#", tr("Date mixed"), tr("Date proleptic"), tr("Date sothic"),
                 tr("Time from latest"), tr("Local time"), tr("Body altitude"), tr("Sun altitude"),
                 tr("Body azimuth"), tr("Sun azimuth"),
-            ]
+            ],
         )
         self._table.verticalHeader().setVisible(False)
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self._table.setAlternatingRowColors(True)
+        configure_wrapping_table(self._table)
         self._table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
         )
@@ -439,15 +456,14 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         illustration_layout.addLayout(title_row)
         self._illustration = QLabel()
         self._illustration.setObjectName("heliacal_rise_illustration")
-        self._illustration.setScaledContents(True)
+        self._illustration.setScaledContents(False)
         self._illustration.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed,
             QSizePolicy.Policy.Fixed,
         )
         illustration_path = gui_asset("illustrations/peret-sopedt-illustration.webp")
         if illustration_path.exists():
             self._illustration_source = QPixmap(str(illustration_path))
-            self._illustration.setPixmap(self._illustration_source)
         else:
             self._illustration_box.hide()
         illustration_layout.addWidget(self._illustration)
@@ -456,7 +472,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
         splitter.setSizes([400, 800])
-        splitter.splitterMoved.connect(lambda *_: self._sync_illustration_size())
+        splitter.splitterMoved.connect(lambda *_: self._schedule_illustration_sync())
         root.addWidget(splitter, stretch=1)
 
         self._body_type.currentIndexChanged.connect(self._populate_bodies)
@@ -467,25 +483,44 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._load_stars()
         self._update_parameter_visibility()
         self._sync_ptolemy_defaults()
-        self._sync_illustration_size()
+        self._schedule_illustration_sync()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self._sync_illustration_size()
+        self._schedule_illustration_sync()
+
+    def _hide_illustration_once(self) -> None:
+        if self._illustration_hidden:
+            return
+        self._illustration_hidden = True
+        self._illustration_box.hide()
+
+    def _schedule_illustration_sync(self) -> None:
+        self._illustration_sync_timer.start()
 
     def _sync_illustration_size(self) -> None:
         """Scale the Peret Sopedet illustration to the results panel width."""
+        if self._illustration_hidden:
+            return
         if (
             self._illustration_source is None
             or self._illustration_source.isNull()
             or not hasattr(self, "_results_panel")
         ):
             return
-        width = self._results_panel.contentsRect().width()
-        if width < 120:
-            return
-        aspect = self._illustration_source.height() / self._illustration_source.width()
-        self._illustration.setFixedHeight(max(1, round(width * aspect)))
+
+        width = self._illustration_box.width()
+        if width <= 0:
+            width = self._results_panel.width()
+        if width <= 0:
+            width = max(120, self.width() // 2)
+
+        scaled = self._illustration_source.scaledToWidth(
+            width,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        self._illustration.setPixmap(scaled)
+        self._illustration.setFixedSize(scaled.size())
 
     def _refresh_location(self, _coords=None) -> None:
         observer = self._location_state.coords
@@ -553,6 +588,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._sync_ptolemy_defaults()
 
     def _calculate(self) -> None:
+        self._hide_illustration_once()
         selected = self._body_name.currentData()
         if not selected:
             self._result_note.setText(tr("No body is available in the selected category."))
@@ -610,17 +646,22 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
                 + f": <b>{result.calculation_seconds:.2f} s</b>."
             )
         self._table.setRowCount(len(result.events))
+        center = Qt.AlignmentFlag.AlignCenter
+        aligns = [center] + [Qt.AlignmentFlag.AlignLeft] * 9
         for row_number, row in enumerate(result.events):
             for column, key in enumerate(
                 (
-                    "number", "mixed", "proleptic", "caniucular",
+                    "number", "mixed", "proleptic", "sothic",
                     "time_from_latest", "local_time", "body_altitude",
                     "sun_altitude", "body_azimuth", "sun_azimuth",
                 )
             ):
-                item = QTableWidgetItem(row[key])
-                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)
-                self._table.setItem(row_number, column, item)
+                self._table.setItem(
+                    row_number,
+                    column,
+                    wrapping_table_item(row[key], align=aligns[column]),
+                )
+        resize_wrapped_rows(self._table)
         self.status_message.emit(trf("Heliacal rises: {n} event(s) found.", n=len(result.events)))
 
     def _show_historical_rises(self) -> None:
