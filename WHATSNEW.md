@@ -2,7 +2,7 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.30.1 (minor, forthcoming)
+## Version 0.30.1 (minor)
 
 - **Stellarium validation — planetary ephemerides** — new parametrized test suite `montu/tests/test_planetary_ephemeris.py` against reference rows in `montu/tests/test-planetary-ephemeris.csv` (geocentric J2000 RA/Dec, phase, distance, solar elongation, and lunar elongation exported from Stellarium for Mercury through Saturn).
 - **Stellarium validation — stellar precession and horizon events** — new test suite `montu/tests/test_stellar_positions.py` against `montu/tests/test-stellar-positions.csv` (Spica at Thebes-like coordinates: rise, transit, set, and transit altitude from 1600 to 2000; sampled on the 1st day of January, April, July, and October in the first year of each century).
