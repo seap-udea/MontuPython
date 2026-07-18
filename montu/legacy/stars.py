@@ -201,14 +201,14 @@ class Stars(Sebau):
         ra_ticks = axs.get_xticks()
         ra_tick_labels = []
         for ra in ra_ticks:
-            comps = D2H(ra/15,string=False)
+            comps = D2S(ra/15,string=False)
             ra_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
         axs.set_xticklabels(ra_tick_labels)
 
         dec_ticks = axs.get_yticks()
         dec_tick_labels = []
         for dec in dec_ticks:
-            comps = D2H(dec,string=False)
+            comps = D2S(dec,string=False)
             dec_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
         axs.set_yticklabels(dec_tick_labels,rotation=90)
 

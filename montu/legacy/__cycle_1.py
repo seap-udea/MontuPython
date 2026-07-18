@@ -330,7 +330,7 @@ class Montu(object):
         return text
 
 # Aliases
-D2H = Montu.dec2sex
+D2S = Montu.dec2sex
 
 ###############################################################
 # Configuration class
@@ -752,9 +752,9 @@ Objects:
     Date in PyEphem Epoch: {self.obj_pyephem}
     Date in AstroPy Time: {self.obj_astrotime}
 Astronomical properties at Epoch:
-    True obliquity of ecliptic: {D2H(self.epsilon,1)}
-    True nutation longitude: {D2H(self.delta_psi,1)}
-    Greenwhich Meridian Sidereal Time: {D2H(self.gtst,1)}
+    True obliquity of ecliptic: {D2S(self.epsilon,1)}
+    True nutation longitude: {D2S(self.delta_psi,1)}
+    Greenwhich Meridian Sidereal Time: {D2S(self.gtst,1)}
 Hash: {self._get_hash()}
 """
         return str
@@ -1308,21 +1308,21 @@ class PlanetaryBody(object):
                      self.epoch.datestr,
                      self.epoch.jed)
         Montu.vprint(verbose,"\tCoordinates @ J2000: ")
-        Montu.vprint(verbose,"\t\tEquatorial:",D2H(self.RAJ2000),D2H(self.DecJ2000))
-        Montu.vprint(verbose,"\t\tEcliptic:",D2H(self.LonJ2000),D2H(self.LatJ2000))
+        Montu.vprint(verbose,"\t\tEquatorial:",D2S(self.RAJ2000),D2S(self.DecJ2000))
+        Montu.vprint(verbose,"\t\tEcliptic:",D2S(self.LonJ2000),D2S(self.LatJ2000))
         Montu.vprint(verbose,f"\tCoordinates @ Epoch : ")
-        Montu.vprint(verbose,f"\t\tEquatorial:",D2H(self.RAEpoch),D2H(self.DecEpoch))
-        Montu.vprint(verbose,f"\t\tEcliptic:",D2H(self.LonEpoch),D2H(self.LatEpoch))
+        Montu.vprint(verbose,f"\t\tEquatorial:",D2S(self.RAEpoch),D2S(self.DecEpoch))
+        Montu.vprint(verbose,f"\t\tEcliptic:",D2S(self.LonEpoch),D2S(self.LatEpoch))
         Montu.vprint(verbose,f"\tObserving conditions: ")
         Montu.vprint(verbose,f"\t\tDistance to site [au]: ",self.distance)
         Montu.vprint(verbose,f"\t\tDistance to sun [au]: ",self.sundistance)
-        Montu.vprint(verbose,f"\t\tSolar elongation [deg]: ",D2H(self.elongation))
-        Montu.vprint(verbose,f"\t\tPhase angle [deg]: ",D2H(self.phase))
+        Montu.vprint(verbose,f"\t\tSolar elongation [deg]: ",D2S(self.elongation))
+        Montu.vprint(verbose,f"\t\tPhase angle [deg]: ",D2S(self.phase))
         Montu.vprint(verbose,f"\t\tMagnitude: ",self.magnitude)
         Montu.vprint(verbose,f"\tOther properties: ")
-        Montu.vprint(verbose,f"\t\tLocal true sidereal time: ",D2H(self.site.ltst))
-        Montu.vprint(verbose,f"\t\tHour angle @ Epoch: ",D2H(self.HA))
-        Montu.vprint(verbose,f"\t\tLocal coordinates @ Epoch: ",D2H(self.az),D2H(self.el))
+        Montu.vprint(verbose,f"\t\tLocal true sidereal time: ",D2S(self.site.ltst))
+        Montu.vprint(verbose,f"\t\tHour angle @ Epoch: ",D2S(self.HA))
+        Montu.vprint(verbose,f"\t\tLocal coordinates @ Epoch: ",D2S(self.az),D2S(self.el))
         
     def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
         """Compute the rate of ecliptic longitude advance

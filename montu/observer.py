@@ -206,4 +206,4 @@ class Observer(object):
         # representation and can shift the clock hour by many hours.
         utc_hour = ((mtime.jed + 0.5) % 1.0) * 24.0
         hour = (utc_hour + self.lon / 15.0) % 24.0
-        return montu.D2H(hour) if hms else hour
+        return montu.D2S(hour) if hms else hour

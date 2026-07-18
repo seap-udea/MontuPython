@@ -510,9 +510,9 @@ Objects:
     Date in PyEphem Epoch: {self.obj_pyephem}
     Date in AstroPy Time: {self.obj_astrotime}
 Astronomical properties at Epoch:
-    True obliquity of ecliptic: {D2H(self.epsilon,1)}
-    True nutation longitude: {D2H(self.delta_psi,1)}
-    Greenwhich Meridian Sidereal Time: {D2H(self.gtst,1)}
+    True obliquity of ecliptic: {D2S(self.epsilon,1)}
+    True nutation longitude: {D2S(self.delta_psi,1)}
+    Greenwhich Meridian Sidereal Time: {D2S(self.gtst,1)}
 Hash: {self._get_hash()}
 """
         return str

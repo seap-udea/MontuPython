@@ -2,6 +2,15 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.30.1 (minor, forthcoming)
+
+- **Stellarium validation — planetary ephemerides** — new parametrized test suite `montu/tests/test_planetary_ephemeris.py` against reference rows in `montu/tests/test-planetary-ephemeris.csv` (geocentric J2000 RA/Dec, phase, distance, solar elongation, and lunar elongation exported from Stellarium for Mercury through Saturn).
+- **Stellarium validation — stellar precession and horizon events** — new test suite `montu/tests/test_stellar_positions.py` against `montu/tests/test-stellar-positions.csv` (Spica at Thebes-like coordinates: rise, transit, set, and transit altitude from 1600 to 2000; sampled on the 1st day of January, April, July, and October in the first year of each century).
+- **Geometric vs refracting horizon** — stellar reference rise/set times use Stellarium’s geometric horizon (`pressure=0`, `temperature=0`); default `Observer` settings still apply standard atmospheric refraction. The feature tour notebook documents both conventions.
+- **Example notebook** — `examples/MontuPython-FeatureTour.ipynb` (end-to-end package tour); `examples/docignore` lets `make docs-prepare` skip selected notebooks.
+- **Tests and packaging** — pytest markers registered in `montu/tests/conftest.py` for packaged runs (`imontu --tests`); fixes for NumPy `timedelta64` deprecation in `Util.dt2cal()` and a spurious `RuntimeWarning` in heliacal-rise limiting-magnitude calculations.
+- **`D2H` → `D2S`** — renamed the top-level decimal-to-sexagesimal alias (`D2S = Util.dec2sex`) across the package, documentation, notebooks, MontuPython Desktop, and MontuApp.
+
 ## Version 0.30.0 (breakthrough)
 
 - **Sothic (Egyptian civil) calendar** — terminology and API updated from *caniucular* to **sothic** across the library, examples, and documentation (`calendar='sothic'`, `Time.readable.datesot`, `Time.parse_datesot()`).
@@ -83,7 +92,7 @@ This file collects the release notes and the main changes in MontuPython.
 
 - Renamed **`Util.dec2hex`** to **`Util.dec2sex`** (decimal → sexagesimal DMS/HMS); added inverse **`Util.sex2dec`**.
 - Removed the old `dec2hex` / `hex2dec` aliases; updated tests, notebooks, and examples to the new names.
-- New top-level alias **`S2D`** for sexagesimal-to-decimal conversion; **`D2H`** now points to `dec2sex`.
+- New top-level alias **`S2D`** for sexagesimal-to-decimal conversion; **`D2H`** (later renamed **`D2S`** in 0.30.1) now points to `dec2sex`.
 - **`mercator_sky_map`** exported at package level (`montu.mercator_sky_map` and `from montu.stars import mercator_sky_map`) for notebooks and Colab workflows.
 - Version bump to **0.20.0** with updated README, badges, AI assistance disclosure, and Zenodo/Citation metadata.
 - **MontuPython Desktop** (`montu_gui/`) — PySide6 GUI with Calendar Calculator and Seasons & Lunar Phases modules.

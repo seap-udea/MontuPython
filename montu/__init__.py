@@ -13,7 +13,7 @@ from montu.phenomena import *
 ###############################################################
 # Aliases
 ###############################################################
-D2H = Util.dec2sex
+D2S = Util.dec2sex
 S2D = Util.sex2dec
 VPRINT = Util.vprint
 PRINTDF = Util.print_df

@@ -42,8 +42,8 @@ class stars(object):
 def update_stars(dummy):
     global stars_visible
     stars_visible = montu.Stars(filename=montu.Util._data_path('montu_stellar_catalogue_v37_visible.csv'))
-    stars_visible.data['RAJ2000'] = stars_visible.data.apply(lambda row:montu.D2H(row['RAJ2000']),axis=1)
-    stars_visible.data['DecJ2000'] = stars_visible.data.apply(lambda row:montu.D2H(row['DecJ2000']),axis=1)
+    stars_visible.data['RAJ2000'] = stars_visible.data.apply(lambda row:montu.D2S(row['RAJ2000']),axis=1)
+    stars_visible.data['DecJ2000'] = stars_visible.data.apply(lambda row:montu.D2S(row['DecJ2000']),axis=1)
     return stars_visible.data.to_dict('records')
 
 ################################################################

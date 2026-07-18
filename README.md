@@ -90,7 +90,7 @@ It is important that before using the most interesting commands of the package, 
 
 ```python
 # Useful aliases
-from montu import D2H, PRINTDF, TABLEDF
+from montu import D2S, PRINTDF, TABLEDF
 # Load stars
 allstars = montu.Stars()
 ```
@@ -845,7 +845,7 @@ Check date when star is close to the pole:
 for star in star_names:
     imax = df[star].argmax()
     mtime = montu.Time(df.iloc[imax].tt).get_readable()
-    print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2H(df.iloc[imax][star])})")
+    print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
     Star Polaris will be the closest to the pole at 2086-08-08 16:32:23.398096 (declination 89:31:55.768)

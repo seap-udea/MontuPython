@@ -227,6 +227,6 @@ class Util(object):
         return map
 
 # Aliases
-D2H = Util.dec2sex
+D2S = Util.dec2sex
 PRINTDF = Util.print_df
 TABLEDF = Util.table_df

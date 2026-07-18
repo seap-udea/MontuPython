@@ -501,7 +501,7 @@ class Util(object):
         return map
 
 # Aliases
-D2H = Util.dec2sex
+D2S = Util.dec2sex
 PRINTDF = Util.print_df
 TABLEDF = Util.table_df
 
@@ -910,9 +910,9 @@ Objects:
     Date in PyEphem Epoch: {self.obj_pyephem}
     Date in AstroPy Time: {self.obj_astrotime}
 Astronomical properties at Epoch:
-    True obliquity of ecliptic: {D2H(self.epsilon,1)}
-    True nutation longitude: {D2H(self.delta_psi,1)}
-    Greenwhich Meridian Sidereal Time: {D2H(self.gtst,1)}
+    True obliquity of ecliptic: {D2S(self.epsilon,1)}
+    True nutation longitude: {D2S(self.delta_psi,1)}
+    Greenwhich Meridian Sidereal Time: {D2S(self.gtst,1)}
 """
         return str
     
@@ -1176,14 +1176,14 @@ class Stars(Sebau):
         ra_ticks = axs.get_xticks()
         ra_tick_labels = []
         for ra in ra_ticks:
-            comps = D2H(ra/15,string=False)
+            comps = D2S(ra/15,string=False)
             ra_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
         axs.set_xticklabels(ra_tick_labels)
 
         dec_ticks = axs.get_yticks()
         dec_tick_labels = []
         for dec in dec_ticks:
-            comps = D2H(dec,string=False)
+            comps = D2S(dec,string=False)
             dec_tick_labels += [f'{int(comps[0]):02d}:{comps[1]:02d}']
         axs.set_yticklabels(dec_tick_labels,rotation=90)
 
@@ -1612,21 +1612,21 @@ class Planet(Seba):
     def _show_position(self,verbose):
         Util.vprint(verbose,f"\tPosition Epoch: prolectic gregorian {self.epoch.datepro}, JED = {self.epoch.jed}")
         Util.vprint(verbose,f"\tCoordinates @ J2000: ")
-        Util.vprint(verbose,f"\t\tEquatorial:",D2H(self.RAJ2000),D2H(self.DecJ2000))
-        Util.vprint(verbose,f"\t\tEcliptic:",D2H(self.LonJ2000),D2H(self.LatJ2000))
+        Util.vprint(verbose,f"\t\tEquatorial:",D2S(self.RAJ2000),D2S(self.DecJ2000))
+        Util.vprint(verbose,f"\t\tEcliptic:",D2S(self.LonJ2000),D2S(self.LatJ2000))
         Util.vprint(verbose,f"\tCoordinates @ Epoch : ")
-        Util.vprint(verbose,f"\t\tEquatorial:",D2H(self.RAEpoch),D2H(self.DecEpoch))
-        Util.vprint(verbose,f"\t\tEcliptic:",D2H(self.LonEpoch),D2H(self.LatEpoch))
+        Util.vprint(verbose,f"\t\tEquatorial:",D2S(self.RAEpoch),D2S(self.DecEpoch))
+        Util.vprint(verbose,f"\t\tEcliptic:",D2S(self.LonEpoch),D2S(self.LatEpoch))
         Util.vprint(verbose,f"\tObserving conditions: ")
         Util.vprint(verbose,f"\t\tDistance to site [au]: ",self.distance)
         Util.vprint(verbose,f"\t\tDistance to sun [au]: ",self.sundistance)
-        Util.vprint(verbose,f"\t\tSolar elongation [deg]: ",D2H(self.elongation))
-        Util.vprint(verbose,f"\t\tPhase angle [deg]: ",D2H(self.phase))
+        Util.vprint(verbose,f"\t\tSolar elongation [deg]: ",D2S(self.elongation))
+        Util.vprint(verbose,f"\t\tPhase angle [deg]: ",D2S(self.phase))
         Util.vprint(verbose,f"\t\tMagnitude: ",self.magnitude)
         Util.vprint(verbose,f"\tOther properties: ")
-        Util.vprint(verbose,f"\t\tLocal true sidereal time: ",D2H(self.site.ltst))
-        Util.vprint(verbose,f"\t\tHour angle @ Epoch: ",D2H(self.HA))
-        Util.vprint(verbose,f"\t\tLocal coordinates @ Epoch: ",D2H(self.az),D2H(self.el))
+        Util.vprint(verbose,f"\t\tLocal true sidereal time: ",D2S(self.site.ltst))
+        Util.vprint(verbose,f"\t\tHour angle @ Epoch: ",D2S(self.HA))
+        Util.vprint(verbose,f"\t\tLocal coordinates @ Epoch: ",D2S(self.az),D2S(self.el))
         
     def ecliptic_longitude_advance(self,mtime,site,dt=1*HOUR,method='SPICE'):
         """Compute the rate of ecliptic longitude advance

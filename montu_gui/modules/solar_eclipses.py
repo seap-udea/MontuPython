@@ -265,7 +265,7 @@ def _utc_time_from_jed(jed: float | None, montu) -> str | None:
     if jed is None:
         return None
     utc_hour = ((float(jed) + 0.5) % 1.0) * 24.0
-    return montu.D2H(utc_hour)
+    return montu.D2S(utc_hour)
 
 
 def _contact_rows(cond, observer, montu) -> list[dict[str, Any]]:
