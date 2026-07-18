@@ -10,6 +10,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **Example notebook** — `examples/MontuPython-FeatureTour.ipynb` (end-to-end package tour); `examples/docignore` lets `make docs-prepare` skip selected notebooks.
 - **Tests and packaging** — pytest markers registered in `montu/tests/conftest.py` for packaged runs (`imontu --tests`); fixes for NumPy `timedelta64` deprecation in `Util.dt2cal()` and a spurious `RuntimeWarning` in heliacal-rise limiting-magnitude calculations.
 - **`D2H` → `D2S`** — renamed the top-level decimal-to-sexagesimal alias (`D2S = Util.dec2sex`) across the package, documentation, notebooks, MontuPython Desktop, and MontuApp.
+- **`imontu --sothic`** — open the interactive Sothic year calendar from the command line (same widget as MontuPython Desktop). A full civil date highlights that day (e.g. `"[hrw 0] I akhet 1"`); year-only forms open the Horus year without a highlighted cell (`"hrw 0"`, `"bce 1341"`, `"-1341"`). Requires PySide6 (installed via `make install-dev` or MontuPython Desktop dependencies).
 
 ## Version 0.30.0 (breakthrough)
 

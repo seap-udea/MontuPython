@@ -299,6 +299,53 @@ def launch_gui(extra_args: list[str], *, update: bool = False) -> int:
     return subprocess.call([sys.executable, str(main_py), *extra_args])
 
 
+def ensure_gui_importable(*, update: bool = False) -> Path:
+    """Put MontuPython Desktop on ``sys.path`` and install GUI dependencies."""
+    dev_root = _detect_dev_gui_root()
+    if dev_root is not None and not update:
+        gui_root = dev_root
+    else:
+        gui_root = download_montu_gui(force=update)
+        install_desktop_requirements()
+
+    root_str = str(gui_root)
+    if root_str not in sys.path:
+        sys.path.insert(0, root_str)
+    return gui_root
+
+
+def launch_sothic_calendar(date_text: str) -> int:
+    """Open the interactive Sothic year calendar for a CLI date expression."""
+    ensure_gui_importable()
+    try:
+        from PySide6.QtWidgets import QApplication
+
+        from montu_gui.modules.date_converter import parse_sothic_launch_arg
+        from montu_gui.widgets.sothic_calendar_dialog import show_sothic_calendar_dialog
+    except ImportError as exc:
+        print(f"FAIL: MontuPython Desktop is not available: {exc}")
+        print("Install GUI dependencies with: pip install PySide6")
+        return 1
+
+    try:
+        request = parse_sothic_launch_arg(date_text)
+    except ValueError as exc:
+        print(f"FAIL: {exc}")
+        return 1
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("MontuPython")
+    show_sothic_calendar_dialog(
+        None,
+        request.horus_year,
+        month=request.month,
+        season=request.season,
+        day=request.day,
+        highlight_day=request.highlight_day,
+    )
+    return app.exec()
+
+
 def build_imontu_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Open MontuPython in IPython or run installation utilities.",
@@ -322,6 +369,14 @@ def build_imontu_parser() -> argparse.ArgumentParser:
         "--verbose",
         action="store_true",
         help="run pytest in verbose mode (with --tests)",
+    )
+    parser.add_argument(
+        "--sothic",
+        metavar="DATE",
+        help=(
+            "open the interactive Sothic year calendar for DATE "
+            '(e.g. "[hrw 0] I akhet 1", "hrw 0", "bce 1341", "-1341")'
+        ),
     )
     return parser
 
@@ -361,6 +416,9 @@ def main_imontu(argv: list[str] | None = None) -> int:
         if status != 0:
             return status
         return run_tests(verbose=args.verbose)
+
+    if args.sothic is not None:
+        return launch_sothic_calendar(args.sothic)
 
     return launch_ipython(extra)
 

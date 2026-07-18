@@ -478,3 +478,84 @@ def _add_factor(montu, units: str, sothic: bool = False) -> float:
         return montu.CALYEAR if sothic else montu.JULYEAR
     else:
         return montu.DAY
+
+
+# ── Sothic calendar launcher (imontu --sothic) ───────────────────────────────
+@dataclass
+class SothicLaunchRequest:
+    horus_year: int
+    month: str = "I"
+    season: str = "akhet"
+    day: int = 1
+    highlight_day: bool = False
+
+
+def _horus_year_from_sothic_tag(year_tag: str) -> int:
+    """Resolve a Horus year from a sothic year tag at civil I akhet 1."""
+    montu = _import_montu()
+    mtime = montu.Time(f"[{year_tag.strip()}] I akhet 1", calendar="sothic")
+    return montu.Time.parse_datesot(mtime.readable.datesot)[0]
+
+
+def parse_sothic_launch_arg(text: str) -> SothicLaunchRequest:
+    """
+    Parse ``imontu --sothic`` arguments.
+
+    Full civil dates highlight the chosen day; year-only forms open the Horus
+    year without a highlighted cell.
+    """
+    import re
+
+    raw = (text or "").strip()
+    if not raw:
+        raise ValueError("sothic date must not be empty")
+
+    normalized = re.sub(r"\bhwr\b", "hrw", raw, flags=re.IGNORECASE)
+
+    full = re.match(
+        r"^\[?\s*(.+?)\s*\]?\s+(I{1,4})\s+(akhet|peret|shemu|mesut)\s+(\d+)\s*$",
+        normalized,
+        flags=re.IGNORECASE,
+    )
+    if full:
+        year_tag, month, season, day = full.groups()
+        montu = _import_montu()
+        cdate = f"[{year_tag.strip()}] {month.upper()} {season.lower()} {int(day)}"
+        mtime = montu.Time(cdate, calendar="sothic")
+        hyear, cmonth, cseason, cday = montu.Time.parse_datesot(mtime.readable.datesot)
+        return SothicLaunchRequest(
+            horus_year=hyear,
+            month=cmonth,
+            season=cseason.lower(),
+            day=cday,
+            highlight_day=True,
+        )
+
+    year_only = re.match(r"^\[?\s*(.+?)\s*\]?\s*$", normalized)
+    if not year_only:
+        raise ValueError(f"cannot parse sothic date: {text!r}")
+
+    year_tag = year_only.group(1).strip()
+    if re.fullmatch(r"hrw\s+-?\d+", year_tag, flags=re.IGNORECASE):
+        horus = int(re.search(r"-?\d+", year_tag).group(0))
+        return SothicLaunchRequest(horus_year=horus, highlight_day=False)
+
+    if re.fullmatch(r"bce\s+\d+", year_tag, flags=re.IGNORECASE):
+        return SothicLaunchRequest(
+            horus_year=_horus_year_from_sothic_tag(year_tag),
+            highlight_day=False,
+        )
+
+    if re.fullmatch(r"ce\s+\d+", year_tag, flags=re.IGNORECASE):
+        return SothicLaunchRequest(
+            horus_year=_horus_year_from_sothic_tag(year_tag),
+            highlight_day=False,
+        )
+
+    if re.fullmatch(r"-?\d+", year_tag):
+        return SothicLaunchRequest(
+            horus_year=_horus_year_from_sothic_tag(year_tag),
+            highlight_day=False,
+        )
+
+    raise ValueError(f"cannot parse sothic date: {text!r}")

@@ -26,7 +26,7 @@ help:
 	@echo "  show        - Show current version and branch"
 	@echo "  status      - Show git status"
 	@echo "  install     - Install the package"
-	@echo "  install-dev - Install in development mode"
+	@echo "  install-dev - Install editable package + dev, test, and desktop build deps"
 	@echo "  build       - Build distribution packages"
 	@echo "  env         - Create local dev environment (.venv)"
 	@echo "  clean       - Remove cache files"
@@ -113,6 +113,8 @@ install:
 install-dev:
 	$(PYTHON) -m pip install -e .
 	@if [ -f requirements.txt ]; then $(PYTHON) -m pip install -r requirements.txt; fi
+	@if [ -f requirements-test.txt ]; then $(PYTHON) -m pip install -r requirements-test.txt; fi
+	@if [ -f requirements-desktop-build.txt ]; then $(PYTHON) -m pip install -r requirements-desktop-build.txt; fi
 
 env:
 	@echo "Creating local development environment..."

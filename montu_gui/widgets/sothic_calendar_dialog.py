@@ -166,7 +166,8 @@ class SothicCalendarWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._horus_year = 0
-        self._selected: tuple[str, str, int] = ("I", "akhet", 1)
+        self._selected: tuple[str, str, int] | None = ("I", "akhet", 1)
+        self._highlight_day = True
         self._year_data: SothicYearData | None = None
         self._cells: dict[tuple[str, str, int], _DayCell] = {}
 
@@ -206,6 +207,8 @@ class SothicCalendarWidget(QWidget):
 
     @property
     def selection(self) -> tuple[str, str, int]:
+        if self._selected is None:
+            return ("I", "akhet", 1)
         return self._selected
 
     def selected_day_info(self) -> SothicDayInfo | None:
@@ -220,14 +223,25 @@ class SothicCalendarWidget(QWidget):
         month: str = "I",
         season: str = "akhet",
         day: int = 1,
+        highlight_day: bool = True,
     ) -> None:
         self._horus_year = horus_year
-        self._selected = (month, season.lower(), day)
+        self._highlight_day = highlight_day
+        self._selected = (month, season.lower(), day) if highlight_day else None
         self._rebuild()
 
     def step_year(self, delta: int) -> None:
-        month, season, day = self._selected
-        self.set_year(self._horus_year + delta, month=month, season=season, day=day)
+        if self._selected is None:
+            month, season, day = "I", "akhet", 1
+        else:
+            month, season, day = self._selected
+        self.set_year(
+            self._horus_year + delta,
+            month=month,
+            season=season,
+            day=day,
+            highlight_day=self._highlight_day,
+        )
 
     def _clear_grid(self) -> None:
         while self._grid.count():
@@ -267,7 +281,11 @@ class SothicCalendarWidget(QWidget):
         grid_col: int,
         season_border_bottom: bool = False,
     ) -> None:
-        selected = self._selected == (info.month, info.season, info.day)
+        selected = (
+            self._highlight_day
+            and self._selected is not None
+            and self._selected == (info.month, info.season, info.day)
+        )
         cell = _DayCell(
             info,
             background=cell_background(info, data),
@@ -355,12 +373,15 @@ class SothicCalendarWidget(QWidget):
         row += _MESUT_ROW_SPAN
 
     def _on_cell_clicked(self, month: str, season: str, day: int) -> None:
-        if self._selected == (month, season, day):
+        key = (month, season, day)
+        if self._selected == key:
             return
-        old = self._cells.get(self._selected)
-        if old is not None:
-            old._apply_style(False)
-        self._selected = (month, season, day)
+        if self._selected is not None:
+            old = self._cells.get(self._selected)
+            if old is not None:
+                old._apply_style(False)
+        self._highlight_day = True
+        self._selected = key
         new = self._cells.get(self._selected)
         if new is not None:
             new._apply_style(True)
@@ -381,6 +402,7 @@ class SothicCalendarDialog(QDialog):
         month: str = "I",
         season: str = "akhet",
         day: int = 1,
+        highlight_day: bool = True,
         parent=None,
     ):
         super().__init__(parent)
@@ -425,7 +447,13 @@ class SothicCalendarDialog(QDialog):
         self._calendar = SothicCalendarWidget()
         root.addWidget(self._calendar, stretch=1)
 
-        self._calendar.set_year(horus_year, month=month, season=season, day=day)
+        self._calendar.set_year(
+            horus_year,
+            month=month,
+            season=season,
+            day=day,
+            highlight_day=highlight_day,
+        )
         self._sync_year_edit()
         self._update_window_title()
 
@@ -452,6 +480,14 @@ class SothicCalendarDialog(QDialog):
             return None
 
     def _update_window_title(self) -> None:
+        if not self._calendar._highlight_day:
+            self.setWindowTitle(
+                trf(
+                    "Sothic year calendar — [hrw {year}]",
+                    year=self._calendar.horus_year,
+                )
+            )
+            return
         info = self._calendar.selected_day_info()
         if info is None:
             self.setWindowTitle(tr("Sothic year calendar"))
@@ -467,7 +503,13 @@ class SothicCalendarDialog(QDialog):
     def _apply_horus_year(self, year: int) -> None:
         clamped = max(self._HORUS_MIN, min(self._HORUS_MAX, year))
         month, season, day = self._calendar.selection
-        self._calendar.set_year(clamped, month=month, season=season, day=day)
+        self._calendar.set_year(
+            clamped,
+            month=month,
+            season=season,
+            day=day,
+            highlight_day=self._calendar._highlight_day,
+        )
         self._sync_year_edit()
         self._update_window_title()
 
@@ -506,11 +548,18 @@ def show_sothic_calendar_dialog(
     month: str = "I",
     season: str = "akhet",
     day: int = 1,
+    highlight_day: bool = True,
 ) -> SothicCalendarDialog:
     """Open (or raise) the Sothic year calendar for the given civil date."""
     for dlg in SothicCalendarDialog._open_dialogs:
         if dlg.isVisible() and dlg._calendar.horus_year == horus_year:
-            dlg._calendar.set_year(horus_year, month=month, season=season, day=day)
+            dlg._calendar.set_year(
+                horus_year,
+                month=month,
+                season=season,
+                day=day,
+                highlight_day=highlight_day,
+            )
             dlg._sync_year_edit()
             dlg._update_window_title()
             dlg.showMaximized()
@@ -523,6 +572,7 @@ def show_sothic_calendar_dialog(
         month=month,
         season=season,
         day=day,
+        highlight_day=highlight_day,
         parent=parent,
     )
     SothicCalendarDialog._open_dialogs.append(dlg)

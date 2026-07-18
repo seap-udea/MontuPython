@@ -1,4 +1,6 @@
 pytest
 nbconvert
+nbformat
+ipykernel
 build
 twine

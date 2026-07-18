@@ -55,7 +55,7 @@ setuptools.setup(
                       'dash','dash_bootstrap_components'],
 
     extras_require={
-        'test': ['pytest'],
+        'test': ['pytest', 'nbconvert', 'nbformat', 'ipykernel'],
     },
 
     # ######################################################################
