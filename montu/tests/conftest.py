@@ -7,6 +7,21 @@ matplotlib.use("Agg")
 
 import montu
 
+
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "docstrings: tests derived from examples shown in docstrings",
+    )
+    config.addinivalue_line(
+        "markers",
+        "notebooks: tests derived from workflows documented in example notebooks",
+    )
+    config.addinivalue_line(
+        "markers",
+        "structure: tests validating the shared structure of example notebooks",
+    )
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES_DIR = REPO_ROOT / "examples"
 

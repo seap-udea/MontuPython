@@ -697,6 +697,8 @@ class HeliacalRise:
         sky_brightness = b0 + (self.k / 0.20) * 10**l5
         if l5 < -2.07:
             sky_brightness = b0 + 589 * self.k
+        if sky_brightness < 0:
+            sky_brightness = 0.0
 
         c5, k5 = 4.4668e-9, 1.258e-6
         if sky_brightness < 1649:

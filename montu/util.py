@@ -173,14 +173,13 @@ class Util(object):
         """
         out = np.empty(dt.shape + (7,), dtype="u4")
         Y, M, D, h, m, s = [dt.astype(f"M8[{x}]") for x in "YMDhms"]
-        out[..., 0] = Y + 1970 # Gregorian Year
-        
-        out[..., 1] = (M - Y) + 1 # month
-        out[..., 2] = (D - M) + 1 # dat
-        out[..., 3] = (dt - D).astype("m8[h]") # hour
-        out[..., 4] = (dt - h).astype("m8[m]") # minute
-        out[..., 5] = (dt - m).astype("m8[s]") # second
-        out[..., 6] = (dt - s).astype("m8[us]") # microsecond
+        out[..., 0] = (Y - np.datetime64(0, "Y")) / np.timedelta64(1, "Y") + 1970
+        out[..., 1] = (M - Y) / np.timedelta64(1, "M") + 1
+        out[..., 2] = (D - M) / np.timedelta64(1, "D") + 1
+        out[..., 3] = (dt - D) / np.timedelta64(1, "h")
+        out[..., 4] = (dt - h) / np.timedelta64(1, "m")
+        out[..., 5] = (dt - m) / np.timedelta64(1, "s")
+        out[..., 6] = (dt - s) / np.timedelta64(1, "us")
 
         #out = np.array([float(o) for o in out])
         out = [int(o) for o in out]

@@ -5,6 +5,8 @@ Prepares example notebooks for Sphinx documentation.
 Copies notebooks from the examples/ directory into docs/examples/,
 ordering them according to any ordering hints found in examples/README.md
 (if present), and regenerates docs/examples.rst.
+
+Notebooks listed in examples/docignore (one filename per line) are skipped.
 """
 import os
 import re
@@ -18,6 +20,20 @@ def _extract_order(readme_path):
         return []
     text = open(readme_path, "r", encoding="utf-8").read()
     return re.findall(r"MontuPython-[0-9A-Za-z_\-]+\.ipynb", text)
+
+
+def _load_docignore(docignore_path):
+    """Return notebook basenames listed in examples/docignore."""
+    if not os.path.exists(docignore_path):
+        return set()
+    ignored = set()
+    with open(docignore_path, "r", encoding="utf-8") as handle:
+        for line in handle:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            ignored.add(line)
+    return ignored
 
 
 def _title_from_notebook(path):
@@ -42,18 +58,25 @@ def main():
     docs_examples_dir = os.path.join(root_dir, "docs", "examples")
     rst_file = os.path.join(root_dir, "docs", "examples.rst")
     readme_path = os.path.join(src_dir, "README.md")
+    docignore_path = os.path.join(src_dir, "docignore")
 
     # Recreate the docs/examples directory
     if os.path.exists(docs_examples_dir):
         shutil.rmtree(docs_examples_dir)
     os.makedirs(docs_examples_dir)
 
+    ignored = _load_docignore(docignore_path)
+
     # Build map of all available notebooks
     notebook_map = {
         name: os.path.join(src_dir, name)
         for name in os.listdir(src_dir)
-        if name.endswith(".ipynb")
+        if name.endswith(".ipynb") and name not in ignored
     }
+
+    for name in sorted(ignored):
+        if os.path.exists(os.path.join(src_dir, name)):
+            print(f"Skipping {name} (listed in examples/docignore)")
 
     # Apply README ordering first, then append remaining notebooks sorted
     order = _extract_order(readme_path)

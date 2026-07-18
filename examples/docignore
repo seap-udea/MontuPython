@@ -1,0 +1,5 @@
+# Notebooks excluded from Sphinx documentation (make docs-prepare).
+# One filename per line. Lines starting with # and blank lines are ignored.
+#
+# Example:
+MontuPython-TestCode.ipynb
