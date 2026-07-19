@@ -1,7 +1,7 @@
 [build-system]
 requires = ['setuptools',
-			'scipy','ipython','matplotlib','tqdm','numpy','ephem',
-			'pymeeus','regex','pandas','tabulate','numpy',
-			'pyplanets','requests'
+			'scipy','ipython','matplotlib','tqdm','numpy','ephem==4.2.1',
+			'pymeeus==0.5.12','regex','pandas','tabulate','numpy',
+			'pyplanets==0.4.2','requests'
 	    ]
 build-backend = "setuptools.build_meta"

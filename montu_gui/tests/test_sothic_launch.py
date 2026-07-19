@@ -2,6 +2,8 @@ import pytest
 
 from montu_gui.modules.date_converter import parse_sothic_launch_arg
 
+pytestmark = pytest.mark.desktop
+
 
 def test_parse_full_sothic_date_highlights_day():
     req = parse_sothic_launch_arg("[hrw 0] I akhet 1")

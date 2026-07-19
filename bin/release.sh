@@ -10,6 +10,7 @@ IFS=$'\n\t'
 #   - montu/version.py
 # - Builds (python -m build), validates (twine check), and uploads (twine upload)
 # - If anything fails, automatically rolls back to the previous version
+# - Pins ephem/pymeeus/pyplanets, regenerates organic snapshots, updates WHATSNEW
 ##################################################################
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -59,6 +60,11 @@ rollback() {
   if [[ -n "${BACKUP_DIR}" && -d "${BACKUP_DIR}" ]]; then
     if [[ -f "${BACKUP_DIR}/setup.py" ]]; then cp -f "${BACKUP_DIR}/setup.py" "$SETUP_PY" || true; fi
     if [[ -f "${BACKUP_DIR}/version.py" ]]; then cp -f "${BACKUP_DIR}/version.py" "$VERSION_PY" || true; fi
+    if [[ -f "${BACKUP_DIR}/requirements-astronomy.txt" ]]; then cp -f "${BACKUP_DIR}/requirements-astronomy.txt" "$ROOT_DIR/requirements-astronomy.txt" || true; fi
+    if [[ -f "${BACKUP_DIR}/WHATSNEW.md" ]]; then cp -f "${BACKUP_DIR}/WHATSNEW.md" "$ROOT_DIR/WHATSNEW.md" || true; fi
+    if [[ -f "${BACKUP_DIR}/pyproject.toml" ]]; then cp -f "${BACKUP_DIR}/pyproject.toml" "$ROOT_DIR/pyproject.toml" || true; fi
+    if [[ -f "${BACKUP_DIR}/test-planetary-ephemeris-organic.csv" ]]; then cp -f "${BACKUP_DIR}/test-planetary-ephemeris-organic.csv" "$ROOT_DIR/montu/tests/test-planetary-ephemeris-organic.csv" || true; fi
+    if [[ -f "${BACKUP_DIR}/test-stellar-positions-organic.csv" ]]; then cp -f "${BACKUP_DIR}/test-stellar-positions-organic.csv" "$ROOT_DIR/montu/tests/test-stellar-positions-organic.csv" || true; fi
     if [[ -f "${BACKUP_DIR}/versions" ]]; then cp -f "${BACKUP_DIR}/versions" "$VERSIONS_LOG" || true; fi
   fi
 
@@ -87,6 +93,7 @@ Notes:
   - If anything fails in build/check/upload, it restores the previous version.
   - With --dry-run/--no-upload, it runs build + twine check, but does NOT upload.
   - With --skip-bump, the repository must already be at VERSION_NEW.
+  - Pins ephem/pymeeus/pyplanets, regenerates organic snapshots, and updates WHATSNEW.
 EOF
 }
 
@@ -179,6 +186,11 @@ BACKUP_DIR="$(mktemp -d -t montu-release.XXXXXX)"
 if [[ $SKIP_BUMP -eq 0 ]]; then
   cp -f "$SETUP_PY" "${BACKUP_DIR}/setup.py"
   cp -f "$VERSION_PY" "${BACKUP_DIR}/version.py"
+  cp -f "$ROOT_DIR/requirements-astronomy.txt" "${BACKUP_DIR}/requirements-astronomy.txt" 2>/dev/null || true
+  cp -f "$ROOT_DIR/WHATSNEW.md" "${BACKUP_DIR}/WHATSNEW.md" 2>/dev/null || true
+  cp -f "$ROOT_DIR/montu/tests/test-planetary-ephemeris-organic.csv" "${BACKUP_DIR}/" 2>/dev/null || true
+  cp -f "$ROOT_DIR/montu/tests/test-stellar-positions-organic.csv" "${BACKUP_DIR}/" 2>/dev/null || true
+  cp -f "$ROOT_DIR/pyproject.toml" "${BACKUP_DIR}/pyproject.toml" 2>/dev/null || true
   if [[ -f "$VERSIONS_LOG" ]]; then
     cp -f "$VERSIONS_LOG" "${BACKUP_DIR}/versions"
   fi
@@ -220,6 +232,9 @@ if [[ $SKIP_BUMP -eq 0 ]]; then
 else
   log "Skipping version bump (already at $VERSION_NEW)."
 fi
+
+log "Pinning astronomy stack and regenerating organic snapshots..."
+"$PY" "$ROOT_DIR/bin/update_release_astronomy_stack.py" --version "$VERSION_NEW" --python "$PY"
 
 log "Cleaning previous build artifacts..."
 rm -rf "$ROOT_DIR/dist" "$ROOT_DIR/build" "$ROOT_DIR"/*.egg-info 2>/dev/null || true

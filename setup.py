@@ -1,4 +1,21 @@
+import pathlib
+
 import setuptools
+
+ROOT = pathlib.Path(__file__).resolve().parent
+
+
+def _read_requirement_lines(filename: str) -> list[str]:
+    path = ROOT / filename
+    lines: list[str] = []
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if line and not line.startswith("#"):
+            lines.append(line)
+    return lines
+
+
+ASTRONOMY_REQUIRES = _read_requirement_lines("requirements-astronomy.txt")
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
@@ -49,10 +66,13 @@ setuptools.setup(
     # ######################################################################
     # DEPENDENCIES
     # ######################################################################
-    install_requires=['scipy','ipython','matplotlib','tqdm','numpy','ephem',
-                      'pymeeus','regex','pandas','tabulate',
-                      'pyplanets','requests',
-                      'dash','dash_bootstrap_components'],
+    install_requires=[
+        'scipy', 'ipython', 'matplotlib', 'tqdm', 'numpy',
+        *ASTRONOMY_REQUIRES,
+        'regex', 'pandas', 'tabulate',
+        'requests',
+        'dash', 'dash_bootstrap_components',
+    ],
 
     extras_require={
         'test': ['pytest', 'nbconvert', 'nbformat', 'ipykernel'],

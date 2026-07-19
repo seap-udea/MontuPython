@@ -2,6 +2,11 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.40.0 (breaktrhough)
+
+- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
+- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+
 ## Version 0.31.0 (improve)
 
 - **Stellarium validation — planetary ephemerides** — new parametrized test suite `montu/tests/test_planetary_ephemeris.py` against reference rows in `montu/tests/test-planetary-ephemeris.csv` (geocentric J2000 RA/Dec, phase, distance, solar elongation, and lunar elongation exported from Stellarium for Mercury through Saturn).

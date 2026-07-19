@@ -40,10 +40,11 @@ MontuPython release pipeline.
 
 Package release (--version):
   1. Bump package version
-  2. Execute README.ipynb and examples/*.ipynb (refresh outputs)
-  3. make clean && make readme && make docs
-  4. Commit + push release artifacts
-  5. Upload to PyPI (bin/release.sh --skip-bump)
+  2. Pin astronomy stack + regenerate organic snapshots + WHATSNEW note
+  3. Execute README.ipynb and examples/*.ipynb (refresh outputs)
+  4. make clean && make readme && make docs
+  5. Commit + push release artifacts
+  6. Upload to PyPI (bin/release.sh --skip-bump)
 
 Desktop release (--tag):
   1. make desktop-release VERSION=...
@@ -243,6 +244,8 @@ run_package_release() {
 
   log "=== Package release $version ==="
   bump_package_version "$version"
+  log "Pinning astronomy stack and regenerating organic snapshots..."
+  "$PY" "$ROOT_DIR/bin/update_release_astronomy_stack.py" --version "$version" --python "$PY"
   execute_notebooks
   make clean
   make readme

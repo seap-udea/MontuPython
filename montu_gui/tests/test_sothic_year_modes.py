@@ -1,4 +1,6 @@
 import montu
+import pytest
+
 from montu_gui.modules.date_converter import (
     SOTHIC_YEAR_BCE,
     SOTHIC_YEAR_CE,
@@ -10,6 +12,8 @@ from montu_gui.modules.date_converter import (
     sothic_horus_from_year,
     sothic_to_julian_gregorian,
 )
+
+pytestmark = pytest.mark.desktop
 
 
 def test_sothic_format_mixed_bce():

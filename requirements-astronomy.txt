@@ -1,0 +1,5 @@
+# Pinned astronomy stack for reproducible MontuPython ephemerides.
+# Updated automatically on each package release (bin/update_release_astronomy_stack.py).
+ephem==4.2.1
+pymeeus==0.5.12
+pyplanets==0.4.2

@@ -1,7 +1,7 @@
 .PHONY: help show status clean cleanall cleancrap cleanout cleandist \
 	install install-dev build env addall commit pull push release notebooks readme import \
 	docs docs-install docs-prepare docs-build docs-clean \
-	test-install test test-docstrings test-notebooks test-structure \
+	test-install test test-docstrings test-notebooks test-structure test-desktop test-organic \
 	desktop-show desktop-install-build desktop-build desktop-clean \
 	desktop-package desktop-release desktop-ci subsets
 
@@ -46,6 +46,10 @@ help:
 	@echo "  test-docstrings - Run tests derived from docstring examples"
 	@echo "  test-notebooks  - Run tests derived from example notebooks"
 	@echo "  test-structure  - Validate example notebook structure"
+	@echo "  test-desktop    - Run MontuPython Desktop module and example tests"
+	@echo "  test-organic    - Run organic ephemeris/stellar regression snapshots"
+	@echo "  organic-snapshots - Regenerate organic CSV regression references"
+	@echo "  pin-astronomy   - Pin ephem/pymeeus/pyplanets and refresh organic snapshots (VERSION=x.y.z)"
 	@echo ""
 	@echo "MontuPython Desktop ($(DESKTOP_VERSION)):"
 	@echo "  desktop-show          - Show desktop app version"
@@ -224,6 +228,27 @@ test-notebooks:
 test-structure:
 	@echo "Validating example notebook structure..."
 	@$(PYTHON) -m pytest -m structure
+
+test-desktop:
+	@echo "Running MontuPython Desktop tests..."
+	@$(PYTHON) -m pytest montu_gui/tests -m desktop
+
+test-organic:
+	@echo "Running organic snapshot regression tests..."
+	@$(PYTHON) -m pytest montu/tests/test_planetary_ephemeris_organic.py montu/tests/test_stellar_positions_organic.py
+
+organic-snapshots:
+	@echo "Regenerating organic ephemeris and stellar position snapshots..."
+	@$(if $(wildcard .venv/bin/python),.venv/bin/python,$(PYTHON)) bin/generate_organic_stellar_positions.py
+	@$(if $(wildcard .venv/bin/python),.venv/bin/python,$(PYTHON)) bin/generate_organic_planetary_ephemeris.py
+
+pin-astronomy:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "Usage: make pin-astronomy VERSION=x.y.z"; \
+		exit 1; \
+	fi
+	@echo "Pinning astronomy stack for release $(VERSION)..."
+	@$(if $(wildcard .venv/bin/python),.venv/bin/python,$(PYTHON)) bin/update_release_astronomy_stack.py --version "$(VERSION)" --python $(if $(wildcard .venv/bin/python),.venv/bin/python,$(PYTHON))
 
 ##################################################################
 # MONTUPYTHON DESKTOP
