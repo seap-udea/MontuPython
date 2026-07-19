@@ -805,8 +805,8 @@ class Time(object):
         if not hasattr(self.readable, "datepro"):
             self.get_readable()
 
-    def __str__(self):
-
+    def details(self):
+        """Return a string with the details of the Time object."""
         self._ensure_readable()
 
         str = f"""Montu Time Object:
@@ -835,6 +835,22 @@ Uniform scales:
         jed (.jed): {self.jed}
         hed (.hed): {self.hed}
     Delta-t = TT - UTC (.deltat): {self.deltat}
+"""
+        print(str)        
+
+    def __str__(self):
+
+        self._ensure_readable()
+
+        str = f"""{self.readable.datespice} / {self.readable.datesot}:
+    Date in ISO format: {self.readable.datespice}
+    Date in proleptic UTC: {self.readable.datepro}
+    Date in mixed UTC: {self.readable.datemix}
+    Weekday: {self.readable.weekday} ({self.readable.weekday_name})
+    Date in sothic format: {self.readable.datesot}
+    Terrestrial time: tt [seconds]: {self.tt}
+    UTC time: jed [days]: {self.jed}
+    Delta-t = TT - UTC [seconds]: {self.deltat}
 """
         return str
     
