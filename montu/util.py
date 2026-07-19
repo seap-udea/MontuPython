@@ -15,15 +15,9 @@ import pandas as pd
 import numpy as np
 from tabulate import tabulate
 
-from pymeeus.Epoch import Epoch as pymeeus_Epoch
-from pymeeus.Angle import Angle as pymeeus_Angle
-import pymeeus.Coordinates as pymeeus_Coordinates
-
 ###############################################################
 # Module constants
 ###############################################################
-PLANETARY_DATAFILE = 'planets-jpl.csv'
-
 def GENERATOR():
     """This routine is intended to create a while True loop for tqdm 
     counter
@@ -210,7 +204,7 @@ class Util(object):
         '15:30:00.000'
         >>> montu.Util.dec2sex(-7.25, string=False)
         (-7, 15, 0.0)
-        >>> az, el = montu.Util.where_in_sky(RA=6.77, Dec=-16.75,
+        >>> az, el = montu.Astro.where_in_sky(RA=6.77, Dec=-16.75,
         ...     at=montu.Time('2024-05-01 19:00:00'),
         ...     observer=montu.Observer(lon=-75, lat=6, height=2.5))
         >>> montu.Util.dec2sex(az)
@@ -450,103 +444,6 @@ class Util(object):
         a = (observed[1] - observed[0]) / (mapped[1] - mapped[0])
         b = observed[0] - a * mapped[0]
         return lambda x: a * x + b
-
-    def load_planets():
-        """Load the planetary data table shipped with the package.
-
-        Returns
-        -------
-        pandas.DataFrame
-            DataFrame indexed by planet name, containing orbital and physical
-            parameters. A derived column ``SynodicOrbit`` (synodic period in
-            years) is added automatically.
-
-        Examples
-        --------
-        >>> import montu
-        >>> planets = montu.Util.load_planets()
-        >>> planets.loc['Mars', 'SiderealOrbit']
-        1.8808...
-        """
-        planets = pd.read_csv(
-            Util._data_path(PLANETARY_DATAFILE, check=True),
-            sep=';'
-        )
-        planets.set_index('Planet',inplace=True)
-
-        # Derivative quantities
-        planets['SynodicOrbit'] = abs(1/(1/planets.loc['Earth','SiderealOrbit']-1/planets['SiderealOrbit']))
-
-        return planets
-
-    def where_in_sky(RA=0,Dec=0,at=None,observer=None):
-        """Compute the horizontal coordinates (azimuth, elevation) of a point.
-
-        This is a convenience wrapper around the spherical-trigonometry
-        conversion from equatorial (RA/Dec) to horizontal (Az/El) coordinates.
-
-        Parameters
-        ----------
-        RA : float, optional
-            Right ascension [hours]. Default is 0.
-        Dec : float, optional
-            Declination [degrees]. Default is 0.
-        at : montu.Time, optional
-            Epoch of the observation. Defaults to the current time.
-        observer : montu.Observer
-            Observing site. Must be a valid :class:`montu.Observer` instance.
-
-        Returns
-        -------
-        az : float
-            Azimuth [degrees], measured from North through East.
-        el : float
-            Elevation (altitude) [degrees] above the horizon.
-
-        Raises
-        ------
-        ValueError
-            If *observer* is not a :class:`montu.Observer` instance.
-
-        Examples
-        --------
-        >>> import montu
-        >>> rionegro = montu.Observer(lon=-75, lat=6, height=2.5)
-        >>> mtime = montu.Time('2024-05-01 19:00:00')
-        >>> az, el = montu.Util.where_in_sky(
-        ...     RA=6.770358, Dec=-16.751203,
-        ...     at=mtime, observer=rionegro)
-        >>> montu.Util.dec2sex(az), montu.Util.dec2sex(el)
-        ('...', '...')
-        """
-        if at is None:
-            at = montu.Time()
-
-        # Check inputs
-        if not isinstance(observer,montu.Observer):
-            raise ValueError("You must provide a valid montu.Observer")
-
-        # Create pymeeus epoch
-        epoch = pymeeus_Epoch(at.jed)
-
-        # Compute local true sidereal time
-        observer.site.date = at.jed - montu.PYEPHEM_JD_REF
-        ltst = observer.site.sidereal_time()*montu.RAD/15
-
-        
-        # Compute hour angle
-        HA = np.mod(ltst - RA,24)
-        
-        # Compute horizontal coordinates
-        lat = observer.lat
-        el = np.arcsin(np.sin(Dec*montu.DEG)*np.sin(lat*montu.DEG) + \
-                    np.cos(Dec*montu.DEG)*np.cos(lat*montu.DEG)*np.cos(HA*15*montu.DEG))*montu.RAD
-        az = np.arctan2(-np.sin(HA*15*montu.DEG)*np.cos(Dec*montu.DEG)/np.cos(el*montu.DEG),
-                        (np.sin(Dec*montu.DEG) - np.sin(lat*montu.DEG)*np.sin(el*montu.DEG))/\
-                            (np.cos(lat*montu.DEG)*np.cos(el*montu.DEG)))*montu.RAD
-        az = np.mod(az,360)
-        
-        return az,el
 
 class Dictobj(object):
     """Convert a dictionary into an object with attribute-style access.

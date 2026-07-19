@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -19,6 +21,23 @@ DEFAULT_GUI_ROOT = MONTUPY_DIR / "MontuPython"
 DEFAULT_GITHUB_REPO = "seap-udea/MontuPython"
 DEFAULT_BRANCH = "main"
 DESKTOP_REQUIREMENTS = ("PySide6", "Pygments", "plotly")
+NOTEBOOK_TEST_MODULES = frozenset(
+    {
+        "test_notebook_structure.py",
+        "test_example_notebooks.py",
+    }
+)
+
+
+def _desktop_deps_available() -> bool:
+    try:
+        import PySide6  # noqa: F401
+        import pygments  # noqa: F401
+        import plotly  # noqa: F401
+
+        return True
+    except ImportError:
+        return False
 
 
 def get_version() -> str:
@@ -62,7 +81,84 @@ def verify_installation() -> int:
 
     print(f"OK: Packaged tests found in: {tests_dir}")
     print(f"OK: Detected {len(test_files)} test modules")
+    sys.stdout.flush()
     return 0
+
+
+def _module_test_summary(path: Path) -> str:
+    try:
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        doc = ast.get_docstring(tree)
+        if doc:
+            first = doc.strip().splitlines()[0].strip()
+            if first:
+                return first
+    except (OSError, SyntaxError, UnicodeDecodeError):
+        pass
+    return path.stem.replace("test_", "").replace("_", " ")
+
+
+def _collect_packaged_test_counts(
+    tests_dir: Path,
+) -> tuple[int, dict[str, int]] | None:
+    cmd = [sys.executable, "-m", "pytest", str(tests_dir), "--collect-only", "-q"]
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            check=False,
+        )
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+    if result.returncode != 0:
+        return None
+
+    output = result.stdout + result.stderr
+    counts: dict[str, int] = {}
+    for line in output.splitlines():
+        if "::" not in line:
+            continue
+        module = line.split("::", 1)[0].replace("\\", "/").split("/")[-1]
+        if module.startswith("test_") and module.endswith(".py"):
+            counts[module] = counts.get(module, 0) + 1
+
+    match = re.search(r"(\d+) tests collected", output)
+    total = int(match.group(1)) if match else sum(counts.values())
+    return total, counts
+
+
+def print_packaged_test_plan(tests_dir: Path) -> None:
+    modules = sorted(tests_dir.glob("test_*.py"))
+    collection = _collect_packaged_test_counts(tests_dir)
+
+    print(f"MontuPython {get_version()} — what will be tested")
+    if collection is not None:
+        total, counts = collection
+        print(f"{total} test cases in {len(modules)} modules:")
+    else:
+        counts = {}
+        print(f"{len(modules)} test modules:")
+
+    for path in modules:
+        name = path.name
+        summary = _module_test_summary(path)
+        count = counts.get(name)
+        if name in NOTEBOOK_TEST_MODULES:
+            note = " [skipped after pip install; needs repo checkout]"
+        else:
+            note = ""
+        if count is not None:
+            print(f"  • {name} ({count}): {summary}{note}")
+        else:
+            print(f"  • {name}: {summary}{note}")
+
+    if any(path.name in NOTEBOOK_TEST_MODULES for path in modules):
+        print(
+            "Note: notebook tests need README.ipynb and examples/ "
+            "at the repository root (development checkout only)."
+        )
 
 
 def run_tests(*, verbose: bool = False) -> int:
@@ -82,6 +178,11 @@ def run_tests(*, verbose: bool = False) -> int:
     print("Running MontuPython packaged tests")
     print("=" * 60)
     print(f"Tests directory: {tests_dir}")
+    print()
+    print_packaged_test_plan(tests_dir)
+    print()
+    print("-" * 60)
+    sys.stdout.flush()
 
     cmd = [sys.executable, "-m", "pytest", str(tests_dir), "-v" if verbose else "-q"]
     try:
@@ -276,9 +377,14 @@ def download_montu_gui(*, force: bool = False) -> Path:
 
 
 def install_desktop_requirements() -> None:
-    print("Installing MontuPython Desktop dependencies...")
+    dev_root = _detect_dev_gui_root()
+    if dev_root is not None and (dev_root / "setup.py").is_file():
+        pkg = f"{dev_root}[desktop]"
+    else:
+        pkg = "montu[desktop]"
+    print(f"Installing MontuPython Desktop dependencies ({pkg})...")
     subprocess.check_call(
-        [sys.executable, "-m", "pip", "install", "-q", *DESKTOP_REQUIREMENTS]
+        [sys.executable, "-m", "pip", "install", "-q", pkg]
     )
 
 
@@ -289,6 +395,8 @@ def launch_gui(extra_args: list[str], *, update: bool = False) -> int:
         print(f"Using local MontuPython Desktop at {gui_root}")
     else:
         gui_root = download_montu_gui(force=update)
+
+    if not _desktop_deps_available():
         install_desktop_requirements()
 
     main_py = _gui_main_path(gui_root)
@@ -306,6 +414,8 @@ def ensure_gui_importable(*, update: bool = False) -> Path:
         gui_root = dev_root
     else:
         gui_root = download_montu_gui(force=update)
+
+    if not _desktop_deps_available():
         install_desktop_requirements()
 
     root_str = str(gui_root)
@@ -324,7 +434,7 @@ def launch_sothic_calendar(date_text: str) -> int:
         from montu_gui.widgets.sothic_calendar_dialog import show_sothic_calendar_dialog
     except ImportError as exc:
         print(f"FAIL: MontuPython Desktop is not available: {exc}")
-        print("Install GUI dependencies with: pip install PySide6")
+        print("Install GUI dependencies with: pip install montu[desktop]")
         return 1
 
     try:

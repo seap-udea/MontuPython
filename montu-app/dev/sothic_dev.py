@@ -219,16 +219,14 @@ def julian_to_sothic(button,era,year,month,day,add=0,add_units='days'):
     mtime = montu.Time(datemix,calendar='mixed')
 
     if int(add)>0:
-        # Add 
+        kwargs = {'days': float(add)}
         if add_units == 'weeks':
-            factor = 7*montu.DAY
+            kwargs = {'days': float(add) * 7}
         elif add_units == 'months':
-            factor = 29.5*montu.DAY
+            kwargs = {'months': int(add)}
         elif add_units == 'years':
-            factor = montu.JULYEAR
-        else:
-            factor = montu.DAY
-        mtime = mtime.add(add*factor).get_readable()
+            kwargs = {'years': int(add)}
+        mtime = mtime.add(**kwargs).get_readable()
 
     # Convert datemix
     comps = mtime.readable.datemix.split(' ')
@@ -270,16 +268,14 @@ def sothic_to_julian(button,hyear,month,season,day,add=0,add_units='days'):
     mtime = montu.Time(cdate,calendar='sothic')
 
     if int(add)>0:
-        # Add 
+        kwargs = {'days': float(add)}
         if add_units == 'weeks':
-            factor = 10*montu.DAY
+            kwargs = {'days': float(add) * 7}
         elif add_units == 'months':
-            factor = 30*montu.DAY
+            kwargs = {'months': int(add)}
         elif add_units == 'years':
-            factor = montu.CALYEAR
-        else:
-            factor = montu.DAY
-        mtime = mtime.add(add*factor).get_readable()
+            kwargs = {'years': int(add)}
+        mtime = mtime.add(**kwargs).get_readable()
 
     # Convert datemix
     comps = mtime.readable.datemix.split(' ')

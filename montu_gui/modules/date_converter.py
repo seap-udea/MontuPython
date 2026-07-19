@@ -341,8 +341,7 @@ def julian_gregorian_to_sothic(
         mtime = montu.Time(date_str, calendar=calendar, zone=zone)
 
         if add and float(add) != 0:
-            factor = _add_factor(montu, add_units)
-            mtime = mtime.add(float(add) * factor).get_readable()
+            mtime = mtime.add(**_calendar_add_kwargs(montu, add_units, float(add))).get_readable()
 
         result = _build_result_from_mtime(mtime)
         log_conversion(
@@ -395,8 +394,7 @@ def sothic_to_julian_gregorian(
         mtime = montu.Time(cdate, calendar="sothic")
 
         if add and float(add) != 0:
-            factor = _add_factor(montu, add_units, sothic=True)
-            mtime = mtime.add(float(add) * factor).get_readable()
+            mtime = mtime.add(**_calendar_add_kwargs(montu, add_units, float(add), sothic=True)).get_readable()
 
         result = _build_result_from_mtime(mtime)
         log_conversion(
@@ -469,6 +467,16 @@ def julian_day_to_all(jd: float, scale: str = "utc") -> ConversionResult:
 
 
 # ── internal helpers ──────────────────────────────────────────────────────────
+def _calendar_add_kwargs(montu, units: str, amount: float, sothic: bool = False) -> dict:
+    if units == "weeks":
+        return {"days": amount * 7}
+    if units == "months":
+        return {"months": int(amount)}
+    if units == "years":
+        return {"years": int(amount)}
+    return {"days": amount}
+
+
 def _add_factor(montu, units: str, sothic: bool = False) -> float:
     if units == "weeks":
         return 7 * montu.DAY

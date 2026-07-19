@@ -32,8 +32,8 @@ def test_time_examples_cover_supported_input_formats():
     assert isinstance(terrestrial.tt, float)
     assert terrestrial.readable.datepro
 
-    shifted = terrestrial.add(365 * montu.DAY)
-    assert math.isclose(shifted.diff(terrestrial), 365.0, rel_tol=0, abs_tol=1e-6)
+    shifted = terrestrial.add(days=365)
+    assert shifted.diff(terrestrial).to_days() == pytest.approx(365.0, abs=1e-6)
 
 
 def test_stars_examples_filter_and_project_to_sky(andes_observer):

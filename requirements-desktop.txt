@@ -1,0 +1,5 @@
+# MontuPython Desktop (PySide6 GUI) optional dependencies.
+# Installed with: pip install montu[desktop]
+PySide6
+Pygments
+plotly

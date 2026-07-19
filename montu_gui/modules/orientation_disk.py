@@ -135,7 +135,7 @@ def _orbital_period_years(body_name: str) -> float:
         return MOON_SIDEREAL_YEARS
     if _planets_table is None:
         montu = _import_montu()
-        _planets_table = montu.Util.load_planets()
+        _planets_table = montu.load_planets()
     planet_key = body_name.strip().capitalize()
     if planet_key not in _planets_table.index:
         return MIN_SPAN_YEARS

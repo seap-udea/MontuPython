@@ -792,7 +792,7 @@ def _compute_horizon_curve(
         )
         dec = dec_rad * montu.RAD
         ra_h = np.mod(lst - ha_h, 24.0)
-        az, el = montu.Util.where_in_sky(
+        az, el = montu.Astro.where_in_sky(
             RA=ra_h, Dec=dec, at=mtime, observer=observer,
         )
         if abs(el) > 0.05:

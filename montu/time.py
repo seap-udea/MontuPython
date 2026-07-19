@@ -127,6 +127,169 @@ def _datestr_from_datetime64(dt64):
     return str(dt64).replace('T', ' ')
 
 
+def _days_in_month(year, month, calendar='proleptic', day=1):
+    """Days in a month for proleptic-Gregorian or mixed (Julian/Gregorian) rules."""
+    if calendar == 'mixed' and pymeeus_Epoch.is_julian(year, month, day):
+        if month == 2:
+            y = year if year > 0 else year + 1
+            return 29 if y % 4 == 0 else 28
+        if month in (4, 6, 9, 11):
+            return 30
+        return 31
+    if month in (1, 3, 5, 7, 8, 10, 12):
+        return 31
+    if month in (4, 6, 9, 11):
+        return 30
+    y = year
+    if y <= 0:
+        y += 1
+    leap = (y % 4 == 0 and (y % 100 != 0 or y % 400 == 0))
+    return 29 if leap else 28
+
+
+def _apply_civil_offset(y, m, d, h, mi, s,
+                        years=0, months=0, days=0, weeks=0,
+                        hours=0, minutes=0, seconds=0,
+                        calendar='proleptic'):
+    """Shift civil date/time components with calendar-aware month lengths."""
+    days += weeks * 7
+    y = int(y) + years
+    m = int(m) + months
+    y, m = _normalize_month_year(y, m)
+    d = int(d)
+    h, mi = int(h), int(mi)
+    s = float(s) + seconds
+
+    mi += minutes + int(s // 60)
+    s = s % 60
+    if s < 0:
+        s += 60
+        mi -= 1
+
+    h += hours + mi // 60
+    mi = mi % 60
+    if mi < 0:
+        mi += 60
+        h -= 1
+
+    d += days + h // 24
+    h = h % 24
+    if h < 0:
+        h += 24
+        d -= 1
+
+    while True:
+        dim = _days_in_month(y, m, calendar=calendar, day=d)
+        if 1 <= d <= dim:
+            break
+        if d > dim:
+            d -= dim
+            m += 1
+            if m > 12:
+                m = 1
+                y += 1
+        else:
+            m -= 1
+            if m < 1:
+                m = 12
+                y -= 1
+            d += _days_in_month(y, m, calendar=calendar, day=d)
+
+    sec = int(round(s))
+    if sec == 60:
+        sec = 0
+        mi += 1
+        if mi == 60:
+            mi = 0
+            h += 1
+            if h == 24:
+                h = 0
+                d += 1
+    return y, m, d, h, mi, sec
+
+
+def _mixed_datestr(y, m, d, h, mi, s):
+    """Build an ISO-like date string accepted by ``Time(..., calendar='mixed')``."""
+    return f'{y}-{int(m):02d}-{int(d):02d} {int(h):02d}:{int(mi):02d}:{int(s):02d}'
+
+
+def _normalize_month_year(year, month):
+    """Carry month overflow into the astronomical year."""
+    while month > 12:
+        year += 1
+        month -= 12
+    while month < 1:
+        year -= 1
+        month += 12
+    return year, month
+
+
+def _sothic_civil_days_to_parts(total_days):
+    """Decompose a sothic civil-day offset into years and remainder parts."""
+    years, rem = divmod(int(total_days), 365)
+    if rem >= 360:
+        return years, 0, 0, rem - 360 + 1
+    season = rem // 120
+    rem -= season * 120
+    month = rem // 30
+    day = rem % 30 + 1
+    return years, month + 1, season + 1, day
+
+
+class CalendarDelta:
+    """Calendar difference between two :class:`Time` instants.
+
+    Returned by :meth:`Time.diff`.  Supports unpacking as
+    ``years, days, hours, minutes, seconds`` and conversion helpers
+    ``to_days()`` / ``to_years()``.
+    """
+
+    __slots__ = ('years', 'months', 'days', 'hours', 'minutes', 'seconds', '_jed_days')
+
+    def __init__(self, years=0, months=0, days=0, hours=0, minutes=0, seconds=0, *, _jed_days=None):
+        self.years = int(years)
+        self.months = int(months)
+        self.days = int(days)
+        self.hours = int(hours)
+        self.minutes = int(minutes)
+        self.seconds = int(seconds)
+        self._jed_days = _jed_days
+
+    def __iter__(self):
+        return iter((self.years, self.days, self.hours, self.minutes, self.seconds))
+
+    def __neg__(self):
+        return CalendarDelta(
+            -self.years, -self.months, -self.days,
+            -self.hours, -self.minutes, -self.seconds,
+            _jed_days=-self._jed_days if self._jed_days is not None else None,
+        )
+
+    def __float__(self):
+        return self.to_days() * DAY
+
+    def to_days(self):
+        """Elapsed Julian days (UTC) between the two instants."""
+        if self._jed_days is not None:
+            return self._jed_days
+        return (
+            self.years * CALYEAR + self.months * (CALYEAR / 12)
+            + self.days * DAY + self.hours * HOUR + self.minutes * MIN + self.seconds
+        ) / DAY
+
+    def to_years(self):
+        """Approximate difference in calendar years (365-day civil years)."""
+        if self._jed_days is not None:
+            return self._jed_days * DAY / CALYEAR
+        return self.to_days() * DAY / CALYEAR
+
+    def __repr__(self):
+        return (
+            f"CalendarDelta(years={self.years}, days={self.days}, "
+            f"hours={self.hours}, minutes={self.minutes}, seconds={self.seconds})"
+        )
+
+
 class ReadableTime(montu.Dictobj):
     """Represent all human-readable string representations of a Time object,
     populating them on demand when accessed.
@@ -256,13 +419,20 @@ class Time(object):
     >>> print(mtime.readable.datepro)
     '2000-01-01 11:58:56.0'
 
-    Arithmetic — add calendar days:
-
-    >>> mtime2 = mtime.add(365 * montu.DAY)
-
-    Arithmetic — add TT seconds (no leap-second correction):
+    Arithmetic — add ephemeris (TT) seconds with ``+`` / ``-``:
 
     >>> mtime3 = mtime + 365 * montu.DAY
+
+    Arithmetic — shift by calendar units with :meth:`add` / :meth:`subs`:
+
+    >>> mtime2 = mtime.add(years=1, days=10)
+    >>> mtime4 = mtime.subs(days=30)
+
+    Difference — ephemeris seconds with ``-``; calendar units with :meth:`diff`:
+
+    >>> tt_seconds = later - earlier
+    >>> cal_diff = later.diff(earlier)
+    >>> cal_diff.years, cal_diff.to_days()
     """
 
     def __init__(self,
@@ -678,127 +848,327 @@ class Time(object):
     def __copy__(self):
         return Time(self.tt)
 
-    def __add__(self,dtt):
-        """Add a number of terrestrial seconds (TT scale, no leap corrections).
+    def __add__(self, dtt):
+        """Add ephemeris seconds (TT scale).
 
         Parameters
         ----------
         dtt : float
-            Seconds to add in the TT scale.
+            Seconds to add in the TT scale (e.g. ``100 * montu.YEAR``).
 
         Returns
         -------
         Time
-            New :class:`Time` object advanced by *dtt* seconds.
+            New :class:`Time` advanced by *dtt* TT seconds.
 
-        Notes
-        -----
-        Use :meth:`add` instead if you want the result to shift the calendar
-        date by exactly *dtt* seconds in UTC (accounting for ``deltat``).
-
-        Examples
+        See Also
         --------
-        >>> import montu
-        >>> mtime = montu.Time('2000-01-01 00:00:00')
-        >>> mtime2 = mtime + 365 * montu.DAY  # add 365 TT-days
+        add : shift by calendar years, months, days, etc.
         """
+        if isinstance(dtt, Time):
+            raise TypeError(
+                "Use calendar units with Time.add() or ephemeris seconds "
+                "with a numeric offset, not Time + Time."
+            )
         new = copy.copy(self)
         new.tt += dtt
         new.update_time()
         return new
-    
-    def __sub__(self,dtt):
-        """Subtract a number of terrestrial seconds (TT scale, no leap corrections).
+
+    def __radd__(self, dtt):
+        return self.__add__(dtt)
+
+    def __sub__(self, other):
+        """Subtract ephemeris seconds or compute TT difference between instants.
+
+        ``time - seconds`` moves *time* backward on the TT scale.
+        ``time_a - time_b`` returns the TT difference in seconds (float).
 
         Parameters
         ----------
-        dtt : float
-            Seconds to subtract in the TT scale.
+        other : float or Time
+            Ephemeris seconds to subtract, or another :class:`Time`.
 
         Returns
         -------
-        Time
-            New :class:`Time` object moved back by *dtt* seconds.
+        Time or float
+            New :class:`Time` when *other* is numeric; TT seconds when both
+            operands are :class:`Time`.
 
-        Examples
+        See Also
         --------
-        >>> mtime2 = mtime - montu.DAY  # subtract one TT-day
+        subs : shift backward by calendar units.
+        diff : calendar-component difference.
         """
+        if isinstance(other, Time):
+            return self.tt - other.tt
         new = copy.copy(self)
-        new.tt -= dtt 
+        new.tt -= other
         new.update_time()
         return new
-    
-    def add(self,dtt):
-        """Add a number of UTC seconds, preserving calendar accuracy.
 
-        Unlike the ``+`` operator, this method shifts the Julian Day in UTC
-        and reconstructs the object, so the calendar date advances by the
-        exact requested interval.
+    def _calendar_kwargs(self, years=0, months=0, days=0, weeks=0,
+                         hours=0, minutes=0, seconds=0):
+        days += weeks * 7
+        return dict(
+            years=years, months=months, days=days,
+            hours=hours, minutes=minutes, seconds=seconds,
+        )
+
+    def _shift_calendar(self, years=0, months=0, days=0, weeks=0,
+                        hours=0, minutes=0, seconds=0):
+        """Return a new Time shifted by calendar units."""
+        days += weeks * 7
+        calendar = getattr(self, 'calendar', 'proleptic')
+        if calendar == 'sothic':
+            return self._shift_sothic(
+                years=years, months=months, days=days,
+                hours=hours, minutes=minutes, seconds=seconds,
+            )
+        if calendar == 'mixed':
+            return self._shift_mixed(
+                years=years, months=months, days=days,
+                hours=hours, minutes=minutes, seconds=seconds,
+            )
+        return self._shift_proleptic(
+            years=years, months=months, days=days,
+            hours=hours, minutes=minutes, seconds=seconds,
+        )
+
+    def _shift_proleptic(self, years=0, months=0, days=0, weeks=0,
+                         hours=0, minutes=0, seconds=0):
+        self._ensure_readable()
+        era, y, m, d = self.readable.comps[:4]
+        h, mi, s = self.readable.comps[4:7]
+        astro_y = era * y + years
+        m += months
+        astro_y, m = _normalize_month_year(astro_y, m)
+        y, m, d, h, mi, s = _apply_civil_offset(
+            astro_y, m, d, h, mi, s,
+            days=days, weeks=weeks,
+            hours=hours, minutes=minutes, seconds=seconds,
+            calendar='proleptic',
+        )
+
+        datepro = _mixed_datestr(y, m, d, h, mi, s)
+        new = Time(datepro, calendar='proleptic')
+        new.calendar = self.calendar
+        return new
+
+    def _shift_mixed(self, years=0, months=0, days=0, weeks=0,
+                     hours=0, minutes=0, seconds=0):
+        """Shift a mixed-calendar instant using civil months/years and UTC-day steps.
+
+        Day-sized steps use Julian Day (``jed``) so the historical gap at the
+        1582 Gregorian reform is respected (1582-10-04 + 1 day → 1582-10-15).
+        """
+        self._ensure_readable()
+        jed = self.jed
+        delta_days = days + weeks * 7 + hours / 24 + minutes / 1440 + seconds / 86400
+
+        if years or months:
+            y, m, d, h, mi, s = pymeeus_Epoch(jed).get_full_date()
+            y, m, d, h, mi, s = _apply_civil_offset(
+                y, m, d, h, mi, s,
+                years=years, months=months, days=0, weeks=0,
+                hours=0, minutes=0, seconds=0,
+                calendar='mixed',
+            )
+            jed = pymeeus_Epoch(y, m, d, h, mi, s).jde()
+
+        if delta_days:
+            jed += delta_days
+
+        return Time(jed, format='jd', scale='utc', calendar='mixed')
+
+    def _shift_sothic(self, years=0, months=0, days=0,
+                      hours=0, minutes=0, seconds=0):
+        self._ensure_readable()
+        total = self.hed + years * 365 + months * 30 + days
+        total += (hours + minutes / 60 + seconds / 3600) / 24
+        new = Time(total + JED_APOKATASTASIS, format='jd', scale='utc')
+        new.calendar = 'sothic'
+        return new
+
+    def add(self, *, years=0, months=0, days=0, weeks=0,
+            hours=0, minutes=0, seconds=0):
+        """Advance *self* by calendar units.
 
         Parameters
         ----------
-        dtt : float
-            Seconds to add in the UTC scale.
+        years, months, days, weeks, hours, minutes, seconds : int or float, optional
+            Calendar offsets in the active calendar system of *self*.
 
         Returns
         -------
         Time
-            New :class:`Time` object advanced by *dtt* UTC seconds.
+            New :class:`Time` instance.
+
+        Notes
+        -----
+        For uniform ephemeris (TT) offsets use ``+`` instead, e.g.
+        ``mtime + 100 * montu.YEAR``.
 
         Examples
         --------
         >>> import montu
         >>> mtime = montu.Time('-1000-01-01 00:00:00')
-        >>> mtime2 = mtime.add(365 * montu.DAY)  # advance exactly one year
+        >>> mtime2 = mtime.add(years=1, days=10)
         """
-        new = Time(self.jed + dtt/DAY,format='jd')
-        return new
-    
-    def sub(self,dtt):
-        """Subtract a number of UTC seconds, preserving calendar accuracy.
+        return self._shift_calendar(
+            years=years, months=months, days=days, weeks=weeks,
+            hours=hours, minutes=minutes, seconds=seconds,
+        )
+
+    def subs(self, *, years=0, months=0, days=0, weeks=0,
+             hours=0, minutes=0, seconds=0):
+        """Move *self* backward by calendar units.
 
         Parameters
         ----------
-        dtt : float
-            Seconds to subtract in the UTC scale.
+        years, months, days, weeks, hours, minutes, seconds : int or float, optional
+            Calendar offsets in the active calendar system of *self*.
 
         Returns
         -------
         Time
-            New :class:`Time` object moved back by *dtt* UTC seconds.
+            New :class:`Time` instance.
+
+        Notes
+        -----
+        For uniform ephemeris (TT) offsets use ``-`` instead, e.g.
+        ``mtime - montu.DAY``.
 
         Examples
         --------
         >>> import montu
-        >>> mtime2 = mtime.sub(30 * montu.DAY)  # go back 30 calendar days
+        >>> mtime2 = mtime.subs(days=30)
         """
-        new = Time(self.jed - dtt/DAY,format='jd')
-        return new
-    
-    def diff(self,mtime):
-        """Return the Julian-day difference between two :class:`Time` objects.
+        return self._shift_calendar(
+            years=-years, months=-months, days=-days, weeks=-weeks,
+            hours=-hours, minutes=-minutes, seconds=-seconds,
+        )
+
+    def sub(self, dtt=None, **kwargs):
+        """Deprecated alias — use :meth:`subs` or ``-`` for TT seconds."""
+        if dtt is not None:
+            if kwargs:
+                raise TypeError("Pass either ephemeris seconds to sub() or calendar keywords, not both.")
+            return self - dtt
+        return self.subs(**kwargs)
+
+    def _calendar_components(self):
+        self._ensure_readable()
+        calendar = getattr(self, 'calendar', 'proleptic')
+        if calendar == 'sothic':
+            hy, month, season, day = Time.parse_datesot(self.readable.datesot)
+            total_days = Time._horus_days(
+                hy,
+                month,
+                'MESUT' if season == 'mesut' else season.upper(),
+                day,
+            )
+            day_fraction = self.jed - np.floor(self.jed)
+            seconds = int(round(day_fraction * DAY))
+            hours, rem = divmod(seconds, 3600)
+            minutes, seconds = divmod(rem, 60)
+            years, months, _, days = _sothic_civil_days_to_parts(total_days)
+            return dict(
+                years=years, months=months, days=days,
+                hours=hours, minutes=minutes, seconds=seconds,
+            )
+        if calendar == 'mixed':
+            y, m, d, h, mi, s = pymeeus_Epoch(self.jtd).get_full_date()
+            day_int = int(d)
+            day_fraction = d - day_int
+            seconds = int(round((s + day_fraction * 86400)))
+            hours, rem = divmod(seconds, 3600)
+            minutes, seconds = divmod(rem, 60)
+            return dict(
+                years=int(y), months=int(m), days=day_int,
+                hours=int(h) + hours, minutes=int(mi) + minutes, seconds=seconds,
+            )
+        era, y, m, d, h, mi, s, _ = self.readable.comps
+        return dict(
+            years=era * y, months=m, days=d,
+            hours=h, minutes=mi, seconds=s,
+        )
+
+    @staticmethod
+    def _component_diff(later_parts, earlier_parts, jed_days):
+        years = later_parts['years'] - earlier_parts['years']
+        months = later_parts['months'] - earlier_parts['months']
+        days = later_parts['days'] - earlier_parts['days']
+        hours = later_parts['hours'] - earlier_parts['hours']
+        minutes = later_parts['minutes'] - earlier_parts['minutes']
+        seconds = later_parts['seconds'] - earlier_parts['seconds']
+
+        if seconds < 0:
+            seconds += 60
+            minutes -= 1
+        if minutes < 0:
+            minutes += 60
+            hours -= 1
+        if hours < 0:
+            hours += 24
+            days -= 1
+        if days < 0:
+            months -= 1
+            ref_year = later_parts['years']
+            ref_month = later_parts['months'] if months >= 0 else later_parts['months'] - 1
+            if ref_month < 1:
+                ref_month = 12
+                ref_year -= 1
+            days += _days_in_month(ref_year, ref_month)
+        if months < 0:
+            months += 12
+            years -= 1
+
+        return CalendarDelta(
+            years=years, months=months, days=days,
+            hours=hours, minutes=minutes, seconds=seconds,
+            _jed_days=jed_days,
+        )
+
+    def diff(self, mtime):
+        """Calendar difference ``self - mtime``.
 
         Parameters
         ----------
         mtime : Time
-            The other :class:`Time` instance to subtract from *self*.
+            Earlier or later instant to compare with *self*.
 
         Returns
         -------
-        float
-            ``self.jed - mtime.jed`` in fractional days.
+        CalendarDelta
+            Signed calendar components and Julian-day helpers.
+
+        Notes
+        -----
+        For ephemeris (TT) seconds use ``self - mtime`` instead.
 
         Examples
         --------
         >>> import montu
         >>> t1 = montu.Time('2000-01-01')
-        >>> t2 = montu.Time('2000-03-01')
-        >>> t2.diff(t1)
-        60.0
+        >>> t2 = montu.Time('2001-01-01')
+        >>> t2.diff(t1).years
+        1
         """
-        difference = self.jed - mtime.jed
-        return difference
+        if not isinstance(mtime, Time):
+            raise TypeError("diff() expects another Time instance.")
+        sign = 1
+        later, earlier = self, mtime
+        if self.tt < mtime.tt:
+            later, earlier = mtime, self
+            sign = -1
+        jed_days = later.jed - earlier.jed
+        delta = Time._component_diff(
+            later._calendar_components(),
+            earlier._calendar_components(),
+            jed_days,
+        )
+        return -delta if sign < 0 else delta
 
     def _ensure_readable(self):
         """Populate human-readable fields when only partial data exist (e.g. weekday)."""

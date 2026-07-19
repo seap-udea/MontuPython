@@ -13,6 +13,15 @@ import json
 # Module constants
 ###############################################################
 _LOCATIONS_DATA = None
+_EARTH_RMEAN_KM = None
+
+
+def _earth_radius_km() -> float:
+    """Mean Earth radius [km] from the bundled JPL planetary table."""
+    global _EARTH_RMEAN_KM
+    if _EARTH_RMEAN_KM is None:
+        _EARTH_RMEAN_KM = float(montu.load_planets().loc["Earth", "Rmean"])
+    return _EARTH_RMEAN_KM
 
 
 def _load_locations_data() -> dict:
@@ -207,3 +216,53 @@ class Observer(object):
         utc_hour = ((mtime.jed + 0.5) % 1.0) * 24.0
         hour = (utc_hour + self.lon / 15.0) % 24.0
         return montu.D2S(hour) if hms else hour
+
+    def distance_to(self, other, units="km"):
+        """Great-circle distance to another observing site.
+
+        Parameters
+        ----------
+        other : Observer
+            Second site.
+        units : {'km', 'm', 'rad', 'deg'}, optional
+            ``'km'`` (default) returns surface distance in kilometres.
+            ``'m'`` returns metres.  ``'rad'`` and ``'deg'`` return the
+            angular separation on the celestial sphere.
+
+        Returns
+        -------
+        float
+            Distance between the two sites.
+
+        Notes
+        -----
+        Uses a spherical Earth with mean radius from the bundled planetary
+        table (same convention as :func:`montu.Util.haversine_distance`).
+        Site elevations are not included.
+
+        Examples
+        --------
+        >>> import montu
+        >>> alexandria = montu.Observer(site='alexandria')
+        >>> aswan = montu.Observer(site='aswan')
+        >>> round(aswan.distance_to(alexandria))
+        843
+        """
+        if not isinstance(other, Observer):
+            raise TypeError("distance_to() expects another Observer instance.")
+        arc = montu.Util.haversine_distance(
+            self.lat * montu.DEG, self.lon * montu.DEG,
+            other.lat * montu.DEG, other.lon * montu.DEG,
+        )
+        if units == "rad":
+            return arc
+        if units == "deg":
+            return arc * montu.RAD
+        radius_km = _earth_radius_km()
+        if units == "km":
+            return arc * radius_km
+        if units == "m":
+            return arc * radius_km * 1000.0
+        raise ValueError(
+            f"Unknown units {units!r}; use 'km', 'm', 'rad', or 'deg'."
+        )

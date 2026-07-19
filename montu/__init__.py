@@ -3,8 +3,10 @@
 ###############################################################
 from montu.version import *
 from montu.util import *
+from montu.physics import *
 from montu.time import *
 from montu.observer import *
+from montu.heka import *
 from montu.sebau import *
 from montu.stars import *
 from montu.maps import *
@@ -41,7 +43,7 @@ MARCSEC = 1e-3/3600 # milliarcsec in degrees
 warnings.filterwarnings("ignore")
 
 # Load planetary data
-ALLPLANETS = Util.load_planets()
+ALLPLANETS = load_planets()
 
 # Showing version 
 def welcome_version():

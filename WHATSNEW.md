@@ -6,6 +6,7 @@ This file collects the release notes and the main changes in MontuPython.
 
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
 - **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+- **`montu[desktop]` optional extra** — `pip install montu[desktop]` installs PySide6, Pygments, and plotly for MontuPython Desktop and `imontu --gui` / `imontu --sothic` (see `requirements-desktop.txt`).
 
 ## Version 0.31.0 (improve)
 

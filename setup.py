@@ -16,6 +16,7 @@ def _read_requirement_lines(filename: str) -> list[str]:
 
 
 ASTRONOMY_REQUIRES = _read_requirement_lines("requirements-astronomy.txt")
+DESKTOP_REQUIRES = _read_requirement_lines("requirements-desktop.txt")
 
 with open('README.md', 'r') as fh:
     long_description = fh.read()
@@ -76,6 +77,7 @@ setuptools.setup(
 
     extras_require={
         'test': ['pytest', 'nbconvert', 'nbformat', 'ipykernel'],
+        'desktop': DESKTOP_REQUIRES,
     },
 
     # ######################################################################

@@ -1,6 +1,8 @@
 include README.md
 include requirements.txt
 include requirements-test.txt
+include requirements-astronomy.txt
+include requirements-desktop.txt
 include montu/bin/imontu
 recursive-include montu/tests *.py
 recursive-include examples *.ipynb
