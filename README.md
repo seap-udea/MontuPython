@@ -167,7 +167,7 @@ import matplotlib.pyplot as plt
 import montu
 ```
 
-    MontuPython version 0.31.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.40.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -542,8 +542,17 @@ We can map the stars:
 ```python
 fig,axs = hyades.plot_stars()
 fig.savefig('gallery/hyades.png')
+display(fig)
 plt.close(fig) # Used only for README generation
+from IPython.display import display
+
 ```
+
+
+    
+![png](README_files/README_68_0.png)
+    
+
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
@@ -624,8 +633,17 @@ And plot them again:
 ```python
 fig,axs = hyades.plot_stars(coords=['RAEpoch','DecEpoch'])
 fig.savefig('gallery/hyades-precessed.png')
+display(fig)
 plt.close(fig) # Used only for README generation
+from IPython.display import display
+
 ```
+
+
+    
+![png](README_files/README_75_0.png)
+    
+
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades-precessed.png?raw=true" alt="Logo""/></p>
 
@@ -912,8 +930,6 @@ calculator.print_rises(
 ```
 
     Loading stellar catalogue montu_stellar_catalogue_v38_bright.csv
-
-
     Heliacal rises of Sirius (139 CE apokatastasis) — 1 date(s)
       [1] 139-07-20 00:00:00  04:07:44.893  0139-07-19 00:00:00.000000  [hrw 2922] I akhet 1  Sirius -0.57°  Sun -14.18°
       source: Toomer, G. J. (1998). Ptolemy's Almagest. Princeton University Press. Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".
@@ -1107,9 +1123,17 @@ montu.Time.set_time_ticks(ax)
 montu.Util.montu_mark(ax)
 fig.tight_layout()
 fig.savefig('gallery/pole-stars.png')
+display(fig)
 plt.close(fig) # Used only for README generation
+from IPython.display import display
 
 ```
+
+
+    
+![png](README_files/README_122_0.png)
+    
+
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/pole-stars.png?raw=true" alt="Logo""/></p>
 
@@ -1123,12 +1147,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-10 19:56:47.705261 (declination 89:31:55.790)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-13 12:48:15.505920 (declination 86:22:03.648)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-15 20:08:03.698880 (declination 89:56:04.918)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-02 08:17:07.198016 (declination 86:57:15.603)
-    Star Alderamin will be the closest to the pole at 7532-03-01 13:46:22.402560 (declination 87:58:43.007)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-20 04:15:05.302080 (declination 83:29:32.448)
+    Star Polaris will be the closest to the pole at 2086-08-10 22:16:37.404474 (declination 89:31:55.791)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-13 15:08:05.205184 (declination 86:22:03.648)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-15 22:27:53.398080 (declination 89:56:04.921)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-02 10:36:56.897280 (declination 86:57:15.603)
+    Star Alderamin will be the closest to the pole at 7532-03-01 16:06:12.101728 (declination 87:58:43.007)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-20 06:34:55.1296 (declination 83:29:32.448)
 
 
 ------------
