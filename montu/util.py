@@ -8,6 +8,7 @@ import montu
 ###############################################################
 import inspect
 import json
+import math
 import os
 import tqdm
 
@@ -135,6 +136,152 @@ class Util(object):
         >>> montu.Util.table_df(stars.data[['Name', 'Vmag']])
         """
         print(tabulate(df,headers='keys',tablefmt=format))
+
+    @staticmethod
+    def _coerce_mapping(data):
+        """Return a plain dict from a mapping or :class:`Dictobj`."""
+        if isinstance(data, Dictobj):
+            return dict(data.__dict__)
+        if isinstance(data, dict):
+            return dict(data)
+        if hasattr(data, '__dict__') and not isinstance(data, type):
+            return {
+                key: value
+                for key, value in vars(data).items()
+                if not key.startswith('_')
+            }
+        raise TypeError(
+            'print_dict expects a dict, montu.Dictobj, or mapping-like object'
+        )
+
+    @staticmethod
+    def _format_print_dict_value(value, key=None):
+        """Format one dictionary value for :meth:`print_dict`."""
+        if value is None:
+            return '—'
+        if isinstance(value, bool):
+            return 'yes' if value else 'no'
+        if isinstance(value, (np.bool_,)):
+            return 'yes' if bool(value) else 'no'
+        if isinstance(value, montu.Time):
+            return value.readable.datemix
+        if isinstance(value, montu.Observer):
+            return (
+                f"lat {value.lat:.6f}°, lon {value.lon:.6f}°, "
+                f"{value.height * 1000:.0f} m"
+            )
+        if isinstance(value, Dictobj):
+            return Util._format_print_dict_value(value.__dict__, key=key)
+        if isinstance(value, dict):
+            if not value:
+                return '{}'
+            rows = [
+                [subkey, Util._format_print_dict_value(item, key=subkey)]
+                for subkey, item in value.items()
+            ]
+            return '\n' + tabulate(
+                rows, headers=['Key', 'Value'], tablefmt='plain',
+            )
+        if isinstance(value, (list, tuple)):
+            if not value:
+                return '[]'
+            if all(isinstance(item, dict) for item in value):
+                return f'[{len(value)} rows]'
+            if all(isinstance(item, str) for item in value):
+                return ', '.join(value)
+            return ', '.join(
+                Util._format_print_dict_value(item) for item in value
+            )
+        if isinstance(value, pd.DataFrame):
+            if value.empty:
+                return '(empty DataFrame)'
+            return f'DataFrame[{value.shape[0]}×{value.shape[1]}]'
+        if isinstance(value, (float, np.floating)):
+            number = float(value)
+            if math.isnan(number):
+                return 'nan'
+            if math.isinf(number):
+                return 'inf' if number > 0 else '-inf'
+            key_text = (key or '').lower()
+            if 'time' in key_text or key_text.endswith('_jed') or key_text == 'jed':
+                if number > 2_000_000:
+                    try:
+                        return montu.Time(number, format='jd', scale='utc').readable.datemix
+                    except Exception:
+                        pass
+            if key_text in {
+                'el', 'az', 'separation', 'separation_deg', 'sun_altitude',
+                'position_angle_deg', 'maxseparation', 'phase',
+                'angsize_arcmin', 'elongation', 'rise_az', 'set_az',
+            } or key_text.endswith('_deg') or key_text.endswith('_arcmin'):
+                return f'{number:.2f}'
+            text = f'{number:.6f}'.rstrip('0').rstrip('.')
+            return text if text else '0'
+        if isinstance(value, (int, np.integer)):
+            return str(int(value))
+        return str(value)
+
+    def print_dict(data, title=None, format='github', expand_tables=True):
+        """Print a mapping as a formatted two-column table.
+
+        Scalar entries appear in a ``Key | Value`` table. Lists of dictionaries
+        (for example ``body_conditions`` from :meth:`montu.Conjunction.is_visible`)
+        are rendered as nested tables below the summary when *expand_tables*
+        is ``True``.
+
+        Parameters
+        ----------
+        data : dict, montu.Dictobj, or mapping
+            Dictionary to display.
+        title : str, optional
+            Heading printed above the table.
+        format : str, optional
+            Table format passed to :func:`tabulate.tabulate`. Default is
+            ``'github'``.
+        expand_tables : bool, optional
+            Render list-of-dict values as sub-tables. Default ``True``.
+
+        Examples
+        --------
+        >>> import montu
+        >>> montu.Util.print_dict({'visible': True, 'separation': 4.275})
+        | Key         | Value   |
+        |-------------|---------|
+        | visible     | yes     |
+        | separation  | 4.275   |
+        """
+        mapping = Util._coerce_mapping(data)
+        if title:
+            print(title)
+
+        scalar_rows = []
+        nested = []
+        for key, value in mapping.items():
+            if (
+                expand_tables
+                and isinstance(value, list)
+                and value
+                and all(isinstance(row, dict) for row in value)
+            ):
+                nested.append((key, value))
+                scalar_rows.append([key, f'[{len(value)} rows — see below]'])
+            else:
+                formatted = Util._format_print_dict_value(value, key=key)
+                if '\n' in formatted:
+                    scalar_rows.append([key, formatted.strip()])
+                else:
+                    scalar_rows.append([key, formatted])
+
+        print(tabulate(scalar_rows, headers=['Key', 'Value'], tablefmt=format))
+        for key, rows in nested:
+            print(f'\n{key}:')
+            table_rows = []
+            for row in rows:
+                table_rows.append({
+                    col: Util._format_print_dict_value(val, key=col)
+                    for col, val in row.items()
+                })
+            print(tabulate(table_rows, headers='keys', tablefmt=format))
 
     def dt2cal(dt,bce=False):
         """Convert a ``numpy.datetime64`` scalar to a calendar component array.
@@ -495,3 +642,68 @@ def load_historical_dates() -> dict:
     path = Util._data_path("historical_dates.json", check=True)
     with open(path, encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def load_historical_solar_eclipses() -> dict:
+    """Load documented historical solar eclipses from ``montu/data``.
+
+    Returns
+    -------
+    dict
+        Proleptic date keys (e.g. ``bce 585-05-28``) mapped to metadata
+        (``heclipseid``, ``label``, ``description``, ``location_id``, ...).
+    """
+    path = Util._data_path("historical-solar-eclipses.json", check=True)
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+_HISTORICAL_SOLAR_ECLIPSES_BY_ID: dict | None = None
+
+
+def _historical_eclipse_sort_key(date_key: str) -> tuple[int, str]:
+    era, rest = date_key.split(" ", 1)
+    year_s, month_s, day_s = rest.split("-")
+    astro = 1 - int(year_s) if era == "bce" else int(year_s)
+    return astro, f"{int(month_s):02d}-{int(day_s):02d}"
+
+
+def historical_solar_eclipses_by_id() -> dict:
+    """Return historical eclipse records keyed by ``heclipseid``."""
+    global _HISTORICAL_SOLAR_ECLIPSES_BY_ID
+    if _HISTORICAL_SOLAR_ECLIPSES_BY_ID is None:
+        index: dict = {}
+        for date_key, entry in load_historical_solar_eclipses().items():
+            heclipseid = entry.get("heclipseid")
+            if not heclipseid:
+                raise ValueError(
+                    f"historical eclipse {date_key!r} is missing heclipseid"
+                )
+            record = dict(entry)
+            record["date_key"] = date_key
+            index[heclipseid] = record
+        _HISTORICAL_SOLAR_ECLIPSES_BY_ID = index
+    return _HISTORICAL_SOLAR_ECLIPSES_BY_ID
+
+
+def get_historical_solar_eclipse(heclipseid: str) -> dict:
+    """Look up one historical eclipse by ``heclipseid``."""
+    try:
+        return dict(historical_solar_eclipses_by_id()[heclipseid])
+    except KeyError as exc:
+        raise ValueError(f"unknown historical eclipse id: {heclipseid!r}") from exc
+
+
+def list_historical_solar_eclipses() -> list:
+    """List historical eclipses with ``heclipseid``, date key, and description."""
+    raw = load_historical_solar_eclipses()
+    rows = []
+    for date_key in sorted(raw, key=_historical_eclipse_sort_key):
+        entry = raw[date_key]
+        rows.append({
+            "heclipseid": entry["heclipseid"],
+            "date": date_key,
+            "description": entry.get("description", ""),
+            **entry,
+        })
+    return rows

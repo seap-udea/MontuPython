@@ -7,7 +7,7 @@
     "title_en": "Configuration",
     "title_es": "Configuración"
   },
-  "contact_email": "montupythonizer@gmail.com",
+  "contact_email": "jorge.zuluaga@udea.edu.co",
   "fonts": {
     "title": 31,
     "tagline": 15,
@@ -111,8 +111,8 @@
   "people": {
     "advisors_en": "Francisco Vivas (archaeoastronomy & egyptology), José Lull (archaeoastronomy, egiptology & astronomy)",
     "advisors_es": "Francisco Vivas (arqueoastronomía y egiptología), José Lull (arqueoastronomía, egiptología y astronomía)",
-    "author_en": "Jorge I. Zuluaga © 2023–present",
-    "author_es": "Jorge I. Zuluaga © 2023-presente",
+    "author_en": "<a href=\"https://jorgezuluaga.github.io\">Jorge I. Zuluaga</a> © 2023–present",
+    "author_es": "<a href=\"https://jorgezuluaga.github.io\">Jorge I. Zuluaga</a> © 2023-presente",
     "contributors_en": "Juanita Agudelo (early web app), Luis Arroyo (online web app)",
     "contributors_es": "Juanita Agudelo (app web temprana), Luis Arroyo (app web en línea)"
   },

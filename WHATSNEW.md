@@ -2,6 +2,21 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.41.0 (major)
+
+- **`Conjunction`** — new class in `montu/phenomena.py` to evaluate angular conjunctions of two or more sky bodies (planets, stars, Moon, Sun) at one epoch; reports maximum pairwise separation, per-pair geometry, rise/set, phase, and angular size (planets).
+- **`ConjunctionExplorer`** — scan a date interval for local separation minima below a threshold; returns fully computed `Conjunction` objects sorted by epoch.
+- **`Conjuntion`** — backward-compatible alias for the common misspelling of `Conjunction`.
+- **Site visibility** — `visible_from_site`, `is_visible(from_site=…, at=…)`, and `CONJUNCTION_SUN_MAX_ALTITUDE_DEG` (−5°): conjunction is *visible* when all bodies are above the horizon and the Sun is below −5°; geocentric runs mark visibility as `n/a`.
+- **`explore_lapse()`** — find the UTC interval during which the group stays within `maxseparation` around the reference day; reports start/end separations and local times.
+- **`plot_lapse()`** — Plotly three-panel chart (separation, body elevations, Sun altitude) with green bands for site-visible intervals.
+- **`plot_map()`** — Plotly equatorial sky map centred on the geometric mean of the body directions, with bright-star context (same spirit as `Stars.plot_stars` / `mercator_sky_map`); options `mag_plotlimit` (default 3.4) and `mag_namelimit` (default 3.0); only plots when `in_conjunction` is true.
+- **`Conjunction.show_details()`** — formatted report (epoch, observer, separation, visibility, per-body sky conditions, pairwise table).
+- **`Util.print_dict()`** — print a mapping as a Key | Value table with nested sub-tables for lists of dicts (used in conjunction visibility examples); formats `Time`, `Observer`, booleans, and Julian dates.
+- **`ConjunctionExplorer.search(..., verbose=False)`** — progress bar off by default (quiet output for notebooks and Read the Docs).
+- **Tests** — `montu/tests/test_phenomena.py` extended with Mars–Aldebarán (September 2022) reference cases, explorer search, lapse edges, `plot_lapse`, and `plot_map`; `montu/tests/test_util_print_dict.py` for `Util.print_dict`.
+- **`examples/MontuPython-Conjunctions.ipynb`** — tutorial for `Conjunction`, `ConjunctionExplorer`, lapse, visibility, sky maps, and ground-truth validation cases (planet–star pairs, planetary trios, mixed groupings, retrograde triple crossings).
+
 ## Version 0.40.0 (breaktrhough)
 
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).

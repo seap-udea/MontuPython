@@ -40,6 +40,10 @@ from montu_gui.modules.solar_eclipses import (
     DEFAULT_YEAR_START,
     RESULT_TABLE_COLUMNS,
     find_solar_eclipses,
+    historical_eclipse_search_window,
+    historical_eclipse_sort_key,
+    load_historical_solar_eclipses,
+    load_localized_historical_solar_eclipses,
 )
 from montu_gui.utils.i18n import tr, trf
 from montu_gui.utils.bundle_paths import gui_asset
@@ -238,6 +242,93 @@ def _eclipse_type_row_brush(eclipse_type: str) -> QBrush | None:
     return QBrush(QColor(color_hex))
 
 
+def _format_historical_eclipse_description(data: dict) -> str:
+    """Build justified HTML for the selected historical eclipse."""
+    parts: list[str] = []
+    for key in ("description", "details"):
+        text = str(data.get(key, "")).strip()
+        if text:
+            parts.append(text)
+    site = str(data.get("observer_site", "")).strip()
+    if site:
+        parts.append(f"<b>{tr('Observer site')}:</b> {site}")
+    source = str(data.get("source", "")).strip()
+    if source:
+        parts.append(f"<i>{tr('Source')}: {source}</i>")
+    if not parts:
+        return ""
+    body = "".join(f"<p style='margin: 0 0 8px 0;'>{p}</p>" for p in parts)
+    return (
+        f"<div style='text-align: justify; font-family: Georgia;'>"
+        f"{body}</div>"
+    )
+
+
+class _HistoricalEclipsesForm(QWidget):
+    """Preset historical solar eclipses from montu/data/historical-solar-eclipses.json."""
+
+    changed = Signal()
+
+    def __init__(self, historical: dict, parent=None):
+        super().__init__(parent)
+        self._historical = historical
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+
+        layout.addWidget(
+            HelpLink(
+                tr("Historical eclipse"),
+                HELP_MODULE,
+                "input",
+                "historical_eclipse",
+                bold=True,
+            )
+        )
+
+        self._combo = QComboBox()
+        self._combo.addItem(tr("(none)"), "")
+        for key in sorted(historical, key=historical_eclipse_sort_key):
+            entry = historical[key]
+            self._combo.addItem(entry.get("label", key), key)
+        _configure_location_combo(self._combo)
+        layout.addWidget(self._combo)
+
+        self._desc = QLabel("")
+        self._desc.setWordWrap(True)
+        self._desc.setTextFormat(Qt.TextFormat.RichText)
+        self._desc.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self._desc.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum
+        )
+        layout.addWidget(self._desc)
+
+        self._combo.currentIndexChanged.connect(self._update_description)
+        self._combo.currentIndexChanged.connect(lambda: self.changed.emit())
+        self._update_description()
+
+    def _update_description(self) -> None:
+        key = self.current_key()
+        if not key:
+            self._desc.clear()
+            return
+        self._desc.setText(
+            _format_historical_eclipse_description(self._historical.get(key, {}))
+        )
+
+    def current_key(self) -> str | None:
+        key = self._combo.currentData()
+        return key or None
+
+    def set_key(self, key: str) -> None:
+        if not key:
+            self._combo.setCurrentIndex(0)
+            return
+        idx = self._combo.findData(key)
+        if idx >= 0:
+            self._combo.setCurrentIndex(idx)
+
+
 class SolarEclipsesPage(LazyPageMixin, QWidget):
     """Search the NASA solar eclipse catalogue by date, type, and duration."""
 
@@ -246,7 +337,10 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._locations = load_locations()
+        self._historical_eclipses_raw = load_historical_solar_eclipses()
+        self._historical_eclipses = load_localized_historical_solar_eclipses()
         self._syncing_site = False
+        self._syncing_historical = False
         self._illustration_source: QPixmap | None = None
         self._illustration_hidden = False
         self._build_ui()
@@ -271,6 +365,13 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         layout = QVBoxLayout(controls)
         layout.setContentsMargins(0, 0, 8, 0)
         layout.setSpacing(10)
+
+        historical_box = QGroupBox(tr("Historical eclipses"))
+        historical_layout = QVBoxLayout(historical_box)
+        self._historical_form = _HistoricalEclipsesForm(self._historical_eclipses)
+        self._historical_form.changed.connect(self._on_historical_eclipse_selected)
+        historical_layout.addWidget(self._historical_form)
+        layout.addWidget(historical_box)
 
         location_box = QGroupBox(tr("Location"))
         location_form = QFormLayout(location_box)
@@ -622,6 +723,38 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         if any_month:
             self._day_edit.clear()
 
+    def _on_historical_eclipse_selected(self) -> None:
+        if self._syncing_historical:
+            return
+        key = self._historical_form.current_key()
+        if not key:
+            return
+        entry = self._historical_eclipses_raw.get(key, {})
+        window = historical_eclipse_search_window(key)
+
+        self._syncing_historical = True
+        try:
+            self._year_start.set_values(
+                int(window["year_start"]),
+                str(window["era_start"]),
+            )
+            self._year_end.set_values(
+                int(window["year_end"]),
+                str(window["era_end"]),
+            )
+            self._month_combo.setCurrentIndex(0)
+            self._day_edit.clear()
+
+            location_id = entry.get("location_id") or ""
+            if location_id:
+                index = self._site_combo.findData(location_id)
+                if index >= 0:
+                    self._site_combo.setCurrentIndex(index)
+            else:
+                self._site_combo.setCurrentIndex(0)
+        finally:
+            self._syncing_historical = False
+
     def _on_site_changed(self, index: int) -> None:
         if self._syncing_site:
             return
@@ -880,6 +1013,7 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
 
     def export_config(self) -> dict:
         return {
+            "historical_eclipse_key": self._historical_form.current_key() or "",
             "location_id": self._site_combo.currentData() or "",
             "lat": self._lat_edit.text().strip(),
             "lon": self._lon_edit.text().strip(),
@@ -909,6 +1043,12 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         }
 
     def apply_config(self, cfg: dict) -> None:
+        self._syncing_historical = True
+        try:
+            self._historical_form.set_key(str(cfg.get("historical_eclipse_key", "")))
+        finally:
+            self._syncing_historical = False
+
         location_id = cfg.get("location_id", "")
         index = self._site_combo.findData(location_id)
         self._site_combo.setCurrentIndex(index if index >= 0 else 0)

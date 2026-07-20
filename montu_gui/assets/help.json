@@ -788,6 +788,12 @@
         "title_en": "Predefined site",
         "title_es": "Sitio predefinido"
       },
+      "historical_eclipse": {
+        "body_en": "<p>Select a documented historical solar eclipse from <code>montu/data/historical-solar-eclipses.json</code>. The module fills the <b>Date</b> interval with ±5&nbsp;years around the event and, when a bundled site is known, loads the observer location.</p><p>Choose <b>(none)</b> to set parameters manually.</p>",
+        "body_es": "<p>Selecciona un eclipse solar histórico documentado de <code>montu/data/historical-solar-eclipses.json</code>. El módulo rellena el intervalo de <b>Fecha</b> con ±5&nbsp;años alrededor del evento y, cuando hay un sitio en el catálogo, carga la ubicación del observador.</p><p>Elige <b>(ninguno)</b> para configurar los parámetros manualmente.</p>",
+        "title_en": "Historical eclipse",
+        "title_es": "Eclipse histórico"
+      },
       "latitude": {
         "body_en": "<p>Observer latitude in decimal degrees, north positive. Together with longitude, it defines the site used to compute local eclipse circumstances and to filter results to eclipses visible above the horizon.</p>",
         "body_es": "<p>Latitud del observador en grados decimales, positiva al norte. Junto con la longitud define el sitio para calcular circunstancias locales y filtrar eclipses visibles.</p>",

@@ -966,6 +966,18 @@ class SolarEclipses(object):
             raise IndexError('SolarEclipses catalogue is empty')
         return SolarEclipse(self.data.iloc[index])
 
+    def list_heclipses(self):
+        """List documented historical solar eclipses from ``montu/data``.
+
+        Returns
+        -------
+        list of dict
+            Each record contains ``heclipseid``, ``date`` (proleptic key),
+            ``description``, and the remaining metadata fields from
+            ``historical-solar-eclipses.json``.
+        """
+        return montu.list_historical_solar_eclipses()
+
     def __repr__(self):
         return f'<SolarEclipses {{number: {self.number}}}>'
 
@@ -1010,11 +1022,35 @@ def _xjubier_cond_map_url(year, month, day, lat, lon, alt_m):
     )
 
 
-def _format_eclipse_contact_jed(jed):
+def _format_eclipse_contact_jed(jed, alt_deg=None, az_deg=None):
     """Format a contact Julian day as a mixed-calendar UTC string."""
     if jed is None:
         return '—'
-    return montu.Time(float(jed), format='jd').readable.datemix
+    text = montu.Time(float(jed), format='jd').readable.datemix
+    if alt_deg is not None and az_deg is not None:
+        text += f' (alt {alt_deg:.1f}°, az {az_deg:.1f}°)'
+    return text
+
+
+def _sun_alt_az_from_fundamental(fa, lat_deg):
+    """Topocentric solar altitude and azimuth from fundamental-plane geometry."""
+    h_rad = math.asin(max(-1.0, min(1.0, fa.zeta)))
+    alt_deg = math.degrees(h_rad)
+    hour_angle = math.radians(fa.hour_angle)
+    declination = math.radians(fa.d)
+    latitude = math.radians(lat_deg)
+    cos_h = math.cos(h_rad)
+    if cos_h < 1e-12:
+        az_deg = float('nan')
+    else:
+        az_deg = math.degrees(math.atan2(
+            -math.sin(hour_angle) * math.cos(declination) / cos_h,
+            (
+                math.sin(declination)
+                - math.sin(latitude) * math.sin(h_rad)
+            ) / (math.cos(latitude) * cos_h),
+        )) % 360.0
+    return alt_deg, az_deg
 
 
 def _format_eclipse_duration_seconds(seconds):
@@ -1058,19 +1094,13 @@ class EclipseConditions(montu.Dictobj):
             f'  Maximum (UTC)        : {self.time_max.readable.datemix}',
             f'  Maximum (JD UT)      : {self.jed_max:.6f}',
             f'  Maximum (JD TT)      : {self.jtd_max:.6f}',
-            f'  t_max                : {self.t_max:.6f} h (from catalogue t0)',
-            '',
+            f'  t_max                : {self.t_max:.6f} h = {self.t_max*60:.6f} min (from catalogue t0)',
             'Contacts (UTC)',
-            f'  C1 (first contact)   : {_format_eclipse_contact_jed(self.jed_c1)}',
-            f'  C2 (second contact)  : {_format_eclipse_contact_jed(self.jed_c2)}',
-            f'  C3 (third contact)   : {_format_eclipse_contact_jed(self.jed_c3)}',
-            f'  C4 (fourth contact)  : {_format_eclipse_contact_jed(self.jed_c4)}',
+            f'  C1 (first contact)   : {_format_eclipse_contact_jed(self.jed_c1, self.sun_alt_c1_deg, self.sun_az_c1_deg)}',
+            f'  C2 (second contact)  : {_format_eclipse_contact_jed(self.jed_c2, self.sun_alt_c2_deg, self.sun_az_c2_deg)}',
+            f'  C3 (third contact)   : {_format_eclipse_contact_jed(self.jed_c3, self.sun_alt_c3_deg, self.sun_az_c3_deg)}',
+            f'  C4 (fourth contact)  : {_format_eclipse_contact_jed(self.jed_c4, self.sun_alt_c4_deg, self.sun_az_c4_deg)}',
             f'  Umbra duration       : {_format_eclipse_duration_seconds(self.duration_umbra_seconds)}',
-            '',
-            'Catalogue reference',
-            f'  γ (catalogue)        : {self.gamma:.5f} R⊕',
-            f'  Magnitude (catalogue): {self.catalog_magnitude:.5f}',
-            f'  ΔT                   : {self.delta_t:.1f} s',
             f'  cond_map             : {self.cond_map}',
         ]
         print('\n'.join(lines))
@@ -1081,8 +1111,12 @@ class SolarEclipse(object):
 
     Parameters
     ----------
-    row : pandas.Series or mapping
-        Catalogue row (e.g. ``eclipses.data.iloc[0]``).
+    row : pandas.Series, mapping, or str, optional
+        Catalogue row (e.g. ``eclipses.data.iloc[0]``) or a historical
+        ``heclipseid`` such as ``'amarna-1338bce'``.
+    heclipseid : str, optional
+        Historical eclipse identifier from ``historical-solar-eclipses.json``.
+        Alternative to passing the id as the sole positional argument.
 
     Examples
     --------
@@ -1093,12 +1127,59 @@ class SolarEclipse(object):
     >>> cond = eclipse.conditions_eclipse(dallas)
     >>> cond.kind, round(cond.magnitude, 3)
     ('total', 1.015)
+    >>> amarna = montu.SolarEclipse('amarna-1338bce')
+    >>> amarna.heclipseid, amarna.location_id
+    ('amarna-1338bce', 'amarna')
     """
 
-    def __init__(self, row):
+    def __init__(self, row=None, *, heclipseid=None):
+        if heclipseid is not None:
+            row = heclipseid
+        if isinstance(row, str):
+            self._init_from_heclipseid(row)
+            return
         if isinstance(row, SolarEclipse):
-            self.data = row.data.copy()
-        elif isinstance(row, pd.Series):
+            self.__dict__.update({
+                key: value
+                for key, value in row.__dict__.items()
+                if key != '__dict__'
+            })
+            if row.data is not None:
+                self.data = row.data.copy()
+            return
+
+        self.heclipseid = None
+        self.in_catalogue = True
+        self._init_from_catalogue_row(row)
+
+    def _init_from_heclipseid(self, heclipseid):
+        entry = montu.get_historical_solar_eclipse(heclipseid)
+        self.heclipseid = entry['heclipseid']
+        self.date_key = entry['date_key']
+        self.historical = montu.Dictobj(dict=dict(entry))
+        for key, value in entry.items():
+            setattr(self, key, value)
+
+        cy = entry.get('catalogue_year')
+        cm = entry.get('catalogue_month')
+        cd = entry.get('catalogue_day')
+        if cy is None or cm is None or cd is None:
+            self.data = None
+            self.path_map = None
+            self.in_catalogue = False
+            return
+
+        subset = SolarEclipses().get_eclipses(year=cy, month=cm, day=cd)
+        if subset.number == 0:
+            raise ValueError(
+                f'No NASA catalogue row for historical eclipse {heclipseid!r} '
+                f'({cy}-{cm:02d}-{cd:02d})'
+            )
+        self.in_catalogue = True
+        self._init_from_catalogue_row(subset.data.iloc[0])
+
+    def _init_from_catalogue_row(self, row):
+        if isinstance(row, pd.Series):
             self.data = row.copy()
         elif isinstance(row, pd.DataFrame):
             if len(row) != 1:
@@ -1126,6 +1207,18 @@ class SolarEclipse(object):
         self.path_map = _xjubier_path_map_url(y, m, d)
 
     def __repr__(self):
+        if getattr(self, 'heclipseid', None):
+            date_key = getattr(self, 'date_key', '')
+            if self.data is not None:
+                y = int(self.data.year)
+                m = int(self.data.month)
+                d = int(self.data.day)
+                etype = str(self.data.get('eclipse_type', '?'))
+                return (
+                    f'<SolarEclipse {self.heclipseid} {date_key} '
+                    f'catalogue={y:+05d}-{m:02d}-{d:02d} type={etype}>'
+                )
+            return f'<SolarEclipse {self.heclipseid} {date_key} (historical only)>'
         y = int(self.data.year)
         m = int(self.data.month)
         d = int(self.data.day)
@@ -1134,6 +1227,17 @@ class SolarEclipse(object):
 
     def __str__(self):
         """Compact catalogue summary: field name, value, and units only."""
+        if self.data is None:
+            lines = [
+                'SolarEclipse (historical record)',
+                f'  heclipseid           : {self.heclipseid}',
+                f'  date_key             : {self.date_key}',
+                f'  observer_site        : {getattr(self, "observer_site", "—")}',
+                f'  location_id          : {getattr(self, "location_id", "—")}',
+                f'  description          : {getattr(self, "description", "—")}',
+            ]
+            return '\n'.join(lines)
+
         r = self.data
 
         def _value(key, default='—'):
@@ -1153,10 +1257,15 @@ class SolarEclipse(object):
         type_label = _ECLIPSE_TYPE_LABELS.get(etype, etype)
         cat_no = int(float(r.cat_no)) if 'cat_no' in r.index and pd.notna(r.cat_no) else '—'
 
-        lines = [
-            'SolarEclipse',
+        lines = ['SolarEclipse']
+        if getattr(self, 'heclipseid', None):
+            lines.extend([
+                f'  heclipseid           : {self.heclipseid}',
+                f'  date_key             : {self.date_key}',
+                f'  description          : {getattr(self, "description", "—")}',
+            ])
+        lines.extend([
             f'Date (catalogue): {y:+05d}-{m:02d}-{d:02d}',
-            '',
             'Catalogue',
             f'  Eclipse type         : {etype} ({type_label})',
             f'  γ                    : {_float("gamma")} R⊕',
@@ -1166,21 +1275,18 @@ class SolarEclipse(object):
             f'  saros                : {_value("saros")}',
             f'  luna_num             : {_value("luna_num")}',
             f'  cat_no               : {cat_no}',
-            '',
             'Greatest eclipse',
             f'  td_ge (TT)           : {_value("td_ge")}',
             f'  lat_ge, lng_ge       : {_value("lat_ge")}, {_value("lng_ge")}',
             f'  lat_dd_ge            : {_float("lat_dd_ge", 5)}°',
             f'  lng_dd_ge            : {_float("lng_dd_ge", 5)}°',
             f'  sun_alt, sun_azm     : {_float("sun_alt", 1)}°, {_float("sun_azm", 1)}°',
-            '',
             'Central path',
             f'  path_width           : {_float("path_width", 1)} km',
             f'  central_duration     : {_value("central_duration")}',
             f'  duration_secs        : {_float("duration_secs", 1)} s',
-            '',
             f'  path_map             : {self.path_map}',
-        ]
+        ])
         return '\n'.join(lines)
 
     def _float(self, key):
@@ -1243,10 +1349,19 @@ class SolarEclipse(object):
         m = math.hypot(u, v)
 
         return montu.Dictobj(dict={
-            't': t, 'x': x, 'y': y, 'd': d, 'mu': mu,
+            't': t, 'x': x, 'y': y, 'd': d, 'mu': mu, 'hour_angle': hour_angle,
             'u': u, 'v': v, 'a': a, 'b': b, 'n': n, 'm': m,
             'l1p': l1p, 'l2p': l2p, 'xi': xi, 'eta': eta, 'zeta': zeta,
         })
+
+    def _sun_alt_az_at_t(self, lat, lon, height_m, t):
+        fa = self._fundamental(lat, lon, height_m, t)
+        return _sun_alt_az_from_fundamental(fa, lat)
+
+    def _contact_sun_coords(self, lat, lon, height_m, t):
+        if t is None:
+            return None, None
+        return self._sun_alt_az_at_t(lat, lon, height_m, t)
 
     def _jd_tt_from_t(self, t):
         td_ge_hours = _parse_hms_hours(self.data.td_ge)
@@ -1308,6 +1423,11 @@ class SolarEclipse(object):
         >>> cond = eclipse.conditions_eclipse(montu.Observer(site='thebes'))
         >>> cond.show_details()  # doctest: +SKIP
         """
+        if self.data is None:
+            raise ValueError(
+                f'Historical eclipse {self.heclipseid!r} has no NASA catalogue row; '
+                'local circumstances are unavailable.'
+            )
         lat = float(observer.lat)
         lon = float(observer.lon)
         height_m = float(observer.height) * 1000.0  # Observer.height is [km]
@@ -1327,6 +1447,7 @@ class SolarEclipse(object):
         tmin = self._float('tmin')
         tmax = self._float('tmax')
         sun_alt = math.degrees(math.asin(max(-1.0, min(1.0, fa.zeta))))
+        t_c1 = t_c2 = t_c3 = t_c4 = None
 
         if not (tmin <= t <= tmax) or fa.m > fa.l1p:
             kind = 'none'
@@ -1370,6 +1491,11 @@ class SolarEclipse(object):
         jtd_max = self._jd_tt_from_t(t)
         visible = (kind != 'none') and (sun_alt > horizon_altitude_deg)
 
+        alt_c1, az_c1 = self._contact_sun_coords(lat, lon, height_m, t_c1)
+        alt_c2, az_c2 = self._contact_sun_coords(lat, lon, height_m, t_c2)
+        alt_c3, az_c3 = self._contact_sun_coords(lat, lon, height_m, t_c3)
+        alt_c4, az_c4 = self._contact_sun_coords(lat, lon, height_m, t_c4)
+
         condition = {
             'kind': kind,
             'visible': bool(visible),
@@ -1385,6 +1511,14 @@ class SolarEclipse(object):
             'jed_c2': None if jed_c2 is None else float(jed_c2),
             'jed_c3': None if jed_c3 is None else float(jed_c3),
             'jed_c4': None if jed_c4 is None else float(jed_c4),
+            'sun_alt_c1_deg': alt_c1,
+            'sun_az_c1_deg': az_c1,
+            'sun_alt_c2_deg': alt_c2,
+            'sun_az_c2_deg': az_c2,
+            'sun_alt_c3_deg': alt_c3,
+            'sun_az_c3_deg': az_c3,
+            'sun_alt_c4_deg': alt_c4,
+            'sun_az_c4_deg': az_c4,
             'duration_umbra_seconds': (
                 None if duration_umbra is None else float(duration_umbra)
             ),
@@ -1411,3 +1545,1402 @@ class SolarEclipse(object):
         }
         self.condition = EclipseConditions(dict=condition)
         return self.condition
+
+
+###############################################################
+# Planetary / stellar conjunctions
+###############################################################
+
+# Sun must be at least this far below the horizon for site visibility.
+CONJUNCTION_SUN_MAX_ALTITUDE_DEG = -5.0
+
+
+def _resolve_observer(observer):
+    """Return a :class:`montu.Observer` from ``'geocentric'`` or an Observer."""
+    if observer is None or (
+        isinstance(observer, str) and observer.strip().lower() == 'geocentric'
+    ):
+        return montu.Observer(lon=0, lat=0, height=0), True
+    if isinstance(observer, montu.Observer):
+        return observer, False
+    raise TypeError(
+        "observer must be a montu.Observer or the string 'geocentric'"
+    )
+
+
+def _sun_altitude_deg(mtime, observer):
+    """Solar elevation [deg] at *mtime* for *observer*."""
+    sun = montu.Sun()
+    sun.where_in_sky(at=mtime, observer=observer)
+    return float(sun.position.el)
+
+
+def _body_label(body):
+    """Human-readable name for a sky body."""
+    if hasattr(body, 'name') and body.name:
+        return str(body.name)
+    if hasattr(body, 'seba') and getattr(body.seba, 'name', None):
+        return str(body.seba.name)
+    return type(body).__name__
+
+
+def _body_has_conditions_api(body):
+    return hasattr(body, 'conditions_in_sky') and callable(body.conditions_in_sky)
+
+
+def _equatorial_deg(body):
+    """Epoch equatorial coordinates [deg] from the latest ``position``."""
+    pos = getattr(body, 'position', None)
+    if pos is None:
+        raise ValueError(
+            f'{_body_label(body)} has no position; call conditions_in_sky first'
+        )
+    # Prefer true-of-date equatorial; fall back to J2000 / geo.
+    if hasattr(pos, 'RAEpoch') and hasattr(pos, 'DecEpoch'):
+        return float(pos.RAEpoch) * 15.0, float(pos.DecEpoch)
+    if hasattr(pos, 'RAGeo') and hasattr(pos, 'DecGeo'):
+        return float(pos.RAGeo) * 15.0, float(pos.DecGeo)
+    if hasattr(pos, 'RAJ2000') and hasattr(pos, 'DecJ2000'):
+        return float(pos.RAJ2000) * 15.0, float(pos.DecJ2000)
+    raise ValueError(
+        f'{_body_label(body)} position lacks equatorial coordinates'
+    )
+
+
+def _equatorial_centroid_deg(ra_hours, dec_deg):
+    """Geometric centre on the sphere from equatorial samples.
+
+    Parameters
+    ----------
+    ra_hours, dec_deg : array-like
+        Right ascension [hours] and declination [deg].
+
+    Returns
+    -------
+    ra_deg, dec_deg : float
+        Centroid in degrees (RA 0–360).
+    """
+    ra_rad = np.deg2rad(np.asarray(ra_hours, dtype=float) * 15.0)
+    dec_rad = np.deg2rad(np.asarray(dec_deg, dtype=float))
+    x = np.cos(dec_rad) * np.cos(ra_rad)
+    y = np.cos(dec_rad) * np.sin(ra_rad)
+    z = np.sin(dec_rad)
+    xm, ym, zm = x.mean(), y.mean(), z.mean()
+    norm = float(np.sqrt(xm * xm + ym * ym + zm * zm))
+    if norm < 1e-12:
+        return float(ra_hours[0]) * 15.0, float(dec_deg[0])
+    xm, ym, zm = xm / norm, ym / norm, zm / norm
+    dec_c = float(np.rad2deg(np.arcsin(np.clip(zm, -1.0, 1.0))))
+    ra_c = float(np.rad2deg(np.arctan2(ym, xm)) % 360.0)
+    return ra_c, dec_c
+
+
+def _angular_separation_ra_dec_deg(ra1_deg, dec1_deg, ra2_deg, dec2_deg):
+    """Great-circle separation [deg] between two equatorial points."""
+    return float(np.rad2deg(
+        montu.Util.haversine_distance(
+            np.deg2rad(dec1_deg), np.deg2rad(ra1_deg),
+            np.deg2rad(dec2_deg), np.deg2rad(ra2_deg),
+        )
+    ))
+
+
+def _body_map_color(name):
+    """Default marker colour for a conjunction body on a sky map."""
+    from montu.maps import BODY_MAP_COLORS
+    return BODY_MAP_COLORS.get(name, '#ffcc66')
+
+
+def _body_map_marker_size(entry):
+    """Marker size for a conjunction body (planets use angular size)."""
+    angsize = entry.get('angsize_arcmin')
+    if angsize is not None and angsize > 0:
+        return float(np.clip(10.0 + 2.5 * angsize, 12.0, 36.0))
+    return 16.0
+
+def _angular_separation_bodies_deg(body_a, body_b):
+    """Great-circle separation [deg] between two bodies with positions."""
+    ra1, dec1 = _equatorial_deg(body_a)
+    ra2, dec2 = _equatorial_deg(body_b)
+    return float(np.rad2deg(
+        montu.Util.haversine_distance(
+            np.deg2rad(dec1), np.deg2rad(ra1),
+            np.deg2rad(dec2), np.deg2rad(ra2),
+        )
+    ))
+
+
+def _position_angle_deg(body_a, body_b):
+    """Position angle of *body_b* from *body_a* [deg], N through E."""
+    ra1, dec1 = np.deg2rad(_equatorial_deg(body_a))
+    ra2, dec2 = np.deg2rad(_equatorial_deg(body_b))
+    dra = ra2 - ra1
+    x = np.cos(dec2) * np.sin(dra)
+    y = np.cos(dec1) * np.sin(dec2) - np.sin(dec1) * np.cos(dec2) * np.cos(dra)
+    return float((np.rad2deg(np.arctan2(x, y)) + 360.0) % 360.0)
+
+
+def _pairwise_physical_distance_au(body_a, body_b):
+    """Chord distance [AU] if both bodies expose ``earth_distance``."""
+    ca = getattr(body_a, 'condition', None)
+    cb = getattr(body_b, 'condition', None)
+    if ca is None or cb is None:
+        return None
+    if not hasattr(ca, 'earth_distance') or not hasattr(cb, 'earth_distance'):
+        return None
+    r1 = float(ca.earth_distance)
+    r2 = float(cb.earth_distance)
+    theta = np.deg2rad(_angular_separation_bodies_deg(body_a, body_b))
+    return float(np.sqrt(max(0.0, r1 * r1 + r2 * r2 - 2.0 * r1 * r2 * np.cos(theta))))
+
+
+def _format_jed_as_time(jed):
+    """Format a Julian Day (UTC) as a compact mixed-calendar string."""
+    if jed is None or (isinstance(jed, float) and (math.isnan(jed) or jed == 0)):
+        return '—'
+    try:
+        return montu.Time(jed, format='jd', scale='utc').readable.datemix
+    except Exception:
+        return f'JD {jed:.5f}'
+
+
+def _lapse_time_label(mtime, observer, is_geocentric=False):
+    """Format a lapse axis/report label in local time without seconds."""
+    if not isinstance(mtime, montu.Time):
+        mtime = montu.Time(mtime)
+    if is_geocentric:
+        text = mtime.readable.datemix
+    else:
+        local_jed = float(mtime.jed) + float(observer.lon) / 360.0
+        text = montu.Time(local_jed, format='jd', scale='utc').readable.datemix
+    if ' ' not in text:
+        return text
+    date_part, time_part = text.split(' ', 1)
+    parts = time_part.split(':')
+    if len(parts) >= 2:
+        return f'{date_part} {parts[0]}:{parts[1]}'
+    return text
+
+
+def _lapse_interval_label(start, end, observer, is_geocentric=False):
+    """Compact start → end label for lapse titles and reports."""
+    return (
+        f'{_lapse_time_label(start, observer, is_geocentric)} → '
+        f'{_lapse_time_label(end, observer, is_geocentric)}'
+    )
+
+
+class Conjunction(object):
+    """Angular conjunction of two or more sky bodies at one epoch.
+
+    Bodies must implement :meth:`conditions_in_sky` and expose ``condition``
+    (and ``position``) after that call — e.g. :class:`montu.Planet`,
+    :class:`montu.Star`, :class:`montu.Moon`, :class:`montu.Sun`.
+
+    Parameters
+    ----------
+    bodies : sequence
+        Two or more Montu sky objects.
+    maxseparation : float, optional
+        Maximum pairwise angular separation [deg] that counts as a
+        conjunction. Default 5°.
+    mtime : montu.Time, optional
+        Epoch at which to evaluate the conjunction. If given, conditions
+        are computed immediately.
+    observer : montu.Observer or ``'geocentric'``, optional
+        Reference site. ``'geocentric'`` (default) uses lat=0, lon=0.
+
+    Attributes
+    ----------
+    separation : float
+        Maximum pairwise angular separation [deg] at ``mtime``.
+    pairs : list of dict
+        Per-pair separation, position angle, and optional AU distance.
+    in_conjunction : bool
+        ``True`` when ``separation <= maxseparation``.
+    above_horizon : bool or None
+        ``True`` when every body has elevation above the horizon at
+        ``mtime`` (evaluated for the active observer).
+    sun_altitude : float or None
+        Solar elevation [deg] at ``mtime`` for a topocentric observer.
+    visible_from_site : bool or None
+        For a topocentric observer: all bodies above the horizon **and**
+        Sun altitude ``< CONJUNCTION_SUN_MAX_ALTITUDE_DEG`` (−5°).
+        ``None`` if geocentric.
+    visible : bool or None
+        Set by :meth:`is_visible` (same site-visibility rule when a site
+        is given).
+    body_conditions : list of dict
+        Snapshot of elevation, azimuth, rise/set, phase, etc. per body.
+
+    Examples
+    --------
+    >>> import montu
+    >>> mars = montu.Planet('Mars')
+    >>> aldebaran = montu.Stars(
+    ...     subset='bright', ProperName='Aldebaran', return_as='Star')
+    >>> conj = montu.Conjunction(
+    ...     bodies=[mars, aldebaran], maxseparation=5,
+    ...     mtime=montu.Time('2022-09-07 12:00:00'), observer='geocentric')
+    >>> conj.in_conjunction
+    True
+    """
+
+    def __init__(
+        self, bodies=None, maxseparation=5, mtime=None, observer='geocentric',
+    ):
+        if bodies is None:
+            raise ValueError('bodies must be a sequence of at least two sky objects')
+        bodies = list(bodies)
+        if len(bodies) < 2:
+            raise ValueError('Conjunction requires at least two bodies')
+        for body in bodies:
+            if not _body_has_conditions_api(body):
+                raise TypeError(
+                    f'{_body_label(body)} must implement conditions_in_sky'
+                )
+
+        self.bodies = bodies
+        self.body_names = [_body_label(b) for b in bodies]
+        self.maxseparation = float(maxseparation)
+        self.observer, self.is_geocentric = _resolve_observer(observer)
+        self.mtime = None
+
+        self.separation = None
+        self.pairs = []
+        self.in_conjunction = None
+        self.above_horizon = None
+        self.sun_altitude = None
+        self.visible_from_site = None
+        self.visible = None
+        self.body_conditions = []
+        self.visibility = None
+
+        if mtime is not None:
+            self.compute(mtime=mtime)
+
+    def __repr__(self):
+        names = '–'.join(self.body_names)
+        if self.mtime is None or self.separation is None:
+            return (
+                f'<Conjunction {names} maxsep={self.maxseparation}° '
+                f'(not computed)>'
+            )
+        flag = 'yes' if self.in_conjunction else 'no'
+        return (
+            f'<Conjunction {names} @ {self.mtime.readable.datemix} '
+            f'sep={self.separation:.3f}° conj={flag}>'
+        )
+
+    def compute(self, mtime=None, observer=None):
+        """Evaluate body conditions and pairwise separations at *mtime*.
+
+        Parameters
+        ----------
+        mtime : montu.Time, optional
+            Epoch. Defaults to the last computed epoch or now.
+        observer : montu.Observer or ``'geocentric'``, optional
+            Overrides the conjunction observer for this evaluation.
+
+        Returns
+        -------
+        Conjunction
+            ``self``, for chaining.
+        """
+        if mtime is None:
+            mtime = self.mtime if self.mtime is not None else montu.Time()
+        if not isinstance(mtime, montu.Time):
+            mtime = montu.Time(mtime)
+
+        if observer is not None:
+            self.observer, self.is_geocentric = _resolve_observer(observer)
+
+        self.mtime = mtime
+        self.body_conditions = []
+        for body in self.bodies:
+            body.conditions_in_sky(at=mtime, observer=self.observer)
+            cond = body.condition
+            pos = body.position
+            el = float(pos.el)
+            angsize_arcmin = None
+            if hasattr(cond, 'angsize') and cond.angsize is not None:
+                # PyEphem / Montu store angular diameter in arcseconds.
+                angsize_arcmin = float(cond.angsize) / 60.0
+            entry = {
+                'name': _body_label(body),
+                'az': float(pos.az),
+                'el': el,
+                'above_horizon': el > 0.0,
+                'ra_epoch': float(pos.RAEpoch),
+                'dec_epoch': float(pos.DecEpoch),
+                'vmag': float(cond.Vmag) if hasattr(cond, 'Vmag') else None,
+                'rise_time': None,
+                'rise_az': None,
+                'set_time': None,
+                'set_az': None,
+                'phase': float(cond.phase) if hasattr(cond, 'phase') else None,
+                'angsize_arcmin': angsize_arcmin,
+                'elongation': (
+                    float(cond.elongation)
+                    if hasattr(cond, 'elongation') else None
+                ),
+            }
+            # Rise/set only make sense for a topocentric site.
+            if not self.is_geocentric:
+                if hasattr(cond, 'rise_time'):
+                    entry['rise_time'] = float(cond.rise_time)
+                if hasattr(cond, 'rise_az'):
+                    entry['rise_az'] = float(cond.rise_az)
+                if hasattr(cond, 'set_time'):
+                    entry['set_time'] = float(cond.set_time)
+                if hasattr(cond, 'set_az'):
+                    entry['set_az'] = float(cond.set_az)
+            self.body_conditions.append(entry)
+
+        self.pairs = []
+        separations = []
+        for i in range(len(self.bodies)):
+            for j in range(i + 1, len(self.bodies)):
+                a, b = self.bodies[i], self.bodies[j]
+                sep = _angular_separation_bodies_deg(a, b)
+                pair = {
+                    'bodies': (self.body_names[i], self.body_names[j]),
+                    'separation_deg': sep,
+                    'position_angle_deg': _position_angle_deg(a, b),
+                    'distance_au': _pairwise_physical_distance_au(a, b),
+                }
+                self.pairs.append(pair)
+                separations.append(sep)
+
+        self.separation = float(max(separations)) if separations else None
+        self.in_conjunction = (
+            self.separation is not None
+            and self.separation <= self.maxseparation
+        )
+        # Horizon + twilight check at the exact conjunction epoch.
+        self.above_horizon = self._all_bodies_above_horizon(min_elevation=0.0)
+        if self.is_geocentric:
+            self.sun_altitude = None
+            self.visible_from_site = None
+        else:
+            self.sun_altitude = _sun_altitude_deg(mtime, self.observer)
+            self.visible_from_site = bool(
+                self.above_horizon
+                and self.sun_altitude < CONJUNCTION_SUN_MAX_ALTITUDE_DEG
+            )
+        # Primary pair convenience attributes (first two bodies).
+        if self.pairs:
+            primary = self.pairs[0]
+            self.position_angle = primary['position_angle_deg']
+            self.distance_au = primary['distance_au']
+        else:
+            self.position_angle = None
+            self.distance_au = None
+        return self
+
+    def _separation_at(self, mtime, observer=None):
+        """Return max pairwise separation [deg] without mutating stored state."""
+        obs = self.observer if observer is None else _resolve_observer(observer)[0]
+        for body in self.bodies:
+            # Positions alone are enough for angular separation (faster than
+            # full conditions_in_sky during long searches).
+            body.where_in_sky(at=mtime, observer=obs)
+        seps = []
+        for i in range(len(self.bodies)):
+            for j in range(i + 1, len(self.bodies)):
+                seps.append(
+                    _angular_separation_bodies_deg(self.bodies[i], self.bodies[j])
+                )
+        return float(max(seps)) if seps else float('nan')
+
+    def _all_bodies_above_horizon(self, min_elevation=0.0):
+        if not self.body_conditions:
+            return False
+        return all(bc['el'] > min_elevation for bc in self.body_conditions)
+
+    def _site_visibility(self, min_elevation=0.0):
+        """Bodies above horizon and Sun below the visibility threshold."""
+        above = self._all_bodies_above_horizon(min_elevation=min_elevation)
+        self.above_horizon = above
+        if self.is_geocentric:
+            self.sun_altitude = None
+            self.visible_from_site = None
+            return above, None, None
+        sun_alt = _sun_altitude_deg(self.mtime, self.observer)
+        self.sun_altitude = sun_alt
+        visible = bool(
+            above and sun_alt < CONJUNCTION_SUN_MAX_ALTITUDE_DEG
+        )
+        self.visible_from_site = visible
+        return above, sun_alt, visible
+
+    def is_visible(self, from_site=None, at=None, min_elevation=0.0, verbose=True):
+        """Evaluate conjunction and/or local visibility.
+
+        Parameters
+        ----------
+        from_site : montu.Observer, optional
+            Observing site. When given, body elevations/azimuths are
+            recomputed there. Site visibility requires all bodies above
+            *min_elevation* and Sun altitude
+            ``< CONJUNCTION_SUN_MAX_ALTITUDE_DEG`` (−5°).
+        at : montu.Time, optional
+            Epoch for the evaluation. Defaults to the stored ``mtime``.
+        min_elevation : float, optional
+            Minimum altitude [deg] for a body to count as above the horizon.
+        verbose : bool, optional
+            If ``True`` (default), print a short status line.
+
+        Returns
+        -------
+        montu.Dictobj
+            Fields include ``in_conjunction``, ``visible_from_site``,
+            ``sun_altitude``, ``separation``, ``mtime``, and site data.
+
+        Notes
+        -----
+        * ``is_visible(at=…)`` — angular separation / conjunction flag only.
+        * ``is_visible(from_site=…)`` — local sky conditions and visibility.
+        * ``is_visible(from_site=…, at=…)`` — both at the given epoch.
+        """
+        if at is None and from_site is None:
+            raise ValueError('Provide from_site and/or at')
+
+        mtime = at if at is not None else self.mtime
+        if mtime is None:
+            raise ValueError('No epoch available; pass at=montu.Time(...)')
+        if not isinstance(mtime, montu.Time):
+            mtime = montu.Time(mtime)
+
+        site = from_site
+        if site is not None and not isinstance(site, montu.Observer):
+            raise TypeError('from_site must be a montu.Observer')
+
+        if site is not None:
+            self.compute(mtime=mtime, observer=site)
+        else:
+            self.compute(mtime=mtime)
+
+        in_conj = bool(self.in_conjunction)
+        above, sun_altitude, visible_from_site = self._site_visibility(
+            min_elevation=min_elevation,
+        )
+        visible = None
+        if site is not None:
+            # Observational visibility at the site (horizon + Sun depth).
+            visible = bool(visible_from_site and in_conj)
+            self.visible = visible
+        elif not self.is_geocentric:
+            visible = bool(visible_from_site and in_conj) if visible_from_site is not None else None
+            self.visible = visible
+
+        result = montu.Dictobj(dict={
+            'mtime': mtime,
+            'observer': self.observer,
+            'from_site': site,
+            'is_geocentric': self.is_geocentric,
+            'separation': self.separation,
+            'maxseparation': self.maxseparation,
+            'in_conjunction': in_conj,
+            'above_horizon': above,
+            'sun_altitude': sun_altitude,
+            'visible_from_site': self.visible_from_site,
+            'visible': visible,
+            'body_conditions': list(self.body_conditions),
+            'pairs': list(self.pairs),
+        })
+        self.visibility = result
+
+        if verbose:
+            sep = (
+                f'{self.separation:.3f}°'
+                if self.separation is not None else '—'
+            )
+            line = (
+                f'Conjunction {"–".join(self.body_names)} @ '
+                f'{mtime.readable.datemix}: sep={sep} '
+                f'(max {self.maxseparation}°) → '
+                f'{"in conjunction" if in_conj else "not in conjunction"}'
+            )
+            if self.visible_from_site is not None:
+                line += (
+                    f'; Is visible from site='
+                    f'{"yes" if self.visible_from_site else "no"}'
+                )
+                if sun_altitude is not None:
+                    line += f' (Sun {sun_altitude:.1f}°)'
+                if site is not None:
+                    line += f' lat={site.lat:.3f}°, lon={site.lon:.3f}°'
+            print(line)
+        return result
+
+    def show_details(self):
+        """Print a formatted report of the conjunction conditions."""
+        if self.mtime is None or self.separation is None:
+            print('Conjunction — not computed yet. Call compute() or pass mtime=.')
+            return
+
+        names = '–'.join(self.body_names)
+        lines = [
+            f'Conjunction: {names}',
+            f'  Epoch (UTC)          : {self.mtime.readable.datemix}',
+            f'  Julian Day (UTC)     : {self.mtime.jed:.6f}',
+        ]
+        if self.is_geocentric:
+            lines.append('  Observer             : geocentric')
+        else:
+            local = self.observer.get_local_time(self.mtime)
+            lines.append(
+                f'  Observer             : lat {self.observer.lat:.6f}°, '
+                f'lon {self.observer.lon:.6f}°'
+            )
+            lines.append(f'  Local solar time     : {local}')
+
+        lines.append(
+            f'  Angular separation   : {self.separation:.4f}° '
+            f'(max allowed {self.maxseparation}°)'
+        )
+        lines.append(
+            f'  In conjunction       : {"yes" if self.in_conjunction else "no"}'
+        )
+        if self.sun_altitude is not None:
+            lines.append(f'  Sun altitude         : {self.sun_altitude:.2f}°')
+        if self.visible_from_site is not None:
+            lines.append(
+                f'  Is visible from site : '
+                f'{"yes" if self.visible_from_site else "no"} '
+                f'(bodies above horizon and Sun < '
+                f'{CONJUNCTION_SUN_MAX_ALTITUDE_DEG:.0f}°)'
+            )
+        elif self.is_geocentric:
+            lines.append('  Is visible from site : n/a (geocentric)')
+        if self.visible is not None:
+            lines.append(
+                f'  Visible (dark sky)   : {"yes" if self.visible else "no"}'
+            )
+
+        for pair in self.pairs:
+            a, b = pair['bodies']
+            lines.append(f'  Pair {a}–{b}')
+            lines.append(f'    Separation         : {pair["separation_deg"]:.4f}°')
+            lines.append(
+                f'    Position angle     : {pair["position_angle_deg"]:.2f}° '
+                f'(N→E)'
+            )
+            if pair['distance_au'] is not None:
+                lines.append(
+                    f'    Distance           : {pair["distance_au"]:.6f} AU'
+                )
+
+        for bc in self.body_conditions:
+            lines.append(f'  {bc["name"]}')
+            if not self.is_geocentric:
+                above = 'yes' if bc.get('above_horizon') else 'no'
+                lines.append(
+                    f'    Elevation / azimuth: {bc["el"]:.2f}° / {bc["az"]:.2f}° '
+                    f'(above horizon: {above})'
+                )
+                lines.append(
+                    f'    Rise (UTC)         : {_format_jed_as_time(bc["rise_time"])}'
+                )
+                lines.append(
+                    f'    Set (UTC)          : {_format_jed_as_time(bc["set_time"])}'
+                )
+            if bc['phase'] is not None:
+                lines.append(f'    Phase              : {bc["phase"]:.2f}%')
+            if bc.get('angsize_arcmin') is not None:
+                lines.append(
+                    f'    Angular size       : {bc["angsize_arcmin"]:.3f} arcmin'
+                )
+            if bc['vmag'] is not None:
+                lines.append(f'    V magnitude        : {bc["vmag"]:.2f}')
+
+        print('\n'.join(lines))
+
+    def _in_conjunction_at_jed(self, jed, observer=None):
+        """Return ``(in_conjunction, separation_deg)`` at Julian day *jed*."""
+        obs = self.observer if observer is None else _resolve_observer(observer)[0]
+        mtime = montu.Time(float(jed), format='jd', scale='utc')
+        sep = self._separation_at(mtime, observer=obs)
+        return bool(sep <= self.maxseparation), float(sep)
+
+    def _conjunction_on_calendar_day(self, mtime, observer=None):
+        """True if conjunction holds at any hourly sample on the UTC day."""
+        day_jed = math.floor(float(mtime.jed) - 0.5) + 0.5
+        for hour in range(24):
+            in_conj, _ = self._in_conjunction_at_jed(
+                day_jed + hour / 24.0, observer=observer,
+            )
+            if in_conj:
+                return True
+        return False
+
+    def _refine_lapse_edge(self, jed_outside, jed_inside, observer=None):
+        """Bisect between an outside and an inside Julian epoch."""
+        lo = float(min(jed_outside, jed_inside))
+        hi = float(max(jed_outside, jed_inside))
+        outside_at_lo = float(jed_outside) < float(jed_inside)
+
+        for _ in range(48):
+            mid = 0.5 * (lo + hi)
+            in_conj, _ = self._in_conjunction_at_jed(mid, observer=observer)
+            if outside_at_lo:
+                if in_conj:
+                    hi = mid
+                else:
+                    lo = mid
+            else:
+                if in_conj:
+                    lo = mid
+                else:
+                    hi = mid
+
+        if outside_at_lo:
+            return hi, lo
+        return lo, hi
+
+    def _refine_separation_threshold(
+        self, jed_a, jed_b, observer=None, pick='first',
+    ):
+        """Find the crossing epoch where separation meets ``maxseparation``."""
+        obs = self.observer if observer is None else _resolve_observer(observer)[0]
+        lo = float(min(jed_a, jed_b))
+        hi = float(max(jed_a, jed_b))
+        for _ in range(48):
+            mid = 0.5 * (lo + hi)
+            sep = self._separation_at(
+                montu.Time(mid, format='jd', scale='utc'), observer=obs,
+            )
+            if sep <= self.maxseparation:
+                if pick == 'first':
+                    hi = mid
+                else:
+                    lo = mid
+            else:
+                if pick == 'first':
+                    lo = mid
+                else:
+                    hi = mid
+        return hi if pick == 'first' else lo
+
+    def _find_lapse_boundary(
+        self, jed_inside, forward=True, observer=None,
+        step_days=1.0, max_days=365,
+    ):
+        """Find one edge of the conjunction interval from an interior epoch."""
+        obs = self.observer if observer is None else _resolve_observer(observer)[0]
+        step = float(step_days)
+        if step <= 0:
+            raise ValueError('step_days must be positive')
+        direction = 1.0 if forward else -1.0
+        last_in = float(jed_inside)
+        jed_probe = last_in
+        max_steps = int(max_days / step) + 2
+        jed_outside = None
+
+        for _ in range(max_steps):
+            jed_next = jed_probe + direction * step
+            in_conj, _ = self._in_conjunction_at_jed(jed_next, observer=obs)
+            if in_conj:
+                last_in = jed_next
+                jed_probe = jed_next
+                continue
+            jed_outside = jed_next
+            break
+
+        if jed_outside is None:
+            # Conjunction persists through the search window.
+            edge_in = last_in
+            edge_out = last_in + direction * step
+        else:
+            edge_in = last_in
+            edge_out = jed_outside
+
+        jed_inside, jed_outside = self._refine_lapse_edge(
+            edge_out, edge_in, observer=obs,
+        )
+        pick = 'last' if forward else 'first'
+        return self._refine_separation_threshold(
+            jed_inside, jed_outside, observer=obs, pick=pick,
+        )
+
+    def explore_lapse(
+        self, step=1.0, refine_hours=1.0, max_days=365, verbose=True,
+    ):
+        """Find the date/time interval while the conjunction is maintained.
+
+        Uses ``self.mtime`` as the reference day. Conjunction on that day
+        means the angular separation stays at or below ``maxseparation`` at
+        least once during the UTC calendar day (visibility is not required).
+
+        Parameters
+        ----------
+        step : float, optional
+            Coarse day step when searching lapse edges. Default 1 day.
+        refine_hours : float, optional
+            Reserved for future sub-day edge refinement (bisection is used).
+        max_days : float, optional
+            Maximum days to search backward/forward from the reference day.
+        verbose : bool, optional
+            Print status messages.
+
+        Returns
+        -------
+        tuple of montu.Time or None
+            ``(start, end)`` inclusive interval while in conjunction, or
+            ``None`` when the reference day has no conjunction.
+        """
+        del refine_hours  # bisection handles sub-day edges
+        if self.mtime is None:
+            raise ValueError(
+                'mtime is required; pass mtime= when creating Conjunction'
+            )
+
+        if not self._conjunction_on_calendar_day(self.mtime, observer=self.observer):
+            message = 'No hay conjunción en esas condiciones.'
+            if verbose:
+                print(message)
+            self.lapse = None
+            return None
+
+        ref_jed = float(self.mtime.jed)
+        if not self._in_conjunction_at_jed(ref_jed, observer=self.observer)[0]:
+            day_jed = math.floor(ref_jed - 0.5) + 0.5
+            for hour in range(24):
+                candidate = day_jed + hour / 24.0
+                if self._in_conjunction_at_jed(candidate, observer=self.observer)[0]:
+                    ref_jed = candidate
+                    break
+
+        start_jed = self._find_lapse_boundary(
+            ref_jed, forward=False, observer=self.observer,
+            step_days=step, max_days=max_days,
+        )
+        end_jed = self._find_lapse_boundary(
+            ref_jed, forward=True, observer=self.observer,
+            step_days=step, max_days=max_days,
+        )
+        if end_jed < start_jed:
+            start_jed, end_jed = end_jed, start_jed
+
+        start = montu.Time(start_jed, format='jd', scale='utc')
+        end = montu.Time(end_jed, format='jd', scale='utc')
+        start_sep = self._separation_at(start, observer=self.observer)
+        end_sep = self._separation_at(end, observer=self.observer)
+        time_key = 'local' if not self.is_geocentric else 'UTC'
+        self.lapse = montu.Dictobj(dict={
+            'start': start,
+            'end': end,
+            'start_jed': float(start_jed),
+            'end_jed': float(end_jed),
+            'start_separation': float(start_sep),
+            'end_separation': float(end_sep),
+            'duration_days': float(end_jed - start_jed),
+            'bodies': list(self.body_names),
+            'maxseparation': self.maxseparation,
+        })
+
+        if verbose:
+            names = '–'.join(self.body_names)
+            interval = _lapse_interval_label(
+                start, end, self.observer, self.is_geocentric,
+            )
+            print(
+                f'Conjunction lapse ({names}, max {self.maxseparation}°):\n'
+                f'  Start ({time_key})        : '
+                f'{_lapse_time_label(start, self.observer, self.is_geocentric)}'
+                f'  (sep {start_sep:.3f}°)\n'
+                f'  End ({time_key})          : '
+                f'{_lapse_time_label(end, self.observer, self.is_geocentric)}'
+                f'  (sep {end_sep:.3f}°)\n'
+                f'  Duration           : {self.lapse.duration_days:.3f} days\n'
+                f'  Interval           : {interval}'
+            )
+        return start, end
+
+    def plot_lapse(
+        self, start, end, step_hours=1.0, show=True, return_fig=False,
+    ):
+        """Plot conjunction conditions over a lapse interval with Plotly.
+
+        Parameters
+        ----------
+        start, end : montu.Time
+            Interval returned by :meth:`explore_lapse`.
+        step_hours : float, optional
+            Sampling step [hours]. Default 1 h.
+        show : bool, optional
+            Display the figure when ``True``.
+        return_fig : bool, optional
+            Return the Plotly figure object.
+
+        Returns
+        -------
+        plotly.graph_objects.Figure or None
+        """
+        try:
+            from plotly.subplots import make_subplots
+            import plotly.graph_objects as go
+        except ImportError as exc:
+            raise ImportError(
+                'Plotly is required for plot_lapse. Install with: pip install plotly'
+            ) from exc
+
+        if not isinstance(start, montu.Time):
+            start = montu.Time(start)
+        if not isinstance(end, montu.Time):
+            end = montu.Time(end)
+        if end.jed < start.jed:
+            raise ValueError('end must be on or after start')
+
+        step_days = float(step_hours) / 24.0
+        if step_days <= 0:
+            raise ValueError('step_hours must be positive')
+
+        jeds = np.arange(start.jed, end.jed + step_days * 0.5, step_days)
+        if len(jeds) == 0:
+            jeds = np.array([start.jed, end.jed])
+
+        times = []
+        separations = []
+        sun_alts = []
+        body_els = {name: [] for name in self.body_names}
+        visible_flags = []
+
+        sun = montu.Sun()
+        obs = self.observer
+        for jed in jeds:
+            mtime = montu.Time(float(jed), format='jd', scale='utc')
+            sep = self._separation_at(mtime, observer=obs)
+            separations.append(sep)
+
+            elevations = []
+            for body in self.bodies:
+                body.where_in_sky(at=mtime, observer=obs)
+                el = float(body.position.el)
+                elevations.append(el)
+                body_els[_body_label(body)].append(el)
+
+            if self.is_geocentric:
+                sun_alt = np.nan
+                visible = False
+            else:
+                sun.where_in_sky(at=mtime, observer=obs)
+                sun_alt = float(sun.position.el)
+                visible = bool(
+                    all(el > 0.0 for el in elevations)
+                    and sun_alt < CONJUNCTION_SUN_MAX_ALTITUDE_DEG
+                )
+            sun_alts.append(sun_alt)
+            visible_flags.append(visible)
+            times.append(
+                _lapse_time_label(mtime, obs, self.is_geocentric)
+            )
+
+        names = '–'.join(self.body_names)
+        fig = make_subplots(
+            rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.08,
+            subplot_titles=(
+                f'Angular separation ({names})',
+                'Elevation above horizon',
+                'Sun altitude',
+            ),
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=times, y=separations, mode='lines', name='Separation',
+                line=dict(color='#1f77b4', width=2),
+                hovertemplate='%{x}<br>sep=%{y:.3f}°<extra></extra>',
+            ),
+            row=1, col=1,
+        )
+        fig.add_hline(
+            y=self.maxseparation, line_dash='dash', line_color='gray',
+            annotation_text=f'max {self.maxseparation}°',
+            row=1, col=1,
+        )
+
+        palette = ['#d62728', '#2ca02c', '#ff7f0e', '#9467bd', '#8c564b']
+        for idx, (name, els) in enumerate(body_els.items()):
+            fig.add_trace(
+                go.Scatter(
+                    x=times, y=els, mode='lines', name=name,
+                    line=dict(color=palette[idx % len(palette)], width=1.8),
+                    hovertemplate='%{x}<br>%{y:.1f}°<extra></extra>',
+                ),
+                row=2, col=1,
+            )
+        fig.add_hline(y=0.0, line_dash='dot', line_color='black', row=2, col=1)
+
+        fig.add_trace(
+            go.Scatter(
+                x=times, y=sun_alts, mode='lines', name='Sun',
+                line=dict(color='#ffcc00', width=2),
+                hovertemplate='%{x}<br>%{y:.1f}°<extra></extra>',
+            ),
+            row=3, col=1,
+        )
+        fig.add_hline(
+            y=CONJUNCTION_SUN_MAX_ALTITUDE_DEG, line_dash='dash',
+            line_color='orange',
+            annotation_text=f'Sun {CONJUNCTION_SUN_MAX_ALTITUDE_DEG:.0f}°',
+            row=3, col=1,
+        )
+        fig.add_hline(y=0.0, line_dash='dot', line_color='black', row=3, col=1)
+
+        if not self.is_geocentric:
+            in_visible = False
+            block_start = None
+            for idx, flag in enumerate(visible_flags):
+                if flag and not in_visible:
+                    block_start = times[idx]
+                    in_visible = True
+                elif not flag and in_visible:
+                    fig.add_vrect(
+                        x0=block_start, x1=times[idx - 1],
+                        fillcolor='rgba(0, 180, 0, 0.15)',
+                        layer='below', line_width=0,
+                        row='all', col=1,
+                    )
+                    in_visible = False
+            if in_visible and block_start is not None:
+                fig.add_vrect(
+                    x0=block_start, x1=times[-1],
+                    fillcolor='rgba(0, 180, 0, 0.15)',
+                    layer='below', line_width=0,
+                    row='all', col=1,
+                )
+            fig.add_trace(
+                go.Scatter(
+                    x=[None], y=[None], mode='markers',
+                    marker=dict(
+                        size=12, color='rgba(0, 180, 0, 0.35)',
+                        symbol='square',
+                    ),
+                    name=(
+                        'Visible from site '
+                        f'(Sun < {CONJUNCTION_SUN_MAX_ALTITUDE_DEG:.0f}°, '
+                        'all bodies above horizon)'
+                    ),
+                    showlegend=True,
+                ),
+                row=1, col=1,
+            )
+
+        site_label = 'geocentric'
+        x_label = 'UTC'
+        if not self.is_geocentric:
+            site_label = (
+                f'lat {self.observer.lat:.2f}°, lon {self.observer.lon:.2f}°'
+            )
+            x_label = 'Local solar time'
+        interval = _lapse_interval_label(
+            start, end, self.observer, self.is_geocentric,
+        )
+        fig.update_layout(
+            title=(
+                f'Conjunction lapse: {names} ({interval})<br>'
+                f'<sup>{site_label}</sup>'
+            ),
+            height=780,
+            legend=dict(orientation='h', yanchor='bottom', y=1.02, x=0),
+            margin=dict(t=90),
+        )
+        fig.update_yaxes(title_text='deg', row=1, col=1)
+        fig.update_yaxes(title_text='deg', row=2, col=1)
+        fig.update_yaxes(title_text='deg', row=3, col=1)
+        fig.update_xaxes(title_text=x_label, row=3, col=1)
+
+        if show:
+            fig.show()
+        if return_fig:
+            return fig
+        return None
+
+    def plot_map(
+        self,
+        mag_plotlimit=3.4,
+        mag_namelimit=3.0,
+        show=True,
+        return_fig=False,
+    ):
+        """Plot the conjunction on an equatorial sky map with stellar context.
+
+        Builds a Plotly Mercator map (same star styling as
+        :meth:`montu.Stars.plot_stars` / :func:`montu.maps.mercator_sky_map`)
+        centred on the **geometric mean** of the body equatorial directions.
+        Only produces a figure when :attr:`in_conjunction` is ``True``; otherwise
+        returns ``None``.
+
+        Parameters
+        ----------
+        mag_plotlimit : float, optional
+            Faintest ``Vmag`` for background stars. Default 3.4.
+        mag_namelimit : float, optional
+            Annotate stars brighter than this magnitude. Default 3.0.
+        show : bool, optional
+            Display the figure when ``True``.
+        return_fig : bool, optional
+            Return the Plotly figure object.
+
+        Returns
+        -------
+        plotly.graph_objects.Figure or None
+        """
+        try:
+            import plotly.graph_objects as go
+            from montu.maps import mercator_sky_map
+        except ImportError as exc:
+            raise ImportError(
+                'Plotly is required for plot_map. Install with: pip install plotly'
+            ) from exc
+
+        if self.mtime is None or self.separation is None:
+            raise ValueError(
+                'Conjunction has no epoch; pass mtime= or call compute() first'
+            )
+        if not self.in_conjunction:
+            return None
+
+        mag_plotlimit = float(mag_plotlimit)
+        mag_namelimit = float(mag_namelimit)
+
+        ra_hours = [bc['ra_epoch'] for bc in self.body_conditions]
+        decs = [bc['dec_epoch'] for bc in self.body_conditions]
+        center_ra_deg, center_dec_deg = _equatorial_centroid_deg(ra_hours, decs)
+
+        field_radius = max(float(self.maxseparation) * 2.5, 6.0)
+        for ra_h, dec in zip(ra_hours, decs):
+            dist = _angular_separation_ra_dec_deg(
+                center_ra_deg, center_dec_deg, ra_h * 15.0, dec,
+            )
+            field_radius = max(field_radius, dist * 1.35)
+        field_radius = min(field_radius, 25.0)
+
+        stars = Stars(subset='bright').get_stars(Vmag=[-2, mag_plotlimit])
+        stars.where_in_space(at=self.mtime, inplace=True)
+        star_data = stars.data.copy()
+        if not star_data.empty:
+            separations = star_data.apply(
+                lambda row: _angular_separation_ra_dec_deg(
+                    center_ra_deg,
+                    center_dec_deg,
+                    float(row['RAEpoch']) * 15.0,
+                    float(row['DecEpoch']),
+                ),
+                axis=1,
+            )
+            star_data = star_data.loc[separations <= field_radius].copy()
+
+        names = '–'.join(self.body_names)
+        date_label = self.mtime.readable.datemix
+        fig = mercator_sky_map(
+            star_data,
+            ra_col='RAEpoch',
+            dec_col='DecEpoch',
+            mag_col='Vmag',
+            mag_limit=mag_plotlimit,
+            label_bright_mag=mag_namelimit,
+            show_stars=not star_data.empty,
+            at=self.mtime,
+        )
+
+        body_ra = [bc['ra_epoch'] * 15.0 for bc in self.body_conditions]
+        body_dec = [bc['dec_epoch'] for bc in self.body_conditions]
+        body_names = [bc['name'] for bc in self.body_conditions]
+        body_sizes = [_body_map_marker_size(bc) for bc in self.body_conditions]
+        body_colors = [_body_map_color(n) for n in body_names]
+
+        fig.add_trace(go.Scatter(
+            x=body_ra,
+            y=body_dec,
+            mode='markers+text',
+            marker=dict(
+                size=body_sizes,
+                color=body_colors,
+                symbol='circle',
+                line=dict(width=1.5, color='white'),
+            ),
+            text=body_names,
+            textposition='top center',
+            textfont=dict(size=11, color='white'),
+            name='Conjunction bodies',
+            hovertemplate=(
+                '<b>%{text}</b><br>'
+                'RA: %{x:.2f}°<br>'
+                'Dec: %{y:.2f}°'
+                '<extra></extra>'
+            ),
+        ))
+
+        fig.add_trace(go.Scatter(
+            x=[center_ra_deg],
+            y=[center_dec_deg],
+            mode='markers',
+            marker=dict(size=10, color='white', symbol='cross', line=dict(width=1)),
+            name='Geometric centre',
+            hovertemplate=(
+                f'Centre<br>RA: {center_ra_deg:.2f}°<br>'
+                f'Dec: {center_dec_deg:.2f}°<extra></extra>'
+            ),
+        ))
+
+        ra_half = field_radius / max(
+            abs(float(np.cos(np.deg2rad(center_dec_deg)))), 0.15,
+        )
+        dec_half = field_radius
+        site_label = 'geocentric'
+        if not self.is_geocentric:
+            site_label = (
+                f'lat {self.observer.lat:.2f}°, '
+                f'lon {self.observer.lon:.2f}°'
+            )
+
+        fig.update_layout(
+            title=(
+                f'Conjunction map: {names}<br>'
+                f'<sup>{date_label} · {site_label} · '
+                f'max sep {self.separation:.2f}°</sup>'
+            ),
+            height=560,
+            xaxis=dict(
+                range=[center_ra_deg + ra_half, center_ra_deg - ra_half],
+                autorange=False,
+            ),
+            yaxis=dict(
+                range=[center_dec_deg - dec_half, center_dec_deg + dec_half],
+                autorange=False,
+            ),
+        )
+
+        if show:
+            fig.show()
+        if return_fig:
+            return fig
+        return None
+
+
+class ConjunctionExplorer(Conjunction):
+    """Search for conjunctions of a set of bodies over a date interval.
+
+    Inherits body list and ``maxseparation`` from :class:`Conjunction`.
+    Call :meth:`search` to scan an interval; each hit is returned as a
+    fully computed :class:`Conjunction`.
+
+    Parameters
+    ----------
+    bodies : sequence
+        Two or more Montu sky objects with :meth:`conditions_in_sky`.
+    maxseparation : float, optional
+        Maximum pairwise separation [deg] at a local minimum. Default 5°.
+
+    Examples
+    --------
+    >>> import montu
+    >>> mars = montu.Planet('Mars')
+    >>> aldebaran = montu.Stars(
+    ...     subset='bright', ProperName='Aldebaran', return_as='Star')
+    >>> explorer = montu.ConjunctionExplorer(
+    ...     bodies=[mars, aldebaran], maxseparation=5)
+    >>> conjs = explorer.search(
+    ...     start=montu.Time('2022-09-01'),
+    ...     end=montu.Time('2022-10-01'),
+    ...     observer='geocentric')
+    >>> len(conjs) >= 1
+    True
+    """
+
+    def __init__(self, bodies=None, maxseparation=5):
+        # Do not auto-compute; explorer only stores the search configuration.
+        if bodies is None:
+            raise ValueError('bodies must be a sequence of at least two sky objects')
+        bodies = list(bodies)
+        if len(bodies) < 2:
+            raise ValueError('ConjunctionExplorer requires at least two bodies')
+        for body in bodies:
+            if not _body_has_conditions_api(body):
+                raise TypeError(
+                    f'{_body_label(body)} must implement conditions_in_sky'
+                )
+        self.bodies = bodies
+        self.body_names = [_body_label(b) for b in bodies]
+        self.maxseparation = float(maxseparation)
+        self.observer, self.is_geocentric = _resolve_observer('geocentric')
+        self.mtime = None
+        self.separation = None
+        self.pairs = []
+        self.in_conjunction = None
+        self.above_horizon = None
+        self.sun_altitude = None
+        self.visible_from_site = None
+        self.visible = None
+        self.body_conditions = []
+        self.visibility = None
+        self.results = []
+
+    def __repr__(self):
+        names = '–'.join(self.body_names)
+        n = len(self.results) if self.results is not None else 0
+        return (
+            f'<ConjunctionExplorer {names} maxsep={self.maxseparation}° '
+            f'results={n}>'
+        )
+
+    def search(
+        self, start=None, end=None, observer='geocentric',
+        step=1.0, refine_hours=1.0, verbose=False,
+    ):
+        """Find local separation minima below ``maxseparation``.
+
+        Parameters
+        ----------
+        start, end : montu.Time
+            Inclusive search window.
+        observer : montu.Observer or ``'geocentric'``, optional
+            Site used for ephemerides and for each returned conjunction.
+        step : float, optional
+            Coarse sampling step [days]. Default 1 day.
+        refine_hours : float, optional
+            Fine sampling step [hours] around each candidate minimum.
+            Default 1 hour.
+        verbose : bool, optional
+            Show a progress bar when ``True``. Default ``False`` (quiet).
+
+        Returns
+        -------
+        list of Conjunction
+            One object per qualifying local minimum, sorted by epoch.
+        """
+        if start is None or end is None:
+            raise ValueError('search requires start= and end= montu.Time objects')
+        if not isinstance(start, montu.Time):
+            start = montu.Time(start)
+        if not isinstance(end, montu.Time):
+            end = montu.Time(end)
+        if end.jed < start.jed:
+            raise ValueError('end must be on or after start')
+
+        observer_obj, is_geo = _resolve_observer(observer)
+        self.observer = observer_obj
+        self.is_geocentric = is_geo
+
+        step = float(step)
+        if step <= 0:
+            raise ValueError('step must be positive [days]')
+        refine_days = float(refine_hours) / 24.0
+        if refine_days <= 0:
+            raise ValueError('refine_hours must be positive')
+
+        # --- Coarse scan ---
+        jeds = np.arange(start.jed, end.jed + step * 0.5, step)
+        if len(jeds) == 0:
+            jeds = np.array([start.jed])
+        if jeds[-1] < end.jed - 1e-9:
+            jeds = np.append(jeds, end.jed)
+
+        seps = np.empty(len(jeds))
+        iterator = range(len(jeds))
+        if verbose:
+            iterator = montu.PROGRESS(iterator)
+
+        probe = Conjunction(
+            bodies=self.bodies,
+            maxseparation=self.maxseparation,
+            observer=observer_obj,
+        )
+        for i in iterator:
+            seps[i] = probe._separation_at(
+                montu.Time(float(jeds[i]), format='jd', scale='utc'),
+                observer=observer_obj,
+            )
+
+        # Local minima on the coarse grid under the separation threshold.
+        candidates = []
+        n = len(seps)
+        for i in range(n):
+            if seps[i] > self.maxseparation:
+                continue
+            left = seps[i - 1] if i > 0 else np.inf
+            right = seps[i + 1] if i < n - 1 else np.inf
+            if seps[i] <= left and seps[i] <= right:
+                candidates.append(i)
+
+        # Deduplicate neighbouring indices from plateaus (keep deepest).
+        filtered = []
+        for idx in candidates:
+            if filtered and abs(jeds[idx] - jeds[filtered[-1]]) < step * 0.75:
+                if seps[idx] < seps[filtered[-1]]:
+                    filtered[-1] = idx
+                continue
+            filtered.append(idx)
+        candidates = filtered
+
+        # --- Refine each candidate ---
+        results = []
+        for idx in candidates:
+            jed0 = float(jeds[idx])
+            window = max(step, 1.0)
+            j_lo = max(start.jed, jed0 - window)
+            j_hi = min(end.jed, jed0 + window)
+            fine_jeds = np.arange(j_lo, j_hi + refine_days * 0.5, refine_days)
+            if len(fine_jeds) == 0:
+                fine_jeds = np.array([jed0])
+            fine_seps = np.array([
+                probe._separation_at(
+                    montu.Time(float(j), format='jd', scale='utc'),
+                    observer=observer_obj,
+                )
+                for j in fine_jeds
+            ])
+            k = int(np.argmin(fine_seps))
+            best_jed = float(fine_jeds[k])
+            best_sep = float(fine_seps[k])
+            if best_sep > self.maxseparation:
+                continue
+
+            # Parabolic refinement on three neighbouring fine samples when possible.
+            if 0 < k < len(fine_jeds) - 1:
+                j1, j2, j3 = fine_jeds[k - 1], fine_jeds[k], fine_jeds[k + 1]
+                y1, y2, y3 = fine_seps[k - 1], fine_seps[k], fine_seps[k + 1]
+                denom = (y1 - 2 * y2 + y3)
+                if abs(denom) > 1e-12:
+                    delta = 0.5 * refine_days * (y1 - y3) / denom
+                    if abs(delta) < refine_days:
+                        cand_jed = float(j2 + delta)
+                        cand_sep = probe._separation_at(
+                            montu.Time(cand_jed, format='jd', scale='utc'),
+                            observer=observer_obj,
+                        )
+                        if cand_sep < best_sep:
+                            best_jed, best_sep = cand_jed, float(cand_sep)
+
+            if best_sep > self.maxseparation:
+                continue
+
+            obs_arg = 'geocentric' if is_geo else observer_obj
+            # Avoid duplicate events from adjacent coarse minima.
+            if results and abs(best_jed - results[-1].mtime.jed) < step * 0.5:
+                if best_sep < results[-1].separation:
+                    results[-1] = Conjunction(
+                        bodies=self.bodies,
+                        maxseparation=self.maxseparation,
+                        mtime=montu.Time(best_jed, format='jd', scale='utc'),
+                        observer=obs_arg,
+                    )
+                continue
+
+            conj = Conjunction(
+                bodies=self.bodies,
+                maxseparation=self.maxseparation,
+                mtime=montu.Time(best_jed, format='jd', scale='utc'),
+                observer=obs_arg,
+            )
+            results.append(conj)
+
+        self.results = results
+        return results
+
+
+# Typo alias used in early drafts / notebooks.
+Conjuntion = Conjunction

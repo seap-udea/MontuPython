@@ -50,7 +50,12 @@ from montu_gui.modules.solar_eclipses import (
     astronomical_year_to_historical,
     find_solar_eclipses,
     format_eclipse_date,
+    historical_eclipse_search_window,
     historical_year_to_astronomical,
+    load_historical_solar_eclipses,
+    load_localized_historical_solar_eclipses,
+    localized_historical_eclipse_field,
+    parse_historical_eclipse_key,
 )
 from montu_gui.modules.sothic_calendar import build_sothic_year, day_lookup
 
@@ -329,3 +334,46 @@ class TestSolarEclipsesModule:
         )
         assert result.ok
         assert result.catalogue_matches >= 1
+
+    def test_historical_eclipse_window_thales(self):
+        window = historical_eclipse_search_window("bce 0585-05-28")
+        assert window == {
+            "year_start": 590,
+            "year_end": 580,
+            "era_start": "bce",
+            "era_end": "bce",
+        }
+
+    def test_historical_eclipse_window_ce(self):
+        window = historical_eclipse_search_window("ce 1715-05-03")
+        assert window == {
+            "year_start": 1710,
+            "year_end": 1720,
+            "era_start": "ce",
+            "era_end": "ce",
+        }
+
+    def test_load_historical_solar_eclipses(self):
+        data = load_historical_solar_eclipses()
+        assert "bce 0585-05-28" in data
+        assert data["bce 0585-05-28"]["location_id"] == "miletus"
+
+    def test_parse_historical_eclipse_key(self):
+        assert parse_historical_eclipse_key("bce 1207-10-30") == (
+            "bce", 1207, 10, 30
+        )
+        assert parse_historical_eclipse_key("ce 2024-04-08") == (
+            "ce", 2024, 4, 8
+        )
+
+    def test_localized_historical_eclipse_spanish(self):
+        from montu_gui.utils.i18n import set_language
+
+        set_language("es")
+        raw = load_historical_solar_eclipses()["ce 1715-05-03"]
+        assert localized_historical_eclipse_field(raw, "label") == (
+            "CE 1715-05-03 — Eclipse de Halley"
+        )
+        localized = load_localized_historical_solar_eclipses(lang="es")
+        assert "Eclipse de Halley" in localized["ce 1715-05-03"]["label"]
+        set_language("en")

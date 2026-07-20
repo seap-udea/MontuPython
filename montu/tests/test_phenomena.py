@@ -248,5 +248,283 @@ def test_eclipse_conditions_show_details(solar_eclipses, capsys):
     assert 'Eclipse local circumstances' in out
     assert 'Kind                 : total' in out
     assert 'C1 (first contact)' in out
+    assert '(alt ' in out and '°, az ' in out
     assert 'cond_map             :' in out
     assert 'LC=1' in out
+
+
+def test_solar_eclipses_list_heclipses(solar_eclipses):
+    rows = solar_eclipses.list_heclipses()
+    assert len(rows) == 29
+    ids = {row['heclipseid'] for row in rows}
+    assert 'amarna-1338bce' in ids
+    assert 'thales-585bce' in ids
+    assert 'legendary_chinese-2137bce' in ids
+    amarna = next(r for r in rows if r['heclipseid'] == 'amarna-1338bce')
+    assert amarna['date'] == 'bce 1338-05-14'
+    assert 'Akhenaten' in amarna['description']
+
+
+def test_solar_eclipse_from_heclipseid_catalogue():
+    amarna = montu.SolarEclipse('amarna-1338bce')
+    assert amarna.heclipseid == 'amarna-1338bce'
+    assert amarna.location_id == 'amarna'
+    assert amarna.date_key == 'bce 1338-05-14'
+    assert amarna.data is not None
+    assert int(amarna.data.year) == -1337
+    assert 'heclipseid' in str(amarna)
+
+
+def test_solar_eclipse_from_heclipseid_keyword():
+    thales = montu.SolarEclipse(heclipseid='thales-585bce')
+    assert thales.location_id == 'miletus'
+    cond = thales.conditions_eclipse(montu.Observer(site='miletus'))
+    assert cond.kind == 'partial'
+    assert cond.magnitude == pytest.approx(0.971, abs=0.01)
+
+
+def test_solar_eclipse_historical_only_no_conditions():
+    legendary = montu.SolarEclipse('legendary_chinese-2137bce')
+    assert legendary.data is None
+    assert legendary.in_catalogue is False
+    assert 'legendary annular eclipse' in legendary.description.lower()
+    with pytest.raises(ValueError, match='no NASA catalogue row'):
+        legendary.conditions_eclipse(montu.Observer(lat=35, lon=105))
+
+
+def test_solar_eclipse_unknown_heclipseid():
+    with pytest.raises(ValueError, match='unknown historical eclipse id'):
+        montu.SolarEclipse('not-a-real-eclipse')
+
+
+@pytest.fixture(scope='module')
+def mars_aldebaran():
+    mars = montu.Planet('Mars')
+    aldebaran = montu.Stars(
+        subset='bright', ProperName='Aldebaran', return_as='Star',
+    )
+    return mars, aldebaran
+
+
+def test_conjunction_mars_aldebaran_september_2022(mars_aldebaran):
+    mars, aldebaran = mars_aldebaran
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=5,
+        mtime=montu.Time('2022-09-07 12:00:00'),
+        observer='geocentric',
+    )
+    assert conj.is_geocentric
+    assert conj.in_conjunction
+    assert conj.visible_from_site is None
+    assert conj.above_horizon is False  # below geocentric horizon at noon
+    assert conj.separation == pytest.approx(4.275, abs=0.05)
+    assert conj.position_angle == pytest.approx(169.5, abs=2.0)
+    assert len(conj.pairs) == 1
+    assert conj.body_conditions[0]['name'] == 'Mars'
+    assert conj.body_conditions[0]['phase'] is not None
+    assert conj.body_conditions[1]['name'] == 'Aldebaran'
+
+
+def test_conjunction_is_visible_modes(mars_aldebaran, capsys):
+    mars, aldebaran = mars_aldebaran
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=5,
+        mtime=montu.Time('2022-09-07 12:00:00'),
+        observer='geocentric',
+    )
+    site = montu.Observer(lat=10, lon=-75)
+
+    only_time = conj.is_visible(at=montu.Time('2022-09-07 12:00:00'))
+    assert only_time.in_conjunction is True
+    assert only_time.visible is None
+    assert only_time.visible_from_site is None
+
+    only_site = conj.is_visible(from_site=site)
+    assert only_site.in_conjunction is True
+    # ~07:00 local: bodies above horizon, but Sun not deep enough (< -5°)
+    assert only_site.above_horizon is True
+    assert only_site.sun_altitude > montu.CONJUNCTION_SUN_MAX_ALTITUDE_DEG
+    assert only_site.visible_from_site is False
+    assert only_site.visible is False
+
+    both = conj.is_visible(
+        from_site=site, at=montu.Time('2022-09-07 12:00:00'),
+    )
+    assert both.in_conjunction is True
+    assert both.visible_from_site is False
+    assert both.visible is False
+
+    # Predawn: bodies above horizon and Sun below -5°
+    night = conj.is_visible(
+        from_site=site, at=montu.Time('2022-09-07 09:00:00'),
+    )
+    assert night.above_horizon is True
+    assert night.sun_altitude < montu.CONJUNCTION_SUN_MAX_ALTITUDE_DEG
+    assert night.visible_from_site is True
+    assert night.visible is True
+
+    out = capsys.readouterr().out
+    assert 'in conjunction' in out
+    assert 'Is visible from site=' in out
+
+
+def test_conjunction_show_details(mars_aldebaran, capsys):
+    mars, aldebaran = mars_aldebaran
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=5,
+        mtime=montu.Time('2022-09-07 12:00:00'),
+        observer='geocentric',
+    )
+    conj.show_details()
+    out = capsys.readouterr().out
+    assert 'Conjunction: Mars–Aldebaran' in out
+    assert 'Observer             : geocentric' in out
+    assert 'Is visible from site : n/a (geocentric)' in out
+    assert 'Angular separation' in out
+    assert 'Position angle' in out
+    assert 'Phase' in out
+    assert 'Angular size' in out
+    assert 'Earth distance' not in out
+    assert 'Rise (UTC)' not in out
+    assert 'Set (UTC)' not in out
+
+
+def test_conjunction_explorer_finds_september_2022(mars_aldebaran):
+    mars, aldebaran = mars_aldebaran
+    explorer = montu.ConjunctionExplorer(
+        bodies=[mars, aldebaran], maxseparation=5,
+    )
+    conjs = explorer.search(
+        start=montu.Time('2022-09-01'),
+        end=montu.Time('2022-10-01'),
+        observer='geocentric',
+        verbose=False,
+    )
+    assert len(conjs) == 1
+    conj = conjs[0]
+    assert isinstance(conj, montu.Conjunction)
+    assert conj.is_geocentric
+    assert conj.in_conjunction
+    assert conj.visible_from_site is None
+    assert abs(conj.mtime.jed - montu.Time('2022-09-07').jed) < 1.5
+    assert conj.separation == pytest.approx(4.275, abs=0.05)
+
+
+def test_conjunction_explorer_topocentric(mars_aldebaran, capsys):
+    mars, aldebaran = mars_aldebaran
+    site = montu.Observer(lat=6, lon=-75)
+    explorer = montu.ConjunctionExplorer(
+        bodies=[mars, aldebaran], maxseparation=5,
+    )
+    conjs = explorer.search(
+        start=montu.Time('2022-09-01'),
+        end=montu.Time('2022-10-01'),
+        observer=site,
+        verbose=False,
+    )
+    assert len(conjs) == 1
+    conj = conjs[0]
+    assert conj.is_geocentric is False
+    assert conj.body_conditions[0]['el'] is not None
+    assert conj.above_horizon is True
+    assert all(bc['above_horizon'] for bc in conj.body_conditions)
+    # Closest approach is near local sunrise → Sun above -5°
+    assert conj.sun_altitude is not None
+    assert conj.sun_altitude > montu.CONJUNCTION_SUN_MAX_ALTITUDE_DEG
+    assert conj.visible_from_site is False
+    conj.show_details()
+    out = capsys.readouterr().out
+    assert 'Is visible from site : no' in out
+    assert 'Sun < -5°' in out
+    assert 'Sun altitude' in out
+    assert 'above horizon: yes' in out
+    assert 'Rise (UTC)' in out
+    assert 'Set (UTC)' in out
+
+
+def test_conjunction_alias_typo():
+    assert montu.Conjuntion is montu.Conjunction
+
+
+def test_conjunction_explore_lapse_mars_aldebaran(mars_aldebaran, capsys):
+    mars, aldebaran = mars_aldebaran
+    site = montu.Observer(lat=6, lon=-75)
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=5,
+        mtime=montu.Time('2022-09-07'),
+        observer=site,
+    )
+    lapse = conj.explore_lapse(verbose=False)
+    assert lapse is not None
+    start, end = lapse
+    assert isinstance(start, montu.Time)
+    assert end.jed > start.jed
+    assert 8.0 <= (end.jed - start.jed) <= 11.0
+    assert conj.lapse.duration_days == pytest.approx(end.jed - start.jed)
+    assert conj.lapse.start_separation == pytest.approx(5.0, abs=0.05)
+    assert conj.lapse.end_separation == pytest.approx(5.0, abs=0.05)
+    out = capsys.readouterr().out
+    assert out == ''
+
+
+def test_conjunction_explore_lapse_no_conjunction(mars_aldebaran, capsys):
+    mars, aldebaran = mars_aldebaran
+    site = montu.Observer(lat=6, lon=-75)
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=1,
+        mtime=montu.Time('2022-09-07'),
+        observer=site,
+    )
+    assert conj.explore_lapse(verbose=True) is None
+    out = capsys.readouterr().out
+    assert 'No hay conjunción en esas condiciones.' in out
+
+
+def test_conjunction_plot_lapse_builds_figure(mars_aldebaran):
+    pytest.importorskip('plotly')
+    mars, aldebaran = mars_aldebaran
+    site = montu.Observer(lat=6, lon=-75)
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=5,
+        mtime=montu.Time('2022-09-07'),
+        observer=site,
+    )
+    lapse = conj.explore_lapse(verbose=False)
+    fig = conj.plot_lapse(
+        lapse[0], lapse[1], step_hours=6, show=False, return_fig=True,
+    )
+    assert fig is not None
+    assert len(fig.data) >= 3
+
+
+def test_conjunction_plot_map_builds_figure(mars_aldebaran):
+    pytest.importorskip('plotly')
+    mars, aldebaran = mars_aldebaran
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=5,
+        mtime=montu.Time('2022-09-07'),
+        observer='geocentric',
+    )
+    fig = conj.plot_map(show=False, return_fig=True)
+    assert fig is not None
+    assert len(fig.data) >= 2
+    assert 'Conjunction map' in fig.layout.title.text
+
+
+def test_conjunction_plot_map_skips_when_not_in_conjunction(mars_aldebaran):
+    pytest.importorskip('plotly')
+    mars, aldebaran = mars_aldebaran
+    conj = montu.Conjunction(
+        bodies=[mars, aldebaran],
+        maxseparation=1,
+        mtime=montu.Time('2022-09-07'),
+        observer='geocentric',
+    )
+    assert conj.plot_map(show=False, return_fig=True) is None

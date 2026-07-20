@@ -1,2 +1,2 @@
-version='0.40.0'
-release_date='2026-07-12'
+version='0.41.0'
+release_date='2026-07-20'

@@ -5,6 +5,7 @@ This module has no Qt dependency so it can be reused from scripts and tests.
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from time import perf_counter
 from typing import Any
@@ -12,6 +13,11 @@ from typing import Any
 import pandas as pd
 
 from montu_gui.utils.i18n import tr, trf
+
+_HISTORICAL_ECLIPSE_KEY = re.compile(
+    r"^(?P<era>bce|ce)\s+(?P<year>\d+)-(?P<month>\d+)-(?P<day>\d+)$",
+    re.IGNORECASE,
+)
 
 DEFAULT_YEAR_START = 600
 DEFAULT_YEAR_END = 500
@@ -91,6 +97,104 @@ def _import_montu():
         return montu
     except Exception as exc:
         raise ImportError(f"Cannot import montu: {exc}") from exc
+
+
+def load_historical_solar_eclipses() -> dict:
+    """Load ``montu/data/historical-solar-eclipses.json``."""
+    import montu
+
+    return montu.load_historical_solar_eclipses()
+
+
+_LOCALIZED_ECLIPSE_FIELDS = (
+    "label",
+    "description",
+    "details",
+    "source",
+    "ancient_source",
+    "observer_site",
+)
+
+
+def localized_historical_eclipse_field(
+    entry: dict,
+    field: str,
+    *,
+    lang: str | None = None,
+) -> str:
+    """Return ``field`` or ``field_es`` depending on UI language."""
+    from montu_gui.utils.i18n import get_language
+
+    active = lang or get_language()
+    if active == "es":
+        translated = str(entry.get(f"{field}_es", "")).strip()
+        if translated:
+            return translated
+    return str(entry.get(field, "")).strip()
+
+
+def localize_historical_eclipse_entry(
+    entry: dict,
+    *,
+    lang: str | None = None,
+) -> dict:
+    """Return a copy of an eclipse record with localized text fields."""
+    out = dict(entry)
+    for field in _LOCALIZED_ECLIPSE_FIELDS:
+        if field in entry or f"{field}_es" in entry:
+            out[field] = localized_historical_eclipse_field(entry, field, lang=lang)
+    return out
+
+
+def load_localized_historical_solar_eclipses(*, lang: str | None = None) -> dict:
+    """Load historical eclipses with text fields resolved for the active language."""
+    raw = load_historical_solar_eclipses()
+    return {
+        key: localize_historical_eclipse_entry(entry, lang=lang)
+        for key, entry in raw.items()
+    }
+
+
+def parse_historical_eclipse_key(key: str) -> tuple[str, int, int, int]:
+    """Parse a catalogue key such as ``bce 585-05-28`` or ``ce 1715-05-03``."""
+    match = _HISTORICAL_ECLIPSE_KEY.match(str(key).strip())
+    if not match:
+        raise ValueError(f"invalid historical eclipse key: {key!r}")
+    return (
+        match.group("era").lower(),
+        int(match.group("year")),
+        int(match.group("month")),
+        int(match.group("day")),
+    )
+
+
+def historical_eclipse_sort_key(key: str) -> int:
+    """Sort keys in chronological order (oldest first)."""
+    era, year, month, day = parse_historical_eclipse_key(key)
+    astro = historical_year_to_astronomical(year, era)
+    return astro * 10_000 + month * 100 + day
+
+
+def historical_eclipse_search_window(
+    key: str,
+    *,
+    margin_years: int = 5,
+) -> dict[str, int | str]:
+    """Return a ±``margin_years`` year search window around a historical eclipse."""
+    era, year, _month, _day = parse_historical_eclipse_key(key)
+    margin = max(0, int(margin_years))
+    if era == "bce":
+        year_start = year + margin
+        year_end = max(1, year - margin)
+    else:
+        year_start = max(1, year - margin)
+        year_end = year + margin
+    return {
+        "year_start": year_start,
+        "year_end": year_end,
+        "era_start": era,
+        "era_end": era,
+    }
 
 
 def historical_year_to_astronomical(year: int, era: str) -> int:

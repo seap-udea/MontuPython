@@ -1,7 +1,7 @@
 """MontuPython Desktop version (developer-controlled).
 
-Bump ``version`` when releasing; the home page shows the file modification
-date of this module as the release date.
+Bump ``version`` and ``release_date`` when releasing.
 """
 
 version = "0.3.0"
+release_date = "2026-07-17"

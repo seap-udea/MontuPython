@@ -3,13 +3,12 @@ HomePage — splash / welcome panel shown at startup.
 
 Copy and font sizes: montu_gui/assets/home.json
 Library version/date: montu/version.py
-Desktop version/date: montu_gui/version.py (mtime)
+Desktop version/date: montu_gui/version.py
 """
 
 from __future__ import annotations
 
-from datetime import date, datetime
-from pathlib import Path
+from datetime import date
 
 from PySide6.QtCore import Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QFont, QPixmap
@@ -19,6 +18,7 @@ from PySide6.QtWidgets import (
 )
 
 from montu.version import version as MONTU_VERSION, release_date as MONTU_RELEASE_DATE
+from montu_gui.version import release_date as DESKTOP_RELEASE_DATE
 import montu_gui.version as desktop_version
 from montu_gui.utils.bundle_paths import gui_asset
 from montu_gui.utils.home_content import load_home_content
@@ -70,15 +70,6 @@ def _format_release_date(iso_date: str) -> str:
         return d.strftime("%d %B %Y")
     except ValueError:
         return iso_date
-
-
-def _desktop_release_date() -> str:
-    """ISO date from montu_gui/version.py last modification."""
-    try:
-        mtime = Path(desktop_version.__file__).stat().st_mtime
-    except (OSError, TypeError):
-        return ""
-    return datetime.fromtimestamp(mtime).date().isoformat()
 
 
 def _version_row(
@@ -293,7 +284,7 @@ class HomePage(QWidget):
             _version_row(
                 tr("MontuPython Desktop version"),
                 desktop_version.version,
-                _desktop_release_date(),
+                DESKTOP_RELEASE_DATE,
                 "desktop",
                 point_size=version_size,
             )
