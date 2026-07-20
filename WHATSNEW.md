@@ -20,8 +20,17 @@ This file collects the release notes and the main changes in MontuPython.
 - **`show_position()` / `show_conditions()`** — on `Sebau` and subclasses (`Star`, `Sun`, `Moon`, `Planet`); print epoch, site, and labelled quantities with units; return `None` (stdout only). Call `where_in_sky` or `conditions_in_sky` first.
 - **`Planet('Sun')` / `Planet('Moon')`** — homogeneous factory call; returns a `Sun` or `Moon` instance (same construction as `Sun()` / `Moon()`). Numeric ids `10` and `301` also dispatch. Other names still return `Planet`.
 - **`montu/tests/test_time_arithmetic_snippets.py`** — arithmetic on `Time` (`diff`, `add`, `subs`, `+`/`-`) from the Code Snippets notebook, including Gregorian reform and Sothic cycle cases.
-- **`montu/tests/test_sky_show.py`**, **`montu/tests/test_stars_subset.py`**, **`montu/tests/test_observer.py`** — coverage for sky reporting, `return_as`, batch `conditions_in_sky`, site overrides, and sidereal time.
-- **`examples/inprogress/MontuPython-CodeSnippets.ipynb`** — batch precession, batch `conditions_in_sky`, `return_as='Star'`, and geometric vs refracting observer examples updated.
+- **`montu/tests/test_sky_show.py`**, **`montu/tests/test_stars_subset.py`**, **`montu/tests/test_observer.py`** — coverage for sky reporting, `return_as`, batch `conditions_in_sky`, site overrides, sidereal time, **`Star.show_properties()`**, and compact **`Star.__repr__`**.
+- **`Star.show_properties()`** — print catalogue identifiers, coordinates, photometry, spectral type, and related fields for a single `Star`; return `None` (stdout only).
+- **`Star.__repr__`** — compact one-line summary (name, constellation, J2000 coordinates, V magnitude, distance, spectral type); replaces the verbose inherited `Sebau` representation.
+- **`HeliacalRise.print_rises()`** — display-only; returns `None` (no DataFrame chaining).
+- **`SolarEclipse.path_map`** — Xavier Jubier Google-Map URL for the central-eclipse path, set when the catalogue row is loaded.
+- **`EclipseConditions`** and **`show_details()`** — typed return from `conditions_eclipse()`; includes **`cond_map`** (Jubier URL for local circumstances at the observer site) and a formatted local report (kind, magnitude, contacts C1–C4, umbra duration).
+- **`SolarEclipse.__str__`** — compact catalogue summary reorganized into Catalogue, Greatest eclipse, and Central path blocks (field names and units only; `path_map` at the end).
+- **`montu/tests/test_phenomena.py`** — coverage for compact `SolarEclipse.__str__`, `path_map`, `cond_map`, `EclipseConditions.show_details()`, and display-only `print_rises`.
+- **`examples/MontuPython-CodeSnippets.ipynb`** — promoted from `examples/inprogress/`; titled runnable snippets with explanations across utilities, time, observers, stars, planets, sky maps, heliacal rises, and solar eclipses (Hyades cluster plot, package constants, calendar/JD conversions, batch precession, `return_as='Star'`, geometric vs refracting observer).
+- **`README.ipynb`** — Quickstart in-depth examples: Sirius heliacal rise at the 139 CE apokatastasis (Schaefer 1987, Thebes) and Thales' eclipse (585 BCE) with Xavier Jubier cross-checks; Peret Sopedet illustration under What's new.
+- **`gallery/peret-sopedet-illustration.webp`** — heliacal rise of Sirius (Peret Sopedet) artwork for README and docs.
 - **MontuPython Desktop tests** — location module expectations aligned with current Thebes climatology in `locations.json` (catalogue-driven assertions instead of stale hard-coded values).
 
 ## Version 0.31.0 (improve)

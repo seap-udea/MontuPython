@@ -68,3 +68,38 @@ def test_show_conditions_planet_includes_phase(giza_observer, capsys):
     assert "Distance from Earth:" in out
     assert "Illuminated fraction:" in out
     assert "Heliocentric latitude:" in out
+
+
+def test_star_repr_summary():
+    sirius = montu.Stars(subset="bright", ProperName="Sirius", return_as="Star")
+    text = repr(sirius)
+    assert text.startswith("Star(")
+    assert "Sirius" in text
+    assert "CMa" in text
+    assert "V=-1.44 mag" in text
+    assert "pc" in text
+    assert "Sp=" in text
+
+
+def test_show_properties(capsys):
+    spica = montu.Stars(subset="bright", ProperName="Spica", return_as="Star")
+    assert spica.show_properties() is None
+    out = capsys.readouterr().out
+    assert "Spica — catalogue properties" in out
+    assert "Proper name: Spica" in out
+    assert "Constellation: Vir" in out
+    assert "RA (J2000):" in out
+    assert "Dec (J2000):" in out
+    assert "Visual magnitude:" in out
+    assert "Spectral type:" in out
+    assert "Distance:" in out
+
+
+def test_show_properties_minimal_star(capsys):
+    star = montu.Star(RAJ2000=12.0, DecJ2000=45.0, Vmag=3.5, Name="Test")
+    assert star.show_properties() is None
+    out = capsys.readouterr().out
+    assert "Test — catalogue properties" in out
+    assert "Visual magnitude: 3.50 mag" in out
+    assert repr(star).startswith("Star(")
+    assert "Test" in repr(star)

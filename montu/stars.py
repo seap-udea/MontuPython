@@ -20,6 +20,34 @@ import pymeeus.Coordinates as pymeeus_Coordinates
 
 from montu.sebau import _STAR_CONDITION_SPECS, _STAR_POSITION_SPECS
 
+# Catalogue field metadata for show_properties (key, label, unit)
+_STAR_PROPERTY_SPECS = (
+    ('ProperName', 'Proper name', ''),
+    ('Name', 'Name', ''),
+    ('Bayer', 'Bayer designation', ''),
+    ('Flamsteed', 'Flamsteed number', ''),
+    ('Constellation', 'Constellation', ''),
+    ('HIP', 'HIP', 'id'),
+    ('HD', 'HD', 'id'),
+    ('HR', 'HR', 'id'),
+    ('Gl', 'Gliese', ''),
+    ('OtherDesignations', 'Other designations', ''),
+    ('RAJ2000', 'RA (J2000)', 'h'),
+    ('DecJ2000', 'Dec (J2000)', 'deg'),
+    ('GalLonJ2000', 'Galactic longitude', 'deg'),
+    ('GalLatJ2000', 'Galactic latitude', 'deg'),
+    ('pmRA', 'Proper motion RA', 'mas/yr'),
+    ('pmDec', 'Proper motion Dec', 'mas/yr'),
+    ('RadVel', 'Radial velocity', 'km/s'),
+    ('Distance', 'Distance', 'pc'),
+    ('Vmag', 'Visual magnitude', 'mag'),
+    ('B-V', 'B−V colour index', ''),
+    ('SpType', 'Spectral type', ''),
+    ('Luminosity', 'Luminosity', 'Lsun'),
+    ('IsMultiple', 'Multiple system', 'bool'),
+    ('IsVariable', 'Variable star', 'bool'),
+)
+
 ###############################################################
 # Module constants
 ###############################################################
@@ -154,6 +182,37 @@ def _scalar_float(value):
         raise ValueError(f"Expected one coordinate value, got {value!r}")
     return float(arr[0])
 
+
+def _format_star_property(value, unit):
+    """Format one catalogue quantity for human-readable star reports."""
+    if value is None:
+        return '—'
+    if unit == 'bool':
+        return 'yes' if value else 'no'
+    if unit == 'id':
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+        if isinstance(value, (np.integer, int)):
+            return str(int(value))
+        return str(value)
+    if unit == '':
+        return str(value)
+    if unit == 'h':
+        return f"{montu.D2S(float(value))} h"
+    if unit == 'deg':
+        return f"{montu.D2S(float(value))}°"
+    if unit == 'mag':
+        return f"{float(value):.2f} mag"
+    if unit == 'pc':
+        return f"{float(value):.4f} pc"
+    if unit == 'km/s':
+        return f"{float(value):.1f} km/s"
+    if unit == 'mas/yr':
+        return f"{float(value):.2f} mas/yr"
+    if unit == 'Lsun':
+        return f"{float(value):.2f} L☉"
+    return str(value)
+
 ###############################################################
 # Star Class
 ###############################################################
@@ -212,14 +271,115 @@ class Star(montu.Sebau):
                 self.seba._pmra = float(kwargs['pmRA'])
             if 'pmDec' in kwargs:
                 self.seba._pmdec = float(kwargs['pmDec'])
-            self._star_data = pd.Series({
+            row = {
                 'RAJ2000': float(kwargs.get('RAJ2000', 0.0)),
                 'DecJ2000': float(kwargs.get('DecJ2000', 0.0)),
                 'pmRA': float(kwargs.get('pmRA', 0.0)),
                 'pmDec': float(kwargs.get('pmDec', 0.0)),
-            })
+            }
+            for key in (
+                'Name', 'ProperName', 'Vmag', 'Constellation', 'SpType', 'Distance',
+                'Bayer', 'Flamsteed', 'HIP', 'HD', 'HR', 'Gl', 'OtherDesignations',
+                'B-V', 'RadVel', 'Luminosity', 'IsMultiple', 'IsVariable',
+            ):
+                if key in kwargs:
+                    row[key] = kwargs[key]
+            self._star_data = pd.Series(row)
 
         self.name = self.seba.name
+
+    def _star_row(self):
+        """Return catalogue fields as a plain dict."""
+        if self._star_data is None:
+            row = {}
+        elif isinstance(self._star_data, dict):
+            row = dict(self._star_data)
+        else:
+            row = self._star_data.to_dict()
+
+        if row.get('Name') in (None, '') and getattr(self, 'name', None):
+            row['Name'] = self.name
+        vmag = row.get('Vmag')
+        if vmag is None or (isinstance(vmag, float) and pd.isna(vmag)):
+            try:
+                seba_mag = self.seba.mag
+            except RuntimeError:
+                seba_mag = None
+            if seba_mag is not None:
+                row['Vmag'] = seba_mag
+        return row
+
+    def _star_field(self, key, default=None, *, missing_ok=False):
+        """Fetch one catalogue field, treating NaN as missing."""
+        row = self._star_row()
+        if key not in row:
+            return default
+        value = row[key]
+        if value is None or (isinstance(value, float) and pd.isna(value)):
+            return None if missing_ok else default
+        if isinstance(value, (np.floating, np.integer)):
+            return float(value) if isinstance(value, np.floating) else int(value)
+        return value
+
+    def _star_display_name(self):
+        """Best available label for reports and ``__repr__``."""
+        for key in ('ProperName', 'Name', 'Bayer', 'Flamsteed', 'HIP'):
+            value = self._star_field(key, missing_ok=True)
+            if value is None:
+                continue
+            if key == 'HIP':
+                return f"HIP {int(value)}"
+            return str(value)
+        return getattr(self, 'name', None) or 'Star'
+
+    def show_properties(self):
+        """Print catalogue properties for this star.
+
+        Reads fields from the stellar catalogue row supplied at construction
+        (identifiers, coordinates, photometry, spectral type, distance, etc.).
+
+        Examples
+        --------
+        >>> import montu
+        >>> sirius = montu.Stars(subset='bright', ProperName='Sirius', return_as='Star')
+        >>> sirius.show_properties()  # doctest: +SKIP
+        """
+        label = self._star_display_name()
+        lines = [f"{label} — catalogue properties"]
+        for key, field_label, unit in _STAR_PROPERTY_SPECS:
+            value = self._star_field(key, missing_ok=True)
+            if value is None:
+                continue
+            if unit == '' and str(value).strip() == '':
+                continue
+            formatted = _format_star_property(value, unit)
+            lines.append(f"  {field_label}: {formatted}")
+        print("\n".join(lines))
+
+    def __repr__(self):
+        name = self._star_display_name()
+        parts = [f"'{name}'"]
+        const = self._star_field('Constellation', missing_ok=True)
+        if const:
+            parts.append(f"'{const}'")
+        ra = self._star_field('RAJ2000', missing_ok=True)
+        dec = self._star_field('DecJ2000', missing_ok=True)
+        if ra is not None and dec is not None:
+            parts.append(f"{montu.D2S(ra)}/{montu.D2S(dec)}")
+        elif ra is not None:
+            parts.append(f"RA={montu.D2S(ra)} h")
+        elif dec is not None:
+            parts.append(f"Dec={montu.D2S(dec)}°")
+        vmag = self._star_field('Vmag', missing_ok=True)
+        if vmag is not None:
+            parts.append(f"V={vmag:.2f} mag")
+        dist = self._star_field('Distance', missing_ok=True)
+        if dist is not None:
+            parts.append(f"d={dist:.2f} pc")
+        sptype = self._star_field('SpType', missing_ok=True)
+        if sptype:
+            parts.append(f"Sp={sptype}")
+        return f"Star({'/'.join(parts)})"
 
     @staticmethod
     def _propagated_j2000_coordinates(star_row, at):

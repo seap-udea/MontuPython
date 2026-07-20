@@ -141,14 +141,15 @@ def test_heliacal_rise_wrapper_accepts_verbose(thebes, sirius, capsys):
     assert 'day 001' in captured
 
 
-def test_print_rises_returns_dataframe(thebes, sirius):
+def test_print_rises_is_display_only(thebes, sirius, capsys):
     start = montu.Time('139-07-01 00:00:00', calendar='mixed')
     end = montu.Time(start.jed + 44, format='jd', scale='utc')
     calculator = montu.HeliacalRise(model='schaefer1987')
     result = calculator.compute(sirius, thebes, start, end)
-    printed = calculator.print_rises(result, title='Test')
-    assert printed is result
-    assert not printed.empty
+    assert calculator.print_rises(result, title='Test') is None
+    assert not result.empty
+    captured = capsys.readouterr().out
+    assert 'Test —' in captured
 
 
 def test_sebau_body_uses_ephemeris_magnitude(thebes):
@@ -204,3 +205,48 @@ def test_solar_eclipse_from_series_and_indexing(solar_eclipses):
     by_series = montu.SolarEclipse(subset.data.iloc[0])
     assert repr(by_index).startswith('<SolarEclipse')
     assert by_index.data.year == by_series.data.year == 2024
+
+
+def test_solar_eclipse_str_is_compact(solar_eclipses):
+    eclipse = solar_eclipses.get_eclipses(year=-584, month=5, day=28).eclipse(0)
+    text = str(eclipse)
+    assert 'Catalogue fields' not in text
+    assert 'Calendar year of the eclipse' not in text
+    assert 'Eclipse type         : T (total)' in text
+    assert 'Greatest eclipse' in text
+    assert 'Central path' in text
+    assert 'lat_ge, lng_ge       : 38.2N, 45.0W' in text
+    assert 'sun_alt, sun_azm     : 71.1°, 158.5°' in text
+    assert 'ΔT assumed           : 18383.9 s' in text
+    assert '271.5 km' in text
+    assert 'Besselian elements' not in text
+    assert 'path_map             :' in text
+    assert 'Ecl=-05840528' in text
+    assert eclipse.path_map.endswith('Mag=0')
+
+
+def test_solar_eclipse_path_map_and_cond_map(solar_eclipses):
+    eclipse = solar_eclipses.get_eclipses(year=-584, month=5, day=28).eclipse(0)
+    assert 'Ecl=-05840528' in eclipse.path_map
+    troy = montu.Observer(site='troy')
+    cond = eclipse.conditions_eclipse(troy)
+    assert isinstance(cond, montu.EclipseConditions)
+    assert 'cond_map' in cond.__dict__
+    assert 'Lat=' in cond.cond_map
+    assert 'Lng=' in cond.cond_map
+    assert 'LC=1' in cond.cond_map
+    assert f'Lat={troy.lat}' in cond.cond_map
+    assert f'Lng={troy.lon}' in cond.cond_map
+
+
+def test_eclipse_conditions_show_details(solar_eclipses, capsys):
+    eclipse = solar_eclipses.get_eclipses(year=-584, month=5, day=28).eclipse(0)
+    troy = montu.Observer(site='troy')
+    cond = eclipse.conditions_eclipse(troy)
+    assert cond.show_details() is None
+    out = capsys.readouterr().out
+    assert 'Eclipse local circumstances' in out
+    assert 'Kind                 : total' in out
+    assert 'C1 (first contact)' in out
+    assert 'cond_map             :' in out
+    assert 'LC=1' in out

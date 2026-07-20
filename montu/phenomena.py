@@ -367,17 +367,12 @@ class HeliacalRise:
             Heading for the summary.  Defaults to :attr:`model`.
         body_label : str, optional
             Name shown for the celestial body in each line (e.g. ``'Sirius'``).
-
-        Returns
-        -------
-        pandas.DataFrame
-            The same *result* frame, for convenient chaining.
         """
         if title is None:
             title = self.model
         if result.empty:
             print(f'{title}: no detections in interval')
-            return result
+            return
 
         print(f'{title} — {len(result)} date(s)')
         for n, (_, event) in enumerate(result.iterrows(), start=1):
@@ -390,7 +385,6 @@ class HeliacalRise:
                 f'Sun {event.sun_altitude_deg:.2f}°',
             )
         print(f'  source: {result.source.iloc[0]}')
-        return result
 
     def _day_visible(self, day, body, observer, sun):
         """Evaluate morning visibility for one civil day.
@@ -976,6 +970,112 @@ class SolarEclipses(object):
         return f'<SolarEclipses {{number: {self.number}}}>'
 
 
+_ECLIPSE_TYPE_LABELS = {
+    'T': 'total',
+    'A': 'annular',
+    'H': 'hybrid',
+    'P': 'partial',
+    'Pb': 'partial (no umbra)',
+    'Am': 'annular (mid)',
+    'Tm': 'total (mid)',
+    'Hm': 'hybrid (mid)',
+    'As': 'annular (south limit)',
+    'An': 'annular (north limit)',
+    'Ts': 'total (south limit)',
+    'Tn': 'total (north limit)',
+}
+
+_XJUBIER_MAP_BASE = (
+    'http://xjubier.free.fr/en/site_pages/solar_eclipses/xSE_GoogleMap3.php'
+)
+
+
+def _xjubier_ecl_param(year, month, day):
+    """Build Xavier Jubier ``Ecl`` query value (signed CCYYMMDD)."""
+    return f'{int(year):+05d}{int(month):02d}{int(day):02d}'
+
+
+def _xjubier_path_map_url(year, month, day):
+    """URL for the greatest-eclipse path map (no observer site)."""
+    ecl = _xjubier_ecl_param(year, month, day)
+    return f'{_XJUBIER_MAP_BASE}?Ecl={ecl}&Acc=2&Umb=1&Lmt=1&Mag=0'
+
+
+def _xjubier_cond_map_url(year, month, day, lat, lon, alt_m):
+    """URL for local circumstances at an observer site."""
+    ecl = _xjubier_ecl_param(year, month, day)
+    return (
+        f'{_XJUBIER_MAP_BASE}?Ecl={ecl}&Acc=2&Umb=1&Lmt=1&Mag=0'
+        f'&Lat={lat}&Lng={lon}&Elv={float(alt_m):.1f}&Zoom=9&LC=1'
+    )
+
+
+def _format_eclipse_contact_jed(jed):
+    """Format a contact Julian day as a mixed-calendar UTC string."""
+    if jed is None:
+        return '—'
+    return montu.Time(float(jed), format='jd').readable.datemix
+
+
+def _format_eclipse_duration_seconds(seconds):
+    """Format a contact duration as HH:MM:SS."""
+    if seconds is None:
+        return '—'
+    total = max(0, int(round(float(seconds))))
+    hours, remainder = divmod(total, 3600)
+    minutes, secs = divmod(remainder, 60)
+    return f'{hours:02d}:{minutes:02d}:{secs:02d}'
+
+
+class EclipseConditions(montu.Dictobj):
+    """Local eclipse circumstances at an observer site.
+
+    Returned by :meth:`SolarEclipse.conditions_eclipse`. Use
+    :meth:`show_details` for a formatted report.
+    """
+
+    def show_details(self):
+        """Print local eclipse circumstances and the Xavier Jubier map URL."""
+        y = int(self.year)
+        m = int(self.month)
+        d = int(self.day)
+        etype = str(getattr(self, 'eclipse_type', '?'))
+        type_label = _ECLIPSE_TYPE_LABELS.get(etype, etype)
+
+        lines = [
+            'Eclipse local circumstances',
+            f'  Catalogue date       : {y:+05d}-{m:02d}-{d:02d} ({etype}, {type_label})',
+            (
+                f'  Observer             : lat {self.observer_lat:.6f}°, '
+                f'lon {self.observer_lon:.6f}°, {self.observer_height_m:.0f} m'
+            ),
+            f'  Kind                 : {self.kind}',
+            f'  Visible              : {"yes" if self.visible else "no"}',
+            f'  Magnitude            : {self.magnitude:.3f}',
+            f'  Obscuration          : {self.obscuration:.3f}',
+            f'  Moon/Sun radius ratio: {self.moon_sun_ratio:.4f}',
+            f'  Sun altitude at max  : {self.sun_altitude_deg:.2f}°',
+            f'  Maximum (UTC)        : {self.time_max.readable.datemix}',
+            f'  Maximum (JD UT)      : {self.jed_max:.6f}',
+            f'  Maximum (JD TT)      : {self.jtd_max:.6f}',
+            f'  t_max                : {self.t_max:.6f} h (from catalogue t0)',
+            '',
+            'Contacts (UTC)',
+            f'  C1 (first contact)   : {_format_eclipse_contact_jed(self.jed_c1)}',
+            f'  C2 (second contact)  : {_format_eclipse_contact_jed(self.jed_c2)}',
+            f'  C3 (third contact)   : {_format_eclipse_contact_jed(self.jed_c3)}',
+            f'  C4 (fourth contact)  : {_format_eclipse_contact_jed(self.jed_c4)}',
+            f'  Umbra duration       : {_format_eclipse_duration_seconds(self.duration_umbra_seconds)}',
+            '',
+            'Catalogue reference',
+            f'  γ (catalogue)        : {self.gamma:.5f} R⊕',
+            f'  Magnitude (catalogue): {self.catalog_magnitude:.5f}',
+            f'  ΔT                   : {self.delta_t:.1f} s',
+            f'  cond_map             : {self.cond_map}',
+        ]
+        print('\n'.join(lines))
+
+
 class SolarEclipse(object):
     """One solar eclipse with Besselian elements for local circumstances.
 
@@ -1020,6 +1120,11 @@ class SolarEclipse(object):
         if missing:
             raise ValueError(f'Eclipse row missing columns: {missing}')
 
+        y = int(self.data.year)
+        m = int(self.data.month)
+        d = int(self.data.day)
+        self.path_map = _xjubier_path_map_url(y, m, d)
+
     def __repr__(self):
         y = int(self.data.year)
         m = int(self.data.month)
@@ -1028,15 +1133,15 @@ class SolarEclipse(object):
         return f'<SolarEclipse {y:+05d}-{m:02d}-{d:02d} type={etype}>'
 
     def __str__(self):
-        """Human-readable catalogue summary with field explanations."""
+        """Compact catalogue summary: field name, value, and units only."""
         r = self.data
 
-        def _fmt(key, default='—'):
+        def _value(key, default='—'):
             if key not in r.index or pd.isna(r[key]):
                 return default
             return r[key]
 
-        def _fmt_f(key, prec=5, default='—'):
+        def _float(key, prec=5, default='—'):
             if key not in r.index or pd.isna(r[key]):
                 return default
             return f'{float(r[key]):.{prec}f}'
@@ -1044,80 +1149,37 @@ class SolarEclipse(object):
         y = int(r.year)
         m = int(r.month)
         d = int(r.day)
-        etype = str(_fmt('eclipse_type', '?'))
-        type_help = {
-            'T': 'total',
-            'A': 'annular',
-            'H': 'hybrid (annular/total)',
-            'P': 'partial',
-            'Pb': 'partial (no umbra on Earth)',
-            'Am': 'annular (mid-eclipse)',
-            'Tm': 'total (mid-eclipse)',
-            'Hm': 'hybrid (mid-eclipse)',
-            'As': 'annular (south limit)',
-            'An': 'annular (north limit)',
-            'Ts': 'total (south limit)',
-            'Tn': 'total (north limit)',
-        }.get(etype, 'see NASA Five Millennium Canon')
+        etype = str(_value('eclipse_type', '?'))
+        type_label = _ECLIPSE_TYPE_LABELS.get(etype, etype)
+        cat_no = int(float(r.cat_no)) if 'cat_no' in r.index and pd.notna(r.cat_no) else '—'
 
         lines = [
             'SolarEclipse',
-            '============',
             f'Date (catalogue): {y:+05d}-{m:02d}-{d:02d}',
             '',
-            'Catalogue fields',
-            '----------------',
-            f'  year            : {y:+d}',
-            '      Calendar year of the eclipse (negative = BCE; NASA Canon /',
-            '      astronomical year numbering).',
-            f'  month           : {m}',
-            '      Calendar month (1–12).',
-            f'  day             : {d}',
-            '      Calendar day of month.',
-            f'  td_ge           : {_fmt("td_ge")}',
-            '      Dynamical Time (TD/TT) of greatest eclipse, HH:MM:SS.',
-            f'  dt              : {_fmt_f("dt", 1)} s',
-            '      ΔT = TT − UT at the eclipse (seconds); used for local UT.',
-            f'  julian_date     : {_fmt_f("julian_date", 5)}',
-            '      Julian Day of greatest eclipse on the TT scale.',
-            f'  eclipse_type    : {etype}  ({type_help})',
-            '      Canon type code: T total, A annular, H hybrid, P partial,',
-            '      Pb partial without umbral contact; suffixes n/s/m mark path limits.',
-            f'  gamma           : {_fmt_f("gamma")}',
-            '      Minimum distance of the shadow axis from Earth\'s centre, in',
-            '      Earth radii (sign: north/south of centre).',
-            f'  magnitude       : {_fmt_f("magnitude")}',
-            '      Eclipse magnitude at greatest eclipse (fraction of the solar',
-            '      diameter covered on the central line / for the GE point).',
-            f'  lat_ge / lng_ge : {_fmt("lat_ge")} / {_fmt("lng_ge")}',
-            '      Geographic position of greatest eclipse (sexagesimal-style',
-            '      Canon strings, e.g. 25.3N, 104.1W).',
-            f'  lat_dd_ge       : {_fmt_f("lat_dd_ge", 5)}°',
-            '      Latitude of greatest eclipse [deg], north positive.',
-            f'  lng_dd_ge       : {_fmt_f("lng_dd_ge", 5)}°',
-            '      Longitude of greatest eclipse [deg], east positive.',
-            f'  sun_alt / azm   : {_fmt_f("sun_alt", 1)}° / {_fmt_f("sun_azm", 1)}°',
-            '      Solar altitude and azimuth at greatest eclipse.',
-            f'  path_width      : {_fmt_f("path_width", 1)} km',
-            '      Width of the umbral/antumbral path at greatest eclipse.',
-            f'  central_duration: {_fmt("central_duration")}',
-            '      Central-line duration string from the Canon (e.g. 06m37s).',
-            f'  duration_secs   : {_fmt_f("duration_secs", 1)} s',
-            '      Same central duration in seconds (NaN if not central).',
-            f'  saros / luna_num: {_fmt("saros")} / {_fmt("luna_num")}',
-            '      Saros series number and lunation number.',
-            f'  cat_no          : {int(float(r.cat_no)) if "cat_no" in r.index and pd.notna(r.cat_no) else "—"}',
-            '      Catalogue number in the Five Millennium Canon.',
+            'Catalogue',
+            f'  Eclipse type         : {etype} ({type_label})',
+            f'  γ                    : {_float("gamma")} R⊕',
+            f'  magnitude            : {_float("magnitude")}',
+            f'  julian_date          : {_float("julian_date", 5)} (JD TT)',
+            f'  ΔT assumed           : {_float("dt", 1)} s',
+            f'  saros                : {_value("saros")}',
+            f'  luna_num             : {_value("luna_num")}',
+            f'  cat_no               : {cat_no}',
             '',
-            'Besselian elements',
-            '------------------',
-            f'  t0              : {_fmt_f("t0", 1)} h TT',
-            '      Reference epoch for the polynomial elements (hours TT).',
-            f'  tmin … tmax     : {_fmt_f("tmin", 1)} … {_fmt_f("tmax", 1)} h',
-            '      Validity window of the polynomials relative to t0.',
-            '  x,y,d,μ,l1,l2,tan f1/f2',
-            '      Polynomial coefficients for local-circumstances reduction',
-            '      (fundamental plane); used by conditions_eclipse().',
+            'Greatest eclipse',
+            f'  td_ge (TT)           : {_value("td_ge")}',
+            f'  lat_ge, lng_ge       : {_value("lat_ge")}, {_value("lng_ge")}',
+            f'  lat_dd_ge            : {_float("lat_dd_ge", 5)}°',
+            f'  lng_dd_ge            : {_float("lng_dd_ge", 5)}°',
+            f'  sun_alt, sun_azm     : {_float("sun_alt", 1)}°, {_float("sun_azm", 1)}°',
+            '',
+            'Central path',
+            f'  path_width           : {_float("path_width", 1)} km',
+            f'  central_duration     : {_value("central_duration")}',
+            f'  duration_secs        : {_float("duration_secs", 1)} s',
+            '',
+            f'  path_map             : {self.path_map}',
         ]
         return '\n'.join(lines)
 
@@ -1228,21 +1290,9 @@ class SolarEclipse(object):
 
         Returns
         -------
-        montu.Dictobj
-            Fields include:
-
-            * ``kind`` — ``'none'``, ``'partial'``, ``'annular'``, or ``'total'``
-            * ``visible`` — ``True`` if ``kind != 'none'`` and the Sun is above
-              *horizon_altitude_deg* at maximum
-            * ``magnitude`` — eclipse magnitude (solar diameter fraction)
-            * ``obscuration`` — fraction of solar disk area covered
-            * ``moon_sun_ratio`` — Moon/Sun apparent-radius ratio
-            * ``jed_max``, ``jtd_max`` — Julian Day of maximum (UTC / TT)
-            * ``time_max`` — :class:`montu.Time` of maximum (UTC)
-            * ``jed_c1`` … ``jed_c4`` — contact instants (UTC JD), or ``None``
-            * ``duration_umbra_seconds`` — C2–C3 duration if umbral, else ``None``
-            * ``sun_altitude_deg`` — approximate solar altitude at maximum
-            * ``t_max`` — hours from the catalogue ``t0`` (TT)
+        EclipseConditions
+            Local circumstances including ``cond_map`` (Xavier Jubier URL).
+            Call :meth:`EclipseConditions.show_details` for a formatted report.
 
         Notes
         -----
@@ -1256,6 +1306,7 @@ class SolarEclipse(object):
         >>> eclipses = montu.SolarEclipses().get_eclipses(year=2024, month=4, day=8)
         >>> eclipse = eclipses.eclipse(0)
         >>> cond = eclipse.conditions_eclipse(montu.Observer(site='thebes'))
+        >>> cond.show_details()  # doctest: +SKIP
         """
         lat = float(observer.lat)
         lon = float(observer.lon)
@@ -1349,6 +1400,14 @@ class SolarEclipse(object):
             'observer_lat': lat,
             'observer_lon': lon,
             'observer_height_m': height_m,
+            'cond_map': _xjubier_cond_map_url(
+                int(self.data.year),
+                int(self.data.month),
+                int(self.data.day),
+                lat,
+                lon,
+                height_m,
+            ),
         }
-        self.condition = montu.Dictobj(dict=condition)
+        self.condition = EclipseConditions(dict=condition)
         return self.condition
