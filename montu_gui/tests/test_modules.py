@@ -33,6 +33,7 @@ from montu_gui.modules.location import (
     format_dms,
     get_default_location,
     load_locations,
+    location_to_coords,
     parse_dms_string,
     validate_coords,
 )
@@ -57,6 +58,14 @@ pytestmark = pytest.mark.desktop
 
 
 class TestLocationModule:
+    def test_locations_catalogue_uses_montu_data_file(self):
+        import montu
+        from montu_gui.modules import location
+
+        assert location._locations_file() == montu.Util._data_path(
+            "locations.json", check=True
+        )
+
     def test_load_locations_includes_thebes(self):
         locations = load_locations()
         assert locations
@@ -64,8 +73,18 @@ class TestLocationModule:
 
     def test_default_location_is_thebes(self):
         default = get_default_location()
+        thebes = find_location("thebes")
         assert default.id == "thebes"
-        assert default.lat == pytest.approx(25.6967, abs=0.01)
+        assert default.lat == pytest.approx(thebes.lat, abs=0.01)
+        assert default.pressure_mbar == pytest.approx(thebes.pressure_mbar, abs=0.01)
+        assert default.temperature_c == pytest.approx(thebes.temperature_c, abs=0.1)
+
+    def test_location_to_observer_uses_catalogue_atmosphere(self):
+        entry = find_location("thebes")
+        thebes = location_to_coords(entry)
+        observer = thebes.to_observer()
+        assert observer.pressure == pytest.approx(entry.pressure_mbar, abs=0.01)
+        assert observer.temperature == pytest.approx(entry.temperature_c, abs=0.1)
 
     def test_find_location_by_id(self):
         giza = find_location("giza")

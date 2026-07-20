@@ -18,6 +18,8 @@ from pymeeus.Epoch import Epoch as pymeeus_Epoch
 from pymeeus.Angle import Angle as pymeeus_Angle
 import pymeeus.Coordinates as pymeeus_Coordinates
 
+from montu.sebau import _STAR_CONDITION_SPECS, _STAR_POSITION_SPECS
+
 ###############################################################
 # Module constants
 ###############################################################
@@ -169,8 +171,10 @@ class Star(montu.Sebau):
         super().__init__()
         import ephem as pyephem
         self.seba = pyephem.FixedBody()
+        self._star_data = None
 
         if star_data is not None:
+            self._star_data = dict(star_data) if isinstance(star_data, dict) else star_data.copy()
             self.seba._ra = float(star_data['RAJ2000']) * 15 * montu.DEG
             self.seba._dec = float(star_data['DecJ2000']) * montu.DEG
             self.seba._epoch = '2000/1/1 12:00:00'
@@ -208,8 +212,39 @@ class Star(montu.Sebau):
                 self.seba._pmra = float(kwargs['pmRA'])
             if 'pmDec' in kwargs:
                 self.seba._pmdec = float(kwargs['pmDec'])
+            self._star_data = pd.Series({
+                'RAJ2000': float(kwargs.get('RAJ2000', 0.0)),
+                'DecJ2000': float(kwargs.get('DecJ2000', 0.0)),
+                'pmRA': float(kwargs.get('pmRA', 0.0)),
+                'pmDec': float(kwargs.get('pmDec', 0.0)),
+            })
 
         self.name = self.seba.name
+
+    @staticmethod
+    def _propagated_j2000_coordinates(star_row, at):
+        """Return ``(RAJ2000t, DecJ2000t)`` with proper motion at epoch *at*."""
+        if at is None:
+            at = montu.Time()
+        dt = (at.jed - montu.JED_2000) * montu.MARCSEC / 365.25
+        pmra = float(star_row.get('pmRA', 0.0) or 0.0)
+        pmdec = float(star_row.get('pmDec', 0.0) or 0.0)
+        raj2000t = float(star_row['RAJ2000']) + pmra * dt / 15.0
+        decj2000t = float(star_row['DecJ2000']) + pmdec * dt
+        return raj2000t, decj2000t
+
+    def where_in_sky(self, at=None, observer=None, store=False):
+        """Compute horizontal coordinates and add proper-motion J2000 fields."""
+        if at is None:
+            at = montu.Time()
+        super().where_in_sky(at, observer, store)
+        raj2000t, decj2000t = self._propagated_j2000_coordinates(self._star_data, at)
+        if store:
+            self.position[-1]['RAJ2000t'] = raj2000t
+            self.position[-1]['DecJ2000t'] = decj2000t
+        else:
+            self.position.RAJ2000t = raj2000t
+            self.position.DecJ2000t = decj2000t
 
     def conditions_in_sky(self, at=None, observer=None, store=False):
         """Compute full observational conditions for the star."""
@@ -237,6 +272,12 @@ class Star(montu.Sebau):
             self.condition += [condition]
         else:
             self.condition = montu.Dictobj(dict=condition)
+
+    def _sky_condition_specs(self):
+        return _STAR_CONDITION_SPECS
+
+    def _sky_position_specs(self):
+        return _STAR_POSITION_SPECS
 
 ###############################################################
 # Stars Class
@@ -280,11 +321,31 @@ class Stars(object):
     >>> bright.number
     14
 
+    Request a single star as a :class:`Star` object:
+
+    >>> spica = montu.Stars(subset='bright', ProperName='Spica', return_as='Star')
+    >>> spica.name
+    'Spica'
+
     Save the catalogue to a file and reload it:
 
     >>> allstars.data.to_csv('my_catalogue.csv', index=False)
     >>> reloaded = montu.Stars(filename='my_catalogue.csv')
     """
+    def __new__(cls, data=None, filename=None, subset=None, **kwargs):
+        return_as = kwargs.pop('return_as', None)
+        if return_as is not None:
+            instance = super().__new__(cls)
+            instance.__init__(
+                data=data, filename=filename, subset=subset, **kwargs
+            )
+            if str(return_as).lower() != 'star':
+                raise ValueError(
+                    f"Unsupported return_as={return_as!r}; use return_as='Star'"
+                )
+            return instance._as_star_objects()
+        return super().__new__(cls)
+
     def __init__(self,data=None,filename=None,subset=None,**kwargs):
 
         if data is not None:
@@ -352,29 +413,66 @@ class Stars(object):
         Get bright stars near the celestial equator:
 
         >>> equatorial = allstars.get_stars(Vmag=[-2, 4], DecJ2000=[-10, 10])
+
+        Return :class:`Star` objects instead of a catalogue subset:
+
+        >>> spica = allstars.get_stars(ProperName='Spica', return_as='Star')
+        >>> isinstance(spica, montu.Star)
+        True
         """
+
+        return_as = args.pop('return_as', None)
 
         # If no args get all stars in data base
         if len(args)==0:
-            return self
-        
-        # If args provided it will try to filter database according to conditions
-        cond = np.array([True]*len(self.data))
-        for key,item in args.items():
-            if key == 'suffix':continue
-            if isinstance(item,list):
-                min = float(item[0])
-                max = float(item[1])
-                cond = (self.data[key]>=min)&(self.data[key]<=max)&(cond)
-            elif isinstance(item,tuple):
-                cond_or = np.array([False]*len(self.data))
-                for it in item:
-                    cond_or = (self.data[key]==it)|cond_or
-                cond = (cond_or)&(cond)
-            else:
-                cond = (self.data[key]==item)&(cond)
-    
-        return Stars(self.data[cond])
+            filtered = self
+        else:
+            # If args provided it will try to filter database according to conditions
+            cond = np.array([True]*len(self.data))
+            for key,item in args.items():
+                if key == 'suffix':continue
+                if isinstance(item,list):
+                    min = float(item[0])
+                    max = float(item[1])
+                    cond = (self.data[key]>=min)&(self.data[key]<=max)&(cond)
+                elif isinstance(item,tuple):
+                    cond_or = np.array([False]*len(self.data))
+                    for it in item:
+                        cond_or = (self.data[key]==it)|cond_or
+                    cond = (cond_or)&(cond)
+                else:
+                    cond = (self.data[key]==item)&(cond)
+            filtered = Stars(self.data[cond])
+
+        if return_as is None:
+            return filtered
+        if str(return_as).lower() != 'star':
+            raise ValueError(
+                f"Unsupported return_as={return_as!r}; use return_as='Star'"
+            )
+        return filtered._as_star_objects()
+
+    @staticmethod
+    def _star_label(row):
+        """Catalogue label used as the key in ``return_as='Star'`` dict results."""
+        proper = row.get('ProperName')
+        if proper is not None and pd.notna(proper) and str(proper).strip():
+            return str(proper)
+        name = row.get('Name')
+        if name is not None and pd.notna(name) and str(name).strip():
+            return str(name)
+        return 'Star'
+
+    def _as_star_objects(self):
+        """Build :class:`Star` instance(s) from the current catalogue subset."""
+        if self.number == 0:
+            raise ValueError("No stars matched the filter")
+        if self.number == 1:
+            return Star(self.data.iloc[0])
+        return {
+            self._star_label(row): Star(row)
+            for _, row in self.data.iterrows()
+        }
     
     def value_for(self, proper_name, column):
         """Return a single scalar column value for one star by proper name.
@@ -686,7 +784,12 @@ class Stars(object):
             return data
         
     def conditions_in_sky(self,at=None,observer=None,inplace=False):
-        """Determine rise, transit and set times for the stars.
+        """Compute observational conditions for every star in the subset.
+
+        Adds rise, set, transit, hour angle, and elongation columns by calling
+        :meth:`Star.conditions_in_sky` once per row (PyEphem event search).
+        Use this for modest subsets; the full visible catalogue is much slower
+        than vectorized :meth:`where_in_sky`.
 
         Parameters
         ----------
@@ -697,6 +800,37 @@ class Stars(object):
         inplace : bool, optional
             If ``True``, add columns to ``self.data`` and return ``None``.
             If ``False`` (default), return a copy of the updated DataFrame.
+
+        Returns
+        -------
+        pandas.DataFrame or None
+            DataFrame with additional columns ``tt``, ``jed``, ``ha``,
+            ``rise_time``, ``rise_az``, ``set_time``, ``set_az``,
+            ``transit_time``, ``transit_el``, ``elongation``,
+            ``is_circumpolar``, and ``is_neverup``.
+            Returns ``None`` when *inplace* is ``True``.
+
+        Raises
+        ------
+        ValueError
+            If *observer* is not a :class:`montu.Observer` instance.
+
+        Examples
+        --------
+        >>> import montu
+        >>> thebes = montu.Observer(site='thebes')
+        >>> epoch = montu.Time('bce 1500-01-01 12:00:00', calendar='proleptic')
+        >>> orion = montu.Stars(subset='visible', Vmag=[-2, 4], Constellation='Ori')
+
+        Return a copy with condition columns:
+
+        >>> conditions = orion.conditions_in_sky(at=epoch, observer=thebes)
+        >>> conditions[['ProperName', 'transit_el', 'is_circumpolar']].head()
+
+        Update in place:
+
+        >>> orion.conditions_in_sky(at=epoch, observer=thebes, inplace=True)
+        >>> orion.data[['ProperName', 'transit_el']].head()
         """
         # If at is not provide use present
         if at is None:

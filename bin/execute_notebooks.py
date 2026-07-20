@@ -11,9 +11,12 @@ Used by ``release-pipeline.sh`` before ``make readme`` and ``make docs``.
 
 from __future__ import annotations
 
+import os
 import re
 import sys
 from pathlib import Path
+
+os.environ.setdefault("JUPYTER_PLATFORM_DIRS", "1")
 
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor

@@ -46,6 +46,97 @@ PLANETARY_NAMES = {str(v): k for k, v in PLANETARY_IDS.items()}
 # Name of quarters of the moon in pymeeus
 PYMEEUS_QUARTERS = ['new','first','full','last']
 
+# Field metadata for show_position / show_conditions (key, label, unit)
+_SKY_POSITION_SPECS = (
+    ('Name', 'Name', ''),
+    ('RAJ2000', 'RA (J2000)', 'h'),
+    ('DecJ2000', 'Dec (J2000)', 'deg'),
+    ('RAEpoch', 'RA (epoch)', 'h'),
+    ('DecEpoch', 'Dec (epoch)', 'deg'),
+    ('RAGeo', 'RA (geocentric)', 'h'),
+    ('DecGeo', 'Dec (geocentric)', 'deg'),
+    ('az', 'Azimuth', 'deg'),
+    ('el', 'Elevation', 'deg'),
+)
+
+_SEBAU_CONDITION_SPECS = (
+    ('Name', 'Name', ''),
+    ('ha', 'Hour angle', 'h'),
+    ('Vmag', 'Visual magnitude', 'mag'),
+    ('rise_time', 'Rise time (UTC)', 'jed'),
+    ('rise_az', 'Rise azimuth', 'deg'),
+    ('set_time', 'Set time (UTC)', 'jed'),
+    ('set_az', 'Set azimuth', 'deg'),
+    ('transit_time', 'Transit time (UTC)', 'jed'),
+    ('transit_el', 'Transit elevation', 'deg'),
+    ('elongation', 'Elongation from Sun', 'deg'),
+    ('earth_distance', 'Distance from Earth', 'au'),
+    ('sun_distance', 'Distance from Sun', 'au'),
+    ('angsize', 'Angular diameter', 'arcsec'),
+    ('phase', 'Illuminated fraction', 'percent'),
+    ('hlat', 'Heliocentric latitude', 'deg'),
+    ('hlon', 'Heliocentric longitude', 'deg'),
+    ('hlong', 'Heliocentric longitude (alt.)', 'deg'),
+    ('is_circumpolar', 'Circumpolar', 'bool'),
+    ('is_neverup', 'Never rises', 'bool'),
+)
+
+_STAR_CONDITION_SPECS = (
+    ('Name', 'Name', ''),
+    ('ha', 'Hour angle', 'h'),
+    ('Vmag', 'Visual magnitude', 'mag'),
+    ('rise_time', 'Rise time (UTC)', 'jed'),
+    ('rise_az', 'Rise azimuth', 'deg'),
+    ('set_time', 'Set time (UTC)', 'jed'),
+    ('set_az', 'Set azimuth', 'deg'),
+    ('transit_time', 'Transit time (UTC)', 'jed'),
+    ('transit_el', 'Transit elevation', 'deg'),
+    ('elongation', 'Elongation from Sun', 'deg'),
+    ('is_circumpolar', 'Circumpolar', 'bool'),
+    ('is_neverup', 'Never rises', 'bool'),
+)
+
+_STAR_POSITION_SPECS = (
+    ('Name', 'Name', ''),
+    ('RAJ2000', 'RA (J2000)', 'h'),
+    ('DecJ2000', 'Dec (J2000)', 'deg'),
+    ('RAJ2000t', 'RA (J2000, proper motion)', 'h'),
+    ('DecJ2000t', 'Dec (J2000, proper motion)', 'deg'),
+    ('RAEpoch', 'RA (epoch)', 'h'),
+    ('DecEpoch', 'Dec (epoch)', 'deg'),
+    ('RAGeo', 'RA (geocentric)', 'h'),
+    ('DecGeo', 'Dec (geocentric)', 'deg'),
+    ('az', 'Azimuth', 'deg'),
+    ('el', 'Elevation', 'deg'),
+)
+
+
+def _format_sky_value(key, value, unit):
+    """Format one sky-quantity for human-readable reports."""
+    if value is None:
+        return '—'
+    if unit == 'bool':
+        return 'yes' if value else 'no'
+    if unit == '':
+        return str(value)
+    if unit == 'h':
+        return f"{montu.D2S(float(value))} h"
+    if unit == 'deg':
+        return f"{float(value):.6f}°"
+    if unit == 'mag':
+        return f"{float(value):.2f} mag"
+    if unit == 'au':
+        return f"{float(value):.6f} AU"
+    if unit == 'arcsec':
+        return f"{float(value):.3f}\""
+    if unit == 'percent':
+        return f"{float(value):.2f} %"
+    if unit == 'jed':
+        if float(value) == 0:
+            return '—'
+        return montu.Time(float(value), format='jd').readable.datemix
+    return str(value)
+
 ###############################################################
 # Class Sebau
 ###############################################################
@@ -88,6 +179,136 @@ class Sebau(object):
         else:
             site.date = observer.site.date
         return site
+
+    def _remember_sky_context(self, at, observer):
+        """Store the epoch and site used in the latest sky computation."""
+        if at is None:
+            at = montu.Time()
+        self._sky_at = at
+        self._sky_observer = observer
+
+    def _sky_body_label(self):
+        return getattr(self, 'name', None) or getattr(self.seba, 'name', 'Object')
+
+    def _sky_position_specs(self):
+        return _SKY_POSITION_SPECS
+
+    def _sky_condition_specs(self):
+        return _SEBAU_CONDITION_SPECS
+
+    def _get_latest_sky_record(self, attr):
+        """Return the latest position or condition dict, if any."""
+        value = getattr(self, attr, None)
+        if isinstance(value, montu.Dictobj):
+            return dict(value.__dict__)
+        if isinstance(value, list) and value:
+            row = value[-1]
+            return dict(row) if isinstance(row, dict) else row
+        if isinstance(value, pd.DataFrame) and not value.empty:
+            return value.iloc[-1].to_dict()
+        return None
+
+    def _format_sky_header(self, *, record):
+        """Build epoch and site lines shared by position/condition reports."""
+        at = getattr(self, '_sky_at', None)
+        if at is None and record and record.get('jed') is not None:
+            at = montu.Time(float(record['jed']), format='jd')
+        observer = getattr(self, '_sky_observer', None)
+
+        lines = []
+        if at is not None:
+            at.readable  # populate calendar strings on demand
+            lines.append(
+                f"  Epoch: {at.readable.datemix} / {at.readable.datepro}  "
+                f"(JED {at.jed:.6f})"
+            )
+        else:
+            lines.append("  Epoch: (unknown)")
+
+        if observer is not None:
+            site_label = observer.site_name or "Custom site"
+            if observer.site_id:
+                site_label += f" [{observer.site_id}]"
+            lines.append(
+                f"  Site: {site_label} — lat {observer.lat:.6f}°, "
+                f"lon {observer.lon:.6f}°, {observer.height * 1000:.0f} m  "
+                f"(P={observer.pressure} mbar, T={observer.temperature} °C)"
+            )
+        else:
+            lines.append("  Site: (unknown)")
+        return lines
+
+    def _format_sky_record(self, record, specs):
+        lines = []
+        for key, label, unit in specs:
+            if key not in record:
+                continue
+            value = _format_sky_value(key, record.get(key), unit)
+            lines.append(f"  {label}: {value}")
+        return lines
+
+    def show_position(self):
+        """Print the latest :meth:`where_in_sky` result with epoch, site, and units.
+
+        If :meth:`where_in_sky` has not been called yet, prints a short notice
+        instead.
+
+        Examples
+        --------
+        >>> import montu
+        >>> spica = montu.Star(montu.Stars(subset='bright', ProperName='Spica').data.iloc[0])
+        >>> thebes = montu.Observer(site='thebes')
+        >>> mtime = montu.Time('bce 1500-06-21 12:00:00', calendar='mixed')
+        >>> spica.where_in_sky(at=mtime, observer=thebes)
+        >>> spica.show_position()  # doctest: +SKIP
+        """
+        record = self._get_latest_sky_record('position')
+        label = self._sky_body_label()
+        if record is None:
+            message = (
+                f"{label} — no sky position stored.\n"
+                "  Call where_in_sky(at=..., observer=...) first."
+            )
+            print(message)
+            return
+
+        lines = [f"{label} — sky position"]
+        lines.extend(self._format_sky_header(record=record))
+        lines.extend(self._format_sky_record(record, self._sky_position_specs()))
+        print("\n".join(lines))
+
+    def show_conditions(self):
+        """Print the latest :meth:`conditions_in_sky` result with epoch, site, and units.
+
+        Planet, Sun, and Moon reports include heliocentric distances and phase;
+        :class:`montu.Star` reports omit planet-specific fields.
+
+        If :meth:`conditions_in_sky` has not been called yet, prints a short
+        notice instead.
+
+        Examples
+        --------
+        >>> import montu
+        >>> mars = montu.Planet('Mars')
+        >>> giza = montu.Observer(lon=31.134, lat=29.979, height=0.075)
+        >>> mtime = montu.Time('-1000-03-21 20:00:00')
+        >>> mars.conditions_in_sky(at=mtime, observer=giza)
+        >>> mars.show_conditions()  # doctest: +SKIP
+        """
+        record = self._get_latest_sky_record('condition')
+        label = self._sky_body_label()
+        if record is None:
+            message = (
+                f"{label} — no sky conditions stored.\n"
+                "  Call conditions_in_sky(at=..., observer=...) first."
+            )
+            print(message)
+            return
+
+        lines = [f"{label} — sky conditions"]
+        lines.extend(self._format_sky_header(record=record))
+        lines.extend(self._format_sky_record(record, self._sky_condition_specs()))
+        print("\n".join(lines))
 
     def _observer_events(self, observer):
         """Compute rise/set/transit event data without deprecated body attrs."""
@@ -174,6 +395,9 @@ class Sebau(object):
         >>> sun.where_in_sky(at=mtime, observer=giza)
         >>> print(sun.position.az, sun.position.el)
         """
+        if at is None:
+            at = montu.Time()
+        self._remember_sky_context(at, observer)
         self._compute_ephemerides(at.jed,observer)
 
         # Basic store
@@ -320,6 +544,8 @@ class Sebau(object):
         self.position_store = False
         self.condition = []
         self.condition_store = False
+        self._sky_at = None
+        self._sky_observer = None
 
     def tabulate_store(self):
         """Convert accumulated position/condition lists to DataFrames in place.
@@ -688,30 +914,45 @@ class Moon(Sebau):
             
         return quarter_dates
 
+def _canonical_planetary_name(name):
+    """Return the canonical PLANETARY_IDS key for *name* (case-insensitive)."""
+    name_upper = (name or "").strip().upper()
+    if name_upper in PLANETARY_IDS:
+        return name_upper
+    if name_upper in PLANETARY_NAMES:
+        return PLANETARY_NAMES[name_upper]
+    raise ValueError(
+        f"Planet '{name_upper}' not recognized, check variable PLANETARY_NAMES"
+    )
+
 ###############################################################
 # Planet Class
 ###############################################################
 class Planet(Sebau):
-    """A solar-system planet (Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptune).
+    """A solar-system body (Sun, Moon, or a major planet).
 
     Parameters
     ----------
     name : str
-        Planet name or NAIF/PyEphem integer ID. Case-insensitive.
-        Accepted names: ``'Mercury'``, ``'Venus'``, ``'Mars'``,
-        ``'Jupiter'``, ``'Saturn'``, ``'Uranus'``, ``'Neptune'``.
+        Body name or NAIF/PyEphem integer ID. Case-insensitive.
+        Accepted names: ``'Sun'``, ``'Moon'``, ``'Mercury'``, ``'Venus'``,
+        ``'Mars'``, ``'Jupiter'``, ``'Saturn'``, ``'Uranus'``, ``'Neptune'``.
+
+        ``'Sun'`` and ``'Moon'`` return :class:`Sun` and :class:`Moon`
+        instances (same objects as :func:`Sun` / :func:`Moon` would build);
+        other names return :class:`Planet`.
 
     Raises
     ------
     ValueError
-        If *name* is not a recognised planet.
+        If *name* is not a recognised body.
 
     Attributes
     ----------
     name : str
-        Capitalised planet name (e.g. ``'Mars'``).
+        Capitalised body name (e.g. ``'Mars'``).
     name_upper : str
-        Upper-case planet name (e.g. ``'MARS'``).
+        Upper-case body name (e.g. ``'MARS'``).
     id : str
         NAIF body ID as a string (e.g. ``'4'`` for Mars).
     planet_class : type
@@ -725,24 +966,28 @@ class Planet(Sebau):
     >>> mars = montu.Planet('Mars')
     >>> mars.where_in_sky(at=mtime, observer=giza)
     >>> print(f"Mars: Az={mars.position.az:.2f}, El={mars.position.el:.2f}")
+    >>> isinstance(montu.Planet('Sun'), montu.Sun)
+    True
     """
-    def __init__(self,name):
+    def __new__(cls, name):
+        canonical = _canonical_planetary_name(name)
+        if canonical == "SUN":
+            return Sun()
+        if canonical == "MOON":
+            return Moon()
+        return super().__new__(cls)
+
+    def __init__(self, name):
         super().__init__()
 
-        # Names
-        self.name_upper = name.upper()
-        if self.name_upper in PLANETARY_IDS.keys():
-            self.name = self.name_upper.lower()
-            self.id = str(PLANETARY_IDS[self.name_upper])
-        elif self.name_upper in PLANETARY_NAMES.keys():
-            self.id = str(self.name_upper)
-            self.name = PLANETARY_NAMES[self.id].lower()
-        else:
-            raise ValueError(f"Planet '{self.name_upper}' not recognized, check variable PLANETARY_NAMES")
-        self.name_lower = self.name.lower()
-        self.name = self.name_lower[0].upper() + self.name_lower[1:]
+        canonical = _canonical_planetary_name(name)
+        self.name_upper = canonical
+        self.id = str(PLANETARY_IDS[canonical])
+        self.name = canonical.lower()
+        self.name_lower = self.name
+        self.name = self.name[0].upper() + self.name[1:]
         self.name_upper = self.name.upper()
-        
+
         # Find the planet
         exec(f"self.seba = pyephem.{self.name}()")
         self.name = self.seba.name

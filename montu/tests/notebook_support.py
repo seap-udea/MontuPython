@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
+# Jupyter 6 path migration; avoids DeprecationWarning on nbconvert import.
+os.environ.setdefault("JUPYTER_PLATFORM_DIRS", "1")
+
 import nbformat
-from nbconvert.preprocessors import ExecutePreprocessor
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 EXAMPLES_DIR = REPO_ROOT / "examples"
@@ -82,6 +85,8 @@ def prepare_notebook_for_local_run(nb) -> None:
 
 
 def execute_notebook(path: Path, *, timeout: int = DEFAULT_TIMEOUT_SECONDS) -> None:
+    from nbconvert.preprocessors import ExecutePreprocessor
+
     nb = nbformat.read(path, as_version=4)
     prepare_notebook_for_local_run(nb)
     executor = ExecutePreprocessor(timeout=timeout, kernel_name="python3")

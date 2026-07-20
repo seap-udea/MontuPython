@@ -63,6 +63,12 @@ def test_sun_and_planet_examples_compute_conditions(giza_observer):
     assert mars.condition.rise_time > 0
     assert np.isfinite(mars.condition.elongation)
 
+    sun = montu.Planet("Sun")
+    assert isinstance(sun, montu.Sun)
+    moon = montu.Planet("Moon")
+    assert isinstance(moon, montu.Moon)
+    assert montu.Planet("10") is not sun and isinstance(montu.Planet("10"), montu.Sun)
+
     seasons = montu.Sun.next_seasons(at=montu.Time("-1000-01-01"))
     assert len(seasons) == 4
     assert list(seasons) == sorted(seasons)

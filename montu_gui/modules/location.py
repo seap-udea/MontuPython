@@ -31,6 +31,8 @@ class LocationEntry:
     region: str = ""
     era: str = ""
     description: str = ""
+    pressure_mbar: float = 1013.25
+    temperature_c: float = 15.0
 
 
 @dataclass
@@ -55,6 +57,8 @@ class ObserverCoords:
     def to_observer(self):
         """Return a ``montu.Observer`` for these coordinates."""
         import montu
+        if self.location_id:
+            return montu.Observer(site=self.location_id)
         return montu.Observer(
             lon=self.lon,
             lat=self.lat,
@@ -92,6 +96,8 @@ def load_locations() -> list[LocationEntry]:
             region=item.get("region", ""),
             era=item.get("era", ""),
             description=item.get("description", ""),
+            pressure_mbar=float(item.get("pressure_mbar", 1013.25)),
+            temperature_c=float(item.get("temperature_c", 15.0)),
         ))
     return entries or [_fallback_tebas()]
 
@@ -151,6 +157,8 @@ def _fallback_tebas() -> LocationEntry:
         region="Egypt",
         era="Ancient Egypt",
         description="Ancient Waset — capital of Upper Egypt.",
+        pressure_mbar=1004.16,
+        temperature_c=25.2,
     )
 
 

@@ -8,6 +8,7 @@ import montu
 ###############################################################
 import ephem as pyephem
 import json
+import math
 
 ###############################################################
 # Module constants
@@ -45,6 +46,17 @@ def _find_location_entry(site_id: str) -> dict:
     raise ValueError(f"Unknown observing site: {site_id!r}")
 
 
+def _apply_location_entry(observer: "Observer", entry: dict) -> None:
+    """Copy every catalogue field from *entry* onto *observer*."""
+    for key, value in entry.items():
+        setattr(observer, key, value)
+
+
+def _pressure_from_altitude(alt_m: float) -> float:
+    """Estimate sea-level-standard pressure [mbar] from elevation [m]."""
+    return 1013.25 * math.exp(-alt_m / 8434.5)
+
+
 ###############################################################
 # Stars Class
 ###############################################################
@@ -67,9 +79,11 @@ class Observer(object):
         given, ``lon``, ``lat``, and ``height`` are taken from the catalogue
         unless explicitly overridden.
     pressure : float, optional
-        Atmospheric pressure at the observing site [mbar]. Default is 1013.25.
+        Atmospheric pressure at the observing site [mbar]. Default is 1013.25
+        for a manual site, or the catalogue value when ``site=…`` is used.
     temperature : float, optional
-        Air temperature at the observing site [°C]. Default is 15.
+        Air temperature at the observing site [°C]. Default is 15 for a manual
+        site, or the catalogue value when ``site=…`` is used.
     relative_humidity : float, optional
         Relative humidity of the air (0–1). Default is 0.
     obswl : float, optional
@@ -87,6 +101,15 @@ class Observer(object):
         Catalogue id when created via ``site=…``, else ``None``.
     site_name : str or None
         Display name from the catalogue when ``site=…`` was used.
+    id, name, alt_m, region, era, description, name_es, …
+        When ``site=…`` is used, every field from the bundled
+        ``locations.json`` entry is also exposed as an instance attribute
+        (same names as in the catalogue).
+    pressure_mbar, temperature_c
+        Catalogue entries include mean surface pressure (from ``alt_m``) and
+        mean annual air temperature (NASA POWER 1991–2020 climatology, 2 m).
+        These become ``pressure`` and ``temperature`` on the observer unless
+        overridden explicitly in the constructor.
     pressure : float
         Atmospheric surface pressure [mbar].
     temperature : float
@@ -112,13 +135,17 @@ class Observer(object):
     Pick a predefined ancient-world site:
 
     >>> memphis = montu.Observer(site='memphis')
+    >>> memphis.region
+    'Egypt'
+    >>> repr(memphis)
+    "Observer('memphis'/'Memphis'/29.845800°, 31.250800°, 25 m/P=1010.25 mbar, T=21.6 °C)"
     >>> montu.Observer.list()[:3]
     ['thebes', 'memphis', 'giza']
     """
     def __init__(self,
-                 lon=0, lat=0, height=0,
+                 lon=None, lat=None, height=None,
                  site=None,
-                 pressure=1013.25, temperature=15,
+                 pressure=None, temperature=None,
                  relative_humidity=0, obswl=0.6):
         """Initialise the Observer; see class docstring for parameter details."""
 
@@ -127,20 +154,40 @@ class Observer(object):
 
         if site is not None:
             entry = _find_location_entry(site)
+            _apply_location_entry(self, entry)
             self.site_id = entry.get("id", site)
             self.site_name = entry.get("name", site)
-            lon = float(entry.get("lon", lon))
-            lat = float(entry.get("lat", lat))
-            height = float(entry.get("alt_m", height * 1000.0)) / 1000.0
+            alt_m = float(entry.get("alt_m", 0.0 if height is None else height * 1000.0))
+            if lon is None:
+                lon = float(entry.get("lon", 0.0))
+            if lat is None:
+                lat = float(entry.get("lat", 0.0))
+            if height is None:
+                height = alt_m / 1000.0
+            if pressure is None:
+                if "pressure_mbar" in entry:
+                    pressure = float(entry["pressure_mbar"])
+                else:
+                    pressure = _pressure_from_altitude(alt_m)
+            if temperature is None:
+                if "temperature_c" in entry:
+                    temperature = float(entry["temperature_c"])
 
-        # Properties of the site
-        self.lon = lon
-        self.lat = lat
-        self.height = height
-
-        # Atmospheric properties
-        self.pressure = pressure
-        self.temperature = temperature
+        if lon is None:
+            lon = 0.0
+        if lat is None:
+            lat = 0.0
+        if height is None:
+            height = 0.0
+        if pressure is None:
+            pressure = 1013.25
+        if temperature is None:
+            temperature = 15.0
+        self.lon = float(lon)
+        self.lat = float(lat)
+        self.height = float(height)
+        self.pressure = float(pressure)
+        self.temperature = float(temperature)
         self.relative_humidity = relative_humidity
         self.obswl = obswl
 
@@ -151,6 +198,42 @@ class Observer(object):
         self.site.pressure = self.pressure
         self.site.temp = self.temperature
         self.site.elevation = self.height
+
+    def __repr__(self):
+        alt_m = self.height * 1000.0
+        coords = f"{self.lat:.6f}°, {self.lon:.6f}°, {alt_m:.0f} m"
+        atmosphere = f"P={self.pressure} mbar, T={self.temperature} °C"
+        if self.site_id:
+            name = self.site_name or self.site_id
+            return (
+                f"Observer('{self.site_id}'/'{name}'/"
+                f"{coords}/{atmosphere})"
+            )
+        return f"Observer('{coords}/{atmosphere})"
+
+    def __str__(self):
+        lines = ["Observer"]
+        if self.site_id:
+            name = self.site_name or self.site_id
+            lines.append(f"  Site: {name} [{self.site_id}]")
+        region = getattr(self, "region", "")
+        era = getattr(self, "era", "")
+        if region or era:
+            lines.append(f"  Region: {' · '.join(part for part in (region, era) if part)}")
+        alt_m = self.height * 1000.0
+        lines.append(
+            f"  Coordinates: lat {self.lat:.6f}°, lon {self.lon:.6f}°, "
+            f"elevation {alt_m:.0f} m ({self.height:.3f} km)"
+        )
+        lines.append(
+            "  Atmosphere: "
+            f"P={self.pressure} mbar, T={self.temperature} °C, "
+            f"RH={self.relative_humidity}, λ={self.obswl} μm"
+        )
+        description = getattr(self, "description", "")
+        if description:
+            lines.append(f"  Description: {description}")
+        return "\n".join(lines)
 
     @classmethod
     def list(cls, details=False):
@@ -215,6 +298,43 @@ class Observer(object):
         # representation and can shift the clock hour by many hours.
         utc_hour = ((mtime.jed + 0.5) % 1.0) * 24.0
         hour = (utc_hour + self.lon / 15.0) % 24.0
+        return montu.D2S(hour) if hms else hour
+
+    def sidereal_time(self, mtime, hms=True):
+        """Compute local apparent sidereal time at the observing site.
+
+        Uses the underlying PyEphem observer (same convention as
+        :func:`montu.maps._observer_sidereal_time_hours` and
+        :meth:`montu.Stars.where_in_sky`).
+
+        Parameters
+        ----------
+        mtime : montu.Time
+            Epoch at which the sidereal time is computed (UTC Julian Day).
+        hms : bool, optional
+            If ``True`` (default) return a formatted ``HH:MM:SS.sss`` string.
+            If ``False`` return the sidereal hour as a decimal float.
+
+        Returns
+        -------
+        str or float
+            Local apparent sidereal time as ``HH:MM:SS.sss`` when ``hms=True``,
+            or as decimal hours when ``hms=False``.
+
+        Examples
+        --------
+        >>> import montu
+        >>> thebes = montu.Observer(site='thebes')
+        >>> mtime = montu.Time('bce 1500-06-21 12:00:00', calendar='mixed')
+        >>> thebes.sidereal_time(mtime)
+        '07:14:54.925'
+        >>> thebes.sidereal_time(mtime, hms=False)
+        7.248590...
+        """
+        if not isinstance(mtime, montu.Time):
+            mtime = montu.Time(mtime, format='jd', scale='utc')
+        self.site.date = mtime.jed - montu.PYEPHEM_JD_REF
+        hour = float(self.site.sidereal_time() * montu.RAD / 15.0)
         return montu.D2S(hour) if hms else hour
 
     def distance_to(self, other, units="km"):

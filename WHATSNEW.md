@@ -7,6 +7,22 @@ This file collects the release notes and the main changes in MontuPython.
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
 - **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
 - **`montu[desktop]` optional extra** — `pip install montu[desktop]` installs PySide6, Pygments, and plotly for MontuPython Desktop and `imontu --gui` / `imontu --sothic` (see `requirements-desktop.txt`).
+- **Single `locations.json`** — removed the duplicate under `montu_gui/assets/`; MontuPython Desktop and the library both read `montu/data/locations.json`.
+- **Catalogue metadata on `Observer(site=…)`** — every field from the JSON entry (`region`, `era`, `description`, `pressure_mbar`, `temperature_c`, …) is exposed as an instance attribute.
+- **Climatology in `locations.json`** — mean surface pressure (from `alt_m`) and mean annual 2 m air temperature (NASA POWER 1991–2020) for all 72 bundled sites; used as default `pressure` and `temperature` unless overridden.
+- **Explicit overrides with `site=…`** — constructor arguments (`lon`, `lat`, `height`, `pressure`, `temperature`) take precedence over catalogue values when passed explicitly (e.g. `Observer(site='thebes', pressure=0, temperature=0)` for a geometric horizon).
+- **`Observer.sidereal_time(mtime)`** — local apparent sidereal time at the site (PyEphem convention, consistent with `Stars.where_in_sky`).
+- **`Observer.__repr__` / `Observer.__str__`** — clearer site label, coordinates (6 decimals), elevation, and atmospheric summary.
+- **`Stars.return_as='Star'`** — filter the catalogue and get a single `Star` or a name-keyed `dict` of `Star` objects instead of a `Stars` subset (`Stars(subset='bright', ProperName='Spica', return_as='Star')`).
+- **`Stars.conditions_in_sky(at, observer)`** — batch rise/set/transit and related columns for every row in a subset (PyEphem per star; same engine as `Star.conditions_in_sky`); returns a DataFrame or updates in place with `inplace=True`.
+- **`Stars.__new__` fix** — constructing `Stars(subset=…, **filters)` no longer loads the stellar CSV twice.
+- **`Star.where_in_sky`** — adds `RAJ2000t` and `DecJ2000t` (J2000 coordinates with proper motion at epoch), included in `show_position()`.
+- **`show_position()` / `show_conditions()`** — on `Sebau` and subclasses (`Star`, `Sun`, `Moon`, `Planet`); print epoch, site, and labelled quantities with units; return `None` (stdout only). Call `where_in_sky` or `conditions_in_sky` first.
+- **`Planet('Sun')` / `Planet('Moon')`** — homogeneous factory call; returns a `Sun` or `Moon` instance (same construction as `Sun()` / `Moon()`). Numeric ids `10` and `301` also dispatch. Other names still return `Planet`.
+- **`montu/tests/test_time_arithmetic_snippets.py`** — arithmetic on `Time` (`diff`, `add`, `subs`, `+`/`-`) from the Code Snippets notebook, including Gregorian reform and Sothic cycle cases.
+- **`montu/tests/test_sky_show.py`**, **`montu/tests/test_stars_subset.py`**, **`montu/tests/test_observer.py`** — coverage for sky reporting, `return_as`, batch `conditions_in_sky`, site overrides, and sidereal time.
+- **`examples/inprogress/MontuPython-CodeSnippets.ipynb`** — batch precession, batch `conditions_in_sky`, `return_as='Star'`, and geometric vs refracting observer examples updated.
+- **MontuPython Desktop tests** — location module expectations aligned with current Thebes climatology in `locations.json` (catalogue-driven assertions instead of stale hard-coded values).
 
 ## Version 0.31.0 (improve)
 

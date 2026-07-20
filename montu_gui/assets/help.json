@@ -513,8 +513,8 @@
         "title_es": "Etiquetas del mapa"
       },
       "predefined": {
-        "body_en": "<p>Search or select an ancient-world location from <code>assets/locations.json</code>. Choosing a site fills latitude, longitude, and altitude automatically.</p><p>Default at startup: <b>Thebes (Luxor)</b>, capital of ancient Upper Egypt.</p>",
-        "body_es": "<p>Busca o selecciona un lugar del mundo antiguo en <code>assets/locations.json</code>. Al elegirlo, se rellenan latitud, longitud y altitud automáticamente.</p>",
+        "body_en": "<p>Search or select an ancient-world location from the bundled catalogue (<code>montu/data/locations.json</code>, same as <code>montu.Observer.list()</code>). Choosing a site fills latitude, longitude, and altitude automatically.</p><p>Default at startup: <b>Thebes (Luxor)</b>, capital of ancient Upper Egypt.</p>",
+        "body_es": "<p>Busca o selecciona un lugar del mundo antiguo en el catálogo incluido (<code>montu/data/locations.json</code>, el mismo que <code>montu.Observer.list()</code>). Al elegirlo, se rellenan latitud, longitud y altitud automáticamente.</p>",
         "title_en": "Predefined site",
         "title_es": "Sitio predefinido"
       },

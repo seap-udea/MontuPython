@@ -10,7 +10,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Waset — capital of Upper Egypt during the New Kingdom. Karnak and the Valley of the Kings lie nearby.",
-      "name_es": "Tebas (Luxor)"
+      "name_es": "Tebas (Luxor)",
+      "pressure_mbar": 1004.16,
+      "temperature_c": 25.2
     },
     {
       "id": "memphis",
@@ -21,7 +23,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Capital of the Old Kingdom, near modern Mit Rahina south of Cairo.",
-      "name_es": "Menfis"
+      "name_es": "Menfis",
+      "pressure_mbar": 1010.25,
+      "temperature_c": 22.4
     },
     {
       "id": "giza",
@@ -32,7 +36,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Site of the Great Pyramid and Sphinx on the west bank of the Nile.",
-      "name_es": "Giza"
+      "name_es": "Giza",
+      "pressure_mbar": 1004.28,
+      "temperature_c": 21.7
     },
     {
       "id": "alexandria",
@@ -43,7 +49,9 @@
       "region": "Egypt",
       "era": "Hellenistic",
       "description": "Founded by Alexander the Great; home of the Library and Pharos lighthouse.",
-      "name_es": "Alexandria"
+      "name_es": "Alexandria",
+      "pressure_mbar": 1012.41,
+      "temperature_c": 20.5
     },
     {
       "id": "amarna",
@@ -54,7 +62,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Akhenaten's capital Akhetaten at Tell el-Amarna; Amarna Period art and the Aten cult.",
-      "name_es": "Amarna (Ajaton)"
+      "name_es": "Amarna (Ajaton)",
+      "pressure_mbar": 1002.5,
+      "temperature_c": 23.6
     },
     {
       "id": "abydos",
@@ -65,7 +75,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Abdju — cult centre of Osiris and royal necropolis with the Temple of Seti I.",
-      "name_es": "Abidos"
+      "name_es": "Abidos",
+      "pressure_mbar": 1003.68,
+      "temperature_c": 24.8
     },
     {
       "id": "saqqara",
@@ -76,7 +88,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Memphite necropolis; site of Djoser's Step Pyramid and major Old Kingdom tombs.",
-      "name_es": "Saqqara"
+      "name_es": "Saqqara",
+      "pressure_mbar": 1002.5,
+      "temperature_c": 22.1
     },
     {
       "id": "heliopolis",
@@ -87,18 +101,22 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Iunu — principal cult centre of the sun god Ra; now Ain Shams in Cairo.",
-      "name_es": "Heliópolis (Iunu)"
+      "name_es": "Heliópolis (Iunu)",
+      "pressure_mbar": 1010.85,
+      "temperature_c": 22.1
     },
     {
       "id": "pi_ramesses",
       "name": "Pi-Ramesses",
       "lat": 30.7967,
-      "lon": 32.1450,
+      "lon": 32.145,
       "alt_m": 5,
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ramesses II's Delta capital at Qantir; biblical Raamses and Exodus tradition.",
-      "name_es": "Pi-Ramsés"
+      "name_es": "Pi-Ramsés",
+      "pressure_mbar": 1012.65,
+      "temperature_c": 21.2
     },
     {
       "id": "tanis",
@@ -109,7 +127,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Djanet (San el-Hagar) in the northeastern Delta; royal tombs of the Third Intermediate Period.",
-      "name_es": "Tanis"
+      "name_es": "Tanis",
+      "pressure_mbar": 1012.05,
+      "temperature_c": 21.4
     },
     {
       "id": "edfu",
@@ -120,7 +140,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Djeba — Ptolemaic Temple of Horus, one of the best-preserved temples in Egypt.",
-      "name_es": "Edfu"
+      "name_es": "Edfu",
+      "pressure_mbar": 1003.92,
+      "temperature_c": 26.5
     },
     {
       "id": "aswan",
@@ -131,7 +153,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Swenet at Egypt's southern frontier; granite quarries and the island temple of Philae nearby.",
-      "name_es": "Asuán"
+      "name_es": "Asuán",
+      "pressure_mbar": 1003.45,
+      "temperature_c": 26.8
     },
     {
       "id": "hierakonpolis",
@@ -142,7 +166,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Nekhen — early dynastic centre of Upper Egypt and site of the Narmer Palette.",
-      "name_es": "Hieracompolis (Nekhen)"
+      "name_es": "Hieracompolis (Nekhen)",
+      "pressure_mbar": 1001.31,
+      "temperature_c": 26.4
     },
     {
       "id": "kom_ombo",
@@ -153,7 +179,9 @@
       "region": "Egypt",
       "era": "Ancient Egypt",
       "description": "Ancient Nubt — double temple of Sobek and Horus on the Nile north of Aswan.",
-      "name_es": "Kom Ombo"
+      "name_es": "Kom Ombo",
+      "pressure_mbar": 1003.45,
+      "temperature_c": 26.7
     },
     {
       "id": "babylon",
@@ -164,7 +192,9 @@
       "region": "Mesopotamia",
       "era": "Ancient Near East",
       "description": "Capital of Hammurabi and Nebuchadnezzar on the Euphrates.",
-      "name_es": "Babilonia"
+      "name_es": "Babilonia",
+      "pressure_mbar": 1009.17,
+      "temperature_c": 25.6
     },
     {
       "id": "ur",
@@ -175,7 +205,9 @@
       "region": "Mesopotamia",
       "era": "Sumer",
       "description": "Sumerian city-state; birthplace of Abraham in biblical tradition.",
-      "name_es": "Ur"
+      "name_es": "Ur",
+      "pressure_mbar": 1011.81,
+      "temperature_c": 26.7
     },
     {
       "id": "nineveh",
@@ -186,18 +218,22 @@
       "region": "Mesopotamia",
       "era": "Assyria",
       "description": "Capital of the Assyrian Empire on the Tigris opposite modern Mosul.",
-      "name_es": "Nínive"
+      "name_es": "Nínive",
+      "pressure_mbar": 987.16,
+      "temperature_c": 20.6
     },
     {
       "id": "uruk",
       "name": "Uruk (Warka)",
-      "lat": 31.3240,
-      "lon": 45.6360,
+      "lat": 31.324,
+      "lon": 45.636,
       "alt_m": 10,
       "region": "Mesopotamia",
       "era": "Sumer / Bronze Age",
       "description": "One of the world's first cities; legendary home of Gilgamesh and centre of Inanna/Ishtar worship.",
-      "name_es": "Uruk (Warka)"
+      "name_es": "Uruk (Warka)",
+      "pressure_mbar": 1012.05,
+      "temperature_c": 26.4
     },
     {
       "id": "eridu",
@@ -208,7 +244,9 @@
       "region": "Mesopotamia",
       "era": "Sumer",
       "description": "In Mesopotamian tradition the oldest city; sanctuary of Enki/Ea near the Persian Gulf.",
-      "name_es": "Eridu"
+      "name_es": "Eridu",
+      "pressure_mbar": 1012.65,
+      "temperature_c": 26.5
     },
     {
       "id": "nippur",
@@ -219,7 +257,9 @@
       "region": "Mesopotamia",
       "era": "Sumer / Bronze Age",
       "description": "Religious capital of Sumer; temple of Enlil (Ekur) conferred kingship legitimacy.",
-      "name_es": "Nipur"
+      "name_es": "Nipur",
+      "pressure_mbar": 1010.85,
+      "temperature_c": 26.3
     },
     {
       "id": "kish",
@@ -230,7 +270,9 @@
       "region": "Mesopotamia",
       "era": "Sumer / Early Dynastic",
       "description": "Early Dynastic city-state east of Babylon; in tradition the first seat of kingship after the Flood.",
-      "name_es": "Kish"
+      "name_es": "Kish",
+      "pressure_mbar": 1009.65,
+      "temperature_c": 25.7
     },
     {
       "id": "larsa",
@@ -241,18 +283,22 @@
       "region": "Mesopotamia",
       "era": "Old Babylonian",
       "description": "Rival of Isin and Babylon in the early 2nd millennium BCE; centre of the sun-god Shamash.",
-      "name_es": "Larsa"
+      "name_es": "Larsa",
+      "pressure_mbar": 1012.05,
+      "temperature_c": 26.6
     },
     {
       "id": "assur",
       "name": "Assur (Ashur)",
       "lat": 35.4564,
-      "lon": 43.2600,
+      "lon": 43.26,
       "alt_m": 150,
       "region": "Mesopotamia",
       "era": "Assyria / Bronze Age",
       "description": "Religious and early political capital of Assyria on the Tigris; namesake of the god Ashur.",
-      "name_es": "Assur (Ashur)"
+      "name_es": "Assur (Ashur)",
+      "pressure_mbar": 995.39,
+      "temperature_c": 22.2
     },
     {
       "id": "nimrud",
@@ -263,7 +309,9 @@
       "region": "Mesopotamia",
       "era": "Assyria",
       "description": "Assyrian capital under Ashurnasirpal II; biblical Calah south of Nineveh.",
-      "name_es": "Nimrud (Kalhu)"
+      "name_es": "Nimrud (Kalhu)",
+      "pressure_mbar": 989.51,
+      "temperature_c": 21.2
     },
     {
       "id": "mari",
@@ -274,7 +322,9 @@
       "region": "Mesopotamia / Syria",
       "era": "Bronze Age",
       "description": "Euphrates city-state (Tell Hariri); palace archives document Mid-Bronze diplomacy.",
-      "name_es": "Mari"
+      "name_es": "Mari",
+      "pressure_mbar": 991.86,
+      "temperature_c": 21.9
     },
     {
       "id": "ebla",
@@ -285,7 +335,9 @@
       "region": "Syria",
       "era": "Bronze Age",
       "description": "Powerful Early Bronze kingdom (Tell Mardikh); vast cuneiform archive of administration and trade.",
-      "name_es": "Ebla"
+      "name_es": "Ebla",
+      "pressure_mbar": 964.03,
+      "temperature_c": 17.7
     },
     {
       "id": "ugarit",
@@ -296,7 +348,9 @@
       "region": "Syria",
       "era": "Late Bronze Age",
       "description": "Coastal capital (Ras Shamra); alphabetic cuneiform and Baal cycle myths; destroyed c. 1200 BCE.",
-      "name_es": "Ugarit"
+      "name_es": "Ugarit",
+      "pressure_mbar": 1010.85,
+      "temperature_c": 19.5
     },
     {
       "id": "aleppo",
@@ -307,40 +361,48 @@
       "region": "Syria",
       "era": "Bronze Age",
       "description": "Capital of Yamhad in the Middle Bronze Age; enduring trade hub of northern Syria.",
-      "name_es": "Alepo (Halab)"
+      "name_es": "Alepo (Halab)",
+      "pressure_mbar": 967.47,
+      "temperature_c": 18.0
     },
     {
       "id": "qatna",
       "name": "Qatna",
       "lat": 34.8347,
-      "lon": 36.8650,
+      "lon": 36.865,
       "alt_m": 480,
       "region": "Syria",
       "era": "Bronze Age",
       "description": "Royal city of inland Syria (Tell Mishrife); ally and rival in Mitanni–Egyptian politics.",
-      "name_es": "Qatna"
+      "name_es": "Qatna",
+      "pressure_mbar": 957.2,
+      "temperature_c": 17.5
     },
     {
       "id": "carchemish",
       "name": "Carchemish",
       "lat": 36.8294,
-      "lon": 38.0150,
+      "lon": 38.015,
       "alt_m": 340,
       "region": "Syria / Anatolia",
       "era": "Bronze Age / Iron Age",
       "description": "Euphrates fortress-city; Hittite viceroyalty and later Neo-Hittite capital on the modern Turkish–Syrian border.",
-      "name_es": "Karkemish"
+      "name_es": "Karkemish",
+      "pressure_mbar": 973.22,
+      "temperature_c": 18.7
     },
     {
       "id": "washukanni",
       "name": "Washukanni",
-      "lat": 36.8380,
-      "lon": 40.0700,
+      "lat": 36.838,
+      "lon": 40.07,
       "alt_m": 360,
       "region": "Syria / Upper Mesopotamia",
       "era": "Mitanni / Late Bronze Age",
       "description": "Capital of the Mitanni kingdom (proposed at Tell Fekheriye near the Khabur headwaters).",
-      "name_es": "Washukanni"
+      "name_es": "Washukanni",
+      "pressure_mbar": 970.91,
+      "temperature_c": 19.5
     },
     {
       "id": "alalakh",
@@ -351,7 +413,9 @@
       "region": "Syria / Anatolia",
       "era": "Bronze Age",
       "description": "Capital of Mukish (Tell Atchana) in the Amuq plain; under Mitanni then Hittite influence.",
-      "name_es": "Alalakh"
+      "name_es": "Alalakh",
+      "pressure_mbar": 1002.5,
+      "temperature_c": 18.4
     },
     {
       "id": "hattusa",
@@ -362,7 +426,9 @@
       "region": "Anatolia",
       "era": "Hittite / Bronze Age",
       "description": "Capital of the Hittite Empire near modern Boğazkale; royal archives and the Yazılıkaya sanctuary.",
-      "name_es": "Hattusa"
+      "name_es": "Hattusa",
+      "pressure_mbar": 889.36,
+      "temperature_c": 11.1
     },
     {
       "id": "troy",
@@ -373,18 +439,22 @@
       "region": "Anatolia",
       "era": "Bronze Age",
       "description": "Hisarlık mound on the Dardanelles; Homeric Ilion and major Late Bronze Aegean–Anatolian centre.",
-      "name_es": "Troya (Ilión)"
+      "name_es": "Troya (Ilión)",
+      "pressure_mbar": 1009.65,
+      "temperature_c": 16.0
     },
     {
       "id": "byblos",
       "name": "Byblos (Gubla)",
-      "lat": 34.1200,
-      "lon": 35.6470,
+      "lat": 34.12,
+      "lon": 35.647,
       "alt_m": 30,
       "region": "Levant",
       "era": "Bronze Age / Phoenician",
       "description": "Ancient coastal city of Lebanon; Egyptian timber partner and early alphabetic writing centre.",
-      "name_es": "Biblos (Gubla)"
+      "name_es": "Biblos (Gubla)",
+      "pressure_mbar": 1009.65,
+      "temperature_c": 19.6
     },
     {
       "id": "sidon",
@@ -395,18 +465,22 @@
       "region": "Levant",
       "era": "Bronze Age / Phoenician",
       "description": "Major Phoenician city-state on the Lebanese coast; trade and purple-dye industry.",
-      "name_es": "Sidón"
+      "name_es": "Sidón",
+      "pressure_mbar": 1012.05,
+      "temperature_c": 19.5
     },
     {
       "id": "tyre",
       "name": "Tyre",
-      "lat": 33.2700,
-      "lon": 35.1960,
+      "lat": 33.27,
+      "lon": 35.196,
       "alt_m": 5,
       "region": "Levant",
       "era": "Bronze Age / Phoenician",
       "description": "Island Phoenician metropolis; mother-city of Carthage and naval power of the Iron Age.",
-      "name_es": "Tiro"
+      "name_es": "Tiro",
+      "pressure_mbar": 1012.65,
+      "temperature_c": 19.9
     },
     {
       "id": "damascus",
@@ -417,18 +491,22 @@
       "region": "Syria",
       "era": "Bronze Age / Aramean",
       "description": "Oasis capital of southern Syria; Aramean kingdom and one of the oldest continuously inhabited cities.",
-      "name_es": "Damasco"
+      "name_es": "Damasco",
+      "pressure_mbar": 934.77,
+      "temperature_c": 17.0
     },
     {
       "id": "enkomi",
       "name": "Enkomi (Alashiya)",
-      "lat": 35.1580,
-      "lon": 33.8910,
+      "lat": 35.158,
+      "lon": 33.891,
       "alt_m": 20,
       "region": "Cyprus",
       "era": "Late Bronze Age",
       "description": "Leading city of Bronze Age Cyprus (Alashiya); copper trade hub near modern Famagusta.",
-      "name_es": "Enkomi (Alashiya)"
+      "name_es": "Enkomi (Alashiya)",
+      "pressure_mbar": 1010.85,
+      "temperature_c": 20.7
     },
     {
       "id": "persepolis",
@@ -439,7 +517,9 @@
       "region": "Persia",
       "era": "Achaemenid",
       "description": "Ceremonial capital of the Persian Empire founded by Darius I.",
-      "name_es": "Persepolis"
+      "name_es": "Persepolis",
+      "pressure_mbar": 836.19,
+      "temperature_c": 17.4
     },
     {
       "id": "susa",
@@ -450,7 +530,9 @@
       "region": "Persia",
       "era": "Elam / Persia",
       "description": "Ancient Elamite and Persian administrative capital in Khuzestan.",
-      "name_es": "Susa"
+      "name_es": "Susa",
+      "pressure_mbar": 995.39,
+      "temperature_c": 25.5
     },
     {
       "id": "athens",
@@ -461,7 +543,9 @@
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Leading Attic polis; birthplace of democracy; Acropolis and Parthenon overlook the city.",
-      "name_es": "Atenas"
+      "name_es": "Atenas",
+      "pressure_mbar": 1004.88,
+      "temperature_c": 17.6
     },
     {
       "id": "sparta",
@@ -472,7 +556,9 @@
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Dorian polis of Laconia; military rival of Athens and hegemon of the Peloponnesian League.",
-      "name_es": "Esparta"
+      "name_es": "Esparta",
+      "pressure_mbar": 988.33,
+      "temperature_c": 17.7
     },
     {
       "id": "corinth",
@@ -483,7 +569,9 @@
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Wealthy Isthmus polis controlling land and sea routes between mainland Greece and the Peloponnese.",
-      "name_es": "Corinto"
+      "name_es": "Corinto",
+      "pressure_mbar": 1006.07,
+      "temperature_c": 17.5
     },
     {
       "id": "thebes_greece",
@@ -494,18 +582,22 @@
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Leading Boeotian polis; Cadmea citadel; briefly hegemon of Greece after Leuctra (371 BCE).",
-      "name_es": "Tebas (Beocia)"
+      "name_es": "Tebas (Beocia)",
+      "pressure_mbar": 989.51,
+      "temperature_c": 16.6
     },
     {
       "id": "argos",
       "name": "Argos",
-      "lat": 37.6340,
-      "lon": 22.7280,
+      "lat": 37.634,
+      "lon": 22.728,
       "alt_m": 40,
       "region": "Greece",
       "era": "Bronze Age / Classical Greece",
       "description": "Ancient Argolid polis; rival of Sparta and heir to Mycenaean Argos in Greek tradition.",
-      "name_es": "Argos"
+      "name_es": "Argos",
+      "pressure_mbar": 1008.46,
+      "temperature_c": 17.8
     },
     {
       "id": "mycenae",
@@ -516,18 +608,22 @@
       "region": "Greece",
       "era": "Mycenaean / Bronze Age",
       "description": "Citadel of Agamemnon; foremost Mycenaean palace centre of mainland Greece.",
-      "name_es": "Micenas"
+      "name_es": "Micenas",
+      "pressure_mbar": 980.17,
+      "temperature_c": 16.4
     },
     {
       "id": "pylos",
       "name": "Pylos (Nestor)",
       "lat": 37.0281,
-      "lon": 21.6950,
+      "lon": 21.695,
       "alt_m": 90,
       "region": "Greece",
       "era": "Mycenaean / Bronze Age",
       "description": "Palace of Nestor in Messenia; rich Linear B archive of Late Bronze administration.",
-      "name_es": "Pilos (Néstor)"
+      "name_es": "Pilos (Néstor)",
+      "pressure_mbar": 1002.5,
+      "temperature_c": 17.4
     },
     {
       "id": "tiryns",
@@ -538,29 +634,35 @@
       "region": "Greece",
       "era": "Mycenaean / Bronze Age",
       "description": "Mycenaean fortress with massive Cyclopean walls near the Argolic Gulf.",
-      "name_es": "Tirinto"
+      "name_es": "Tirinto",
+      "pressure_mbar": 1009.65,
+      "temperature_c": 18.0
     },
     {
       "id": "olympia",
       "name": "Olympia",
       "lat": 37.6386,
-      "lon": 21.6300,
+      "lon": 21.63,
       "alt_m": 40,
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Panhellenic sanctuary of Zeus in Elis; site of the ancient Olympic Games.",
-      "name_es": "Olimpia"
+      "name_es": "Olimpia",
+      "pressure_mbar": 1008.46,
+      "temperature_c": 17.2
     },
     {
       "id": "delphi",
       "name": "Delphi",
       "lat": 38.4824,
-      "lon": 22.5010,
+      "lon": 22.501,
       "alt_m": 570,
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Sanctuary of Apollo and the Pythia oracle on Mount Parnassus.",
-      "name_es": "Delfos"
+      "name_es": "Delfos",
+      "pressure_mbar": 947.04,
+      "temperature_c": 14.4
     },
     {
       "id": "megara",
@@ -571,7 +673,9 @@
       "region": "Greece",
       "era": "Classical Greece",
       "description": "Isthmus polis between Athens and Corinth; mother-city of Byzantium and Chalcedon.",
-      "name_es": "Mégara"
+      "name_es": "Mégara",
+      "pressure_mbar": 1007.26,
+      "temperature_c": 18.2
     },
     {
       "id": "ephesus",
@@ -582,7 +686,9 @@
       "region": "Anatolia",
       "era": "Ionian Greece",
       "description": "Ionian polis and sanctuary of Artemis; major Aegean port of Asia Minor.",
-      "name_es": "Éfeso"
+      "name_es": "Éfeso",
+      "pressure_mbar": 1012.05,
+      "temperature_c": 18.2
     },
     {
       "id": "rhodes",
@@ -593,7 +699,9 @@
       "region": "Greece",
       "era": "Hellenistic",
       "description": "Island polis of the Dodecanese; naval power and site of the Colossus.",
-      "name_es": "Rodas"
+      "name_es": "Rodas",
+      "pressure_mbar": 1010.85,
+      "temperature_c": 19.3
     },
     {
       "id": "syracuse",
@@ -604,18 +712,22 @@
       "region": "Sicily",
       "era": "Classical Greece",
       "description": "Corinthian colony and leading Greek city of Magna Graecia; rival of Athens and Carthage.",
-      "name_es": "Siracusa"
+      "name_es": "Siracusa",
+      "pressure_mbar": 1011.45,
+      "temperature_c": 18.7
     },
     {
       "id": "knossos",
       "name": "Knossos",
-      "lat": 35.2980,
+      "lat": 35.298,
       "lon": 25.1631,
       "alt_m": 85,
       "region": "Crete",
       "era": "Minoan / Bronze Age",
       "description": "Palace of legendary King Minos; foremost centre of Minoan civilization near Heraklion.",
-      "name_es": "Knossos"
+      "name_es": "Knossos",
+      "pressure_mbar": 1003.09,
+      "temperature_c": 18.0
     },
     {
       "id": "phaistos",
@@ -626,7 +738,9 @@
       "region": "Crete",
       "era": "Minoan / Bronze Age",
       "description": "Second great Minoan palace of southern Crete; findspot of the Phaistos Disc.",
-      "name_es": "Festos"
+      "name_es": "Festos",
+      "pressure_mbar": 1001.31,
+      "temperature_c": 19.0
     },
     {
       "id": "rome",
@@ -637,7 +751,9 @@
       "region": "Italy",
       "era": "Roman Empire",
       "description": "Caput Mundi — centre of the Roman Republic and Empire.",
-      "name_es": "Roma"
+      "name_es": "Roma",
+      "pressure_mbar": 1010.73,
+      "temperature_c": 15.6
     },
     {
       "id": "carthage",
@@ -648,7 +764,9 @@
       "region": "North Africa",
       "era": "Phoenician / Punic",
       "description": "Phoenician colony and rival of Rome on the Gulf of Tunis.",
-      "name_es": "Carthage"
+      "name_es": "Carthage",
+      "pressure_mbar": 1012.05,
+      "temperature_c": 18.4
     },
     {
       "id": "jerusalem",
@@ -659,7 +777,9 @@
       "region": "Levant",
       "era": "Ancient Near East",
       "description": "Sacred city of Judaism, Christianity, and Islam.",
-      "name_es": "Jerusalen"
+      "name_es": "Jerusalen",
+      "pressure_mbar": 926.6,
+      "temperature_c": 17.2
     },
     {
       "id": "jericho",
@@ -670,18 +790,22 @@
       "region": "Levant",
       "era": "Neolithic / Bronze Age",
       "description": "One of the oldest continuously inhabited settlements in the world.",
-      "name_es": "Jerico"
+      "name_es": "Jerico",
+      "pressure_mbar": 1044.72,
+      "temperature_c": 22.5
     },
     {
       "id": "palmyra",
       "name": "Palmyra",
-      "lat": 34.5500,
+      "lat": 34.55,
       "lon": 38.2672,
       "alt_m": 405,
       "region": "Syria",
       "era": "Roman / Palmyrene",
       "description": "Oasis city on the Silk Road between Rome and Persia.",
-      "name_es": "Palmyra"
+      "name_es": "Palmyra",
+      "pressure_mbar": 965.75,
+      "temperature_c": 18.9
     },
     {
       "id": "petra",
@@ -692,18 +816,22 @@
       "region": "Jordan",
       "era": "Nabataean",
       "description": "Rose-red city carved in sandstone by the Nabataeans.",
-      "name_es": "Petra"
+      "name_es": "Petra",
+      "pressure_mbar": 920.47,
+      "temperature_c": 18.6
     },
     {
       "id": "miletus",
       "name": "Miletus",
       "lat": 37.5306,
-      "lon": 27.2800,
+      "lon": 27.28,
       "alt_m": 5,
       "region": "Anatolia",
       "era": "Ionian Greece",
       "description": "Ionian city of Thales and Anaximander on the Aegean coast.",
-      "name_es": "Mileto"
+      "name_es": "Mileto",
+      "pressure_mbar": 1012.65,
+      "temperature_c": 18.5
     },
     {
       "id": "chang_an",
@@ -714,7 +842,9 @@
       "region": "China",
       "era": "Han / Tang",
       "description": "Eastern terminus of the Silk Road and capital of several dynasties.",
-      "name_es": "Chang'an (Xi'an)"
+      "name_es": "Chang'an (Xi'an)",
+      "pressure_mbar": 965.75,
+      "temperature_c": 6.8
     },
     {
       "id": "varanasi",
@@ -725,7 +855,9 @@
       "region": "India",
       "era": "Ancient India",
       "description": "Sacred city on the Ganges, one of the oldest living cities.",
-      "name_es": "Varanasi (Kashi)"
+      "name_es": "Varanasi (Kashi)",
+      "pressure_mbar": 1003.57,
+      "temperature_c": 14.3
     },
     {
       "id": "angkor",
@@ -736,7 +868,9 @@
       "region": "Cambodia",
       "era": "Khmer Empire",
       "description": "Capital of the Khmer Empire; Angkor Wat is the largest religious monument.",
-      "name_es": "Angkor"
+      "name_es": "Angkor",
+      "pressure_mbar": 1010.85,
+      "temperature_c": 21.8
     },
     {
       "id": "teotihuacan",
@@ -747,7 +881,9 @@
       "region": "Mesoamerica",
       "era": "Classic Mesoamerica",
       "description": "City of the Sun and Moon pyramids in the Valley of Mexico.",
-      "name_es": "Teotihuacan"
+      "name_es": "Teotihuacan",
+      "pressure_mbar": 771.42,
+      "temperature_c": 3.2
     },
     {
       "id": "chichen_itza",
@@ -758,7 +894,9 @@
       "region": "Mesoamerica",
       "era": "Maya / Toltec",
       "description": "Maya-Toltec ceremonial centre on the Yucatán Peninsula.",
-      "name_es": "Chichen Itza"
+      "name_es": "Chichen Itza",
+      "pressure_mbar": 1009.65,
+      "temperature_c": 17.4
     },
     {
       "id": "tiwanaku",
@@ -769,7 +907,9 @@
       "region": "Andes",
       "era": "Pre-Inca",
       "description": "High-altitude ceremonial centre on the shores of Lake Titicaca.",
-      "name_es": "Tiwanaku"
+      "name_es": "Tiwanaku",
+      "pressure_mbar": 639.26,
+      "temperature_c": -5.2
     },
     {
       "id": "cusco",
@@ -780,7 +920,9 @@
       "region": "Andes",
       "era": "Inca",
       "description": "Capital of the Inca Empire in the Peruvian highlands.",
-      "name_es": "Cusco"
+      "name_es": "Cusco",
+      "pressure_mbar": 677.18,
+      "temperature_c": -0.2
     },
     {
       "id": "nazca",
@@ -791,7 +933,9 @@
       "region": "Peru",
       "era": "Nazca culture",
       "description": "Desert plain famous for geoglyphs visible from the air.",
-      "name_es": "Nazca"
+      "name_es": "Nazca",
+      "pressure_mbar": 952.67,
+      "temperature_c": 17.7
     }
   ]
 }
