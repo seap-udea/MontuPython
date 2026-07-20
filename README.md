@@ -8,82 +8,171 @@
 
 `MontuPython` is a Python package intended to compute astronomical ephemerides in the ancient world, thousands of years before present. It was initially designed to compute ephemerides for the ancient Egypt, but it can also be used to study astronomical phenomena in other sites of interest for cultural astronomy (archeoastronomy).
 
+The package was originally developed to streamline calculations on archeoastronomy that were previously performed manually using astronomical software such as Stellarium. While there are already outstanding libraries for positional astronomy—developed by a vibrant community of professionals and enthusiasts—such as [PyEphem](https://pypi.org/project/ephem/), [pyplanets](https://pypi.org/project/pyplanets/), [PyMeeus](https://pypi.org/project/pymeeus/), [spiceypy](https://pypi.org/project/spiceypy/), and others (many of which make MontuPython possible)—our goal here is different. We aim to provide a tool that not only simplifies interaction with these libraries, but, more importantly, is specialized for the study of astronomical phenomena that occurred thousands of years ago.
+
+While MontuPython places a special emphasis on ancient Egypt—understandably, since Egyptian religion, culture, and statehood were profoundly intertwined with astronomy—the tool is broadly applicable to many other contexts. In fact, MontuPython can be used to study archaeoastronomical phenomena in any culture around the world. Its features are designed to support research across a diverse range of civilizations, making it a versatile resource for all archaeologists, historians, and cultural astronomers interested in humanity's relationship with the sky.
+
+MontuPython has benefited from the contributions and advice of several collaborators:
+
+- Francisco "Tito" Vivas provided an actual archaeoastronomical fase of study who originally motivated the development of this software.
+- Prof. José Lull of the Universitá Autónoma de Barcelona (UAB), provided scientific, archaeoastronomical, and Egyptological advice.
+- Juanita Agudelo developed the first versions of the MontuPython web app.
+- Luis Arroyo developed the version of the web app which precedes the desktop app.
+
 ## Useful Resources 
 
-### MontuPython documentation
+For more information before you begin, please refer to:
 
-The full documentation of the package is available at [https://montupython.readthedocs.io](https://montupython.readthedocs.io/en/latest/).
+- **MontuPython documentation**: The full documentation of the package is available at [https://montupython.readthedocs.io](https://montupython.readthedocs.io/en/latest/).
 
-### MontuPython App
+- **MontuPython Desktop**: This is the graphical front-end to the library, built with PySide6. It offers pre-built tools for users who prefer not to program at the Python level, or who want quick access to core functionality — including a **Calendar Calculator** and **Seasons & Lunar Phases** module.
 
-An interactive web application for `MontuPython` is available online at:
+  Pre-built installers for **macOS** and **Windows** are published on **[GitHub Releases](https://github.com/seap-udea/MontuPython/releases)**. Open that page and look for a release whose tag starts with `desktop-v` (for example, `desktop-v0.1.1`). Download the file that matches your operating system:
 
-**[https://montupython-production.up.railway.app/](https://montupython-production.up.railway.app/)**
+    | Platform | File to download | How to run |
+    |----------|------------------|------------|
+    | **[Descarga versión de macOS](https://jorgezuluaga.github.io/sh/montupython-desktop-macos)** | `*-macos.dmg` or `*-macos.zip` | Open the `.dmg` and drag **MontuPython Desktop** to Applications, or unzip the `.zip` and open `MontuPython Desktop.app`. If macOS shows a security warning the first time, right-click the app and choose **Open**. |
+    | **[Descarga versión de Windows](https://jorgezuluaga.github.io/sh/montupython-desktop-windows)** | `*-windows.zip` | Unzip the archive, open the `MontuPython-Desktop` folder, and double-click `MontuPython-Desktop.exe`. If SmartScreen warns you, choose **More info** → **Run anyway**. |
 
-The app allows you to explore astronomical ephemerides for the ancient world directly from your browser, without any local installation.
+    No Python installation is required. Most features work offline; the observer map (OpenStreetMap) needs an internet connection.
+    
+    If you already use the `montu` library, install the optional **Desktop** extra and launch the GUI from a terminal:
 
-### MontuPython Desktop
+    ```bash
+    pip install montu[desktop]
+    montu-gui
+    # or
+    imontu --gui
+    ```
 
-**MontuPython Desktop** is the graphical front-end to the library, built with PySide6. It offers pre-built tools for users who prefer not to program at the Python level, or who want quick access to core functionality — including a **Calendar Calculator** and **Seasons & Lunar Phases** module.
-
-#### Download
-
-Pre-built installers for **macOS** and **Windows** are published on **[GitHub Releases](https://github.com/seap-udea/MontuPython/releases)**. Open that page and look for a release whose tag starts with `desktop-v` (for example, `desktop-v0.1.1`). Download the file that matches your operating system:
-
-| Platform | File to download | How to run |
-|----------|------------------|------------|
-| **[Descarga versión de macOS](https://jorgezuluaga.github.io/sh/montupython-desktop-macos)** | `*-macos.dmg` or `*-macos.zip` | Open the `.dmg` and drag **MontuPython Desktop** to Applications, or unzip the `.zip` and open `MontuPython Desktop.app`. If macOS shows a security warning the first time, right-click the app and choose **Open**. |
-| **[Descarga versión de Windows](https://jorgezuluaga.github.io/sh/montupython-desktop-windows)** | `*-windows.zip` | Unzip the archive, open the `MontuPython-Desktop` folder, and double-click `MontuPython-Desktop.exe`. If SmartScreen warns you, choose **More info** → **Run anyway**. |
-
-No Python installation is required. Most features work offline; the observer map (OpenStreetMap) needs an internet connection.
+    `montu[desktop]` adds **PySide6**, **Pygments**, and **plotly**. On first launch, `montu-gui` / `imontu --gui` also fetches the `montu_gui` sources if they are not already present in your checkout. The same extra is required for `imontu --sothic`.
 
 ## Download and install
 
-Describe here how the package can be downloaded and install it in
-different arquitectures.
+### Library only
 
-If you are using `PyPI` installation it's as simple as:
+Install the core package from PyPI:
+
+```bash
+pip install montu
+```
+
+This pulls in the pinned astronomy stack (`ephem`, `pymeeus`, `pyplanets`), Dash (MontuApp), and the usual scientific Python dependencies. It does **not** install PySide6 or other MontuPython Desktop GUI packages.
+
+### Library + Desktop GUI
+
+Add the optional **Desktop** extra when you want the PySide6 GUI or `imontu --sothic`:
+
+```bash
+pip install montu[desktop]
+```
+
+From a development checkout:
+
+```bash
+pip install -e ".[desktop]"
+```
+
+## Usage in Google Colab
+
+Uncomment and run in the next cell (replace the branch name if needed), then **restart the runtime** before importing `montu`:
 
 
 ```python
 # Uncomment if you are in Google Colab
-# !pip install -q montu
+# !pip install -q "git+https://github.com/seap-udea/MontuPython@maat"
+# For Desktop GUI in a local Python environment (not typical on Colab):
+# !pip install -q "montu[desktop] @ git+https://github.com/seap-udea/MontuPython@maat"
 ```
 
-## Preparation
+## Tutorial by example notebooks
 
-> **NOTE:** This notebook is autogenerated with `Jupyter`. Some of the commands you will find here are only intended to make the README executable. In no sense are mandatory when using `MontuPython`.
+The following notebooks introduce MontuPython step by step. Open any of them in Google Colab and start working immediately — they are ideal for training new users or for testing code generated by MontuPython Desktop.
 
 
-```python
-import matplotlib.pyplot as plt
-!mkdir -p gallery
-```
+- **Feature tour** Compact end-to-end tour of MontuPython: utilities, time and calendars, observers, stars, Sun/Moon/planets, seasons, sky maps, alignments, heliacal rises, solar eclipses, and planetary stations. A good first overview before the topic-specific notebooks below.
+
+   **File**: `MontuPython-FeatureTour.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-FeatureTour.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-FeatureTour.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-FeatureTour.ipynb)
+
+- **Basic functionalities** Introductory notebook covering MontuPython's essential objects: the stellar catalogue, observers, time instants, and coordinate transformations between equatorial and horizontal systems. Learn how to query naked-eye stars and compute their positions in the sky for any site and date.
+
+   **File**: `MontuPython-BasicFunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-BasicFunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb)
+
+- **Time: Basic time functionalities** Illustrates the `montu.Time` class across its full range of calendars and time scales. Parse dates in ISO, SPICE, Julian day, and terrestrial time; convert between proleptic Gregorian, mixed Julian/Gregorian, ancient Egyptian civil, and sothic (Horus year) calendars; and add or subtract calendar periods.
+
+   **File**: `MontuPython-MonTime.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-MonTime.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb)
+
+- **Egyptian civil calendar: historical cross-checks** Compares MontuPython's computed Egyptian civil dates against the civil dates recorded in Egyptology sources for key historical events (apokatastasis anchors, Ptolemaic decrees, dated papyri). Uses the same event catalogue as MontuPython Desktop's Calendar Calculator.
+
+   **File**: `MontuPython-EgyptianCalendar.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-EgyptianCalendar.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-EgyptianCalendar.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-EgyptianCalendar.ipynb)
+
+- **Test code** A sandbox notebook for running code snippets produced by **MontuPython Desktop**'s *Let's Python!* windows. Copy the generated script from the Desktop app into the notebook cell and execute it in Colab without any local setup.
+
+   **File**: `MontuPython-TestCode.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-TestCode.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-TestCode.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-TestCode.ipynb)
+
+
+## Advanced examples
+
+
+The following notebooks present archaeoastronomical computations of broader historical and interpretive interest.
+
+
+- **Heliacal rises: Sirius step by step** Reconstructs the first morning visibility of Sirius from Thebes around 2782 BCE — the era of the first *apokatastasis* of the Sothic cycle. Works through all four heliacal-rise models in MontuPython (Ptolemy, Schaefer 1985/1987, Belokrylov 2011) and explains each visibility criterion rather than treating `HeliacalRise` as a black box.
+
+   **File**: `MontuPython-HeliacalRises.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-HeliacalRises.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-HeliacalRises.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-HeliacalRises.ipynb)
+
+- **Solar eclipses** Predicts **local circumstances** of solar eclipses from the bundled NASA Five Millennium catalogue (Espenak & Meeus): search the catalogue, validate the 2024 Dallas totality, and survey historical eclipses visible from Thebes.
+
+   **File**: `MontuPython-SolarEclipses.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-SolarEclipses.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-SolarEclipses.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-SolarEclipses.ipynb)
+
+- **Montunctions** Computes *marstices* — the stationary points of Mars — and their conjunctions with Aldebaran near the winter solstice throughout ancient Egyptian history. Includes periodicity analysis and publication-ready plots. The methodology and figures supported Francisco Vivas Fernández's Ph.D. thesis on the astronomical and landscape orientations of Senenmut's monuments in the Theban necropolis (2023).
+
+   **File**: `MontuPython-Montunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-Montunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-Montunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-Montunctions.ipynb)
+
+- **Example: Venus Azimutal Distributions** Computes the distribution of Venus rising and setting azimuths at dawn and dusk over millennia, as observed from Thebes. Distinguishes morning-star and evening-star apparitions and summarizes their preferred horizon directions — a classic archaeoastronomical exercise for Venus cult and calendar studies.
+
+   **File**: `MontuPython-VenusAzimuths.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-VenusAzimuths.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb)
+
+
+## What's new
+
+
+Release notes are now maintained in [WHATSNEW.md](WHATSNEW.md).
+
+<p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/peret-sopedet-illustration.webp?raw=true" alt="Illustration of the heliacal rise of Sirius (Peret Sopedet) on the Giza plateau" width="800"/></p>
+
+<p align="center"><em>Illustration of Egyptian Peret Sopedet on the Giza plateau</em> — the heliacal rise of Sirius (<i>Sopedet</i>) that marks the civil New Year (<code>[hrw 0] I <i>akhet</i> 1</code>). Image generated with Nano Banana, edited in Preview, based on Bob Moler’s Stellarium–GIMP simulation (<a href="https://bobmoler.blog/2017/02/07/02072017-ephemeris-sirius-an-important-star-in-history/">Bob Moler's Ephemeris Blog</a>, 7 February 2017).</p>
+
+
+## AI assistance disclosure
+
+Starting with version *0.20.0*, portions of the code, inline documentation, code review, and debugging in this repository were assisted by AI language models, including **Cursor Composer 2.5**, **Anthropic Claude Sonnet 4.6**.
+
+The human authors maintain that all scientific ideas, the overall project conception, the package and notebook architecture, the design of the numerical and scientific workflows, and their interpretation remain original contributions of the human authors. AI tools were used exclusively as coding and writing assistants — analogous to a spell-checker or a compiler — and bear no authorship over the scientific content of this project. AI models also assisted with translating text from Spanish (the native language of the human authors) into English, and with English spelling and grammar review.
 
 ## Quickstart
 
+In the rest of this document we show you basic applications of the package. Since how it is imported until how it can be used for realistic calculations.
+
 This README is at the same time an executable notebook. A runable version of the README can be find in the [Google Drive Repo of the package](https://drive.google.com/drive/folders/11L59yZ3A1g1ZT7v_dLDPwLMnRMR-tFgE?usp=sharing) as the file [`README.ipynb`]() 
 
-In this section you should provide the most simple instructions to use
-your package.
+### Preparation
+
+> **NOTE:** This notebook is autogenerated with `Jupyter`. Some of the commands you will find here are only intended to make the README executable. In no sense are mandatory when using `MontuPython`.
 
 You may import the package using:
 
 
 ```python
-from montu import *
+%matplotlib inline
+import matplotlib.pyplot as plt
+!mkdir -p gallery
+
+import montu
 ```
 
     MontuPython version 0.31.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
-
-or for a safe import:
-
-
-```python
-%matplotlib inline
-import montu
-```
 
 It is important that before using the most interesting commands of the package, load relevant data:
 
@@ -108,21 +197,31 @@ mtime = montu.Time('-2500-01-01 12:00:00.00')
 tebas = montu.Observer(lon=33,lat=24)
 mars = montu.Planet('Mars')
 mars.conditions_in_sky(at=mtime,observer=tebas)
-mars
+mars.show_conditions()
 ```
 
-
-
-
-    Object Mars positions:
-    |            tt |    jed | Name   |   RAJ2000 |   DecJ2000 |   RAEpoch |   DecEpoch |   RAGeo |   DecGeo |       el |      az |
-    |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|----------|---------|
-    | -142006202700 | 807954 | Mars   |    12.531 |    1.62045 |   8.53603 |    24.1114 | 8.53601 |  24.1141 | -41.6385 | 6.18997 |'
-    Object Mars conditions:
-    |            tt |    jed | Name   |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |    hlat |    hlon |   hlong |
-    |---------------|--------|--------|---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|---------|---------|---------|
-    | -142006202700 | 807954 | Mars   | 12.3377 |  -1.13 |      807954 |   63.1337 |     807955 |  296.925 |         807954 |      89.8414 |     -157.818 |         0.660488 |        1.62611 | False            | False        |   14.1713 | 98.6462 | 1.88842 | 111.259 | 111.259 |'
-
+    Mars — sky conditions
+      Epoch: -2500-01-22 12:00:00 / -2500-01-01 12:00:00.000000  (JED 807954.000000)
+      Site: Custom site — lat 24.000000°, lon 33.000000°, 0 m  (P=1013.25 mbar, T=15.0 °C)
+      Name: Mars
+      Hour angle: 12:20:15.604 h
+      Visual magnitude: -1.13 mag
+      Rise time (UTC): -2500-01-22 16:49:49
+      Rise azimuth: 63.133665°
+      Set time (UTC): -2500-01-23 06:24:24
+      Set azimuth: 296.924743°
+      Transit time (UTC): -2500-01-22 23:37:37
+      Transit elevation: 89.841412°
+      Elongation from Sun: -157.818359°
+      Distance from Earth: 0.660488 AU
+      Distance from Sun: 1.626107 AU
+      Angular diameter: 14.171"
+      Illuminated fraction: 98.65 %
+      Heliocentric latitude: 1.888422°
+      Heliocentric longitude: 111.258645°
+      Heliocentric longitude (alt.): 111.258645°
+      Circumpolar: no
+      Never rises: no
 
 
 2. Obtain the information about a star from the stellar catalogue and, as in the case of the planet, obtain the position of the star in the sky.
@@ -131,19 +230,25 @@ mars
 ```python
 mtime = montu.Time('-2500-01-01 12:00:00.00')
 tebas = montu.Observer(lon=33,lat=24,height=0)
-aldebaran = allstars.get_stars(ProperName='Aldebaran')
-aldebaran.where_in_sky(at=mtime,observer=tebas,inplace=True)
-aldebaran
+aldebaran = allstars.get_stars(ProperName='Aldebaran', return_as='Star')
+aldebaran.where_in_sky(at=mtime,observer=tebas)
+aldebaran.show_position()
 ```
 
-
-
-
-    1 star(s):
-    |    |   MN |    HD |   HR |   HIP | Gl        | Name      | OtherDesignations                                                                     | ProperName   | Bayer   | Flamsteed   | Constellation   |   RAJ2000 |   DecJ2000 |   GalLonJ2000 |   GalLatJ2000 |   pmRA |   pmDec |   RadVel |   Distance |   Vmag |   Vmag_min |   Vmag_max |   B-V | SpType   |   Luminosity |   XJ2000 |   YJ2000 |   ZJ2000 |   VXJ2000 |   VYJ2000 |   VZJ2000 |   Primary | MultipleID   |   IsMultiple |   IsVariable |           tt |    jed |   RAJ2000t |   DecJ2000t |   RAEpoch |   DecEpoch |      HA |      az |      el |     zen |
-    |----|------|-------|------|-------|-----------|-----------|---------------------------------------------------------------------------------------|--------------|---------|-------------|-----------------|-----------|------------|---------------|---------------|--------|---------|----------|------------|--------|------------|------------|-------|----------|--------------|----------|----------|----------|-----------|-----------|-----------|-----------|--------------|--------------|--------------|--------------|--------|------------|-------------|-----------|------------|---------|---------|---------|---------|
-    | 14 |   15 | 29139 | 1457 | 21421 | Gl 171.1A | Aldebaran | 87 Tau/87Alp Tau/Aldebaran/Gl 171.1A/HD 29139/HIP 21421/HR 1457/HYG 21368/MN 15/α Tau | Aldebaran    | α Tau   | 87 Tau      | Tau             |   4.59868 |    16.5093 |       180.972 |      -20.2483 |  62.78 | -189.36 |     54.5 |    20.4332 |   0.87 |      0.888 |      0.858 | 1.538 | K5III    |       163.23 |  7.02722 |  18.2876 |  5.80666 | 1.528e-05 | 5.709e-05 | -2.14e-06 |     21368 | Gl 171.1     |            1 |            1 | -1.42006e+11 | 807954 |    4.59345 |      16.746 |  0.610393 |   -2.25214 | 20.2633 | 107.596 | 29.5909 | 60.4091 |
-
+    Aldebaran — sky position
+      Epoch: -2500-01-22 12:00:00 / -2500-01-01 12:00:00.000000  (JED 807954.000000)
+      Site: Custom site — lat 24.000000°, lon 33.000000°, 0 m  (P=1013.25 mbar, T=15.0 °C)
+      Name: Aldebaran
+      RA (J2000): 04:35:35.599 h
+      Dec (J2000): 16.745934°
+      RA (J2000, proper motion): 04:35:36.404 h
+      Dec (J2000, proper motion): 16.745996°
+      RA (epoch): 00:36:32.065 h
+      Dec (epoch): -2.261722°
+      RA (geocentric): 00:36:32.065 h
+      Dec (geocentric): -2.261722°
+      Azimuth: 107.617963°
+      Elevation: 29.633599°
 
 
 ### Working with time
@@ -154,7 +259,15 @@ different type of calendars and astronomical scales.  You may taste these functi
 
 ```python
 mtime = montu.Time('bce2501-01-01 12:00:00')
+mtime
 ```
+
+
+
+
+    Time('-2500-01-01 12:00:00.000000'/'-2500-01-22 12:00:00'/'[hrw 280] I shemu 17'/JED 807954.0/JTD 807954.6909688)
+
+
 
 other alternative formats for the same date are:
 
@@ -169,6 +282,25 @@ If you print this time object you will get:
 
 ```python
 print(mtime)
+```
+
+    2501 B.C. 01-01 12:00:00.00 / [hrw 280] I shemu 17:
+        Date in ISO format: 2501 B.C. 01-01 12:00:00.00
+        Date in proleptic UTC: -2500-01-01 12:00:00.000000
+        Date in mixed UTC: -2500-01-22 12:00:00
+        Weekday: 2 (monday)
+        Date in sothic format: [hrw 280] I shemu 17
+        Terrestrial time: tt [seconds]: -142006202700.3
+        UTC time: jed [days]: 807954.0
+        Delta-t = TT - UTC [seconds]: 59699.7
+    
+
+
+For more details:
+
+
+```python
+mtime.details()
 ```
 
     Montu Time Object:
@@ -204,7 +336,7 @@ Notice that the date in Gregorian proleptic will be **bce 2501-01-01** but in th
 
 #### Egyptian civil calendar
 
-In the previous output you may also notice that the class `montu.Time` automatically convert the gregorian/julian date into the *civil egyptian calendar* or the *Sothic* calendar. In the previous example, the date bce 2501-01-22 (julian) correspond to the civil egyptian date of **I-*shemu*-17** (MontuPython: `[hrw 280] I shemu 17`). Since the years in the *Sothic calendar* were regularly referred to specific king's reigns, we have introduced in `MontuPython` the so-called *Horus years* (abreviated *hrw*). The zero *Horus year* is bce 2782 which corresponds to the first *apokatastasis*, namely the year when the day **I-*akhet*-1** coincide with the heliacal rise of Sirius. 
+In the previous output you may also notice that the class `montu.Time` automatically convert the gregorian/julian date into the *civil egyptian calendar* or the *Sothic* calendar. In the previous example, the date bce 2501-01-22 (julian) correspond to the civil egyptian date of **I *shemu* 17** (MontuPython: `[hrw 280] I shemu 17`). Since the years in the *Sothic calendar* were regularly referred to specific king's reigns, we have introduced in `MontuPython` the so-called *Horus years* (abreviated *hrw*). The zero *Horus year* is bce 2782 which corresponds to the first *apokatastasis*, namely the year when the day **I *akhet* 1** coincide with the heliacal rise of Sirius. 
 
 You may also provide a date in the *Sothic calendar* and obtain the corresponding julian date:
 
@@ -214,36 +346,19 @@ mtime = montu.Time('[hrw 1461] I akhet 1',calendar='sothic')
 print(mtime)
 ```
 
-    Montu Time Object:
-    -------------------------- 
-    Readable:
-        Date in proleptic UTC (.readable.datepro): -1321-07-20 08:45:50.8
-        Date in mixed UTC (.readable.datemix): -1321-07-20 00:00:00
-        Date in SPICE format (.readable.datespice): 1322 B.C. 07-20 08:45:50.800000
-        Date in sothic format (.readable.datesot): [hrw 1461] I akhet 1
-        Weekday (.readable.weekday): 3 (tuesday)
-        Components (.readable.comps): [-1, 1321, 7, 20, 8, 45, 50, 800000]
-    Objects:
-        Date in datetime64 format (.readable.obj_datetime64): -1321-07-20T08:45:50.800
-        Date in PyPlanet Epoch (.obj_pyplanet): 1238762.5
-        Date in PyEphem Epoch (.obj_pyephem): -1322/7/20 00:00:00
-    General:
-        Is bce (.bce): True
-        Is Julian (.isjulian): True
-    Uniform scales:
-        Terrestrial time:
-            tt (.tt): -104784376449.2
-            jtd (.jtd): 1238762.8651713
-            htd (.htd): 533265.3651713
-        UTC time:
-            et (.et): -104784408000.0
-            jed (.jed): 1238762.5
-            hed (.hed): 533265.0
-        Delta-t = TT - UTC (.deltat): 31550.8
+    1322 B.C. 07-20 08:45:50.800000 / [hrw 1461] I akhet 1:
+        Date in ISO format: 1322 B.C. 07-20 08:45:50.800000
+        Date in proleptic UTC: -1321-07-20 08:45:50.8
+        Date in mixed UTC: -1321-07-20 00:00:00
+        Weekday: 3 (tuesday)
+        Date in sothic format: [hrw 1461] I akhet 1
+        Terrestrial time: tt [seconds]: -104784376449.2
+        UTC time: jed [days]: 1238762.5
+        Delta-t = TT - UTC [seconds]: 31550.8
     
 
 
-As you may see, this is the second *apokatastasis*, ie. in bce 1322-07-20, the heliacal rise of Sirius happened again at I-*akhet*-1.
+As you may see, this is the second *apokatastasis*, ie. in bce 1322-07-20, the heliacal rise of Sirius happened again at I *akhet* 1.
 
 #### Operations with dates
 
@@ -277,36 +392,19 @@ To add calendar periods of time you may use the `add` method of `Montu.Time`:
 
 ```python
 mtime = montu.Time('2001-01-01 12:00:00')
-mtime2 = mtime.add(1*montu.CALYEAR)
+mtime2 = mtime.add(years=1)
 print(mtime2)
 ```
 
-    Montu Time Object:
-    -------------------------- 
-    Readable:
-        Date in proleptic UTC (.readable.datepro): 2002-01-01 12:00:00.000000
-        Date in mixed UTC (.readable.datemix): 2002-01-01 12:00:00
-        Date in SPICE format (.readable.datespice): 2002-01-01 12:00:00.000000
-        Date in sothic format (.readable.datesot): [hrw 4785] I shemu 14
-        Weekday (.readable.weekday): 3 (tuesday)
-        Components (.readable.comps): [1, 2002, 1, 1, 12, 0, 0, 0]
-    Objects:
-        Date in datetime64 format (.readable.obj_datetime64): 2002-01-01T12:00:00.000000
-        Date in PyPlanet Epoch (.obj_pyplanet): 2452276.0
-        Date in PyEphem Epoch (.obj_pyephem): 2002/1/1 12:00:00
-    General:
-        Is bce (.bce): False
-        Is Julian (.isjulian): False
-    Uniform scales:
-        Terrestrial time:
-            tt (.tt): 63158464.3
-            jtd (.jtd): 2452276.0007442
-            htd (.htd): 1746778.5007441998
-        UTC time:
-            et (.et): 63158400.0
-            jed (.jed): 2452276.0
-            hed (.hed): 1746778.5
-        Delta-t = TT - UTC (.deltat): 64.3
+    2002-01-01 12:00:00.000000 / [hrw 4785] I shemu 14:
+        Date in ISO format: 2002-01-01 12:00:00.000000
+        Date in proleptic UTC: 2002-01-01 12:00:00.000000
+        Date in mixed UTC: 2002-01-01 12:00:00
+        Weekday: 3 (tuesday)
+        Date in sothic format: [hrw 4785] I shemu 14
+        Terrestrial time: tt [seconds]: 63158464.3
+        UTC time: jed [days]: 2452276.0
+        Delta-t = TT - UTC [seconds]: 64.3
     
 
 
@@ -347,24 +445,56 @@ You can use any of the properties of the stars to filter them. A common filter i
 
 
 ```python
-aldebaran = stars.get_stars(ProperName='Aldebaran')
+aldebaran = stars.get_stars(ProperName='Aldebaran', return_as='Star')
 aldebaran
 ```
 
 
 
 
-    1 star(s):
-    |    |   MN |    HD |   HR |   HIP | Gl        | Name      | OtherDesignations                                                                     | ProperName   | Bayer   | Flamsteed   | Constellation   |   RAJ2000 |   DecJ2000 |   GalLonJ2000 |   GalLatJ2000 |   pmRA |   pmDec |   RadVel |   Distance |   Vmag |   Vmag_min |   Vmag_max |   B-V | SpType   |   Luminosity |   XJ2000 |   YJ2000 |   ZJ2000 |   VXJ2000 |   VYJ2000 |   VZJ2000 |   Primary | MultipleID   |   IsMultiple |   IsVariable |
-    |----|------|-------|------|-------|-----------|-----------|---------------------------------------------------------------------------------------|--------------|---------|-------------|-----------------|-----------|------------|---------------|---------------|--------|---------|----------|------------|--------|------------|------------|-------|----------|--------------|----------|----------|----------|-----------|-----------|-----------|-----------|--------------|--------------|--------------|
-    | 14 |   15 | 29139 | 1457 | 21421 | Gl 171.1A | Aldebaran | 87 Tau/87Alp Tau/Aldebaran/Gl 171.1A/HD 29139/HIP 21421/HR 1457/HYG 21368/MN 15/α Tau | Aldebaran    | α Tau   | 87 Tau      | Tau             |   4.59868 |    16.5093 |       180.972 |      -20.2483 |  62.78 | -189.36 |     54.5 |    20.4332 |   0.87 |      0.888 |      0.858 | 1.538 | K5III    |       163.23 |  7.02722 |  18.2876 |  5.80666 | 1.528e-05 | 5.709e-05 | -2.14e-06 |     21368 | Gl 171.1     |            1 |            1 |
+    Star('Aldebaran'/'Tau'/04:35:55.237/16:30:33.484/V=0.87 mag/d=20.43 pc/Sp=K5III)
 
+
+
+To get the whole properties of a Star:
+
+
+```python
+aldebaran.show_properties()
+```
+
+    Aldebaran — catalogue properties
+      Proper name: Aldebaran
+      Name: Aldebaran
+      Bayer designation: α Tau
+      Flamsteed number: 87 Tau
+      Constellation: Tau
+      HIP: 21421
+      HD: 29139
+      HR: 1457
+      Gliese: Gl 171.1A
+      Other designations: 87 Tau/87Alp Tau/Aldebaran/Gl 171.1A/HD 29139/HIP 21421/HR 1457/HYG 21368/MN 15/α Tau
+      RA (J2000): 04:35:55.237 h
+      Dec (J2000): 16:30:33.484°
+      Galactic longitude: 180:58:18.868°
+      Galactic latitude: -20:14:53.892°
+      Proper motion RA: 62.78 mas/yr
+      Proper motion Dec: -189.36 mas/yr
+      Radial velocity: 54.5 km/s
+      Distance: 20.4332 pc
+      Visual magnitude: 0.87 mag
+      B−V colour index: 1.538
+      Spectral type: K5III
+      Luminosity: 163.23 L☉
+      Multiple system: yes
+      Variable star: yes
 
 
 All information about a star is stored in the `data` attribute:
 
 
 ```python
+aldebaran = stars.get_stars(ProperName='Aldebaran')
 TABLEDF(aldebaran.data)
 ```
 
@@ -416,17 +546,8 @@ We can map the stars:
 ```python
 fig,axs = hyades.plot_stars()
 fig.savefig('gallery/hyades.png')
-display(fig)
 plt.close(fig) # Used only for README generation
-from IPython.display import display
-
 ```
-
-
-    
-![png](README_files/README_58_0.png)
-    
-
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades.png?raw=true" alt="Logo""/></p>
 
@@ -507,17 +628,8 @@ And plot them again:
 ```python
 fig,axs = hyades.plot_stars(coords=['RAEpoch','DecEpoch'])
 fig.savefig('gallery/hyades-precessed.png')
-display(fig)
 plt.close(fig) # Used only for README generation
-from IPython.display import display
-
 ```
-
-
-    
-![png](README_files/README_65_0.png)
-    
-
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/hyades-precessed.png?raw=true" alt="Logo""/></p>
 
@@ -531,7 +643,7 @@ mars = montu.Planet('Mars')
 neptune = montu.Planet('neptune')
 jupiter = montu.Planet('JUPITER')
 moon = montu.Planet('Moon')
-sun = montu.Planet('SUN')
+sun = montu.Planet('Sun')
 ```
 
 You may create an observing site:
@@ -547,19 +659,21 @@ The straight routine method to calculate position of the planet in the sky at an
 ```python
 mtime = montu.Time('-2500-01-01 12:00:00')
 mars.where_in_sky(mtime,tebas)
-mars
+mars.show_position()
 ```
 
-
-
-
-    Object Mars positions:
-    |            tt |    jed | Name   |   RAJ2000 |   DecJ2000 |   RAEpoch |   DecEpoch |   RAGeo |   DecGeo |       el |      az |
-    |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|----------|---------|
-    | -142006202700 | 807954 | Mars   |    12.531 |    1.62045 |   8.53603 |    24.1114 | 8.53601 |  24.1141 | -41.6385 | 6.18997 |'
-    Object Mars conditions:
-    '
-
+    Mars — sky position
+      Epoch: -2500-01-22 12:00:00 / -2500-01-01 12:00:00.000000  (JED 807954.000000)
+      Site: Custom site — lat 24.000000°, lon 33.000000°, 0 m  (P=1013.25 mbar, T=15.0 °C)
+      Name: Mars
+      RA (J2000): 12:31:51.677 h
+      Dec (J2000): 1.620449°
+      RA (epoch): 08:32:09.718 h
+      Dec (epoch): 24.111367°
+      RA (geocentric): 08:32:09.640 h
+      Dec (geocentric): 24.114107°
+      Azimuth: 6.189974°
+      Elevation: -41.638524°
 
 
 You may also compute other atrometric conditions (rise time, set time, elongation, etc.):
@@ -567,21 +681,31 @@ You may also compute other atrometric conditions (rise time, set time, elongatio
 
 ```python
 mars.conditions_in_sky(mtime,tebas)
-mars
+mars.show_conditions()
 ```
 
-
-
-
-    Object Mars positions:
-    |            tt |    jed | Name   |   RAJ2000 |   DecJ2000 |   RAEpoch |   DecEpoch |   RAGeo |   DecGeo |       el |      az |
-    |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|----------|---------|
-    | -142006202700 | 807954 | Mars   |    12.531 |    1.62045 |   8.53603 |    24.1114 | 8.53601 |  24.1141 | -41.6385 | 6.18997 |'
-    Object Mars conditions:
-    |            tt |    jed | Name   |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |    hlat |    hlon |   hlong |
-    |---------------|--------|--------|---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|---------|---------|---------|
-    | -142006202700 | 807954 | Mars   | 12.3377 |  -1.13 |      807954 |   63.1337 |     807955 |  296.925 |         807954 |      89.8414 |     -157.818 |         0.660488 |        1.62611 | False            | False        |   14.1713 | 98.6462 | 1.88842 | 111.259 | 111.259 |'
-
+    Mars — sky conditions
+      Epoch: -2500-01-22 12:00:00 / -2500-01-01 12:00:00.000000  (JED 807954.000000)
+      Site: Custom site — lat 24.000000°, lon 33.000000°, 0 m  (P=1013.25 mbar, T=15.0 °C)
+      Name: Mars
+      Hour angle: 12:20:15.604 h
+      Visual magnitude: -1.13 mag
+      Rise time (UTC): -2500-01-22 16:49:49
+      Rise azimuth: 63.133665°
+      Set time (UTC): -2500-01-23 06:24:24
+      Set azimuth: 296.924743°
+      Transit time (UTC): -2500-01-22 23:37:37
+      Transit elevation: 89.841412°
+      Elongation from Sun: -157.818359°
+      Distance from Earth: 0.660488 AU
+      Distance from Sun: 1.626107 AU
+      Angular diameter: 14.171"
+      Illuminated fraction: 98.65 %
+      Heliocentric latitude: 1.888422°
+      Heliocentric longitude: 111.258645°
+      Heliocentric longitude (alt.): 111.258645°
+      Circumpolar: no
+      Never rises: no
 
 
 All times are given in Julian Days. If you want the exact date of set use:
@@ -667,21 +791,31 @@ and as we did with planets, you can calculate positions and conditions:
 mtime = montu.Time('-2500-01-01 12:00:00')
 Tebas = montu.Observer(lon=33,lat=24)
 moon.conditions_in_sky(at=mtime,observer=Tebas)
-moon
+moon.show_conditions()
 ```
 
-
-
-
-    Object Moon positions:
-    |            tt |    jed | Name   |   RAJ2000 |   DecJ2000 |   RAEpoch |   DecEpoch |   RAGeo |   DecGeo |      el |      az |
-    |---------------|--------|--------|-----------|------------|-----------|------------|---------|----------|---------|---------|
-    | -142006202700 | 807954 | Moon   |    13.119 |   -1.75958 |   9.19541 |    21.2138 | 9.20076 |  21.8977 | -44.543 | 353.683 |'
-    Object Moon conditions:
-    |            tt |    jed | Name   |      ha |   Vmag |   rise_time |   rise_az |   set_time |   set_az |   transit_time |   transit_el |   elongation |   earth_distance |   sun_distance | is_circumpolar   | is_neverup   |   angsize |   phase |   hlat |    hlon |   hlong |
-    |---------------|--------|--------|---------|--------|-------------|-----------|------------|----------|----------------|--------------|--------------|------------------|----------------|------------------|--------------|-----------|---------|--------|---------|---------|
-    | -142006202700 | 807954 | Moon   | 11.6783 | -11.92 |      807954 |    67.114 |     807955 |  289.881 |         807955 |      85.4501 |     -148.449 |       0.00255291 |       0.997457 | False            | False        |   1879.51 | 92.6462 | 5.0768 | 133.821 | 133.821 |'
-
+    Moon — sky conditions
+      Epoch: -2500-01-22 12:00:00 / -2500-01-01 12:00:00.000000  (JED 807954.000000)
+      Site: Custom site — lat 24.000000°, lon 33.000000°, 0 m  (P=1013.25 mbar, T=15.0 °C)
+      Name: Moon
+      Hour angle: 11:40:41.857 h
+      Visual magnitude: -11.92 mag
+      Rise time (UTC): -2500-01-22 17:53:53
+      Rise azimuth: 67.113965°
+      Set time (UTC): -2500-01-23 07:34:34
+      Set azimuth: 289.880687°
+      Transit time (UTC): -2500-01-23 00:47:47
+      Transit elevation: 85.450065°
+      Elongation from Sun: -148.449280°
+      Distance from Earth: 0.002553 AU
+      Distance from Sun: 0.997457 AU
+      Angular diameter: 1879.512"
+      Illuminated fraction: 92.65 %
+      Heliocentric latitude: 5.076801°
+      Heliocentric longitude: 133.820563°
+      Heliocentric longitude (alt.): 133.820563°
+      Circumpolar: no
+      Never rises: no
 
 
 There are additional methods, both proper and static, that can be used with these objects. For instance, you can:
@@ -745,7 +879,549 @@ montu.Moon.next_moon_quarters(since=mtime,output='datepro')
 
 
 
-## An indepth example: evolution of polar stars
+### An indepth examples
+
+Short case studies: **Sirius heliacal rise** at the 139 CE Sothic apokatastasis, **Thales' eclipse** with Xavier Jubier cross-checks, and **polar stars** over 40 kyr.
+
+### Heliacal rise of Sirius at the 139 CE apokatastasis
+
+
+The Egyptian civil year begins on **I akhet 1**, when Sirius reappears in the dawn sky. The **139 CE apokatastasis** is one Sothic New Year in that cycle (`[hrw 2922] I akhet 1`). The `HeliacalRise` class (Schaefer 1987 model) predicts first-morning visibility of Sirius during the year anchored on that date:
+
+
+
+```python
+tebas = montu.Observer(site="thebes")
+sirius = montu.Stars(subset="bright", ProperName="Sirius")
+
+calculator = montu.HeliacalRise(
+    model="ptolemy",
+    arcus_visionis_crit=14.0,  # assumed Arcus Visionis
+)
+
+t_start = montu.Time("139-06-01")
+events = calculator.compute(
+    sirius,
+    tebas,
+    t_start,
+    t_start.add(years=1),
+)
+
+calculator.print_rises(
+    events,
+    title="Heliacal rises of Sirius (139 CE apokatastasis)",
+    body_label="Sirius",
+)
+
+```
+
+    Loading stellar catalogue montu_stellar_catalogue_v38_bright.csv
+    Heliacal rises of Sirius (139 CE apokatastasis) — 1 date(s)
+      [1] 139-07-20 00:00:00  04:07:44.893  0139-07-19 00:00:00.000000  [hrw 2922] I akhet 1  Sirius -0.57°  Sun -14.18°
+      source: Toomer, G. J. (1998). Ptolemy's Almagest. Princeton University Press. Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".
+
+
+The first heliacal rising falls on the same civil date as **I akhet 1** — the canonical anchor of the Egyptian year. See [`MontuPython-HeliacalRises.ipynb`](examples/MontuPython-HeliacalRises.ipynb) for a step-by-step treatment and alternative visibility models.
+
+
+### Thales' eclipse (585 BCE)
+
+
+The [NASA Five Millennium Canon of Solar Eclipses](https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html) records the **total eclipse of 28 May 585 BCE** (catalogue year −584), associated with Thales of Miletus. MontuPython loads the catalogue row and computes local circumstances for any `Observer`.
+
+We start by looking all eclipses in a given year interval:
+
+
+```python
+catalogue = montu.SolarEclipses()
+eclipses = catalogue.get_eclipses(year=[-590, -580], eclipse_type='T')
+PRINTDF(eclipses.data)
+
+```
+
+
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>year</th>
+      <th>month</th>
+      <th>day</th>
+      <th>td_ge</th>
+      <th>dt</th>
+      <th>luna_num</th>
+      <th>saros</th>
+      <th>eclipse_type</th>
+      <th>gamma</th>
+      <th>magnitude</th>
+      <th>lat_ge</th>
+      <th>lng_ge</th>
+      <th>lat_dd_ge</th>
+      <th>lng_dd_ge</th>
+      <th>sun_alt</th>
+      <th>sun_azm</th>
+      <th>path_width</th>
+      <th>central_duration</th>
+      <th>duration_secs</th>
+      <th>cat_no</th>
+      <th>canon_plate</th>
+      <th>julian_date</th>
+      <th>t0</th>
+      <th>x0</th>
+      <th>x1</th>
+      <th>x2</th>
+      <th>x3</th>
+      <th>y0</th>
+      <th>y1</th>
+      <th>y2</th>
+      <th>y3</th>
+      <th>d0</th>
+      <th>d1</th>
+      <th>d2</th>
+      <th>mu0</th>
+      <th>mu1</th>
+      <th>mu2</th>
+      <th>l10</th>
+      <th>l11</th>
+      <th>l12</th>
+      <th>l20</th>
+      <th>l21</th>
+      <th>l22</th>
+      <th>tan_f1</th>
+      <th>tan_f2</th>
+      <th>tmin</th>
+      <th>tmax</th>
+      <th>etype</th>
+      <th>PNS</th>
+      <th>UNS</th>
+      <th>NCN</th>
+      <th>nSer</th>
+      <th>nSeq</th>
+      <th>nJLE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>3367</th>
+      <td>-588</td>
+      <td>2</td>
+      <td>14</td>
+      <td>10:48:38</td>
+      <td>18449.6</td>
+      <td>-32008</td>
+      <td>50</td>
+      <td>T</td>
+      <td>-0.02436</td>
+      <td>1.02510</td>
+      <td>16.8S</td>
+      <td>99.7E</td>
+      <td>-16.84159</td>
+      <td>99.68384</td>
+      <td>88.5</td>
+      <td>348.1</td>
+      <td>85.3</td>
+      <td>02m29s</td>
+      <td>149.1</td>
+      <td>3368.0</td>
+      <td>169.0</td>
+      <td>1506334.950</td>
+      <td>11.0</td>
+      <td>0.109287</td>
+      <td>0.548731</td>
+      <td>-0.000042</td>
+      <td>-0.000008</td>
+      <td>-0.000409</td>
+      <td>0.123347</td>
+      <td>0.000095</td>
+      <td>-0.000002</td>
+      <td>-15.370510</td>
+      <td>0.012714</td>
+      <td>0.000003</td>
+      <td>340.56119</td>
+      <td>15.00175</td>
+      <td>0.0</td>
+      <td>0.544127</td>
+      <td>0.000098</td>
+      <td>-0.000012</td>
+      <td>-0.002001</td>
+      <td>0.000098</td>
+      <td>-0.000012</td>
+      <td>0.004691</td>
+      <td>0.004668</td>
+      <td>-3.0</td>
+      <td>3.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>73</td>
+      <td>35</td>
+      <td>44</td>
+    </tr>
+    <tr>
+      <th>3369</th>
+      <td>-587</td>
+      <td>2</td>
+      <td>3</td>
+      <td>01:50:15</td>
+      <td>18434.7</td>
+      <td>-31996</td>
+      <td>60</td>
+      <td>T</td>
+      <td>-0.71738</td>
+      <td>1.05077</td>
+      <td>63.3S</td>
+      <td>110.7W</td>
+      <td>-63.33627</td>
+      <td>-110.72211</td>
+      <td>43.9</td>
+      <td>339.4</td>
+      <td>242.4</td>
+      <td>03m21s</td>
+      <td>200.6</td>
+      <td>3370.0</td>
+      <td>169.0</td>
+      <td>1506689.577</td>
+      <td>2.0</td>
+      <td>0.213551</td>
+      <td>0.574550</td>
+      <td>-0.000037</td>
+      <td>-0.000010</td>
+      <td>-0.691366</td>
+      <td>0.097691</td>
+      <td>0.000169</td>
+      <td>-0.000002</td>
+      <td>-18.435200</td>
+      <td>0.010715</td>
+      <td>0.000004</td>
+      <td>205.67278</td>
+      <td>15.00023</td>
+      <td>0.0</td>
+      <td>0.536144</td>
+      <td>0.000017</td>
+      <td>-0.000013</td>
+      <td>-0.009944</td>
+      <td>0.000017</td>
+      <td>-0.000013</td>
+      <td>0.004706</td>
+      <td>0.004682</td>
+      <td>-3.0</td>
+      <td>3.0</td>
+      <td>1</td>
+      <td>-1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>72</td>
+      <td>25</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>3376</th>
+      <td>-585</td>
+      <td>6</td>
+      <td>9</td>
+      <td>02:19:58</td>
+      <td>18398.7</td>
+      <td>-31967</td>
+      <td>47</td>
+      <td>T</td>
+      <td>-0.42678</td>
+      <td>1.06520</td>
+      <td>2.4S</td>
+      <td>134.2W</td>
+      <td>-2.36187</td>
+      <td>-134.22266</td>
+      <td>64.7</td>
+      <td>346.8</td>
+      <td>235.0</td>
+      <td>06m10s</td>
+      <td>369.6</td>
+      <td>3377.0</td>
+      <td>169.0</td>
+      <td>1507545.597</td>
+      <td>2.0</td>
+      <td>-0.080431</td>
+      <td>0.557901</td>
+      <td>0.000031</td>
+      <td>-0.000009</td>
+      <td>-0.460893</td>
+      <td>0.142135</td>
+      <td>-0.000127</td>
+      <td>-0.000002</td>
+      <td>22.215160</td>
+      <td>0.005645</td>
+      <td>-0.000005</td>
+      <td>212.14998</td>
+      <td>15.00014</td>
+      <td>0.0</td>
+      <td>0.533471</td>
+      <td>0.000083</td>
+      <td>-0.000012</td>
+      <td>-0.012604</td>
+      <td>0.000082</td>
+      <td>-0.000012</td>
+      <td>0.004595</td>
+      <td>0.004572</td>
+      <td>-3.0</td>
+      <td>3.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>72</td>
+      <td>41</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3378</th>
+      <td>-584</td>
+      <td>5</td>
+      <td>28</td>
+      <td>19:28:50</td>
+      <td>18383.9</td>
+      <td>-31955</td>
+      <td>57</td>
+      <td>T</td>
+      <td>0.32013</td>
+      <td>1.07977</td>
+      <td>38.2N</td>
+      <td>45.0W</td>
+      <td>38.15594</td>
+      <td>-45.02063</td>
+      <td>71.1</td>
+      <td>158.5</td>
+      <td>271.5</td>
+      <td>06m04s</td>
+      <td>364.2</td>
+      <td>3379.0</td>
+      <td>169.0</td>
+      <td>1507900.312</td>
+      <td>19.0</td>
+      <td>-0.366269</td>
+      <td>0.554570</td>
+      <td>0.000067</td>
+      <td>-0.000009</td>
+      <td>0.216789</td>
+      <td>0.181940</td>
+      <td>-0.000146</td>
+      <td>-0.000003</td>
+      <td>20.364651</td>
+      <td>0.008166</td>
+      <td>-0.000004</td>
+      <td>107.34414</td>
+      <td>15.00118</td>
+      <td>0.0</td>
+      <td>0.530220</td>
+      <td>-0.000012</td>
+      <td>-0.000013</td>
+      <td>-0.015838</td>
+      <td>-0.000012</td>
+      <td>-0.000013</td>
+      <td>0.004594</td>
+      <td>0.004571</td>
+      <td>-3.0</td>
+      <td>3.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>73</td>
+      <td>33</td>
+      <td>40</td>
+    </tr>
+    <tr>
+      <th>3385</th>
+      <td>-582</td>
+      <td>10</td>
+      <td>1</td>
+      <td>20:59:24</td>
+      <td>18348.0</td>
+      <td>-31926</td>
+      <td>44</td>
+      <td>T</td>
+      <td>0.75199</td>
+      <td>1.04550</td>
+      <td>40.6N</td>
+      <td>31.1W</td>
+      <td>40.56155</td>
+      <td>-31.11151</td>
+      <td>41.0</td>
+      <td>219.9</td>
+      <td>225.3</td>
+      <td>03m16s</td>
+      <td>195.6</td>
+      <td>3386.0</td>
+      <td>170.0</td>
+      <td>1508756.375</td>
+      <td>21.0</td>
+      <td>0.373619</td>
+      <td>0.507081</td>
+      <td>-0.000024</td>
+      <td>-0.000008</td>
+      <td>0.652639</td>
+      <td>-0.285167</td>
+      <td>-0.000031</td>
+      <td>0.000005</td>
+      <td>-0.747820</td>
+      <td>-0.016179</td>
+      <td>0.000000</td>
+      <td>136.89951</td>
+      <td>15.00397</td>
+      <td>0.0</td>
+      <td>0.537299</td>
+      <td>0.000035</td>
+      <td>-0.000013</td>
+      <td>-0.008795</td>
+      <td>0.000035</td>
+      <td>-0.000013</td>
+      <td>0.004722</td>
+      <td>0.004698</td>
+      <td>-3.0</td>
+      <td>3.0</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>72</td>
+      <td>49</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3387</th>
+      <td>-581</td>
+      <td>9</td>
+      <td>21</td>
+      <td>13:01:27</td>
+      <td>18333.1</td>
+      <td>-31914</td>
+      <td>54</td>
+      <td>T</td>
+      <td>0.06896</td>
+      <td>1.04501</td>
+      <td>7.0N</td>
+      <td>62.0E</td>
+      <td>7.00881</td>
+      <td>61.99182</td>
+      <td>86.0</td>
+      <td>209.0</td>
+      <td>150.4</td>
+      <td>03m48s</td>
+      <td>227.6</td>
+      <td>3388.0</td>
+      <td>170.0</td>
+      <td>1509111.043</td>
+      <td>13.0</td>
+      <td>0.021509</td>
+      <td>0.503022</td>
+      <td>-0.000003</td>
+      <td>-0.000008</td>
+      <td>0.066971</td>
+      <td>-0.281069</td>
+      <td>-0.000028</td>
+      <td>0.000005</td>
+      <td>3.513540</td>
+      <td>-0.015938</td>
+      <td>-0.000001</td>
+      <td>16.18558</td>
+      <td>15.00403</td>
+      <td>0.0</td>
+      <td>0.539017</td>
+      <td>-0.000065</td>
+      <td>-0.000013</td>
+      <td>-0.007086</td>
+      <td>-0.000065</td>
+      <td>-0.000013</td>
+      <td>0.004709</td>
+      <td>0.004685</td>
+      <td>-3.0</td>
+      <td>3.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>74</td>
+      <td>40</td>
+      <td>4</td>
+    </tr>
+  </tbody>
+</table>
+
+
+Let's load the particular eclipse we want to study:
+
+
+```python
+eclipse = montu.SolarEclipse(eclipses.data.iloc[3])
+print(eclipse)
+```
+
+    SolarEclipse
+    Date (catalogue): -0584-05-28
+    
+    Catalogue
+      Eclipse type         : T (total)
+      γ                    : 0.32013 R⊕
+      magnitude            : 1.07977
+      julian_date          : 1507900.31200 (JD TT)
+      ΔT assumed           : 18383.9 s
+      saros                : 57
+      luna_num             : -31955
+      cat_no               : 3379
+    
+    Greatest eclipse
+      td_ge (TT)           : 19:28:50
+      lat_ge, lng_ge       : 38.2N, 45.0W
+      lat_dd_ge            : 38.15594°
+      lng_dd_ge            : -45.02063°
+      sun_alt, sun_azm     : 71.1°, 158.5°
+    
+    Central path
+      path_width           : 271.5 km
+      central_duration     : 06m04s
+      duration_secs        : 364.2 s
+    
+      path_map             : http://xjubier.free.fr/en/site_pages/solar_eclipses/xSE_GoogleMap3.php?Ecl=-05840528&Acc=2&Umb=1&Lmt=1&Mag=0
+
+
+
+```python
+troy = montu.Observer(site="troy")
+conditions = eclipse.conditions_eclipse(troy)
+conditions.show_details()
+```
+
+    Eclipse local circumstances
+      Catalogue date       : -0584-05-28 (T, total)
+      Observer             : lat 39.957500°, lon 26.238900°, 30 m
+      Kind                 : total
+      Visible              : yes
+      Magnitude            : 1.031
+      Obscuration          : 1.000
+      Moon/Sun radius ratio: 1.0667
+      Sun altitude at max  : 14.77°
+      Maximum (UTC)        : -584-05-28 15:56:56
+      Maximum (JD UT)      : 1507900.164301
+      Maximum (JD TT)      : 1507900.377078
+      t_max                : 2.042425 h (from catalogue t0)
+    
+    Contacts (UTC)
+      C1 (first contact)   : -584-05-28 14:57:57
+      C2 (second contact)  : -584-05-28 15:54:54
+      C3 (third contact)   : -584-05-28 15:58:58
+      C4 (fourth contact)  : -584-05-28 16:51:51
+      Umbra duration       : 00:03:40
+    
+    Catalogue reference
+      γ (catalogue)        : 0.32013 R⊕
+      Magnitude (catalogue): 1.07977
+      ΔT                   : 18383.9 s
+      cond_map             : http://xjubier.free.fr/en/site_pages/solar_eclipses/xSE_GoogleMap3.php?Ecl=-05840528&Acc=2&Umb=1&Lmt=1&Mag=0&Lat=39.9575&Lng=26.2389&Elv=30.0&Zoom=9&LC=1
+
+
+Further case studies: [`MontuPython-SolarEclipses.ipynb`](examples/MontuPython-SolarEclipses.ipynb).
+
+
+### Evolution of polar stars
 
 Choose from database all bright stars that according to [wikipedia](https://en.wikipedia.org/wiki/Pole_star#Precession_of_the_equinoxes) were or will be close to the celestial North pole:
 
@@ -799,8 +1475,6 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
 ```
 
     Precessing 6 stars over 1,000 epochs …
-
-
     Done in 1.4 s.
 
 
@@ -824,17 +1498,9 @@ montu.Time.set_time_ticks(ax)
 montu.Util.montu_mark(ax)
 fig.tight_layout()
 fig.savefig('gallery/pole-stars.png')
-display(fig)
 plt.close(fig) # Used only for README generation
-from IPython.display import display
 
 ```
-
-
-    
-![png](README_files/README_97_0.png)
-    
-
 
 <p align="center"><img src="https://github.com/seap-udea/MontuPython/blob/main/gallery/pole-stars.png?raw=true" alt="Logo""/></p>
 
@@ -848,82 +1514,13 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-09 08:45:15.998398 (declination 89:31:55.775)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-12 01:36:43.807680 (declination 86:22:03.644)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-14 08:56:32.640 (declination 89:56:04.878)
-    Star Deneb will be the closest to the pole at 14732 B.C. 05-31 21:05:35.508480 (declination 86:57:15.604)
-    Star Alderamin will be the closest to the pole at 7532-02-29 02:34:50.704320 (declination 87:58:43.005)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-18 17:03:33.603856 (declination 83:29:32.447)
+    Star Polaris will be the closest to the pole at 2086-08-10 19:56:47.705261 (declination 89:31:55.790)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-13 12:48:15.505920 (declination 86:22:03.648)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-15 20:08:03.698880 (declination 89:56:04.918)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-02 08:17:07.198016 (declination 86:57:15.603)
+    Star Alderamin will be the closest to the pole at 7532-03-01 13:46:22.402560 (declination 87:58:43.007)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-20 04:15:05.302080 (declination 83:29:32.448)
 
-
-## Tutorial by example notebooks
-
-The following notebooks introduce MontuPython step by step. Open any of them in Google Colab and start working immediately — they are ideal for training new users or for testing code generated by MontuPython Desktop.
-
-
-- **Feature tour** Compact end-to-end tour of MontuPython: utilities, time and calendars, observers, stars, Sun/Moon/planets, seasons, sky maps, alignments, heliacal rises, solar eclipses, and planetary stations. A good first overview before the topic-specific notebooks below.
-
-   **File**: `MontuPython-FeatureTour.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-FeatureTour.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-FeatureTour.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-FeatureTour.ipynb)
-
-- **Basic functionalities** Introductory notebook covering MontuPython's essential objects: the stellar catalogue, observers, time instants, and coordinate transformations between equatorial and horizontal systems. Learn how to query naked-eye stars and compute their positions in the sky for any site and date.
-
-   **File**: `MontuPython-BasicFunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-BasicFunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-BasicFunctions.ipynb)
-
-- **Time: Basic time functionalities** Illustrates the `montu.Time` class across its full range of calendars and time scales. Parse dates in ISO, SPICE, Julian day, and terrestrial time; convert between proleptic Gregorian, mixed Julian/Gregorian, ancient Egyptian civil, and sothic (Horus year) calendars; and add or subtract calendar periods.
-
-   **File**: `MontuPython-MonTime.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-MonTime.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-MonTime.ipynb)
-
-- **Egyptian civil calendar: historical cross-checks** Compares MontuPython's computed Egyptian civil dates against the civil dates recorded in Egyptology sources for key historical events (apokatastasis anchors, Ptolemaic decrees, dated papyri). Uses the same event catalogue as MontuPython Desktop's Calendar Calculator.
-
-   **File**: `MontuPython-EgyptianCalendar.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-EgyptianCalendar.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-EgyptianCalendar.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-EgyptianCalendar.ipynb)
-
-- **Test code** A sandbox notebook for running code snippets produced by **MontuPython Desktop**'s *Let's Python!* windows. Copy the generated script from the Desktop app into the notebook cell and execute it in Colab without any local setup.
-
-   **File**: `MontuPython-TestCode.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-TestCode.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-TestCode.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-TestCode.ipynb)
-
-
-## Advanced examples
-
-
-The following notebooks present archaeoastronomical computations of broader historical and interpretive interest.
-
-
-- **Heliacal rises: Sirius step by step** Reconstructs the first morning visibility of Sirius from Thebes around 2782 BCE — the era of the first *apokatastasis* of the Sothic cycle. Works through all four heliacal-rise models in MontuPython (Ptolemy, Schaefer 1985/1987, Belokrylov 2011) and explains each visibility criterion rather than treating `HeliacalRise` as a black box.
-
-   **File**: `MontuPython-HeliacalRises.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-HeliacalRises.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-HeliacalRises.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-HeliacalRises.ipynb)
-
-- **Solar eclipses** Predicts **local circumstances** of solar eclipses from the bundled NASA Five Millennium catalogue (Espenak & Meeus): search the catalogue, validate the 2024 Dallas totality, and survey historical eclipses visible from Thebes.
-
-   **File**: `MontuPython-SolarEclipses.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-SolarEclipses.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-SolarEclipses.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-SolarEclipses.ipynb)
-
-- **Montunctions** Computes *marstices* — the stationary points of Mars — and their conjunctions with Aldebaran near the winter solstice throughout ancient Egyptian history. Includes periodicity analysis and publication-ready plots. The methodology and figures supported Francisco Vivas Fernández's Ph.D. thesis on the astronomical and landscape orientations of Senenmut's monuments in the Theban necropolis (2023).
-
-   **File**: `MontuPython-Montunctions.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-Montunctions.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-Montunctions.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-Montunctions.ipynb)
-
-- **Example: Venus Azimutal Distributions** Computes the distribution of Venus rising and setting azimuths at dawn and dusk over millennia, as observed from Thebes. Distinguishes morning-star and evening-star apparitions and summarizes their preferred horizon directions — a classic archaeoastronomical exercise for Venus cult and calendar studies.
-
-   **File**: `MontuPython-VenusAzimuths.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-VenusAzimuths.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb)
-
-
-## What's new
-
-
-Release notes are now maintained in [WHATSNEW.md](WHATSNEW.md).
-
-## AI assistance disclosure
-
-Starting with version *0.20.0*, portions of the code, inline documentation, code review, and debugging in this repository were assisted by AI language models, including **Cursor Composer 2.5**, **Anthropic Claude Sonnet 4.6**.
-
-The human authors maintain that all scientific ideas, the overall project conception, the package and notebook architecture, the design of the numerical and scientific workflows, and their interpretation remain original contributions of the human authors. AI tools were used exclusively as coding and writing assistants — analogous to a spell-checker or a compiler — and bear no authorship over the scientific content of this project. AI models also assisted with translating text from Spanish (the native language of the human authors) into English, and with English spelling and grammar review.
-
-## Acknowledgements
-
-MontuPython has benefited from the contributions and advice of several collaborators:
-
-- Francisco "Tito" Vivas provided an actual archaeoastronomical fase of study who originally motivated the development of this software.
-- Prof. José Lull of the Universitá Autónoma de Barcelona (UAB), provided scientific, archaeoastronomical, and Egyptological advice.
-- Juanita Agudelo developed the first versions of the MontuPython web app.
-- Luis Arroyo developed the version of the web app currently available online at [https://montupython-production.up.railway.app/](https://montupython-production.up.railway.app/).
 
 ------------
 
