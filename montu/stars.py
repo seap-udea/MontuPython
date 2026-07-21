@@ -52,6 +52,111 @@ _STAR_PROPERTY_SPECS = (
 # Module constants
 ###############################################################
 STELLAR_CATALOGUE = 'montu_stellar_catalogue_v38.csv' # Latest version: 2025/03/28
+STELLAR_SUBSET_VMAG = {
+    'bright': (-3.0, 3.5),
+    'visible': (-3.0, 6.5),
+}
+_STELLAR_TIER_RANK = {'bright': 0, 'visible': 1, 'full': 2}
+_STELLAR_CATALOGUE_CACHE: dict[str, pd.DataFrame] = {}
+
+
+def _normalize_stellar_subset_tier(subset) -> str:
+    """Map a ``subset`` argument to a catalogue tier name."""
+    if subset in (None, '', 'full'):
+        return 'full'
+    tier = str(subset).strip().lower()
+    if tier not in STELLAR_SUBSET_VMAG:
+        raise ValueError(
+            f"Unknown stellar catalogue subset {subset!r}; "
+            "use 'bright', 'visible', or omit for the full catalogue."
+        )
+    return tier
+
+
+def _stellar_catalogue_filename(tier: str) -> str:
+    if tier == 'full':
+        return STELLAR_CATALOGUE
+    return STELLAR_CATALOGUE.replace('.csv', f'_{tier}.csv')
+
+
+def _filter_stellar_catalogue_tier(df: pd.DataFrame, tier: str) -> pd.DataFrame:
+    if tier == 'full':
+        return df.copy()
+    vmin, vmax = STELLAR_SUBSET_VMAG[tier]
+    return df.loc[(df['Vmag'] >= vmin) & (df['Vmag'] <= vmax)].copy()
+
+
+def _best_superset_cached_tier(tier: str) -> str | None:
+    """Return the largest cached tier that contains ``tier``, if any."""
+    needed = _STELLAR_TIER_RANK[tier]
+    best_tier = None
+    best_rank = -1
+    for cached_tier in _STELLAR_CATALOGUE_CACHE:
+        rank = _STELLAR_TIER_RANK[cached_tier]
+        if rank >= needed and rank > best_rank:
+            best_tier = cached_tier
+            best_rank = rank
+    return best_tier
+
+
+def load_stellar_catalogue(subset=None, *, verbose: bool = True) -> pd.DataFrame:
+    """Load or reuse a packaged stellar catalogue tier for this process.
+
+    Catalogue tiers are nested: ``bright`` ⊂ ``visible`` ⊂ ``full``.
+    Each tier is read from disk at most once. A smaller tier can be
+    derived from a larger cached tier without reloading files; a larger
+    tier never reuses a smaller one (for example, ``visible`` after
+    ``bright`` still reads the visible CSV).
+
+    Parameters
+    ----------
+    subset : str, optional
+        ``'bright'``, ``'visible'``, or ``None``/``'full'`` for the full
+        catalogue.
+    verbose : bool, optional
+        Print a message when a catalogue file is actually read from disk.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A copy of the cached catalogue table for the requested tier.
+    """
+    tier = _normalize_stellar_subset_tier(subset)
+    if tier in _STELLAR_CATALOGUE_CACHE:
+        return _STELLAR_CATALOGUE_CACHE[tier].copy()
+
+    superset = _best_superset_cached_tier(tier)
+    if (
+        superset is not None
+        and _STELLAR_TIER_RANK[superset] > _STELLAR_TIER_RANK[tier]
+    ):
+        derived = _filter_stellar_catalogue_tier(
+            _STELLAR_CATALOGUE_CACHE[superset],
+            tier,
+        )
+        _STELLAR_CATALOGUE_CACHE[tier] = derived
+        return derived.copy()
+
+    catalogue_file = _stellar_catalogue_filename(tier)
+    if verbose:
+        print(f"Loading stellar catalogue {catalogue_file}")
+    df = pd.read_csv(
+        montu.Util._data_path(catalogue_file, check=True),
+        low_memory=False,
+    )
+    _STELLAR_CATALOGUE_CACHE[tier] = df
+    return df.copy()
+
+
+def clear_stellar_catalogue_cache() -> None:
+    """Clear the in-process stellar catalogue cache."""
+    _STELLAR_CATALOGUE_CACHE.clear()
+
+
+def stellar_catalogue_cache_status() -> dict[str, int]:
+    """Return cached tier names mapped to row counts (for tests/diagnostics)."""
+    return {tier: len(df) for tier, df in _STELLAR_CATALOGUE_CACHE.items()}
+
 CONSTELLATION_LINES_IAU = 'constellationship_iau.fab'
 CONSTELLATION_BOUNDARIES_IAU = 'constellation_boundaries.dat'
 CONSTELLATION_SET_IDS = ('iau', 'egyptian_ancient', 'egyptian_dendera')
@@ -466,7 +571,9 @@ class Stars(object):
     Notes
     -----
     When neither *data* nor *filename* is given, the default MontuPython
-    stellar catalogue (``montu_stellar_catalogue_vXX.csv``) is loaded.
+    stellar catalogue (``montu_stellar_catalogue_vXX.csv``) is loaded once
+    per process and reused for later :class:`Stars` requests with the same
+    or compatible ``subset`` (see :func:`load_stellar_catalogue`).
 
     Examples
     --------
@@ -517,17 +624,7 @@ class Stars(object):
             self.data = pd.read_csv(filename, low_memory=False)
 
         else:
-            # Load data from the database provided with package
-            if subset:
-                catalogue_file = STELLAR_CATALOGUE.replace('.csv', f'_{subset}.csv')
-            else:
-                catalogue_file = STELLAR_CATALOGUE
-
-            print(f"Loading stellar catalogue {catalogue_file}")
-            self.data = pd.read_csv(
-                montu.Util._data_path(catalogue_file,check=True),
-                low_memory=False,
-            )
+            self.data = load_stellar_catalogue(subset)
 
         self.number = len(self.data)
 

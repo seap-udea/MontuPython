@@ -18,6 +18,7 @@ _MODULE_ICONS: dict[str, str] = {
     "planets": "🪐",
     "alignments": "📐",
     "heliacal_rise": "🌅",
+    "conjunctions": "✨",
     "orient_disk": "⭕",
     "sky_map": "🌌",
 }
@@ -31,6 +32,7 @@ _MODULE_TITLES: dict[str, str] = {
     "alignments": "Star Alignments",
     "heliacal_rise": "Heliacal Rises",
     "solar_eclipses": "Solar Eclipses Finder",
+    "conjunctions": "Astronomical Conjunctions",
     "orient_disk": "Orientation Disk",
     "sky_map": "Sky Map",
 }

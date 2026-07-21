@@ -501,6 +501,39 @@ def test_conjunction_plot_lapse_builds_figure(mars_aldebaran):
     )
     assert fig is not None
     assert len(fig.data) >= 3
+    sep_traces = [
+        trace.name for trace in fig.data
+        if trace.yaxis in ('y', 'y1', None) and trace.mode == 'lines'
+    ]
+    assert 'Mars–Aldebaran' in sep_traces
+
+
+def test_conjunction_plot_lapse_three_bodies_shows_pairwise_and_criterion():
+    pytest.importorskip('plotly')
+    bodies = [
+        montu.Planet('Mercury'),
+        montu.Planet('Mars'),
+        montu.Planet('Saturn'),
+    ]
+    conj = montu.Conjunction(
+        bodies=bodies,
+        maxseparation=5,
+        mtime=montu.Time('2026-04-20'),
+        observer='geocentric',
+    )
+    lapse = conj.explore_lapse(verbose=False)
+    assert lapse is not None
+    fig = conj.plot_lapse(
+        lapse[0], lapse[1], step_hours=12, show=False, return_fig=True,
+    )
+    assert fig is not None
+    line_names = [trace.name for trace in fig.data if trace.mode == 'lines']
+    assert 'Mercury–Mars' in line_names
+    assert 'Mercury–Saturn' in line_names
+    assert 'Mars–Saturn' in line_names
+    assert 'Geometric center' in line_names
+    assert 'Max pairwise (criterion)' not in line_names
+    assert '3 pairs' in fig.layout.annotations[0].text
 
 
 def test_conjunction_plot_map_builds_figure(mars_aldebaran):

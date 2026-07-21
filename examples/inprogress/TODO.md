@@ -6,9 +6,9 @@
 
 ## Desktop
 
-- Create a conjunctions module.
 - Create an web version of the desktop app.
 
 ## Done
 
 * Create a Conjunctions class.
+* Create a conjunctions module.

@@ -384,3 +384,158 @@ class TestSolarEclipsesModule:
         localized = load_localized_historical_solar_eclipses(lang="es")
         assert "Eclipse de Halley" in localized["ce 1715-05-03"]["label"]
         set_language("en")
+
+
+class TestConjunctionsModule:
+    def test_find_mars_aldebaran_2022(self):
+        from montu_gui.modules.conjunctions import (
+            ConjunctionBodySpec,
+            find_conjunctions,
+        )
+
+        result = find_conjunctions(
+            bodies=[
+                ConjunctionBodySpec(name="Mars", body_type="planet"),
+                ConjunctionBodySpec(name="Aldebaran", body_type="star"),
+            ],
+            max_separation_deg=5.0,
+            start_date="2022-09-01",
+            end_date="2022-10-01",
+        )
+        assert result.ok
+        assert result.count >= 1
+        assert result.location_is_geocenter
+        assert "2022" in result.events[0]["date"]
+
+    def test_reversed_bce_interval_is_normalized(self):
+        from montu_gui.modules.conjunctions import (
+            ConjunctionBodySpec,
+            find_conjunctions,
+        )
+
+        forward = find_conjunctions(
+            bodies=[
+                ConjunctionBodySpec(name="Mars", body_type="planet"),
+                ConjunctionBodySpec(name="Aldebaran", body_type="star"),
+            ],
+            start_date="-1500-01-01",
+            end_date="-1499-12-31",
+            max_separation_deg=30.0,
+        )
+        reversed_input = find_conjunctions(
+            bodies=[
+                ConjunctionBodySpec(name="Mars", body_type="planet"),
+                ConjunctionBodySpec(name="Aldebaran", body_type="star"),
+            ],
+            start_date="-1499-12-31",
+            end_date="-1500-01-01",
+            max_separation_deg=30.0,
+        )
+        assert forward.ok and reversed_input.ok
+        assert forward.interval_label == reversed_input.interval_label
+
+    def test_topocentric_columns(self, thebes_coords):
+        from montu_gui.modules.conjunctions import (
+            ConjunctionBodySpec,
+            find_conjunctions,
+        )
+
+        result = find_conjunctions(
+            bodies=[
+                ConjunctionBodySpec(name="Mars", body_type="planet"),
+                ConjunctionBodySpec(name="Aldebaran", body_type="star"),
+            ],
+            max_separation_deg=5.0,
+            start_date="2022-09-01",
+            end_date="2022-10-01",
+            lat=thebes_coords.lat,
+            lon=thebes_coords.lon,
+            alt_m=thebes_coords.alt_m,
+            location_id=None,
+        )
+        assert result.ok
+        assert not result.location_is_geocenter
+        assert "Local time" in result.table_columns
+        assert "Visible at minimum" in result.table_columns
+        assert result.events[0]["local_time"] not in ("", "—")
+        assert result.events[0]["visible_at_minimum"] in ("Yes", "No")
+
+    def test_body_limits(self):
+        from montu_gui.modules.conjunctions import (
+            ConjunctionBodySpec,
+            validate_conjunction_bodies,
+        )
+
+        with pytest.raises(ValueError, match="star"):
+            validate_conjunction_bodies([
+                ConjunctionBodySpec(name="Sirius", body_type="star"),
+                ConjunctionBodySpec(name="Aldebaran", body_type="star"),
+                ConjunctionBodySpec(name="Mars", body_type="planet"),
+            ])
+
+        with pytest.raises(ValueError, match="4"):
+            validate_conjunction_bodies([
+                ConjunctionBodySpec(name="Mars", body_type="planet"),
+                ConjunctionBodySpec(name="Venus", body_type="planet"),
+                ConjunctionBodySpec(name="Jupiter", body_type="planet"),
+                ConjunctionBodySpec(name="Saturn", body_type="planet"),
+                ConjunctionBodySpec(name="Aldebaran", body_type="star"),
+            ])
+
+    def test_load_historical_conjunctions(self):
+        from montu_gui.modules.conjunctions import (
+            historical_conjunction_search_window,
+            load_historical_conjunctions,
+        )
+
+        data = load_historical_conjunctions()
+        assert "bce 7-05-27" in data
+        assert data["bce 7-05-27"]["conjunction_id"] == "jupiter_saturn-7bce"
+        window = historical_conjunction_search_window("ce 2022-09-07")
+        assert window == {
+            "start_date": "2021-09-07",
+            "end_date": "2023-09-07",
+            "start_era": "ce",
+            "end_era": "ce",
+        }
+        kepler = historical_conjunction_search_window("ce 1604-09-26")
+        assert kepler["start_date"] == "1603-09-26"
+        assert kepler["end_date"] == "1605-09-26"
+        bce = historical_conjunction_search_window("bce 7-05-27")
+        assert bce["start_era"] == "bce"
+        assert bce["end_era"] == "bce"
+        assert bce["start_date"] == "0008-05-27"
+        assert bce["end_date"] == "0006-05-27"
+
+
+class TestDateInterval:
+    def test_normalize_ccyymmdd_interval_swaps_reversed_bce(self):
+        from montu_gui.utils.date_interval import normalize_ccyymmdd_interval
+
+        interval = normalize_ccyymmdd_interval("-1500-01-01", "-1501-01-01")
+        assert interval.start_text == "-1501-01-01"
+        assert interval.end_text == "-1500-01-01"
+
+    def test_normalize_year_era_interval_swaps_reversed_bce(self):
+        from montu_gui.utils.date_interval import normalize_year_era_interval
+
+        ys, es, ye, ee = normalize_year_era_interval(1500, "bce", 1501, "bce")
+        assert (ys, es, ye, ee) == (1501, "bce", 1500, "bce")
+
+    def test_parse_date_field_bce(self):
+        from montu_gui.utils.date_interval import parse_date_field
+
+        assert parse_date_field("1500-01-01", "bce") == "-1499-01-01"
+        assert parse_date_field("1400-01-01", "bce") == "-1399-01-01"
+
+    def test_normalize_ccyymmdd_interval_from_fields(self):
+        from montu_gui.utils.date_interval import normalize_ccyymmdd_interval_from_fields
+
+        interval = normalize_ccyymmdd_interval_from_fields(
+            "1500-01-01",
+            "1400-01-01",
+            start_era="bce",
+            end_era="bce",
+        )
+        assert interval.start_text == "-1499-01-01"
+        assert interval.end_text == "-1399-01-01"

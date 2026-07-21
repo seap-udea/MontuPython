@@ -658,6 +658,66 @@ def load_historical_solar_eclipses() -> dict:
         return json.load(fh)
 
 
+def load_historical_conjunctions() -> dict:
+    """Load documented historical conjunctions from ``montu/data``.
+
+    Returns
+    -------
+    dict
+        Proleptic date keys (e.g. ``bce 7-05-27``) mapped to metadata
+        (``conjunction_id``, ``label``, ``bodies``, ``description``, ...).
+    """
+    path = Util._data_path("historical-conjunctions.json", check=True)
+    with open(path, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+_HISTORICAL_CONJUNCTIONS_BY_ID: dict | None = None
+
+
+def historical_conjunctions_by_id() -> dict:
+    """Return historical conjunction records keyed by ``conjunction_id``."""
+    global _HISTORICAL_CONJUNCTIONS_BY_ID
+    if _HISTORICAL_CONJUNCTIONS_BY_ID is None:
+        index: dict = {}
+        for date_key, entry in load_historical_conjunctions().items():
+            conjunction_id = entry.get("conjunction_id")
+            if not conjunction_id:
+                raise ValueError(
+                    f"historical conjunction {date_key!r} is missing conjunction_id"
+                )
+            record = dict(entry)
+            record["date_key"] = date_key
+            index[conjunction_id] = record
+        _HISTORICAL_CONJUNCTIONS_BY_ID = index
+    return _HISTORICAL_CONJUNCTIONS_BY_ID
+
+
+def get_historical_conjunction(conjunction_id: str) -> dict:
+    """Look up one historical conjunction by ``conjunction_id``."""
+    try:
+        return dict(historical_conjunctions_by_id()[conjunction_id])
+    except KeyError as exc:
+        raise ValueError(
+            f"unknown historical conjunction id: {conjunction_id!r}"
+        ) from exc
+
+
+def list_historical_conjunctions() -> list:
+    """List historical conjunctions with id, date key, and description."""
+    raw = load_historical_conjunctions()
+    rows = []
+    for date_key in sorted(raw, key=_historical_eclipse_sort_key):
+        entry = raw[date_key]
+        rows.append({
+            "conjunction_id": entry["conjunction_id"],
+            "date": date_key,
+            "description": entry.get("description", ""),
+            **entry,
+        })
+    return rows
+
+
 _HISTORICAL_SOLAR_ECLIPSES_BY_ID: dict | None = None
 
 

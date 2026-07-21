@@ -997,5 +997,125 @@
         "title_es": "Azimut solar"
       }
     }
+  },
+  "conjunctions": {
+    "input": {
+      "historical_conjunction": {
+        "body_en": "<p>Select a documented historical planetary conjunction from <code>montu/data/historical-conjunctions.json</code>. The module fills a geocentric search with the event bodies, maximum separation, and a date interval of one year before through one year after the catalogue date.</p><p>Choose <b>(none)</b> to set parameters manually.</p>",
+        "body_es": "<p>Selecciona una conjunción planetaria histórica documentada de <code>montu/data/historical-conjunctions.json</code>. El módulo configura una búsqueda geocéntrica con los cuerpos del evento, la separación máxima y un intervalo de fechas desde un año antes hasta un año después de la fecha del catálogo.</p><p>Elige <b>(ninguno)</b> para configurar los parámetros manualmente.</p>",
+        "title_en": "Historical conjunction",
+        "title_es": "Conjunción histórica"
+      },
+      "predefined_site": {
+        "body_en": "<p>Reference site for ephemerides and local sky columns. <b>Geocenter</b> uses geocentric coordinates (default). Choose a predefined ancient-world site or enter latitude and longitude manually below.</p>",
+        "body_es": "<p>Sitio de referencia para efemerides y columnas locales del cielo. <b>Geocentro</b> usa coordenadas geocentricas (predeterminado). Elige un sitio predefinido o introduce latitud y longitud manualmente.</p>",
+        "title_en": "Predefined site",
+        "title_es": "Sitio predefinido"
+      },
+      "latitude": {
+        "body_en": "<p>Observer latitude in decimal degrees, north positive. Together with longitude, defines a topocentric site for local time, elevation, and azimuth columns.</p>",
+        "body_es": "<p>Latitud del observador en grados decimales, positiva al norte. Junto con la longitud define un sitio topocentrico para las columnas locales.</p>",
+        "title_en": "Latitude",
+        "title_es": "Latitud"
+      },
+      "longitude": {
+        "body_en": "<p>Observer longitude in decimal degrees, east positive.</p>",
+        "body_es": "<p>Longitud del observador en grados decimales, positiva al este.</p>",
+        "title_en": "Longitude",
+        "title_es": "Longitud"
+      },
+      "altitude": {
+        "body_en": "<p>Observer altitude above sea level in metres. Optional.</p>",
+        "body_es": "<p>Altitud del observador sobre el nivel del mar en metros. Opcional.</p>",
+        "title_en": "Altitude",
+        "title_es": "Altitud"
+      },
+      "date": {
+        "body_en": "<p>Search interval in <b>CCYY-MM-DD</b> format with <b>BCE</b> or <b>CE</b>. Enter the year as a positive number together with the era (e.g. <code>1500-01-01</code> with BCE for 1500&nbsp;BCE). If the end date is earlier than the start date, MontuPython swaps them automatically.</p>",
+        "body_es": "<p>Intervalo de búsqueda en formato <b>CCYY-MM-DD</b> con <b>AEC</b> o <b>EC</b>. Introduce el año como número positivo junto con la era (p. ej. <code>1500-01-01</code> con AEC para 1500&nbsp;AEC). Si la fecha final es anterior a la inicial, MontuPython las intercambia automáticamente.</p>",
+        "title_en": "Date interval",
+        "title_es": "Intervalo de fechas"
+      },
+      "start_date": {
+        "body_en": "<p>First day of the search interval in CCYY-MM-DD format. Choose <b>BCE</b> or <b>CE</b> and enter the year as a positive number (e.g. <code>1500-01-01</code> with BCE for 1500&nbsp;BCE).</p>",
+        "body_es": "<p>Primer día del intervalo de búsqueda en formato CCYY-MM-DD. Elige <b>AEC</b> o <b>EC</b> e introduce el año como número positivo (p. ej. <code>1500-01-01</code> con AEC para 1500&nbsp;AEC).</p>",
+        "title_en": "From date",
+        "title_es": "Desde fecha"
+      },
+      "end_date": {
+        "body_en": "<p>Last day of the search interval in CCYY-MM-DD format. Choose <b>BCE</b> or <b>CE</b> and enter the year as a positive number.</p>",
+        "body_es": "<p>Último día del intervalo de búsqueda en formato CCYY-MM-DD. Elige <b>AEC</b> o <b>EC</b> e introduce el año como número positivo.</p>",
+        "title_en": "To date",
+        "title_es": "Hasta fecha"
+      },
+      "max_separation": {
+        "body_en": "<p>Maximum angular separation in degrees for a conjunction. All pairwise separations among the selected bodies must be at or below this threshold at the epoch of closest approach. Default: 5°.</p>",
+        "body_es": "<p>Separacion angular maxima en grados para una conjuncion. Todas las separaciones entre pares de cuerpos seleccionados deben estar en o por debajo de este umbral en el instante de minima separacion. Predeterminado: 5°.</p>",
+        "title_en": "Maximum distance",
+        "title_es": "Distancia maxima"
+      },
+      "add_body": {
+        "body_en": "<p>Add planets, the Sun, the Moon, or named bright stars to the conjunction set. At least two bodies are required.</p>",
+        "body_es": "<p>Agrega planetas, el Sol, la Luna o estrellas brillantes con nombre al conjunto. Se requieren al menos dos cuerpos.</p>",
+        "title_en": "Add a body",
+        "title_es": "Agregar cuerpo"
+      },
+      "star_mag_filter": {
+        "body_en": "<p>Show only named stars brighter than this V magnitude in the dropdown.</p>",
+        "body_es": "<p>Muestra solo estrellas con nombre mas brillantes que esta magnitud V en el menu.</p>",
+        "title_en": "Star magnitude filter",
+        "title_es": "Filtro de magnitud estelar"
+      }
+    },
+    "result": {
+      "date": {
+        "body_en": "<p>Date and time of closest approach in the mixed Julian/Gregorian calendar.</p>",
+        "body_es": "<p>Fecha y hora de minima separacion en el calendario juliano/gregoriano mixto.</p>",
+        "title_en": "Date",
+        "title_es": "Fecha"
+      },
+      "bodies": {
+        "body_en": "<p>All bodies included in the conjunction search.</p>",
+        "body_es": "<p>Todos los cuerpos incluidos en la busqueda de conjuncion.</p>",
+        "title_en": "Bodies",
+        "title_es": "Cuerpos"
+      },
+      "separation": {
+        "body_en": "<p>Maximum pairwise angular separation at the epoch of closest approach, in degrees.</p>",
+        "body_es": "<p>Maxima separacion angular entre pares en el instante de minima separacion, en grados.</p>",
+        "title_en": "Separation",
+        "title_es": "Separacion"
+      },
+      "closest_pair": {
+        "body_en": "<p>The pair of bodies with the smallest separation at closest approach.</p>",
+        "body_es": "<p>El par de cuerpos con menor separacion en el instante de minima aproximacion.</p>",
+        "title_en": "Closest pair",
+        "title_es": "Par mas cercano"
+      },
+      "position_angle": {
+        "body_en": "<p>Position angle of the closest pair, measured from the first body toward the second, eastward from north.</p>",
+        "body_es": "<p>Angulo de posicion del par mas cercano, medido desde el primer cuerpo hacia el segundo, al este desde el norte.</p>",
+        "title_en": "Position angle",
+        "title_es": "Angulo de posicion"
+      },
+      "local_time": {
+        "body_en": "<p>Local solar time at the conjunction epoch for the selected observer site.</p>",
+        "body_es": "<p>Hora solar local en el instante de la conjuncion para el sitio seleccionado.</p>",
+        "title_en": "Local time",
+        "title_es": "Hora local"
+      },
+      "visible_at_minimum": {
+        "body_en": "<p>Whether the conjunction was visible above the horizon at the observer site at closest approach (<b>Yes</b> or <b>No</b>).</p>",
+        "body_es": "<p>Si la conjuncion era visible sobre el horizonte en el sitio del observador en la minima separacion (<b>Si</b> o <b>No</b>).</p>",
+        "title_en": "Visible at minimum",
+        "title_es": "Visible en el minimo"
+      },
+      "details": {
+        "body_en": "<p><b>Map</b> opens an equatorial sky map of the conjunction. When an observer site is selected, <b>Details</b> opens a lapse chart of separation and visibility over time.</p>",
+        "body_es": "<p><b>Mapa</b> abre un mapa ecuatorial del cielo de la conjuncion. Cuando hay un sitio de observacion, <b>Detalles</b> abre un grafico de evolucion de la separacion y visibilidad.</p>",
+        "title_en": "Details",
+        "title_es": "Detalles"
+      }
+    }
   }
 }

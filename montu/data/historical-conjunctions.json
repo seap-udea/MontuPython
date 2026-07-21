@@ -1,0 +1,120 @@
+{
+  "bce 7-05-27": {
+    "label": "BCE 7-05-27 — Jupiter–Saturn (Great Conjunction, 1st of 3)",
+    "date_precision": "exact",
+    "catalogue_year": -6,
+    "catalogue_month": 5,
+    "catalogue_day": 27,
+    "bodies": [
+      {"name": "Jupiter", "body_type": "planet"},
+      {"name": "Saturn", "body_type": "planet"}
+    ],
+    "max_separation_deg": 2.0,
+    "search_margin_days": 400,
+    "observer_site": "Geocentric (eastern Mediterranean / Near East sky)",
+    "description": "First of three Jupiter–Saturn minima in 7 BCE, during a rare triple conjunction caused by retrograde motion.",
+    "details": "In 7 BCE Jupiter and Saturn met three times within months as Jupiter lapped Saturn near a stationary point. The 27 May event is the first minimum, with separations under 1°. Historians of religion have linked this series — together with later Jupiter–Regulus groupings — to hypotheses about the Star of Bethlehem, though no single astronomical identification is universally accepted.",
+    "source": "MontuPython ConjunctionExplorer; Molnar, The Star of Bethlehem (1999); examples/MontuPython-Conjunctions.ipynb",
+    "label_es": "AEC 7-05-27 — Júpiter–Saturno (gran conjunción, 1.ª de 3)",
+    "observer_site_es": "Geocéntrico (cielo del Mediterráneo oriental / Próximo Oriente)",
+    "description_es": "Primer mínimo de tres entre Júpiter y Saturno en el 7 AEC, durante una triple conjunción causada por el movimiento retrógrado.",
+    "details_es": "En el 7 AEC Júpiter y Saturno se encontraron tres veces en pocos meses mientras Júpiter alcanzaba a Saturno cerca de un punto estacionario. El evento del 27 de mayo es el primer mínimo, con separaciones inferiores a 1°. Historiadores de la religión han vinculado esta serie — junto con agrupaciones posteriores de Júpiter y Regulus — con hipótesis sobre la Estrella de Belén, aunque ninguna identificación astronómica única es universalmente aceptada.",
+    "source_es": "MontuPython ConjunctionExplorer; Molnar, The Star of Bethlehem (1999); examples/MontuPython-Conjunctions.ipynb",
+    "conjunction_id": "jupiter_saturn-7bce"
+  },
+  "bce 6-02-20": {
+    "label": "BCE 6-02-20 — Mars–Jupiter–Saturn grouping",
+    "date_precision": "approximate",
+    "catalogue_year": -5,
+    "catalogue_month": 2,
+    "catalogue_day": 20,
+    "bodies": [
+      {"name": "Mars", "body_type": "planet"},
+      {"name": "Jupiter", "body_type": "planet"},
+      {"name": "Saturn", "body_type": "planet"}
+    ],
+    "max_separation_deg": 10.0,
+    "search_margin_days": 60,
+    "observer_site": "Geocentric",
+    "description": "Wide Mars–Jupiter–Saturn grouping shortly after the 7 BCE Jupiter–Saturn triple conjunction series.",
+    "details": "A geocentric scan with a relaxed 10° threshold recovers a notable autumn/winter grouping of Mars, Jupiter, and Saturn around February 6 BCE, when all three planets fit within a compact region of the sky. Such planet massings were watched in Babylonian omen literature and remain useful teaching examples for multi-body conjunction searches.",
+    "source": "MontuPython ConjunctionExplorer; examples/MontuPython-Conjunctions.ipynb",
+    "label_es": "AEC 6-02-20 — Agrupación Marte–Júpiter–Saturno",
+    "observer_site_es": "Geocéntrico",
+    "description_es": "Agrupación amplia de Marte, Júpiter y Saturno poco después de la serie de triple conjunción Júpiter–Saturno del 7 AEC.",
+    "details_es": "Un escaneo geocéntrico con umbral relajado de 10° recupera una agrupación notable de Marte, Júpiter y Saturno hacia febrero del 6 AEC, cuando los tres planetas cabían en una región compacta del cielo. Tales apiñamientos planetarios eran observados en la literatura de presagios babilónica y siguen siendo ejemplos didácticos útiles para búsquedas de conjunción multi-cuerpo.",
+    "source_es": "MontuPython ConjunctionExplorer; examples/MontuPython-Conjunctions.ipynb",
+    "conjunction_id": "mars_jupiter_saturn-6bce"
+  },
+  "bce 3-09-12": {
+    "label": "BCE 3-09-12 — Jupiter–Regulus (1st of 3)",
+    "date_precision": "exact",
+    "catalogue_year": -2,
+    "catalogue_month": 9,
+    "catalogue_day": 12,
+    "bodies": [
+      {"name": "Jupiter", "body_type": "planet"},
+      {"name": "Regulus", "body_type": "star"}
+    ],
+    "max_separation_deg": 5.0,
+    "search_margin_days": 400,
+    "observer_site": "Geocentric (Leo / Regulus in the royal star tradition)",
+    "description": "First of three close Jupiter–Regulus approaches between 3 and 1 BCE, often cited in Star-of-Bethlehem discussions.",
+    "details": "Between 3 and 1 BCE Jupiter passed Regulus three times during retrograde loops, with the closest approach on 12 September 3 BCE near 0.33°. Regulus, the heart of Leo, carried royal symbolism in Babylonian and Greco-Roman star lore. The cluster of Jupiter–Regulus and Jupiter–Saturn events near this period remains a focus of archaeoastronomical debate about the Matthean star narrative.",
+    "source": "MontuPython ConjunctionExplorer; examples/MontuPython-Conjunctions.ipynb",
+    "label_es": "AEC 3-09-12 — Júpiter–Regulus (1.ª de 3)",
+    "observer_site_es": "Geocéntrico (Leo / Regulus en la tradición de estrella real)",
+    "description_es": "Primera de tres aproximaciones cercanas entre Júpiter y Regulus entre el 3 y el 1 AEC, a menudo citada en discusiones sobre la Estrella de Belén.",
+    "details_es": "Entre el 3 y el 1 AEC Júpiter pasó junto a Regulus tres veces durante bucles retrógrados, con la aproximación más cercana el 12 de septiembre del 3 AEC cerca de 0,33°. Regulus, el corazón de Leo, tenía simbolismo real en la tradición estelar babilónica y grecorromana. El grupo de eventos Júpiter–Regulus y Júpiter–Saturno cerca de este periodo sigue siendo un foco del debate arqueoastronómico sobre la narrativa matéana de la estrella.",
+    "source_es": "MontuPython ConjunctionExplorer; examples/MontuPython-Conjunctions.ipynb",
+    "conjunction_id": "jupiter_regulus-3bce"
+  },
+  "ce 1604-09-26": {
+    "label": "CE 1604-09-26 — Kepler's Fire Triangle",
+    "date_precision": "exact",
+    "catalogue_year": 1604,
+    "catalogue_month": 9,
+    "catalogue_day": 26,
+    "bodies": [
+      {"name": "Mars", "body_type": "planet"},
+      {"name": "Jupiter", "body_type": "planet"},
+      {"name": "Saturn", "body_type": "planet"}
+    ],
+    "max_separation_deg": 10.0,
+    "search_margin_days": 90,
+    "observer_site": "Central Europe (Kepler's observing latitude)",
+    "description": "Historic Mars–Jupiter–Saturn massing in autumn 1604, observed by Kepler while studying the supernova of that year.",
+    "details": "In September 1604 Mars, Jupiter, and Saturn gathered within about 8° on the sky — the \"Fire Triangle\" Kepler discussed alongside the famous supernova in Ophiuchus (SN 1604). A 10° conjunction threshold captures this widely separated but historically famous planet grouping.",
+    "source": "Kepler, De Stella Nova (1606); MontuPython examples/MontuPython-Conjunctions.ipynb",
+    "label_es": "EC 1604-09-26 — Triángulo de Fuego de Kepler",
+    "observer_site_es": "Europa central (latitud de observación de Kepler)",
+    "description_es": "Apiñamiento histórico de Marte, Júpiter y Saturno en otoño de 1604, observado por Kepler mientras estudiaba la supernova de ese año.",
+    "details_es": "En septiembre de 1604 Marte, Júpiter y Saturno se reunieron dentro de unos 8° en el cielo — el «Triángulo de Fuego» que Kepler comentó junto a la famosa supernova en Ofiuco (SN 1604). Un umbral de conjunción de 10° captura esta agrupación planetaria amplia pero históricamente célebre.",
+    "source_es": "Kepler, De Stella Nova (1606); MontuPython examples/MontuPython-Conjunctions.ipynb",
+    "conjunction_id": "kepler_fire_triangle-1604"
+  },
+  "ce 2021-07-22": {
+    "label": "CE 2021-07-22 — Venus–Mars–Regulus",
+    "date_precision": "exact",
+    "catalogue_year": 2021,
+    "catalogue_month": 7,
+    "catalogue_day": 22,
+    "bodies": [
+      {"name": "Venus", "body_type": "planet"},
+      {"name": "Mars", "body_type": "planet"},
+      {"name": "Regulus", "body_type": "star"}
+    ],
+    "max_separation_deg": 5.5,
+    "search_margin_days": 45,
+    "observer_site": "Geocentric",
+    "description": "Compact Venus–Mars–Regulus grouping in Leo, combining two planets with the royal star Regulus.",
+    "details": "A three-body search with a 5.5° threshold finds Venus, Mars, and Regulus within a tight equatorial patch in July 2021, with maximum pairwise separation near 5°. The event links modern conjunction tooling with the same Regulus that appears in ancient planet-star omen traditions.",
+    "source": "MontuPython examples/MontuPython-Conjunctions.ipynb",
+    "label_es": "EC 2021-07-22 — Venus–Marte–Regulus",
+    "observer_site_es": "Geocéntrico",
+    "description_es": "Agrupación compacta de Venus, Marte y Regulus en Leo, combinando dos planetas con la estrella real Regulus.",
+    "details_es": "Una búsqueda de tres cuerpos con umbral de 5,5° encuentra a Venus, Marte y Regulus en un parche ecuatorial compacto en julio de 2021, con separación máxima entre pares cerca de 5°. El evento vincula herramientas modernas de conjunción con el mismo Regulus presente en tradiciones antiguas de presagios planeta-estrella.",
+    "source_es": "MontuPython examples/MontuPython-Conjunctions.ipynb",
+    "conjunction_id": "venus_mars_regulus-2021"
+  }
+}

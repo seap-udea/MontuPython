@@ -100,6 +100,14 @@
       "module_key": "solar_eclipses",
       "title_en": "Solar Eclipses Finder",
       "title_es": "Buscador de eclipses solares"
+    },
+    {
+      "description_en": "Find angular conjunctions among the Sun, Moon, classical planets, and named bright stars over a historical date interval. Geocentric search by default; choose a site for local time and visibility at closest approach.",
+      "description_es": "Encuentra conjunciones angulares entre el Sol, la Luna, planetas clásicos y estrellas brillantes con nombre en un intervalo histórico. Búsqueda geocéntrica por defecto; elige un sitio para hora local y visibilidad en la mínima separación.",
+      "icon": "✨",
+      "module_key": "conjunctions",
+      "title_en": "Astronomical Conjunctions",
+      "title_es": "Conjunciones astronómicas"
     }
   ],
   "paragraphs_en": [

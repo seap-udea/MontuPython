@@ -170,5 +170,21 @@
     },
     "duration_min_s": "",
     "duration_max_s": ""
+  },
+  "conjunctions": {
+    "location_id": "geocenter",
+    "lat": "",
+    "lon": "",
+    "alt_m": "",
+    "start_date": "1500-01-01",
+    "start_era": "bce",
+    "end_date": "1400-01-01",
+    "end_era": "bce",
+    "max_separation_deg": 5.0,
+    "star_mag_limit": 1.0,
+    "bodies": [
+      {"name": "Mars", "body_type": "planet", "hip": null},
+      {"name": "Aldebaran", "body_type": "star", "hip": null}
+    ]
   }
 }

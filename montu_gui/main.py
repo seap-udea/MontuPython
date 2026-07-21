@@ -61,6 +61,7 @@ from montu_gui.pages.heliacal_rise_page import HeliacalRisePage
 from montu_gui.pages.orientation_disk_page import OrientationDiskPage
 from montu_gui.pages.sky_map_page import SkyMapPage
 from montu_gui.pages.solar_eclipses_page import SolarEclipsesPage
+from montu_gui.pages.conjunctions_page import ConjunctionsPage
 from montu_gui.utils.location_state import LocationState
 from montu_gui.modules.location import ObserverCoords
 from montu_gui.utils.user_config import (
@@ -92,6 +93,7 @@ NAV_ITEMS = [
     ("📐", "Star Alignments", "alignments"),
     ("🌅", "Heliacal Rises", "heliacal_rise"),
     ("", "Solar Eclipses Finder", "solar_eclipses"),
+    ("✨", "Astronomical Conjunctions", "conjunctions"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -294,6 +296,9 @@ class MainWindow(QMainWindow):
         solar_eclipses_page = SolarEclipsesPage()
         solar_eclipses_page.status_message.connect(self._show_status)
         self._add_page("solar_eclipses", solar_eclipses_page)
+        conjunctions_page = ConjunctionsPage()
+        conjunctions_page.status_message.connect(self._show_status)
+        self._add_page("conjunctions", conjunctions_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
@@ -344,6 +349,7 @@ class MainWindow(QMainWindow):
             "alignments": "alignments",
             "heliacal_rise": "heliacal_rise",
             "solar_eclipses": "solar_eclipses",
+            "conjunctions": "conjunctions",
             "calendar": "calendar",
             "seasons": "seasons",
         }
@@ -379,6 +385,7 @@ class MainWindow(QMainWindow):
             "alignments": "alignments",
             "heliacal_rise": "heliacal_rise",
             "solar_eclipses": "solar_eclipses",
+            "conjunctions": "conjunctions",
             "calendar": "calendar",
             "seasons": "seasons",
         }

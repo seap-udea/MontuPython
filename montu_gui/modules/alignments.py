@@ -294,6 +294,11 @@ def find_alignment_stars(
     """
     try:
         montu = _import_montu()
+        from montu_gui.utils.date_interval import normalize_year_era_interval
+
+        year_start, era_start, year_end, era_end = normalize_year_era_interval(
+            year_start, era_start, year_end, era_end
+        )
 
         dec_target = compute_target_declination(az, el, lat)
 
@@ -419,6 +424,11 @@ def build_alignment_plots(
         return AlignmentPlotResult(ok=False, error=result.error)
 
     try:
+        from montu_gui.utils.date_interval import normalize_year_era_interval
+
+        year_start, era_start, year_end, era_end = normalize_year_era_interval(
+            year_start, era_start, year_end, era_end
+        )
         dec_target  = result.dec_target
         stars_df    = result.stars_df
         sky_df      = result.sky_df

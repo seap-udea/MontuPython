@@ -569,6 +569,11 @@ def find_solar_eclipses(
     )
     observer_coords = _has_observer_coords(lat, lon)
     observer_alt_m = 0.0 if alt_m is None else float(alt_m)
+    from montu_gui.utils.date_interval import normalize_year_era_interval
+
+    year_start, era_start, year_end, era_end = normalize_year_era_interval(
+        year_start, era_start, year_end, era_end
+    )
     interval_label = _era_range_label(year_start, era_start, year_end, era_end)
 
     try:

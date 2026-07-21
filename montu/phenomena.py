@@ -1635,6 +1635,38 @@ def _equatorial_centroid_deg(ra_hours, dec_deg):
     return ra_c, dec_c
 
 
+def _conjunction_geometric_center_elevation_deg(
+    bodies, mtime, observer, *, is_geocentric=False,
+):
+    """Elevation [deg] of the equatorial geometric centroid of *bodies*."""
+    ra_hours = []
+    decs = []
+    for body in bodies:
+        pos = body.position
+        ra_hours.append(float(pos.RAEpoch))
+        decs.append(float(pos.DecEpoch))
+    center_ra_deg, center_dec_deg = _equatorial_centroid_deg(ra_hours, decs)
+    if is_geocentric:
+        return float(np.mean([float(body.position.el) for body in bodies]))
+
+    from montu.maps import _equatorial_to_horizontal, _observer_sidereal_time_hours
+
+    height_km = float(getattr(observer, 'height', 0.0) or 0.0)
+    lst_hours = _observer_sidereal_time_hours(
+        mtime,
+        lat=observer.lat,
+        lon=observer.lon,
+        height_km=height_km,
+    )
+    _az, el = _equatorial_to_horizontal(
+        np.array([center_ra_deg / 15.0]),
+        np.array([center_dec_deg]),
+        lat=observer.lat,
+        lst_hours=lst_hours,
+    )
+    return float(el[0])
+
+
 def _angular_separation_ra_dec_deg(ra1_deg, dec1_deg, ra2_deg, dec2_deg):
     """Great-circle separation [deg] between two equatorial points."""
     return float(np.rad2deg(
@@ -1938,20 +1970,36 @@ class Conjunction(object):
             self.distance_au = None
         return self
 
-    def _separation_at(self, mtime, observer=None):
-        """Return max pairwise separation [deg] without mutating stored state."""
+    def _pairwise_separations_at(self, mtime, observer=None):
+        """Return pairwise separations without mutating stored state.
+
+        Returns
+        -------
+        list of tuple
+            ``(body_a_name, body_b_name, separation_deg)`` for each pair.
+        """
         obs = self.observer if observer is None else _resolve_observer(observer)[0]
         for body in self.bodies:
-            # Positions alone are enough for angular separation (faster than
-            # full conditions_in_sky during long searches).
             body.where_in_sky(at=mtime, observer=obs)
-        seps = []
+        pairs = []
         for i in range(len(self.bodies)):
             for j in range(i + 1, len(self.bodies)):
-                seps.append(
-                    _angular_separation_bodies_deg(self.bodies[i], self.bodies[j])
+                sep = _angular_separation_bodies_deg(
+                    self.bodies[i], self.bodies[j],
                 )
-        return float(max(seps)) if seps else float('nan')
+                pairs.append((
+                    self.body_names[i],
+                    self.body_names[j],
+                    float(sep),
+                ))
+        return pairs
+
+    def _separation_at(self, mtime, observer=None):
+        """Return max pairwise separation [deg] without mutating stored state."""
+        pairs = self._pairwise_separations_at(mtime, observer=observer)
+        if not pairs:
+            return float('nan')
+        return float(max(sep for *_names, sep in pairs))
 
     def _all_bodies_above_horizon(self, min_elevation=0.0):
         if not self.body_conditions:
@@ -2402,24 +2450,35 @@ class Conjunction(object):
             jeds = np.array([start.jed, end.jed])
 
         times = []
-        separations = []
+        pair_labels = [
+            f'{self.body_names[i]}–{self.body_names[j]}'
+            for i in range(len(self.bodies))
+            for j in range(i + 1, len(self.bodies))
+        ]
+        pair_series = {label: [] for label in pair_labels}
+        center_elevations = []
         sun_alts = []
-        body_els = {name: [] for name in self.body_names}
         visible_flags = []
 
         sun = montu.Sun()
         obs = self.observer
         for jed in jeds:
             mtime = montu.Time(float(jed), format='jd', scale='utc')
-            sep = self._separation_at(mtime, observer=obs)
-            separations.append(sep)
+            pair_values = self._pairwise_separations_at(mtime, observer=obs)
+            for body_a, body_b, sep in pair_values:
+                pair_series[f'{body_a}–{body_b}'].append(sep)
 
             elevations = []
             for body in self.bodies:
-                body.where_in_sky(at=mtime, observer=obs)
-                el = float(body.position.el)
-                elevations.append(el)
-                body_els[_body_label(body)].append(el)
+                elevations.append(float(body.position.el))
+            center_elevations.append(
+                _conjunction_geometric_center_elevation_deg(
+                    self.bodies,
+                    mtime,
+                    obs,
+                    is_geocentric=self.is_geocentric,
+                )
+            )
 
             if self.is_geocentric:
                 sun_alt = np.nan
@@ -2438,39 +2497,56 @@ class Conjunction(object):
             )
 
         names = '–'.join(self.body_names)
+        n_pairs = len(pair_labels)
+        sep_title = 'Angular separation'
+        if n_pairs == 1:
+            sep_title = f'Angular separation ({pair_labels[0]})'
+        elif n_pairs > 1:
+            sep_title = f'Angular separation ({n_pairs} pairs)'
+
         fig = make_subplots(
             rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.08,
             subplot_titles=(
-                f'Angular separation ({names})',
+                sep_title,
                 'Elevation above horizon',
                 'Sun altitude',
             ),
         )
 
-        fig.add_trace(
-            go.Scatter(
-                x=times, y=separations, mode='lines', name='Separation',
-                line=dict(color='#1f77b4', width=2),
-                hovertemplate='%{x}<br>sep=%{y:.3f}°<extra></extra>',
-            ),
-            row=1, col=1,
-        )
+        pair_palette = ['#1f77b4', '#d62728', '#2ca02c', '#ff7f0e', '#9467bd', '#8c564b']
+        for idx, label in enumerate(pair_labels):
+            fig.add_trace(
+                go.Scatter(
+                    x=times,
+                    y=pair_series[label],
+                    mode='lines',
+                    name=label,
+                    line=dict(
+                        color=pair_palette[idx % len(pair_palette)],
+                        width=1.8,
+                    ),
+                    hovertemplate='%{x}<br>%{y:.3f}°<extra></extra>',
+                ),
+                row=1, col=1,
+            )
+
         fig.add_hline(
             y=self.maxseparation, line_dash='dash', line_color='gray',
             annotation_text=f'max {self.maxseparation}°',
             row=1, col=1,
         )
 
-        palette = ['#d62728', '#2ca02c', '#ff7f0e', '#9467bd', '#8c564b']
-        for idx, (name, els) in enumerate(body_els.items()):
-            fig.add_trace(
-                go.Scatter(
-                    x=times, y=els, mode='lines', name=name,
-                    line=dict(color=palette[idx % len(palette)], width=1.8),
-                    hovertemplate='%{x}<br>%{y:.1f}°<extra></extra>',
-                ),
-                row=2, col=1,
-            )
+        fig.add_trace(
+            go.Scatter(
+                x=times,
+                y=center_elevations,
+                mode='lines',
+                name='Geometric center',
+                line=dict(color='#2ca02c', width=2),
+                hovertemplate='%{x}<br>%{y:.1f}°<extra></extra>',
+            ),
+            row=2, col=1,
+        )
         fig.add_hline(y=0.0, line_dash='dot', line_color='black', row=2, col=1)
 
         fig.add_trace(
@@ -2518,11 +2594,7 @@ class Conjunction(object):
                         size=12, color='rgba(0, 180, 0, 0.35)',
                         symbol='square',
                     ),
-                    name=(
-                        'Visible from site '
-                        f'(Sun < {CONJUNCTION_SUN_MAX_ALTITUDE_DEG:.0f}°, '
-                        'all bodies above horizon)'
-                    ),
+                    name='Visible from site',
                     showlegend=True,
                 ),
                 row=1, col=1,
@@ -2543,9 +2615,16 @@ class Conjunction(object):
                 f'Conjunction lapse: {names} ({interval})<br>'
                 f'<sup>{site_label}</sup>'
             ),
-            height=780,
-            legend=dict(orientation='h', yanchor='bottom', y=1.02, x=0),
-            margin=dict(t=90),
+            height=800,
+            legend=dict(
+                orientation='h',
+                yanchor='bottom',
+                y=1.01,
+                x=0,
+                xanchor='left',
+                font=dict(size=10),
+            ),
+            margin=dict(t=135, b=55, l=55, r=20),
         )
         fig.update_yaxes(title_text='deg', row=1, col=1)
         fig.update_yaxes(title_text='deg', row=2, col=1)
