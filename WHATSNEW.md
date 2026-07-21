@@ -3,6 +3,9 @@
 This file collects the release notes and the main changes in MontuPython.
 
 ## Version 0.41.0 (major)
+- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
+- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+
 
 - **`Conjunction`** — new class in `montu/phenomena.py` to evaluate angular conjunctions of two or more sky bodies (planets, stars, Moon, Sun) at one epoch; reports maximum pairwise separation, per-pair geometry, rise/set, phase, and angular size (planets).
 - **`ConjunctionExplorer`** — scan a date interval for local separation minima below a threshold; returns fully computed `Conjunction` objects sorted by epoch.

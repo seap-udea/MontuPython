@@ -6,6 +6,7 @@ Examples
    :caption: Examples
 
    MontuPython code snippets <examples/MontuPython-CodeSnippets>
+   Conjunctions Examples <examples/MontuPython-Conjunctions>
    Egyptian civil calendar: historical cross-checks <examples/MontuPython-EgyptianCalendar>
    The Heliacal Rise of Sirius, Step by Step <examples/MontuPython-HeliacalRises>
    Time: Basic time functionalities <examples/MontuPython-MonTime>
