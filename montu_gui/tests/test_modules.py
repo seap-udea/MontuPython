@@ -237,6 +237,13 @@ class TestHeliacalRiseModule:
         )
         assert result.ok
         assert result.events is not None
+        if result.events:
+            first = result.events[0]
+            assert first["sothic"]
+            assert isinstance(first["can_hyear"], int)
+            assert first["can_month"]
+            assert first["can_season"]
+            assert isinstance(first["can_day"], int)
 
 
 class TestAlignmentsModule:

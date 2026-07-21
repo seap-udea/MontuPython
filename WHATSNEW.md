@@ -10,7 +10,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **Site visibility** — `visible_from_site`, `is_visible(from_site=…, at=…)`, and `CONJUNCTION_SUN_MAX_ALTITUDE_DEG` (−5°): conjunction is *visible* when all bodies are above the horizon and the Sun is below −5°; geocentric runs mark visibility as `n/a`.
 - **`explore_lapse()`** — find the UTC interval during which the group stays within `maxseparation` around the reference day; reports start/end separations and local times.
 - **`plot_lapse()`** — Plotly three-panel chart (separation, body elevations, Sun altitude) with green bands for site-visible intervals.
-- **`plot_map()`** — Plotly equatorial sky map centred on the geometric mean of the body directions, with bright-star context (same spirit as `Stars.plot_stars` / `mercator_sky_map`); options `mag_plotlimit` (default 3.4) and `mag_namelimit` (default 3.0); only plots when `in_conjunction` is true.
+- **`plot_map()`** — Plotly equatorial sky map centred on the geometric mean of the body directions, with stars from the visible catalogue (same spirit as `Stars.plot_stars` / `mercator_sky_map`); options `mag_plotlimit` (default 5.0) and `mag_namelimit` (default 3.5); only plots when `in_conjunction` is true.
 - **`Conjunction.show_details()`** — formatted report (epoch, observer, separation, visibility, per-body sky conditions, pairwise table).
 - **`Util.print_dict()`** — print a mapping as a Key | Value table with nested sub-tables for lists of dicts (used in conjunction visibility examples); formats `Time`, `Observer`, booleans, and Julian dates.
 - **`ConjunctionExplorer.search(..., verbose=False)`** — progress bar off by default (quiet output for notebooks and Read the Docs).

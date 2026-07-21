@@ -528,3 +528,25 @@ def test_conjunction_plot_map_skips_when_not_in_conjunction(mars_aldebaran):
         observer='geocentric',
     )
     assert conj.plot_map(show=False, return_fig=True) is None
+
+
+def test_conjunction_plot_map_ra_wrap_near_zero():
+    pytest.importorskip('plotly')
+    bodies = [
+        montu.Planet('Mars'),
+        montu.Planet('Jupiter'),
+        montu.Planet('Saturn'),
+    ]
+    conj = montu.Conjunction(
+        bodies=bodies,
+        maxseparation=10,
+        mtime=montu.Time('-0005-02-20 07:00:00', calendar='mixed'),
+        observer='geocentric',
+    )
+    fig = conj.plot_map(show=False, return_fig=True)
+    assert fig is not None
+    stars = next(t for t in fig.data if t.name == 'Stars')
+    assert len(stars.x) > 10
+    ra_lo, ra_hi = sorted(fig.layout.xaxis.range)
+    assert all(ra_lo <= float(x) <= ra_hi for x in stars.x)
+    assert max(stars.x) - min(stars.x) < 90.0

@@ -3,14 +3,18 @@
 
 Used by ``release-pipeline.sh`` before ``make readme`` and ``make docs``.
 
-* Prepends ``%matplotlib inline`` when missing.
-* Appends ``display(fig)`` after ``fig.savefig(...)`` so plots appear in outputs.
-* Inserts GitHub gallery markdown cells (same pattern as ``README.ipynb``).
+* Prepends ``%matplotlib inline`` when missing (tagged setup cell).
+* During execution only (not persisted), appends ``display(fig)`` after
+  ``fig.savefig(...)`` so plots appear in notebook outputs.
+* Inserts GitHub gallery markdown cells for example notebooks.
+* ``README.ipynb`` is executed without ``display(fig)`` injection (gallery
+  markdown cells in the notebook show figures on GitHub).
 * Runs with the repository root as the working directory so ``gallery/`` is shared.
 """
 
 from __future__ import annotations
 
+import copy
 import os
 import re
 import sys
@@ -22,8 +26,12 @@ import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
 ROOT = Path(__file__).resolve().parent.parent
+README_NOTEBOOK = ROOT / "README.ipynb"
 SETUP_TAG = "montu-release-setup"
 SETUP_SOURCE = "%matplotlib inline\n"
+_INJECTED_DISPLAY_LINES = frozenset(
+    {"from IPython.display import display", "display(fig)"}
+)
 
 
 def _cell_text(cell) -> str:
@@ -54,6 +62,24 @@ def ensure_inline_backend(nb) -> None:
     setup = nbformat.v4.new_code_cell(SETUP_SOURCE)
     setup.metadata["tags"] = [SETUP_TAG]
     nb.cells.insert(0, setup)
+
+
+def strip_injected_display(source: str) -> str:
+    """Remove persisted ``display(fig)`` injection from notebook source."""
+    lines = source.splitlines()
+    cleaned = [line for line in lines if line.strip() not in _INJECTED_DISPLAY_LINES]
+    if not cleaned:
+        return ""
+    text = "\n".join(cleaned)
+    if source.endswith("\n"):
+        text += "\n"
+    return text
+
+
+def clean_notebook_sources(nb) -> None:
+    for cell in nb.cells:
+        if cell.cell_type == "code":
+            _set_cell_text(cell, strip_injected_display(_cell_text(cell)))
 
 
 def github_img_markdown(path: str) -> str:
@@ -95,8 +121,46 @@ def _append_figure_display(lines: list[str]) -> list[str]:
     return lines
 
 
-def enhance_savefig_cells(nb) -> None:
-    """Ensure savefig cells also display figures and have gallery markdown."""
+def inject_figure_display_for_execution(source: str) -> str:
+    """Return cell source with ephemeral display calls for notebook execution."""
+    static_paths, has_fstring = _extract_savefig_paths(source)
+    if static_paths or has_fstring:
+        lines = _append_figure_display(source.splitlines())
+        return "\n".join(lines) + ("\n" if source.endswith("\n") else "")
+
+    if "savefig" in source or "display(fig)" in source or "plt.show()" in source:
+        return source
+
+    if not (
+        "plt.subplots" in source
+        or "plot_stars" in source
+        or re.search(r"plt\.hist\(", source)
+    ):
+        return source
+
+    lines = source.splitlines()
+    if re.search(r"plt\.hist\(", source) and not re.search(r"\bfig\b", source):
+        if "plt.show()" not in source:
+            lines.append("plt.show()")
+    elif re.search(r"\bfig\b", source):
+        lines = _append_figure_display(lines)
+    text = "\n".join(lines)
+    if source.endswith("\n"):
+        text += "\n"
+    return text
+
+
+def inject_display_for_execution(nb) -> None:
+    """Mutate *nb* in memory so execution embeds matplotlib figures in outputs."""
+    for cell in nb.cells:
+        if cell.cell_type != "code":
+            continue
+        source = _cell_text(cell)
+        _set_cell_text(cell, inject_figure_display_for_execution(source))
+
+
+def insert_gallery_markdown(nb) -> None:
+    """Insert GitHub gallery markdown after cells with static ``savefig`` paths."""
     i = 0
     while i < len(nb.cells):
         cell = nb.cells[i]
@@ -105,13 +169,10 @@ def enhance_savefig_cells(nb) -> None:
             continue
 
         source = _cell_text(cell)
-        static_paths, has_fstring = _extract_savefig_paths(source)
-        if not static_paths and not has_fstring:
+        static_paths, _has_fstring = _extract_savefig_paths(source)
+        if not static_paths:
             i += 1
             continue
-
-        lines = _append_figure_display(source.splitlines())
-        _set_cell_text(cell, "\n".join(lines) + "\n")
 
         insert_at = i + 1
         for img_path in static_paths:
@@ -124,42 +185,39 @@ def enhance_savefig_cells(nb) -> None:
         i = insert_at
 
 
-def enhance_figure_cells(nb) -> None:
-    """Display matplotlib figures that are created but never shown."""
-    for cell in nb.cells:
-        if cell.cell_type != "code":
-            continue
-        source = _cell_text(cell)
-        if "savefig" in source or "display(fig)" in source or "plt.show()" in source:
-            continue
-        if not (
-            "plt.subplots" in source
-            or "plot_stars" in source
-            or re.search(r"plt\.hist\(", source)
-        ):
-            continue
-
-        lines = source.splitlines()
-        if re.search(r"plt\.hist\(", source) and not re.search(r"\bfig\b", source):
-            lines.append("plt.show()")
-        elif re.search(r"\bfig\b", source):
-            if "from IPython.display import display" not in source:
-                lines.append("from IPython.display import display")
-            lines.append("display(fig)")
-        _set_cell_text(cell, "\n".join(lines) + "\n")
+def _merge_code_cell_outputs(nb, nb_exec) -> None:
+    exec_code = [cell for cell in nb_exec.cells if cell.cell_type == "code"]
+    nb_code = [cell for cell in nb.cells if cell.cell_type == "code"]
+    if len(exec_code) != len(nb_code):
+        raise RuntimeError(
+            f"code cell count mismatch after execution ({len(nb_code)} vs {len(exec_code)})"
+        )
+    for dst, src in zip(nb_code, exec_code):
+        dst["outputs"] = copy.deepcopy(src.get("outputs", []))
+        dst["execution_count"] = src.get("execution_count")
 
 
 def execute_notebook(path: Path, ep: ExecutePreprocessor) -> None:
     nb = nbformat.read(path, as_version=4)
+    clean_notebook_sources(nb)
     ensure_inline_backend(nb)
-    enhance_savefig_cells(nb)
-    enhance_figure_cells(nb)
-    ep.preprocess(nb, {"metadata": {"path": str(ROOT)}})
+
+    is_readme = path.resolve() == README_NOTEBOOK.resolve()
+    nb_exec = copy.deepcopy(nb)
+    if not is_readme:
+        inject_display_for_execution(nb_exec)
+
+    ep.preprocess(nb_exec, {"metadata": {"path": str(ROOT)}})
+    _merge_code_cell_outputs(nb, nb_exec)
+
+    if not is_readme:
+        insert_gallery_markdown(nb)
+
     nbformat.write(nb, path)
 
 
 def notebook_paths() -> list[Path]:
-    paths = [ROOT / "README.ipynb"]
+    paths = [README_NOTEBOOK]
     paths.extend(sorted((ROOT / "examples").glob("*.ipynb")))
     return paths
 

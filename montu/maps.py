@@ -40,6 +40,35 @@ def _mag_to_marker_size(vmag: float) -> float:
     return float(np.clip(13.0 - 2.0 * vmag, 3.0, 22.0))
 
 
+def ra_deg_about_center(ra_deg, center_ra_deg):
+    """Express right ascension on a branch continuous about *center_ra_deg*."""
+    delta = (float(ra_deg) - float(center_ra_deg) + 180.0) % 360.0 - 180.0
+    return float(center_ra_deg) + delta
+
+
+def _angular_separation_ra_dec_deg(ra1_deg, dec1_deg, ra2_deg, dec2_deg):
+    """Great-circle separation [deg] between two equatorial points."""
+    return float(np.rad2deg(
+        montu.Util.haversine_distance(
+            np.deg2rad(dec1_deg), np.deg2rad(ra1_deg),
+            np.deg2rad(dec2_deg), np.deg2rad(ra2_deg),
+        )
+    ))
+
+
+def unwrap_figure_ra_deg(fig, center_ra_deg):
+    """Re-express every trace ``x`` coordinate about *center_ra_deg* in place."""
+    for trace in fig.data:
+        if trace.x is None:
+            continue
+        trace.x = [
+            ra_deg_about_center(x, center_ra_deg)
+            if x is not None and not (isinstance(x, float) and np.isnan(x))
+            else x
+            for x in trace.x
+        ]
+
+
 def _star_display_name(row) -> str:
     pn = str(row.get("ProperName", ""))
     if pn not in ("", "nan", "None"):
@@ -158,15 +187,20 @@ def mercator_sky_map(
     show_constellation_lines: bool = True,
     show_constellation_boundaries: bool = True,
     show_constellation_labels: bool = True,
+    constellation_full_names: bool = False,
+    label_bounds: tuple | None = None,
+    label_center: tuple | None = None,
+    label_radius_deg: float | None = None,
+    constellation_label_font: dict | None = None,
     at=None,
     layout=None,
 ):
     """Build a base equatorial Mercator sky map (Plotly).
 
-    Draws IAU constellation boundaries, asterism lines, soft constellation
-    abbreviations, and background stars.  Alignment overlays (target
-    declination, circumpolar limit, highlighted stars, title, etc.) should be
-    added by the caller on the returned figure.
+    Draws IAU constellation boundaries, asterism lines, constellation
+    names (abbreviations or full names), and background stars.  Alignment
+    overlays (target declination, circumpolar limit, highlighted stars,
+    title, etc.) should be added by the caller on the returned figure.
 
     Parameters
     ----------
@@ -179,6 +213,21 @@ def mercator_sky_map(
         Faint limit for background stars.
     label_bright_mag : float
         Annotate stars brighter than this V magnitude.
+    constellation_full_names : bool, optional
+        When ``True``, label constellations with their full names (e.g.
+        ``Taurus``) instead of three-letter abbreviations.
+    label_bounds : tuple of float, optional
+        ``(ra_min_deg, ra_max_deg, dec_min_deg, dec_max_deg)`` window used
+        to keep only constellation labels whose centroid falls inside the
+        field of view. Prefer :paramref:`label_center` and
+        :paramref:`label_radius_deg` near RA = 0 h / 24 h.
+    label_center : tuple of float, optional
+        ``(ra_deg, dec_deg)`` used with :paramref:`label_radius_deg` to
+        filter labels by angular distance (handles RA wrap).
+    label_radius_deg : float, optional
+        Angular radius [deg] for :paramref:`label_center` label filtering.
+    constellation_label_font : dict, optional
+        Plotly ``textfont`` dict for constellation labels.
     at : montu.Time, optional
         Epoch for precessing asterism stars missing from *star_data*.
     layout : dict, optional
@@ -236,18 +285,40 @@ def mercator_sky_map(
             ))
 
     if show_constellation_labels and label_positions:
+        name_labels = (
+            parse_constellation_names() if constellation_full_names else {}
+        )
+        default_label_font = dict(
+            size=9, color='rgba(130, 140, 155, 0.42)',
+        )
+        if constellation_label_font:
+            default_label_font.update(constellation_label_font)
         label_x, label_y, label_text = [], [], []
         for abbrev, coords in label_positions.items():
             ra_mean = float(np.mean([c[0] for c in coords]))
             dec_mean = float(np.mean([c[1] for c in coords]))
+            if label_center is not None and label_radius_deg is not None:
+                center_ra, center_dec = label_center
+                if _angular_separation_ra_dec_deg(
+                    center_ra, center_dec, ra_mean, dec_mean,
+                ) > float(label_radius_deg):
+                    continue
+            elif label_bounds is not None:
+                ra_min, ra_max, dec_min, dec_max = label_bounds
+                if not (
+                    ra_min <= ra_mean <= ra_max
+                    and dec_min <= dec_mean <= dec_max
+                ):
+                    continue
             label_x.append(ra_mean)
             label_y.append(dec_mean)
-            label_text.append(abbrev)
-        fig.add_trace(go.Scatter(
-            x=label_x, y=label_y, mode="text", text=label_text,
-            textfont=dict(size=9, color="rgba(130, 140, 155, 0.42)"),
-            hoverinfo="skip", showlegend=False, name="constellation labels",
-        ))
+            label_text.append(name_labels.get(abbrev, abbrev))
+        if label_x:
+            fig.add_trace(go.Scatter(
+                x=label_x, y=label_y, mode='text', text=label_text,
+                textfont=default_label_font,
+                hoverinfo='skip', showlegend=False, name='constellation labels',
+            ))
 
     if show_stars and not star_data.empty:
         data = star_data[star_data[mag_col] <= float(mag_limit)].copy()

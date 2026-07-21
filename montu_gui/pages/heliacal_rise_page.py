@@ -57,6 +57,8 @@ from montu_gui.widgets.lets_python_dialog import (
 )
 from montu_gui.widgets.historical_heliacal_dialog import HistoricalHeliacalRisesDialog
 from montu_gui.widgets.module_brand import module_brand
+from montu_gui.widgets.sothic_calendar_dialog import show_sothic_calendar_dialog
+from montu_gui.widgets.sothic_value_cell import SothicValueCell
 from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
 from montu_gui.widgets.table_utils import (
     configure_wrapping_table,
@@ -648,6 +650,7 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
         self._table.setRowCount(len(result.events))
         center = Qt.AlignmentFlag.AlignCenter
         aligns = [center] + [Qt.AlignmentFlag.AlignLeft] * 9
+        sothic_column = 3
         for row_number, row in enumerate(result.events):
             for column, key in enumerate(
                 (
@@ -656,6 +659,18 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
                     "sun_altitude", "body_azimuth", "sun_azimuth",
                 )
             ):
+                if column == sothic_column:
+                    cell = SothicValueCell(compact=True)
+                    cell.set_sothic(
+                        row["sothic"],
+                        horus_year=int(row["can_hyear"]),
+                        month=str(row["can_month"]),
+                        season=str(row["can_season"]),
+                        day=int(row["can_day"]),
+                    )
+                    cell.sothic_requested.connect(self._open_sothic_calendar)
+                    self._table.setCellWidget(row_number, column, cell)
+                    continue
                 self._table.setItem(
                     row_number,
                     column,
@@ -663,6 +678,17 @@ class HeliacalRisePage(LazyPageMixin, QWidget):
                 )
         resize_wrapped_rows(self._table)
         self.status_message.emit(trf("Heliacal rises: {n} event(s) found.", n=len(result.events)))
+
+    def _open_sothic_calendar(
+        self, horus_year: int, month: str, season: str, day: int
+    ) -> None:
+        show_sothic_calendar_dialog(
+            self.window(),
+            horus_year,
+            month=month,
+            season=season,
+            day=day,
+        )
 
     def _show_historical_rises(self) -> None:
         if self._historical_dialog is None or not self._historical_dialog.isVisible():

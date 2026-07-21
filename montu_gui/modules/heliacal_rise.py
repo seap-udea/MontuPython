@@ -135,12 +135,19 @@ def _format_event_rows(events, start_jed: float, observer) -> list[dict]:
         ).get_readable()
         readable = moment.readable
         sun.where_in_sky(moment, observer)
+        can_hyear, can_month, can_season, can_day = montu.Time.parse_datesot(
+            readable.datesot
+        )
         rows.append(
             {
                 "number": str(number),
                 "mixed": _historical_date(readable.datemix),
                 "proleptic": _historical_date(readable.datepro),
                 "sothic": readable.datesot,
+                "can_hyear": can_hyear,
+                "can_month": can_month,
+                "can_season": can_season,
+                "can_day": can_day,
                 "time_from_latest": _format_elapsed_days(float(event["jed"]) - previous_jed),
                 "local_time": str(event["local_time"]),
                 "body_altitude": f'{float(event["body_altitude_deg"]):.2f}°',

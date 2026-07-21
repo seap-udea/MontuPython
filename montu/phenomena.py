@@ -2560,8 +2560,9 @@ class Conjunction(object):
 
     def plot_map(
         self,
-        mag_plotlimit=3.4,
-        mag_namelimit=3.0,
+        mag_plotlimit=5.0,
+        mag_namelimit=3.5,
+        const_border=False,
         show=True,
         return_fig=False,
     ):
@@ -2570,15 +2571,20 @@ class Conjunction(object):
         Builds a Plotly Mercator map (same star styling as
         :meth:`montu.Stars.plot_stars` / :func:`montu.maps.mercator_sky_map`)
         centred on the **geometric mean** of the body equatorial directions.
-        Only produces a figure when :attr:`in_conjunction` is ``True``; otherwise
-        returns ``None``.
+        Background stars come from the bundled **visible** catalogue
+        (``Stars(subset='visible')``). Constellation **full names** within the
+        map field are drawn from the IAU name table. Only produces a figure when
+        :attr:`in_conjunction` is ``True``; otherwise returns ``None``.
 
         Parameters
         ----------
         mag_plotlimit : float, optional
-            Faintest ``Vmag`` for background stars. Default 3.4.
+            Faintest ``Vmag`` for background stars. Default 5.0.
         mag_namelimit : float, optional
-            Annotate stars brighter than this magnitude. Default 3.0.
+            Annotate stars brighter than this magnitude. Default 3.5.
+        const_border : bool, optional
+            Draw IAU constellation boundary lines when ``True``. Default
+            ``False``.
         show : bool, optional
             Display the figure when ``True``.
         return_fig : bool, optional
@@ -2590,7 +2596,7 @@ class Conjunction(object):
         """
         try:
             import plotly.graph_objects as go
-            from montu.maps import mercator_sky_map
+            from montu.maps import mercator_sky_map, ra_deg_about_center, unwrap_figure_ra_deg
         except ImportError as exc:
             raise ImportError(
                 'Plotly is required for plot_map. Install with: pip install plotly'
@@ -2618,7 +2624,7 @@ class Conjunction(object):
             field_radius = max(field_radius, dist * 1.35)
         field_radius = min(field_radius, 25.0)
 
-        stars = Stars(subset='bright').get_stars(Vmag=[-2, mag_plotlimit])
+        stars = Stars(subset='visible').get_stars(Vmag=[-2, mag_plotlimit])
         stars.where_in_space(at=self.mtime, inplace=True)
         star_data = stars.data.copy()
         if not star_data.empty:
@@ -2633,6 +2639,11 @@ class Conjunction(object):
             )
             star_data = star_data.loc[separations <= field_radius].copy()
 
+        ra_half = field_radius / max(
+            abs(float(np.cos(np.deg2rad(center_dec_deg)))), 0.15,
+        )
+        dec_half = field_radius
+
         names = '–'.join(self.body_names)
         date_label = self.mtime.readable.datemix
         fig = mercator_sky_map(
@@ -2643,10 +2654,21 @@ class Conjunction(object):
             mag_limit=mag_plotlimit,
             label_bright_mag=mag_namelimit,
             show_stars=not star_data.empty,
+            show_constellation_boundaries=const_border,
+            constellation_full_names=True,
+            label_center=(center_ra_deg, center_dec_deg),
+            label_radius_deg=field_radius * 1.05,
+            constellation_label_font=dict(
+                size=11, color='rgba(180, 195, 215, 0.82)',
+            ),
             at=self.mtime,
         )
+        unwrap_figure_ra_deg(fig, center_ra_deg)
 
-        body_ra = [bc['ra_epoch'] * 15.0 for bc in self.body_conditions]
+        body_ra = [
+            ra_deg_about_center(bc['ra_epoch'] * 15.0, center_ra_deg)
+            for bc in self.body_conditions
+        ]
         body_dec = [bc['dec_epoch'] for bc in self.body_conditions]
         body_names = [bc['name'] for bc in self.body_conditions]
         body_sizes = [_body_map_marker_size(bc) for bc in self.body_conditions]
@@ -2674,22 +2696,6 @@ class Conjunction(object):
             ),
         ))
 
-        fig.add_trace(go.Scatter(
-            x=[center_ra_deg],
-            y=[center_dec_deg],
-            mode='markers',
-            marker=dict(size=10, color='white', symbol='cross', line=dict(width=1)),
-            name='Geometric centre',
-            hovertemplate=(
-                f'Centre<br>RA: {center_ra_deg:.2f}°<br>'
-                f'Dec: {center_dec_deg:.2f}°<extra></extra>'
-            ),
-        ))
-
-        ra_half = field_radius / max(
-            abs(float(np.cos(np.deg2rad(center_dec_deg)))), 0.15,
-        )
-        dec_half = field_radius
         site_label = 'geocentric'
         if not self.is_geocentric:
             site_label = (
