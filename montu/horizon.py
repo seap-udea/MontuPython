@@ -81,10 +81,12 @@ def _download_tile(lat: int, lon: int, tile_dir: Path, verbose: bool = False) ->
         if dest.exists():
             dest.unlink()
         return None
-    except Exception as e:
-        if verbose: print(f"\n  [!] Error downloading tile ({lat},{lon}): {e}")
+    except (Exception, KeyboardInterrupt) as e:
+        if verbose: print(f"\n  [!] Error or interruption downloading tile ({lat},{lon}): {e}")
         if dest.exists():
             dest.unlink()
+        if isinstance(e, KeyboardInterrupt):
+            raise
         return None
 
 
@@ -343,6 +345,11 @@ class Horizon:
         if verbose: print(f"  Querying {len(f_coords):,} points...")
         t1 = time.perf_counter()
         if f_coords:
+            if not self._dem_path.exists():
+                import tempfile
+                self._dem_path = _ensure_dem(self.lat, self.lon, max_dist * 1.1,
+                                             Path(tmpdir) if tmpdir else Path(tempfile.gettempdir()) / "montu_dem",
+                                             self._dem_path, verbose=False)
             f_elevs = _fetch_elevations_tiff(f_coords, self._dem_path)
             for i, (az, d) in enumerate(f_map):
                 ang = _elevation_angle(d, self.alt_m, f_elevs[i])
