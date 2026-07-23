@@ -3,6 +3,9 @@
 This file collects the release notes and the main changes in MontuPython.
 
 ## Version 0.43.0 (major)
+- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
+- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+
 
 - **Horizon-corrected rise and set times** — Added `horizon=True` parameter to `conditions_in_sky()` for all celestial bodies (`Sun`, `Moon`, `Planet`, `Star`). It computes `rise_time_hor`, `rise_az_hor`, `set_time_hor`, and `set_az_hor` by finding the exact time the body crosses the topographical horizon profile using Brent's root-finding method.
 - **Solar-system bodies in horizon plots** — Enhanced `plot_horizon()` with a `show_planets` parameter. Accepts a list of body names, `'All'`, or `None`. The Sun is displayed as an emoji (☀️) while other planets and the Moon are shown as distinct colored circles with labels.

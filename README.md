@@ -170,7 +170,7 @@ import matplotlib.pyplot as plt
 import montu
 ```
 
-    MontuPython version 0.42.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.43.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -917,6 +917,8 @@ calculator.print_rises(
 ```
 
     Heliacal rises of Sirius (139 CE apokatastasis) — 1 date(s)
+
+    
       [1] 139-07-20 00:00:00  04:07:44.893  0139-07-19 00:00:00.000000  [hrw 2922] I akhet 1  Sirius -0.57°  Sun -14.18°
       source: Toomer, G. J. (1998). Ptolemy's Almagest. Princeton University Press. Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".
 
@@ -1117,7 +1119,9 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
 ```
 
     Precessing 6 stars over 1,000 epochs …
-    Done in 1.5 s.
+
+
+    Done in 1.4 s.
 
 
 Now plot declinations as a function of time:
@@ -1156,12 +1160,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-13 22:21:40.798080 (declination 89:31:55.823)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-16 15:13:08.702400 (declination 86:22:03.656)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-18 22:32:56.895360 (declination 89:56:05.003)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 10:42:00.403264 (declination 86:57:15.601)
-    Star Alderamin will be the closest to the pole at 7532-03-04 16:11:15.599040 (declination 87:58:43.012)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 06:39:58.498544 (declination 83:29:32.450)
+    Star Polaris will be the closest to the pole at 2086-08-14 01:22:43.006072 (declination 89:31:55.824)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-16 18:14:10.901760 (declination 86:22:03.656)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-19 01:33:59.103360 (declination 89:56:05.007)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 13:43:02.593856 (declination 86:57:15.601)
+    Star Alderamin will be the closest to the pole at 7532-03-04 19:12:17.798400 (declination 87:58:43.012)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 09:41:00.697920 (declination 83:29:32.450)
 
 
 ### Working with Observer Horizons
@@ -1180,6 +1184,8 @@ print(site.horizon)
 ```
 
     Obtaining horizon profile...
+
+
     Horizon for 'Amarna (Akhetaten)'
       Coordinates: lat=27.6444, lon=30.9014, alt=90 m
       Status: computed (720 pts)
