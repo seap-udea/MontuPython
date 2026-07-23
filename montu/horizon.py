@@ -535,11 +535,13 @@ class Horizon:
         if elev_view is not None:
             el_min = min(min(el_plot), 0) - 1
             layout_kwargs["yaxis"] = dict(range=[el_min, elev_view])
+        else:
+            layout_kwargs["yaxis"] = dict(range=[float(np.nanmin(self.elevations)), float(np.nanmax(self.elevations))])
 
         fig.update_layout(**layout_kwargs)
 
         # ── Celestial poles ──────────────────────────────────────────────────
-        if show_poles:
+        if show_poles and at is not None:
             def _wrap_az_simple(az):
                 az = az % 360
                 if az > az_center + 180:

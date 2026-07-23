@@ -45,6 +45,22 @@ from montu_gui.widgets.help_link import HelpLink
 from montu_gui.widgets.module_brand import module_brand
 from montu_gui.widgets.plotly_view import PlotlyView
 from montu_gui.widgets.step_spinbox import StepDoubleSpinBox, StepSpinBox
+from montu_gui.widgets.lets_python_dialog import (
+    LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
+)
+
+_HORIZON_EXAMPLE = LetsPythonExample(
+    source_path=Path(__file__).parent / "examples" / "horizon_astronomy.py",
+    download_name="montu_horizon_astronomy.py",
+    window_title="¡A pythoniar!  —  Horizon Astronomy Code",
+    heading=tr("Horizon calculation with MontuPython"),
+    subtitle=(
+        "Copy or download the script below to reproduce the horizon "
+        "plots shown in this module. The example calculates the topographical "
+        "horizon for Giza and plots it both as a bare landscape profile "
+        "and fully combined with the celestial sphere at sunrise."
+    ),
+)
 
 HELP_MODULE = "horizon_astronomy"
 _COMMON_MODULE = "_common"
@@ -383,6 +399,7 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
             cb.toggled.connect(self._schedule_plot)
             
         bodies_row.addStretch()
+        bodies_row.addLayout(make_lets_python_button_row(self._show_lets_python))
         top_lay.addLayout(bodies_row)
         top_lay.addStretch()
 
@@ -422,6 +439,12 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._plot_view.refresh_layout()
+
+    def _show_lets_python(self):
+        """Open the Let's Python! code-viewer dialog."""
+        log_ui_event("open lets_python dialog")
+        dlg = LetsPythonDialog(_HORIZON_EXAMPLE, self.window())
+        dlg.exec()
 
     def _schedule_plot(self):
         if self._plotting:
