@@ -234,14 +234,17 @@ class HomePage(QWidget):
         lang_row.setSpacing(8)
         lang_row.addWidget(QLabel(f"{tr('Language')}:"))
 
-        self._btn_es = QPushButton("🇪🇸")
+        import platform
+        is_win = platform.system() == "Windows"
+
+        self._btn_es = QPushButton("ESP" if is_win else "🇪🇸")
         self._btn_es.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_es.setToolTip(tr("Spanish"))
         self._btn_es.setFixedWidth(42)
         self._btn_es.clicked.connect(lambda: self.language_requested.emit("es"))
         lang_row.addWidget(self._btn_es)
 
-        self._btn_en = QPushButton("🇬🇧")
+        self._btn_en = QPushButton("ENG" if is_win else "🇬🇧")
         self._btn_en.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_en.setToolTip(tr("English"))
         self._btn_en.setFixedWidth(42)

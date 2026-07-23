@@ -88,7 +88,7 @@ NAV_ITEMS = [
     ("📅", "Calendar calculator", "calendar"),
     ("🧭", "Observer Location", "location"),
     ("🌅", "Heliacal Rises", "heliacal_rise"),
-    ("", "Solar Eclipses Finder", "solar_eclipses"),
+    ("☀️", "Solar Eclipses Finder", "solar_eclipses"),
     ("✨", "Astronomical Conjunctions", "conjunctions"),
     ("🎑", "Seasons & Lunar Phases", "seasons"),
     ("🌄", "Horizon Astronomy", "horizon_astronomy"),
@@ -339,11 +339,13 @@ class MainWindow(QMainWindow):
 
     def _update_language_flag(self) -> None:
         lang = get_language()
+        import platform
+        is_win = platform.system() == "Windows"
         if lang == "es":
-            self._lang_flag_lbl.setText("🇪🇸")
+            self._lang_flag_lbl.setText("ESP" if is_win else "🇪🇸")
             self._lang_flag_lbl.setToolTip("Espanol")
         else:
-            self._lang_flag_lbl.setText("🇬🇧")
+            self._lang_flag_lbl.setText("ENG" if is_win else "🇬🇧")
             self._lang_flag_lbl.setToolTip("English")
 
     def _add_page(self, key: str, widget: QWidget):

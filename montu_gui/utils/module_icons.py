@@ -10,9 +10,7 @@ from PySide6.QtGui import QIcon, QPixmap
 from montu_gui.utils.bundle_paths import gui_asset
 
 # page key → asset filename under montu_gui/assets/
-_MODULE_ICON_FILES: dict[str, str] = {
-    "solar_eclipses": "icons/solar-eclipse-module-icon.png",
-}
+_MODULE_ICON_FILES: dict[str, str] = {}
 
 
 def module_icon_path(module_key: str) -> str | None:

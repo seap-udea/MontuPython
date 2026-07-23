@@ -65,6 +65,7 @@
       "description_en": "Lists solar eclipses from the NASA Five Millennium Catalog. Computes local circumstances and totality-path maps for an observer site.",
       "description_es": "Lista eclipses solares del Catálogo NASA de cinco milenios. Calcula circunstancias locales y mapas de trayectoria para el observador.",
       "module_key": "solar_eclipses",
+      "icon": "☀️",
       "title_en": "Solar Eclipses Finder",
       "title_es": "Buscador de eclipses solares"
     },
