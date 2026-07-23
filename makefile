@@ -1,4 +1,4 @@
-.PHONY: help show status clean cleanall cleancrap cleanout cleandist cleanenv cleangit \
+.PHONY: help show status clean cleanall cleancrap cleanout cleandist cleanenv cleangit cleandocs \
 	install install-dev build env addall commit pull push release notebooks readme import \
 	docs docs-install docs-prepare docs-build docs-clean \
 	test-install test test-docstrings test-notebooks test-structure test-desktop test-organic \
@@ -72,7 +72,7 @@ status:
 ##################################################################
 clean: cleancrap
 
-cleanall: cleancrap cleanout cleandist cleanenv cleangit
+cleanall: cleancrap cleanout cleandist cleanenv cleangit cleandocs
 
 #=========================
 # Clean
@@ -112,6 +112,10 @@ cleanenv:
 	@echo "Cleaning local environments..."
 	@-rm -rf .venv
 	@-rm -rf .desktop-build
+
+cleandocs:
+	@echo "Cleaning documentation build..."
+	@-rm -rf docs/_build
 
 ##################################################################
 # PACKAGE RULES
