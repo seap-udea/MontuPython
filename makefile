@@ -91,22 +91,21 @@ cleancrap:
 
 cleanout:
 	@echo "Cleaning all compiled objects..."
-	@-find . -name "*.o" -delete
-	@-find . -name "*.opp" -delete
-	@-find . -name "*.gcno" -delete
-	@-find . -name "*.gcda" -delete
-	@-find . -name "*.gcov" -delete
-	@-find . -name "*.info" -delete
-	@-find . -name "*.out" -delete
-	@-find . -name "*.tout" -delete
-	@-find . -name "*.so" -delete
-	@-find . -name ".ipynb_checkpoints" -type d | xargs rm -fr
-	@-find . -name "__pycache__" -type d | xargs rm -fr
+	@-find . -name "*.o" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.opp" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.gcno" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.gcda" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.gcov" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.info" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.out" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.tout" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name "*.so" -not -path "./.venv/*" -not -path "./.desktop-build/*" -delete
+	@-find . -name ".ipynb_checkpoints" -not -path "./.venv/*" -not -path "./.desktop-build/*" -type d | xargs rm -fr
+	@-find . -name "__pycache__" -not -path "./.venv/*" -not -path "./.desktop-build/*" -type d | xargs rm -fr
 
 cleandist:
 	@-rm -rf dist/
 	@-rm -rf build/
-	@-rm -rf $(PACKNAME)-*/
 	@-rm -rf "dist/MontuPython Desktop.app" dist/MontuPython-Desktop dist/desktop
 
 ##################################################################
