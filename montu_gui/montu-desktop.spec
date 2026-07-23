@@ -66,6 +66,8 @@ hiddenimports += [
     "pygments",
     "pygments.lexers",
     "pygments.formatters",
+    "rasterio",
+    "scipy.ndimage",
 ]
 
 excludes = [
