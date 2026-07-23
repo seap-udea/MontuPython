@@ -38,7 +38,8 @@ def make_lets_python_button_row(
     """Compact left-aligned row for the Let's Python! button."""
     row = QHBoxLayout()
     row.setContentsMargins(0, 6, 0, 0)
-    btn = QPushButton(f"🐍  {tr("Let's Python!")}")
+    btn_text = tr("Let's Python!")
+    btn = QPushButton(f"🐍  {btn_text}")
     btn.setObjectName("lets_python_btn")
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
