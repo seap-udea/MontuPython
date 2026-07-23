@@ -3,5 +3,5 @@
 Bump ``version`` and ``release_date`` when releasing.
 """
 
-version = '0.5.3'
+version = "0.5.4"
 release_date = "2026-07-17"
