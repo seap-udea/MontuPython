@@ -1,4 +1,4 @@
-.PHONY: help show status clean cleanall cleancrap cleanout cleandist \
+.PHONY: help show status clean cleanall cleancrap cleanout cleandist cleanenv cleangit \
 	install install-dev build env addall commit pull push release notebooks readme import \
 	docs docs-install docs-prepare docs-build docs-clean \
 	test-install test test-docstrings test-notebooks test-structure test-desktop test-organic \
@@ -72,7 +72,7 @@ status:
 ##################################################################
 clean: cleancrap
 
-cleanall: cleancrap cleanout cleandist
+cleanall: cleancrap cleanout cleandist cleanenv cleangit
 
 #=========================
 # Clean
@@ -108,17 +108,22 @@ cleandist:
 	@-rm -rf build/
 	@-rm -rf "dist/MontuPython Desktop.app" dist/MontuPython-Desktop dist/desktop
 
+cleanenv:
+	@echo "Cleaning local environments..."
+	@-rm -rf .venv
+	@-rm -rf .desktop-build
+
 ##################################################################
 # PACKAGE RULES
 ##################################################################
 install:
 	$(PYTHON) -m pip install .
 
-install-dev:
-	$(PYTHON) -m pip install -e .
-	@if [ -f requirements.txt ]; then $(PYTHON) -m pip install -r requirements.txt; fi
-	@if [ -f requirements-test.txt ]; then $(PYTHON) -m pip install -r requirements-test.txt; fi
-	@if [ -f requirements-desktop-build.txt ]; then $(PYTHON) -m pip install -r requirements-desktop-build.txt; fi
+install-dev: env
+	@echo "Installing development requirements in .venv..."
+	@if [ -f requirements.txt ]; then . .venv/bin/activate && pip install -r requirements.txt; fi
+	@if [ -f requirements-test.txt ]; then . .venv/bin/activate && pip install -r requirements-test.txt; fi
+	@if [ -f requirements-desktop-build.txt ]; then . .venv/bin/activate && pip install -r requirements-desktop-build.txt; fi
 
 env:
 	@echo "Creating local development environment..."
@@ -137,6 +142,11 @@ build: clean
 ##################################################################
 # GIT
 ##################################################################
+cleangit:
+	@echo "Purging old and heavy files from local git history..."
+	@git reflog expire --expire=now --all
+	@git gc --prune=now --aggressive
+
 addall: cleanall
 	@echo "Adding..."
 	@-git add -A .
