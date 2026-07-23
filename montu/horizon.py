@@ -403,12 +403,55 @@ class Horizon:
         az = float(azimuth) % 360.0
         return float(self._interp(az))
 
-    def plot_horizon(self, at=None, mag_limit: float = 5.0,
-                     az_center: float = 180.0, az_delta: float = 180.0,
-                     elev_view: float | None = None, show: bool = True,
-                     show_boundaries: bool = False, show_asterism: bool = False,
-                     show_starnames: bool = True, show_constname: bool = True):
-        """Interactive Plotly chart of the horizon elevation profile, optionally with stars."""
+    def plot_horizon(self, at=None, az_center: float = 180.0, az_delta: float = 180.0,
+            elev_view: float | None = None, show: bool = True, mag_limit: float = 5.0,
+            show_boundaries: bool = False, show_asterism: bool = False,
+            show_starnames: bool = True, show_constname: bool = True,
+            show_planets: "list | str | None" = '_default',
+            show_poles: bool = True,
+            source_asterism: str = 'iau'):
+        """Interactive Plotly chart of the horizon elevation profile, optionally with stars.
+
+        Parameters
+        ----------
+        at : montu.Time, optional
+            When given, stars, constellation lines, and solar-system bodies are
+            overlaid on the horizon chart.
+        az_center : float
+            Central azimuth of the plot window [degrees]. Default: 180 (South).
+        az_delta : float
+            Half-width of the azimuth window [degrees]. Default: 180.
+        elev_view : float or None
+            Upper elevation limit of the y-axis [degrees]. Default: auto.
+        show : bool
+            Call ``fig.show()`` before returning. Default: True.
+        mag_limit : float
+            Faintest visual magnitude of stars to display. Default: 5.
+        show_boundaries : bool
+            Overlay constellation boundary polygons. Default: False.
+        show_asterism : bool
+            Draw constellation stick figures. Default: False.
+        show_starnames : bool
+            Label bright stars (Vmag ≤ 3). Default: True.
+        show_constname : bool
+            Show constellation name labels. Default: True.
+        show_planets : list of str, 'All', or None
+            Solar-system bodies to overlay when *at* is provided.
+            Accepted names: ``'Sun'``, ``'Moon'``, ``'Mercury'``, ``'Venus'``,
+            ``'Mars'``, ``'Jupiter'``, ``'Saturn'``, ``'Uranus'``, ``'Neptune'``.
+            Pass ``'All'`` to show every body. Pass ``None`` or ``[]`` to show
+            none. Default: ``['Sun']``.
+        show_poles : bool
+            If ``True`` (default), overlay the North and South Celestial Poles
+            as × markers. Their positions are purely geometric
+            (el_NCP = observer latitude, az_NCP = 0°;
+            el_SCP = −latitude, az_SCP = 180°) and do not depend on *at*.
+        source_asterism : str
+            Asterism catalogue used for constellation stick figures when
+            ``show_asterism=True``. Accepted values: ``'iau'`` (default),
+            ``'egyptian_ancient'``, ``'egyptian_dendera'``.
+
+        """
         if self._interp is None:
             raise RuntimeError(
                 "Call get_profile() first to compute the horizon."
@@ -490,11 +533,48 @@ class Horizon:
 
         fig.update_layout(**layout_kwargs)
 
+        # ── Celestial poles ──────────────────────────────────────────────────
+        if show_poles:
+            def _wrap_az_simple(az):
+                az = az % 360
+                if az > az_center + 180:
+                    az -= 360
+                elif az < az_center - 180:
+                    az += 360
+                return az
+
+            az_min_p, az_max_p = az_center - az_delta, az_center + az_delta
+            # (name, az, el, color, line_width, opacity, label)
+            _poles = [
+                ('NCP', _wrap_az_simple(0.0),   self.lat,  'rgba(160,200,255,0.3)', 2, 1.0, ''),
+                ('SCP', _wrap_az_simple(180.0), -self.lat, '#ffa0a0',               2, 1.0, 'SCP'),
+            ]
+            for pole_name, pole_az, pole_el, pole_color, lw, opacity, label in _poles:
+                if not (az_min_p <= pole_az <= az_max_p):
+                    continue
+                fig.add_trace(go.Scatter(
+                    x=[pole_az], y=[pole_el],
+                    mode='markers+text' if label else 'markers',
+                    marker=dict(
+                        symbol='x', size=10,
+                        color=pole_color,
+                        opacity=opacity,
+                        line=dict(color=pole_color, width=lw),
+                    ),
+                    text=[label],
+                    textposition='top center',
+                    textfont=dict(size=10, color=pole_color),
+                    hovertext=[f"{pole_name}<br>Az: {pole_az % 360:.1f}°<br>El: {pole_el:.2f}°"],
+                    hoverinfo='text',
+                    name=pole_name,
+                    showlegend=False,
+                ))
+
         if at is not None:
             from montu.stars import Stars, parse_constellation_boundaries
             from montu.maps import _constellation_entries, _star_name, parse_constellation_names, _equatorial_to_horizontal, _observer_sidereal_time_hours
             
-            stars = Stars()
+            stars = Stars(subset='visible', Vmag=[-2, mag_limit])
             sky = stars.where_in_sky(at=at, observer=obs)
 
             def wrap_az(az):
@@ -544,7 +624,7 @@ class Horizon:
                     ))
 
             # 2. Asterisms
-            entries = _constellation_entries('iau')
+            entries = _constellation_entries(source_asterism)
             sky_unique = sky[sky['HIP'] != 0].drop_duplicates(subset=['HIP'])
             hip_lookup = sky_unique.set_index('HIP')[['az_plot', 'el']].to_dict('index')
             label_positions = {}
@@ -604,7 +684,7 @@ class Horizon:
             
             # 5. Constellation names
             if show_constname and label_positions:
-                cnames = parse_constellation_names()
+                cnames = parse_constellation_names(set_id=source_asterism)
                 lx, ly, ltext = [], [], []
                 for abbrev, coords in label_positions.items():
                     az_mean = float(np.mean([c[0] for c in coords]))
@@ -628,25 +708,66 @@ class Horizon:
                 fig.add_trace(t)
             fig.add_trace(traces[0])
             
-            # Sun
-            from montu.sebau import Sun
-            sun = Sun()
-            sun.where_in_sky(at=at, observer=obs, store=False)
-            sun_az_plot = wrap_az(sun.position.az)
-            sun_el = sun.position.el
-            
-            if (az_min <= sun_az_plot <= az_max) and (sun_el > -5):
-                fig.add_trace(go.Scatter(
-                    x=[sun_az_plot], y=[sun_el],
-                    mode='text',
-                    text=["☀️"],
-                    textposition='middle center',
-                    textfont=dict(size=24),
-                    hovertext=[f"Sun<br>Az: {sun.position.az:.1f}°<br>Alt: {sun_el:.1f}°"],
-                    hoverinfo='text',
-                    name='Sun',
-                    showlegend=False
-                ))
+            # Solar-system bodies (show_planets)
+            _ALL_PLANETS = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars',
+                            'Jupiter', 'Saturn', 'Uranus', 'Neptune']
+            if show_planets == '_default':
+                show_planets = ['Sun']
+            elif isinstance(show_planets, str) and show_planets.strip().lower() == 'all':
+                show_planets = _ALL_PLANETS
+            elif show_planets is None:
+                show_planets = []
+            if show_planets:
+                from montu.sebau import Planet
+                # Colour palette for non-Sun bodies (index cycles if >len)
+                _planet_colors = {
+                    'Moon':    '#e0e0e0',
+                    'Mercury': '#b0a090',
+                    'Venus':   '#f5deb3',
+                    'Mars':    '#e05030',
+                    'Jupiter': '#c8a060',
+                    'Saturn':  '#d4b060',
+                    'Uranus':  '#80c8d0',
+                    'Neptune': '#4060c0',
+                }
+                for body_name in show_planets:
+                    try:
+                        body = Planet(body_name)
+                        body.where_in_sky(at=at, observer=obs, store=False)
+                        body_az_plot = wrap_az(body.position.az)
+                        body_el = body.position.el
+                    except Exception:
+                        continue
+                    if not (az_min <= body_az_plot <= az_max and body_el > -5):
+                        continue
+                    real_az = body.position.az % 360.0
+                    if body_name.strip().lower() == 'sun':
+                        fig.add_trace(go.Scatter(
+                            x=[body_az_plot], y=[body_el],
+                            mode='text',
+                            text=["☀️"],
+                            textposition='middle center',
+                            textfont=dict(size=24),
+                            hovertext=[f"Sun<br>Az: {real_az:.1f}°<br>Alt: {body_el:.1f}°"],
+                            hoverinfo='text',
+                            name='Sun',
+                            showlegend=False,
+                        ))
+                    else:
+                        color = _planet_colors.get(body_name.capitalize(), '#ffffff')
+                        fig.add_trace(go.Scatter(
+                            x=[body_az_plot], y=[body_el],
+                            mode='markers+text',
+                            marker=dict(size=12, color=color,
+                                        line=dict(color='rgba(255,255,255,0.6)', width=1)),
+                            text=[body_name.capitalize()],
+                            textposition='top center',
+                            textfont=dict(size=10, color='rgba(255,255,255,0.85)'),
+                            hovertext=[f"{body_name.capitalize()}<br>Az: {real_az:.1f}°<br>Alt: {body_el:.1f}°"],
+                            hoverinfo='text',
+                            name=body_name.capitalize(),
+                            showlegend=False,
+                        ))
 
         if show:
             fig.show()

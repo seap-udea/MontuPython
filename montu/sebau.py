@@ -416,7 +416,7 @@ class Sebau(object):
         else:
             self.position = montu.Dictobj(dict=position)
     
-    def conditions_in_sky(self,at=None,observer=None,store=False):
+    def conditions_in_sky(self,at=None,observer=None,store=False,horizon=False):
         """Compute full observational conditions for the body.
 
         Extends :meth:`where_in_sky` with rise/set/transit times, elongation,
@@ -432,6 +432,13 @@ class Sebau(object):
             If ``False`` (default), replace ``self.condition`` with a fresh
             :class:`montu.Dictobj`.  If ``True``, append to ``self.condition``
             list for later batch conversion.
+        horizon : bool, optional
+            If ``True`` and ``observer.horizon`` has been computed via
+            :meth:`~montu.Observer.horizon_profile`, refine the rise and set
+            times to account for the real terrain horizon.  The corrected
+            values are stored as ``condition.rise_time_hor``,
+            ``condition.rise_az_hor``, ``condition.set_time_hor``, and
+            ``condition.set_az_hor``.  Default is ``False``.
 
         Examples
         --------
@@ -470,6 +477,137 @@ class Sebau(object):
             self.condition += [condition]
         else:
             self.condition = montu.Dictobj(dict=condition)
+
+        # Horizon refinement (only for non-store mode when a profile exists)
+        if horizon and getattr(observer, 'horizon', None) is not None:
+            self._refine_events_with_horizon(observer, store)
+
+    # ------------------------------------------------------------------
+    # Horizon refinement helpers
+    # ------------------------------------------------------------------
+
+    def _body_el_az_at(self, jed, observer):
+        """Return (elevation_deg, azimuth_deg) of the body at a given JED."""
+        self._compute_ephemerides(jed, observer)
+        return float(self.seba.alt) * montu.RAD, float(self.seba.az) * montu.RAD
+
+    def _horizon_corrected_event(self, observer, flat_jed, event='rise',
+                                  search_hours=3.0):
+        """Find the time when body elevation equals the terrain horizon elevation.
+
+        Uses Brent's root-finding method on the function
+        ``f(dt) = body_el(flat_jed + dt) - horizon_el(body_az(flat_jed + dt))``
+        in a window of ±*search_hours* around *flat_jed*.
+
+        Parameters
+        ----------
+        observer : montu.Observer
+            The observing site (must have ``observer.horizon`` set).
+        flat_jed : float
+            Flat-horizon rise or set time [JED].
+        event : {'rise', 'set'}
+            Whether we are refining a rise ('rise') or set ('set') event.
+        search_hours : float
+            Half-width of the search window in hours. Default: 3.
+
+        Returns
+        -------
+        corrected_jed : float
+            Horizon-corrected JED.  Falls back to *flat_jed* if refinement
+            fails (e.g. body is always above/below terrain horizon).
+        corrected_az : float
+            Azimuth [degrees] at *corrected_jed*.
+        """
+        if flat_jed == 0:
+            return flat_jed, 0.0
+
+        horizon = observer.horizon
+        window_days = search_hours / 24.0
+
+        def f(dt_days):
+            """el_body - el_horizon  (positive = body above terrain horizon)."""
+            jed_trial = flat_jed + dt_days
+            el, az = self._body_el_az_at(jed_trial, observer)
+            return el - horizon.get_elevation(az % 360.0)
+
+        a, b = -window_days, window_days
+        fa, fb = f(a), f(b)
+
+        # Ensure we have a proper sign change; if not, fall back gracefully
+        if fa * fb > 0:
+            # Try a finer scan to locate the bracket
+            n_scan = 120  # 120 × (6 h / 120) = 3-minute steps
+            dt_scan = np.linspace(a, b, n_scan)
+            f_scan = [f(dt) for dt in dt_scan]
+            bracket_found = False
+            for i in range(len(f_scan) - 1):
+                if f_scan[i] * f_scan[i + 1] <= 0:
+                    a, b = dt_scan[i], dt_scan[i + 1]
+                    fa, fb = f_scan[i], f_scan[i + 1]
+                    bracket_found = True
+                    break
+            if not bracket_found:
+                # No crossing found; restore body to original epoch and fall back
+                self._compute_ephemerides(flat_jed, observer)
+                _, az_flat = self._body_el_az_at(flat_jed, observer)
+                return flat_jed, az_flat % 360.0
+
+        try:
+            dt_root = brentq(f, a, b, xtol=1e-8, maxiter=200)
+        except ValueError:
+            self._compute_ephemerides(flat_jed, observer)
+            _, az_flat = self._body_el_az_at(flat_jed, observer)
+            return flat_jed, az_flat % 360.0
+
+        corrected_jed = flat_jed + dt_root
+        _, corrected_az = self._body_el_az_at(corrected_jed, observer)
+        return corrected_jed, corrected_az % 360.0
+
+    def _refine_events_with_horizon(self, observer, store=False):
+        """Add horizon-corrected rise/set fields to ``self.condition``.
+
+        Reads the flat-horizon rise/set times already stored in
+        ``self.condition`` and writes four new attributes:
+        ``rise_time_hor``, ``rise_az_hor``, ``set_time_hor``, ``set_az_hor``.
+
+        Parameters
+        ----------
+        observer : montu.Observer
+            Site with a computed :attr:`~montu.Observer.horizon`.
+        store : bool
+            When ``True`` the condition is a list; update the last element.
+        """
+        if store:
+            if not self.condition:
+                return
+            cond = self.condition[-1]
+            rise_jed = cond.get('rise_time', 0)
+            set_jed  = cond.get('set_time', 0)
+        else:
+            cond = self.condition
+            rise_jed = getattr(cond, 'rise_time', 0)
+            set_jed  = getattr(cond, 'set_time', 0)
+
+        rise_jed_hor, rise_az_hor = self._horizon_corrected_event(
+            observer, rise_jed, event='rise')
+        set_jed_hor, set_az_hor = self._horizon_corrected_event(
+            observer, set_jed, event='set')
+
+        # Restore body to original epoch
+        at_jed = getattr(getattr(self, '_sky_at', None), 'jed', None)
+        if at_jed is not None:
+            self._compute_ephemerides(at_jed, observer)
+
+        if store:
+            self.condition[-1]['rise_time_hor'] = rise_jed_hor
+            self.condition[-1]['rise_az_hor']   = rise_az_hor
+            self.condition[-1]['set_time_hor']  = set_jed_hor
+            self.condition[-1]['set_az_hor']    = set_az_hor
+        else:
+            self.condition.rise_time_hor = rise_jed_hor
+            self.condition.rise_az_hor   = rise_az_hor
+            self.condition.set_time_hor  = set_jed_hor
+            self.condition.set_az_hor    = set_az_hor
 
     def _compute_ephemerides(self,jed=None,observer=None):
         """Call PyEphem to compute ephemerides for the body.
@@ -643,8 +781,8 @@ class Sun(Sebau):
     def where_in_sky(self, at=None, observer=None, store=False):
         super().where_in_sky(at, observer, store)
 
-    def conditions_in_sky(self, at=None, observer=None, store=False):
-        super().conditions_in_sky(at, observer, store)
+    def conditions_in_sky(self, at=None, observer=None, store=False, horizon=False):
+        super().conditions_in_sky(at, observer, store, horizon=horizon)
         
     @staticmethod
     def next_seasons(at=None):
@@ -793,8 +931,8 @@ class Moon(Sebau):
     def where_in_sky(self, at=None, observer=None, store=False):
         super().where_in_sky(at, observer, store)
 
-    def conditions_in_sky(self, at=None, observer=None, store=False):
-        super().conditions_in_sky(at, observer, store)
+    def conditions_in_sky(self, at=None, observer=None, store=False, horizon=False):
+        super().conditions_in_sky(at, observer, store, horizon=horizon)
         
         # Additional fields
         additional_conditions = {
@@ -998,8 +1136,8 @@ class Planet(Sebau):
     def where_in_sky(self, at=None, observer=None, store=False):
         super().where_in_sky(at, observer, store)
 
-    def conditions_in_sky(self, at=None, observer=None, store=False):
-        super().conditions_in_sky(at, observer, store)
+    def conditions_in_sky(self, at=None, observer=None, store=False, horizon=False):
+        super().conditions_in_sky(at, observer, store, horizon=horizon)
 
     def next_planesticies(self,at=None):
         """Compute the two upcoming stations in ecliptic longitude.

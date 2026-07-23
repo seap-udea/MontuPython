@@ -2,6 +2,13 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.43.0 (major)
+
+- **Horizon-corrected rise and set times** — Added `horizon=True` parameter to `conditions_in_sky()` for all celestial bodies (`Sun`, `Moon`, `Planet`, `Star`). It computes `rise_time_hor`, `rise_az_hor`, `set_time_hor`, and `set_az_hor` by finding the exact time the body crosses the topographical horizon profile using Brent's root-finding method.
+- **Solar-system bodies in horizon plots** — Enhanced `plot_horizon()` with a `show_planets` parameter. Accepts a list of body names, `'All'`, or `None`. The Sun is displayed as an emoji (☀️) while other planets and the Moon are shown as distinct colored circles with labels.
+- **Celestial poles in horizon plots** — `plot_horizon()` now overlays the North and South Celestial Poles by default (`show_poles=True`) using geometric coordinates. The NCP is styled as a subtle, semi-transparent blue cross.
+- **Custom asterism catalogues** — Added `source_asterism` to `plot_horizon()` to support drawing alternative constellation figures (e.g., `'egyptian_ancient'`, `'egyptian_dendera'`). Constellation labels now automatically load from the corresponding `.fab` catalogue.
+
 ## Version 0.42.0 (major)
 
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
@@ -22,6 +29,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **DEM Cache Management** — centralized the DEM cache folder to always reside next to the installation directory (`dem_cache_dir()`). Added a dedicated "Clear cache" button to the home page's Configuration section to allow users to easily delete downloaded topographic tiles and free up disk space.
 
 ## Version 0.41.0 (major)
+
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
 - **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
 - **`Conjunction`** — new class in `montu/phenomena.py` to evaluate angular conjunctions of two or more sky bodies (planets, stars, Moon, Sun) at one epoch; reports maximum pairwise separation, per-pair geometry, rise/set, phase, and angular size (planets).

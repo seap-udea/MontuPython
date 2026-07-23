@@ -511,8 +511,23 @@ class Star(montu.Sebau):
             self.position.RAJ2000t = raj2000t
             self.position.DecJ2000t = decj2000t
 
-    def conditions_in_sky(self, at=None, observer=None, store=False):
-        """Compute full observational conditions for the star."""
+    def conditions_in_sky(self, at=None, observer=None, store=False, horizon=False):
+        """Compute full observational conditions for the star.
+
+        Parameters
+        ----------
+        at : montu.Time
+            Epoch of the observation.
+        observer : montu.Observer
+            Observing site.
+        store : bool, optional
+            Accumulate results for later batch conversion. Default: False.
+        horizon : bool, optional
+            If ``True`` and ``observer.horizon`` has been computed, add
+            horizon-corrected rise/set times (``condition.rise_time_hor``,
+            ``condition.rise_az_hor``, ``condition.set_time_hor``,
+            ``condition.set_az_hor``). Default: False.
+        """
         self.where_in_sky(at, observer, store)
         events = self._observer_events(observer)
 
@@ -537,6 +552,10 @@ class Star(montu.Sebau):
             self.condition += [condition]
         else:
             self.condition = montu.Dictobj(dict=condition)
+
+        # Horizon refinement
+        if horizon and getattr(observer, 'horizon', None) is not None:
+            self._refine_events_with_horizon(observer, store)
 
     def _sky_condition_specs(self):
         return _STAR_CONDITION_SPECS

@@ -917,8 +917,6 @@ calculator.print_rises(
 ```
 
     Heliacal rises of Sirius (139 CE apokatastasis) — 1 date(s)
-
-    
       [1] 139-07-20 00:00:00  04:07:44.893  0139-07-19 00:00:00.000000  [hrw 2922] I akhet 1  Sirius -0.57°  Sun -14.18°
       source: Toomer, G. J. (1998). Ptolemy's Almagest. Princeton University Press. Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".
 
@@ -930,7 +928,7 @@ The first heliacal rising falls on the same civil date as **I akhet 1** — the 
 
 <p align="center"><em>Illustration of a hypothetical total solar eclipse observed at Stonehenge</em>. Image generated with Nano Banana, edited in Preview.</p>
 
-### Mars and Aldebarán (September 2022)
+### Mars and Aldebarán Conjunction (September 2022)
 
 
 The `Conjunction` and `ConjunctionExplorer` classes evaluate angular groupings of planets and stars. Here we recover the Mars–Aldebarán conjunction of 7 September 2022:
@@ -1119,7 +1117,7 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
 ```
 
     Precessing 6 stars over 1,000 epochs …
-    Done in 1.4 s.
+    Done in 1.5 s.
 
 
 Now plot declinations as a function of time:
@@ -1158,12 +1156,80 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-13 19:13:23.099513 (declination 89:31:55.821)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-16 12:04:50.900224 (declination 86:22:03.656)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-18 19:24:39.101760 (declination 89:56:05.000)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 07:33:42.600960 (declination 86:57:15.602)
-    Star Alderamin will be the closest to the pole at 7532-03-04 13:02:57.796768 (declination 87:58:43.012)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 03:31:40.704960 (declination 83:29:32.450)
+    Star Polaris will be the closest to the pole at 2086-08-13 22:21:40.798080 (declination 89:31:55.823)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-16 15:13:08.702400 (declination 86:22:03.656)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-18 22:32:56.895360 (declination 89:56:05.003)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 10:42:00.403264 (declination 86:57:15.601)
+    Star Alderamin will be the closest to the pole at 7532-03-04 16:11:15.599040 (declination 87:58:43.012)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 06:39:58.498544 (declination 83:29:32.450)
+
+
+### Working with Observer Horizons
+
+MontuPython can download real terrain data (Copernicus GLO-30 DEM, 30 m resolution) and compute the true visible horizon profile for any site on Earth. Here we show how the Sun rose through the **Royal Wadi** of ancient Akhetaten (modern Amarna) — the sacred notch that Akhenaten chose as the *akhet* ('horizon') symbol of his new city.
+
+
+```python
+site = montu.Observer(site='amarna')
+site.horizon_profile(
+    max_dist=30,    # search radius in km
+    az_step=0.5,    # azimuth resolution in degrees
+    coarse_step=0.1 # radial scan step in km
+)
+print(site.horizon)
+```
+
+    Obtaining horizon profile...
+    Horizon for 'Amarna (Akhetaten)'
+      Coordinates: lat=27.6444, lon=30.9014, alt=90 m
+      Status: computed (720 pts)
+      Elevation range: [-0.22°, 1.22°]
+      Parameters: max_dist=30 km, az_step=0.5°, coarse_step=0.1 km
+
+
+The `horizon_profile()` call downloads and caches the DEM tiles automatically. Once computed, `site.horizon.get_elevation(az)` returns the terrain elevation angle at any azimuth.
+
+We can now refine the flat-horizon sunrise time to account for the real terrain:
+
+
+```python
+sun = montu.Sun()
+mtime = montu.Time('bce1341-10-21')
+sun.conditions_in_sky(at=mtime, observer=site, horizon=True)
+
+mtime_rise_hor = montu.Time(sun.condition.rise_time_hor, format='jd')
+print(f"Flat-horizon rise: {site.get_local_time(sun.condition.rise_time)}")
+print(f"Terrain-corrected: {site.get_local_time(sun.condition.rise_time_hor)}")
+print(f"Rise azimuth (terrain): {sun.condition.rise_az_hor:.2f}°")
+```
+
+    Flat-horizon rise: 06:10:12.448
+    Terrain-corrected: 06:15:42.721
+    Rise azimuth (terrain): 102.94°
+
+
+The terrain correction shifts the sunrise by a few minutes because the Sun must climb above the wadi walls before it becomes visible.
+
+Finally, we can plot the sky at the horizon-corrected sunrise moment, showing the Sun emerging from the Royal Wadi:
+
+
+```python
+fig = site.horizon.plot_horizon(
+    at=mtime_rise_hor,
+    az_center=90,
+    az_delta=40,
+    elev_view=4,
+    mag_limit=-1,
+    show_asterism=False,
+    show_starnames=False,
+    show_planets=['Sun'],
+)
+```
+
+
+
+See [`MontuPython-ObserverHorizon.ipynb`](examples/MontuPython-ObserverHorizon.ipynb) for a full walkthrough including multi-site comparisons, Valley of the Kings, the Senenmut temple, and the north shaft of the Khufu pyramid.
+
 
 
 ------------
