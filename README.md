@@ -170,7 +170,7 @@ import matplotlib.pyplot as plt
 import montu
 ```
 
-    MontuPython version 0.43.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.43.1. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -1117,7 +1117,9 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
 ```
 
     Precessing 6 stars over 1,000 epochs …
-    Done in 2.2 s.
+
+
+    Done in 1.4 s.
 
 
 Now plot declinations as a function of time:
@@ -1156,12 +1158,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-14 02:12:46.598390 (declination 89:31:55.824)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-16 19:04:14.407744 (declination 86:22:03.656)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-19 02:24:02.600640 (declination 89:56:05.008)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 14:33:06.99840 (declination 86:57:15.601)
-    Star Alderamin will be the closest to the pole at 7532-03-04 20:02:21.304288 (declination 87:58:43.012)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 10:31:04.203840 (declination 83:29:32.450)
+    Star Polaris will be the closest to the pole at 2086-08-14 02:39:37.906569 (declination 89:31:55.824)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-16 19:31:05.707136 (declination 86:22:03.656)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-19 02:50:53.900192 (declination 89:56:05.008)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 14:59:57.408000 (declination 86:57:15.601)
+    Star Alderamin will be the closest to the pole at 7532-03-04 20:29:12.603840 (declination 87:58:43.012)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 10:57:55.503360 (declination 83:29:32.450)
 
 
 ### Working with Observer Horizons
@@ -1180,6 +1182,8 @@ print(site.horizon)
 ```
 
     Obtaining horizon profile...
+
+
     Horizon for 'Amarna (Akhetaten)'
       Coordinates: lat=27.6444, lon=30.9014, alt=90 m
       Status: computed (720 pts)
