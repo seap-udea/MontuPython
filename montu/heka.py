@@ -74,3 +74,67 @@ class Astro(object):
         az = np.mod(az, 360)
 
         return az, el
+
+    @staticmethod
+    def true_obliquity(at: montu.Time) -> float:
+        """True obliquity of the ecliptic [degrees] including nutation."""
+        from pyplanets.core.coordinates import true_obliquity
+        return float(true_obliquity(at.obj_pyplanet))
+
+    @staticmethod
+    def mean_obliquity(at: montu.Time) -> float:
+        """Mean obliquity of the ecliptic [degrees] (secular variation only)."""
+        from pyplanets.core.coordinates import mean_obliquity
+        return float(mean_obliquity(at.obj_pyplanet))
+
+    @staticmethod
+    def nutation_longitude(at: montu.Time) -> float:
+        """Nutation in longitude (Delta psi) [degrees]."""
+        from pyplanets.core.coordinates import nutation_in_longitude
+        return float(nutation_in_longitude(at.obj_pyplanet))
+
+    @staticmethod
+    def equation_of_time(at: montu.Time) -> float:
+        """Equation of Time [minutes]. 
+        Apparent Solar Time - Mean Solar Time."""
+        import math
+        from pyplanets.core.coordinates import ecliptical2equatorial, true_obliquity, nutation_longitude
+        from pyplanets.sun import Sun
+        from pyplanets.core.epoch import JDE2000
+        from pyplanets.core.angle import Angle
+        
+        epoch = at.obj_pyplanet
+        t = (epoch - JDE2000) / 365250
+        l0 = (280.4664567 +
+              t * (360007.6982779 +
+                   t * (0.03032028 +
+                        t * (1.0 / 49931.0 +
+                             t * (-1.0 / 15300.0 - t * 1.0 / 2000000.0)))))
+        l0 = Angle(l0).to_positive()
+        
+        lon, lat, r = Sun.apparent_geocentric_position(epoch)
+        epsilon = true_obliquity(epoch)
+        alpha, dec = ecliptical2equatorial(lon, lat, epsilon)
+        alpha = alpha.to_positive()
+        deltapsi = nutation_longitude(epoch)
+        
+        # PyPlanets returns Mean - Apparent (l0 - alpha). We want Apparent - Mean.
+        e_deg = alpha() - deltapsi() * math.cos(epsilon.rad()) - (l0() - 0.0057183)
+        # Wrap to [-180, 180] degrees to avoid wrap-around discontinuities
+        e_deg = (e_deg + 180) % 360 - 180
+        
+        # Convert degrees to minutes of time (1 deg = 4 min)
+        return e_deg * 4.0
+
+    @staticmethod
+    def greenwich_sidereal_time(at: montu.Time, apparent: bool = True) -> float:
+        """Greenwich Sidereal Time [hours].
+        If apparent=True (GAST), includes nutation. If False (GMST), does not.
+        """
+        if apparent:
+            from pyplanets.core.coordinates import true_obliquity, nutation_in_longitude
+            eps = true_obliquity(at.obj_pyplanet)
+            dpsi = nutation_in_longitude(at.obj_pyplanet)
+            return float(at.obj_pyplanet.apparent_sidereal_time(eps, dpsi)) * 24.0
+        else:
+            return float(at.obj_pyplanet.mean_sidereal_time()) * 24.0

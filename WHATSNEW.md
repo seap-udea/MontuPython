@@ -8,6 +8,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **Solar-system bodies in horizon plots** — Enhanced `plot_horizon()` with a `show_planets` parameter. Accepts a list of body names, `'All'`, or `None`. The Sun is displayed as an emoji (☀️) while other planets and the Moon are shown as distinct colored circles with labels.
 - **Celestial poles in horizon plots** — `plot_horizon()` now overlays the North and South Celestial Poles by default (`show_poles=True`) using geometric coordinates. The NCP is styled as a subtle, semi-transparent blue cross.
 - **Custom asterism catalogues** — Added `source_asterism` to `plot_horizon()` to support drawing alternative constellation figures (e.g., `'egyptian_ancient'`, `'egyptian_dendera'`). Constellation labels now automatically load from the corresponding `.fab` catalogue.
+- **Preconfigured horizons dataset** — added `horizon-preconfiguration.json` providing historical horizon setups (e.g. sunrise at Amarna, Thuban culmination at Giza) with associated observer location, date, time, and horizon plot settings.
 
 ## Version 0.42.0 (major)
 
@@ -25,7 +26,6 @@ This file collects the release notes and the main changes in MontuPython.
 - **Detailed celestial overlay in `plot_horizon`** — extended the sky plot to dynamically include the Sun (represented with ☀️), IAU constellation boundaries, asterism connections, and star/constellation name labels. Added dedicated toggles (`show_boundaries`, `show_asterism`, `show_starnames`, `show_constname`) to selectively filter elements.
 - **Enhanced horizon visual realism** — updated the horizon profile in `plot_horizon` to use an earth ochre color and a highly opaque fill (`alpha=0.85`), effectively and realistically occluding celestial bodies that are positioned behind the mountains.
 - **Observer Location Bugfixes** — resolved an issue where manually calculated horizons in Montu Desktop omitted the `site_name` and produced generic titles. Additionally, updated the observer horizon example notebook with map plotting demonstrations and precise sunrise calculation routines.
-- **MontuPython Desktop UI Improvements** — adjusted the compact sidebar layout and scaled the logo to prevent clipping on small screens. The sidebar now correctly accommodates longer translated strings (like Spanish) without overflowing, and the configuration buttons' labels were shortened. The home page modules list was updated to a space-efficient 2-column layout, and the module order was reorganized.
 - **DEM Cache Management** — centralized the DEM cache folder to always reside next to the installation directory (`dem_cache_dir()`). Added a dedicated "Clear cache" button to the home page's Configuration section to allow users to easily delete downloaded topographic tiles and free up disk space.
 
 ## Version 0.41.0 (major)

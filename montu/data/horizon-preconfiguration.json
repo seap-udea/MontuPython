@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Amarna Royal Wadi Sunrise (Akhenaton)",
+    "location": {
+      "lat": 27.6444,
+      "lon": 30.9014,
+      "alt_m": 90.0,
+      "name": "Amarna (Akhetaten)"
+    },
+    "date_time": {
+      "era": "bce",
+      "year": 1341,
+      "month": 11,
+      "day": 2,
+      "hour": 6,
+      "minute": 15,
+      "second": 12,
+      "calendar": "mixed"
+    },
+    "horizon_options": {
+      "az_center": 90.0,
+      "az_span": 40.0,
+      "max_elev": 4.0,
+      "max_dist": 50,
+      "az_step": 0.5,
+      "coarse_step": 0.1
+    },
+    "configuration": {
+      "show_constellations": true,
+      "show_star_names": true,
+      "show_asterisms": true,
+      "constellation_set": "egyptian_ancient"
+    },
+    "solar_system_bodies": [
+      "Sun"
+    ]
+  },
+  {
+    "name": "Giza Thuban Culmination",
+    "location": {
+      "lat": 29.9792,
+      "lon": 31.1342,
+      "alt_m": 75.0,
+      "name": "Giza"
+    },
+    "date_time": {
+      "era": "bce",
+      "year": 2550,
+      "month": 1,
+      "day": 22,
+      "hour": 5,
+      "minute": 42,
+      "second": 54,
+      "calendar": "mixed"
+    },
+    "horizon_options": {
+      "az_center": 0.0,
+      "az_span": 60.0,
+      "max_elev": 45.0,
+      "max_dist": 50,
+      "az_step": 1.0,
+      "coarse_step": 2.0
+    },
+    "configuration": {
+      "show_constellations": true,
+      "show_star_names": true,
+      "show_asterisms": true,
+      "constellation_set": "iau"
+    },
+    "solar_system_bodies": []
+  }
+]

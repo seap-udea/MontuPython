@@ -409,6 +409,7 @@ class Horizon:
             show_starnames: bool = True, show_constname: bool = True,
             show_planets: "list | str | None" = '_default',
             show_poles: bool = True,
+            show_title: bool = True,
             source_asterism: str = 'iau'):
         """Interactive Plotly chart of the horizon elevation profile, optionally with stars.
 
@@ -476,6 +477,9 @@ class Horizon:
         else:
             title = f"{title_prefix} · {coords_str}<br><sup>{time_str}</sup>"
 
+        if not show_title:
+            title = None
+
         # Generate plot data wrapped around the requested range
         az_step = self.params.get('az_step', 1.0)
         az_plot = np.arange(az_center - az_delta, az_center + az_delta + az_step/10, az_step)
@@ -512,6 +516,7 @@ class Horizon:
         ))
         fig.add_hline(y=0, line_dash="dash", line_color="rgba(255,255,255,0.3)")
 
+        top_margin = 110 if show_title else 30
         layout_kwargs = dict(
             title=dict(text=title, font=dict(size=16)),
             xaxis_title="Azimuth (° from North, clockwise)",
@@ -524,7 +529,7 @@ class Horizon:
             ),
             template="plotly_dark",
             hovermode="x unified",
-            margin=dict(t=110, b=50),
+            margin=dict(t=top_margin, b=50),
         )
 
         if elev_view is not None:

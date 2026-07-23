@@ -546,6 +546,10 @@ class LocationPage(LazyPageMixin, QWidget):
             self._btn_show_plot.setVisible(True)
             self._btn_show_plot.setEnabled(True)
             
+            from montu_gui.utils.location_state import LocationState
+            if self._cached_horizon:
+                LocationState.instance().horizon = self._cached_horizon
+                LocationState.instance().changed.emit(LocationState.instance().coords)
             if self._chk_show_map.isChecked():
                 self._map.draw_horizon(self._cached_horizon.lathorizon.tolist(), self._cached_horizon.longhorizon.tolist())
                 

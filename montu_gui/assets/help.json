@@ -215,7 +215,6 @@
       "julian_day": {
         "body_en": "Enter a Julian Day Number (UTC scale), optionally with a fractional part for the time of day. Example: <code>2461231.5</code> is noon on that Julian day.",
         "body_es": "Introduce un número de día juliano (escala UTC), opcionalmente con una parte fraccionaria para la hora del día. Ejemplo: <code>2461231.5</code> representa el mediodía de ese día juliano.",
-   
         "title_en": "Julian Day Number",
         "title_es": "Numero de Día Juliano"
       },
@@ -1135,5 +1134,46 @@
         "title_es": "Detalles"
       }
     }
+  },
+  "horizon_astronomy": {
+    "input": {
+      "horizon_calc": {
+        "title_en": "Horizon Calculation",
+        "title_es": "Cálculo del horizonte",
+        "body_en": "These parameters control how the physical horizon is sampled using the SRTM elevation models:\n<ul><li><b>Max distance (km)</b>: Maximum radius around the observer to search for horizon obstacles.</li><li><b>Azimuth step (°)</b>: Angular resolution for the calculation.</li><li><b>Coarse step (km)</b>: Radial step used to scan distances from the observer.</li></ul>",
+        "body_es": "Estos parámetros controlan cómo se muestrea el horizonte físico utilizando los modelos de elevación SRTM:\n<ul><li><b>Distancia máxima (km)</b>: Radio máximo alrededor del observador para buscar obstáculos.</li><li><b>Paso de azimut (°)</b>: Resolución angular para el cálculo.</li><li><b>Paso grueso (km)</b>: Paso radial utilizado para escanear distancias desde el observador.</li></ul>"
+      },
+      "date_time": {
+        "title_en": "Date & Time",
+        "title_es": "Fecha y hora",
+        "body_en": "Enter the observation date and local time. The calendar is <b>mixed (Julian/Gregorian)</b>, meaning dates before Oct 15, 1582 are interpreted as Julian dates, and dates after as Gregorian.",
+        "body_es": "Ingresa la fecha de observación y la hora local. El calendario es <b>mixto (Juliano/Gregoriano)</b>, lo que significa que las fechas antes del 15 de Oct, 1582 son interpretadas como Julianas, y las posteriores como Gregorianas."
+      },
+      "options": {
+        "title_en": "Horizon Options",
+        "title_es": "Opciones de Horizonte",
+        "body_en": "Control the view of the plotted horizon:\n<ul><li><b>Central azimuth</b>: The compass direction in the center of the plot.</li><li><b>Azimuth span</b>: The total angular width of the plot.</li><li><b>Max elevation</b>: The vertical limit of the plot.</li></ul>",
+        "body_es": "Controla la vista del horizonte graficado:\n<ul><li><b>Azimut central</b>: La dirección cardinal en el centro de la gráfica.</li><li><b>Rango de azimut</b>: El ancho angular total de la gráfica.</li><li><b>Elevación máxima</b>: El límite vertical de la gráfica.</li></ul>"
+      },
+      "config": {
+        "title_en": "Configuration",
+        "title_es": "Configuración",
+        "body_en": "Toggle visual elements such as constellation lines, star names, and asterisms. You can also select which constellation set (e.g. IAU, Egyptian) to display.",
+        "body_es": "Activa elementos visuales como líneas de constelaciones, nombres de estrellas y asterismos. También puedes elegir el conjunto de constelaciones (ej. IAU, Egipcio) a mostrar."
+      },
+      "bodies": {
+        "title_en": "Solar System Bodies",
+        "title_es": "Cuerpos del sistema solar",
+        "body_en": "Select which classical planets and the Sun/Moon should be rendered in the sky.",
+        "body_es": "Selecciona cuáles planetas clásicos y el Sol/Luna deben renderizarse en el cielo."
+      },
+      "preconfigured": {
+        "title_en": "Preconfigured Horizons",
+        "title_es": "Horizontes Preconfigurados",
+        "body_en": "Select a historically interesting horizon setup. This will load the correct observer location, date, time, and horizon options automatically.",
+        "body_es": "Selecciona una configuración histórica de horizonte. Esto cargará automáticamente la ubicación del observador, fecha, hora y opciones de horizonte correctas."
+      }
+    },
+    "output": {}
   }
 }

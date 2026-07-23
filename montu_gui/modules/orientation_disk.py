@@ -393,10 +393,10 @@ def _process_star(cfg: BodyConfig, jed_start: float, lat: float) -> BodyExtreme:
         t_start = montu.Time(jed_start, format="jd", calendar="proleptic")
 
         if cfg.hip is not None:
-            stars = montu.Stars()
+            stars = montu.Stars(subset='visible')
             subset = stars.get_stars(HIP=cfg.hip)
         else:
-            stars = montu.Stars()
+            stars = montu.Stars(subset='visible')
             subset = stars.get_stars(ProperName=cfg.name)
             if subset.data.empty:
                 subset = stars.get_stars(Name=cfg.name)
@@ -438,7 +438,7 @@ def get_available_stars(mag_limit: float = DEFAULT_MAG_LIMIT) -> pd.DataFrame:
     """
     try:
         montu = _import_montu()
-        stars = montu.Stars()
+        stars = montu.Stars(subset='visible')
         bright = stars.get_stars(Vmag=[-2.0, float(mag_limit)])
         df = bright.data[["ProperName", "Name", "Vmag", "HIP"]].copy()
         df = df[

@@ -80,7 +80,7 @@ def _load_catalog() -> pd.DataFrame:
         return _CATALOG
 
     with timed_block("sky_map: load stellar catalogue"):
-        _CATALOG = montu.Stars().data.copy()
+        _CATALOG = montu.Stars(subset='visible').data.copy()
     return _CATALOG
 
 

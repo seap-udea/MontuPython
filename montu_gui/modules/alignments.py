@@ -304,7 +304,7 @@ def find_alignment_stars(
 
         # Filter catalogue at J2000 for speed
         with timed_block("alignments: load catalogue"):
-            allstars = montu.Stars()
+            allstars = montu.Stars(subset='visible')
             bright = allstars.get_stars(Vmag=[-3.0, float(mag_limit)])
 
         # Convert year bounds to JED

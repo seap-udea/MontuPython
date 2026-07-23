@@ -26,6 +26,7 @@ class LocationState(QObject):
         super().__init__()
         default = get_default_location()
         self._coords = location_to_coords(default)
+        self.horizon = None
 
     @classmethod
     def instance(cls) -> LocationState:
@@ -42,6 +43,8 @@ class LocationState(QObject):
         err = validate_coords(coords.lat, coords.lon, coords.alt_m)
         if err:
             return err
+        if self._coords.name != coords.name or self._coords.lat != coords.lat or self._coords.lon != coords.lon:
+            self.horizon = None
         self._coords = coords
         if emit:
             self.changed.emit(coords)

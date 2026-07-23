@@ -21,6 +21,7 @@ _MODULE_ICONS: dict[str, str] = {
     "conjunctions": "✨",
     "orient_disk": "⭕",
     "sky_map": "🌌",
+    "horizon_astronomy": "🌄",
 }
 
 # module page key → home.json module title
@@ -35,6 +36,7 @@ _MODULE_TITLES: dict[str, str] = {
     "conjunctions": "Astronomical Conjunctions",
     "orient_disk": "Orientation Disk",
     "sky_map": "Sky Map",
+    "horizon_astronomy": "Horizon Astronomy",
 }
 
 

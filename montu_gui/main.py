@@ -62,6 +62,7 @@ from montu_gui.pages.orientation_disk_page import OrientationDiskPage
 from montu_gui.pages.sky_map_page import SkyMapPage
 from montu_gui.pages.solar_eclipses_page import SolarEclipsesPage
 from montu_gui.pages.conjunctions_page import ConjunctionsPage
+from montu_gui.pages.horizon_astronomy_page import HorizonAstronomyPage
 from montu_gui.utils.location_state import LocationState
 from montu_gui.modules.location import ObserverCoords
 from montu_gui.utils.user_config import (
@@ -90,6 +91,7 @@ NAV_ITEMS = [
     ("", "Solar Eclipses Finder", "solar_eclipses"),
     ("✨", "Astronomical Conjunctions", "conjunctions"),
     ("🎑", "Seasons & Lunar Phases", "seasons"),
+    ("🌄", "Horizon Astronomy", "horizon_astronomy"),
     ("🪐", "Planetary Ephemerides", "planets"),
     ("⭕", "Orientation disk", "orient_disk"),
     ("📐", "Star Alignments", "alignments"),
@@ -316,6 +318,9 @@ class MainWindow(QMainWindow):
         conjunctions_page = ConjunctionsPage()
         conjunctions_page.status_message.connect(self._show_status)
         self._add_page("conjunctions", conjunctions_page)
+        horizon_astronomy_page = HorizonAstronomyPage(self._location_state)
+        horizon_astronomy_page.status_message.connect(self._show_status)
+        self._add_page("horizon_astronomy", horizon_astronomy_page)
 
         # ── status bar ──
         self.setStatusBar(QStatusBar())
@@ -370,6 +375,7 @@ class MainWindow(QMainWindow):
             "conjunctions": "conjunctions",
             "calendar": "calendar",
             "seasons": "seasons",
+            "horizon_astronomy": "horizon_astronomy",
         }
         for page_key, section_key in page_sections.items():
             widget = self._page_widgets.get(page_key)
@@ -406,6 +412,7 @@ class MainWindow(QMainWindow):
             "conjunctions": "conjunctions",
             "calendar": "calendar",
             "seasons": "seasons",
+            "horizon_astronomy": "horizon_astronomy",
         }
         for section_key, page_key in exporters.items():
             widget = self._page_widgets.get(page_key)

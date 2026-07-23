@@ -628,13 +628,14 @@ def local_solar_to_utc_time(
     minute: int,
     second: int,
     lon: float,
+    calendar: str = "mixed",
 ) -> montu.Time:
     """Convert local solar time at *lon* to a UTC ``montu.Time`` object."""
     date_only = _calendar_date_only(calendar_date)
     midnight = f"{date_only} 00:00:00"
     local_decimal = hour + minute / 60.0 + second / 3600.0
     utc_decimal = local_decimal - lon / 15.0
-    t0 = montu.Time(midnight, calendar="mixed")
+    t0 = montu.Time(midnight, calendar=calendar)
     return t0 + utc_decimal * montu.HOUR
 
 
@@ -644,9 +645,10 @@ def local_solar_to_utc_datepro(
     minute: int,
     second: int,
     lon: float,
+    calendar: str = "mixed",
 ) -> str:
     """Convert local solar time at *lon* to a proleptic UTC ``datepro`` string."""
-    t_obs = local_solar_to_utc_time(calendar_date, hour, minute, second, lon).get_readable()
+    t_obs = local_solar_to_utc_time(calendar_date, hour, minute, second, lon, calendar=calendar).get_readable()
     return str(t_obs.readable.datepro)
 
 

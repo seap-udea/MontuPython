@@ -2,7 +2,7 @@
 
 ## Library
 
-- Create a stellar catalogue cache avoiding to load multiple times the stellar catalogue in the same sessión.
+- Find configurations for an object, eg. find the date when the azimuth of the rise of the sun at a given observer is such.
 
 ## Desktop
 
@@ -10,5 +10,6 @@
 
 ## Done
 
+* Create a stellar catalogue cache avoiding to load multiple times the stellar catalogue in the same sessión.
 * Create a Conjunctions class.
 * Create a conjunctions module.

@@ -84,6 +84,14 @@
       "title_es": "Estaciones y fases lunares"
     },
     {
+      "description_en": "Calculate the observer's physical horizon and render an interactive sky plot.",
+      "description_es": "Calcula el horizonte físico del observador y renderiza un mapa interactivo del cielo.",
+      "icon": "🌄",
+      "module_key": "horizon_astronomy",
+      "title_en": "Horizon Astronomy",
+      "title_es": "Astronomía en el Horizonte"
+    },
+    {
       "description_en": "Plot sky-condition properties for the Sun, Moon, and classical planets over a chosen time span.",
       "description_es": "Gráfica propiedades de condición del cielo para Sol, Luna y planetas clásicos en un intervalo de tiempo elegido.",
       "icon": "🪐",
