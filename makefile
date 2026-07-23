@@ -193,6 +193,8 @@ docs: docs-prepare docs-build
 docs-prepare:
 	@echo "Preparing example notebooks..."
 	@$(PYTHON) bin/examples_doc.py
+	@echo "Injecting Plotly HTML for Sphinx compatibility..."
+	@$(PYTHON) bin/fix_notebook_plotly.py docs/examples/*.ipynb
 
 docs-install:
 	@echo "Installing documentation dependencies..."
