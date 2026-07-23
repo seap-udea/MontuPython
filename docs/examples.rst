@@ -11,5 +11,6 @@ Examples
    The Heliacal Rise of Sirius, Step by Step <examples/MontuPython-HeliacalRises>
    Time: Basic time functionalities <examples/MontuPython-MonTime>
    Montunctions <examples/MontuPython-Montunctions>
+   Observer Horizon Profile <examples/MontuPython-ObserverHorizon>
    Solar Eclipses Examples <examples/MontuPython-SolarEclipses>
    Example: Venus Azimutal Distributions <examples/MontuPython-VenusAzimuths>

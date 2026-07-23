@@ -128,6 +128,10 @@ The following notebooks present archaeoastronomical computations of broader hist
 
    **File**: `MontuPython-VenusAzimuths.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-VenusAzimuths.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-VenusAzimuths.ipynb)
 
+- **Observer Horizons** Computes and plots the real topographical horizon profile for an observer by downloading and processing Copernicus GLO-30 DEM tiles. Demonstrates interactive Plotly and Leaflet maps, celestial object occultation, and sunrise azimuth calculations.
+
+   **File**: `MontuPython-ObserverHorizon.ipynb`. **Links**: [GitHub](https://github.com/seap-udea/MontuPython/blob/main/examples/MontuPython-ObserverHorizon.ipynb) | [ReadTheDocs](https://montupython.readthedocs.io/en/latest/examples/MontuPython-ObserverHorizon.html) | [Colab](https://colab.research.google.com/github/seap-udea/MontuPython/blob/main/examples/MontuPython-ObserverHorizon.ipynb)
+
 
 ## What's new
 
@@ -166,7 +170,7 @@ import matplotlib.pyplot as plt
 import montu
 ```
 
-    MontuPython version 0.41.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.42.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -912,8 +916,9 @@ calculator.print_rises(
 
 ```
 
-    Loading stellar catalogue montu_stellar_catalogue_v38_bright.csv
     Heliacal rises of Sirius (139 CE apokatastasis) — 1 date(s)
+
+    
       [1] 139-07-20 00:00:00  04:07:44.893  0139-07-19 00:00:00.000000  [hrw 2922] I akhet 1  Sirius -0.57°  Sun -14.18°
       source: Toomer, G. J. (1998). Ptolemy's Almagest. Princeton University Press. Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".
 
@@ -945,7 +950,6 @@ conjs[0].show_details()
 
 ```
 
-    Loading stellar catalogue montu_stellar_catalogue_v38_bright.csv
     Conjunction: Mars–Aldebaran
       Epoch (UTC)          : 2022-09-07 14:28:28
       Julian Day (UTC)     : 2459830.103152
@@ -1115,9 +1119,7 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
 ```
 
     Precessing 6 stars over 1,000 epochs …
-
-
-    Done in 1.5 s.
+    Done in 1.4 s.
 
 
 Now plot declinations as a function of time:
@@ -1156,12 +1158,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-11 18:34:45.298567 (declination 89:31:55.800)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-14 11:26:13.202880 (declination 86:22:03.651)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-16 18:46:01.395840 (declination 89:56:04.944)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-03 06:55:04.903744 (declination 86:57:15.603)
-    Star Alderamin will be the closest to the pole at 7532-03-02 12:24:20.099520 (declination 87:58:43.009)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-21 02:53:02.999040 (declination 83:29:32.449)
+    Star Polaris will be the closest to the pole at 2086-08-13 19:13:23.099513 (declination 89:31:55.821)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-16 12:04:50.900224 (declination 86:22:03.656)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-18 19:24:39.101760 (declination 89:56:05.000)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 07:33:42.600960 (declination 86:57:15.602)
+    Star Alderamin will be the closest to the pole at 7532-03-04 13:02:57.796768 (declination 87:58:43.012)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 03:31:40.704960 (declination 83:29:32.450)
 
 
 ------------
