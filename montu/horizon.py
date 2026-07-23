@@ -142,24 +142,27 @@ def _fetch_elevations_tiff(coords: list, tiff_path: Path) -> list:
     except ImportError:
         raise ImportError("Install rasterio and scipy")
     
-    with rasterio.open(tiff_path) as src:
-        lons = np.array([lon for _, lon in coords])
-        lats = np.array([lat for lat, _ in coords])
-        
-        # Get fractional pixel coordinates
-        inv_transform = ~src.transform
-        cols, rows = inv_transform * (lons, lats)
-        
-        band = src.read(1)
-        nodata = src.nodata
-        
-        if nodata is not None:
-            # Convert to float to handle NaNs and interpolation properly
-            band = band.astype(np.float32)
-            band[band == nodata] = np.nan
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=DeprecationWarning, message=".*Setting the shape on a NumPy array.*")
+        with rasterio.open(tiff_path) as src:
+            lons = np.array([lon for _, lon in coords])
+            lats = np.array([lat for lat, _ in coords])
             
-        # Bilinear interpolation (order=1)
-        elevs = map_coordinates(band, [rows, cols], order=1, mode='nearest', cval=np.nan)
+            # Get fractional pixel coordinates
+            inv_transform = ~src.transform
+            cols, rows = inv_transform * (lons, lats)
+            
+            band = src.read(1)
+            nodata = src.nodata
+            
+            if nodata is not None:
+                # Convert to float to handle NaNs and interpolation properly
+                band = band.astype(np.float32)
+                band[band == nodata] = np.nan
+                
+            # Bilinear interpolation (order=1)
+            elevs = map_coordinates(band, [rows, cols], order=1, mode='nearest', cval=np.nan)
         
     return elevs.tolist()
 

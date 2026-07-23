@@ -40,3 +40,6 @@ fig2 = giza.horizon.plot_horizon(
     show_starnames=True,
     show_planets=["Sun", "Moon"]
 )
+
+# Clean cache
+montu.Horizon.clean_cache(verbose=True)
