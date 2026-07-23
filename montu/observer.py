@@ -395,7 +395,7 @@ class Observer(object):
                         max_dist:    float = 30.0,
                         az_step:     float = 1.0,
                         coarse_step: float = 3.0,
-                        tmpdir:      str   = "./montu_dem",
+                        tmpdir:      "str | None" = None,
                         site_name:   str   = None,
                         verbose:     bool  = False) -> "montu.Horizon":
         """Compute the real visible horizon profile for this observing site.
@@ -404,34 +404,28 @@ class Observer(object):
         runs a two-phase radial scan (coarse + fine refinement) to find the
         maximum elevation angle at each azimuth direction.
 
-        The result is stored in ``self.horizon`` as a :class:`~montu.Horizon`
-        object and is also returned.
-
         Parameters
         ----------
         max_dist : float
-            Maximum search radius [km]. Default: 30.
+            Maximum distance to search for peaks [km]. Default: 30.
         az_step : float
-            Azimuth resolution [degrees]. Default: 1.
+            Step size in azimuth for the profile [degrees]. Default: 1.
         coarse_step : float
-            Spacing of the coarse radial scan [km]. Default: 3.
-        tmpdir : str
-            Directory for caching DEM tiles and the merged mosaic.
-            Created automatically if it does not exist.
-            Default: ``'./montu_dem'``.
+            Radial step size for the initial coarse scan [km]. Default: 3.
+        tmpdir : str or None
+            Directory to store downloaded DEM tiles.
+            If None, uses a 'montu_dem' folder inside the system's temporary directory.
+            Default: None.
         site_name : str, optional
-            Name for the site to display in the plot title. If not provided,
-            uses the observer's site name or defaults to 
-            ``"MontuSite (lat. <lat>, lon. <lon>, alt. <alt.>)"``.
+            Overrides the site name attached to the Horizon instance.
+            If None, uses ``self.name`` if available, else ``'User Site'``.
         verbose : bool
-            If True, prints detailed progress. If False (default), 
-            prints a single message "Obteniendo el perfil del horizonte...".
+            If True, prints detailed progress messages during the scan.
 
         Returns
         -------
-        Horizon
-            The computed :class:`~montu.Horizon` object (also stored as
-            ``self.horizon``).
+        self.horizon : montu.Horizon
+            The computed horizon object (also stored in ``self.horizon``).
 
         Examples
         --------

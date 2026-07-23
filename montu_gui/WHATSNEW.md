@@ -2,7 +2,7 @@
 
 Release notes for the graphical front-end to MontuPython.
 
-## Version 0.5.0 (major)
+## Version 0.5.x (major)
 
 - **Horizon Astronomy module** — A brand new module dedicated to calculating and plotting the physical topographic horizon alongside the celestial sphere (stars, asterisms, and solar system bodies).
 - **Preconfigured Horizons** — The Horizon Astronomy module now includes predefined historical horizon setups (e.g., sunrise over the Royal Wadi in Amarna during Akhenaten's reign, or Thuban's culmination in Giza) that automatically set the location, date, and plot options.
@@ -10,14 +10,14 @@ Release notes for the graphical front-end to MontuPython.
 - **Help and localization** — Added comprehensive, localized (English and Spanish) interactive help links across all inputs in the Horizon Astronomy module, which has been translated to "Astronomía en el Horizonte" in the UI.
 - **Calendar bugfix in plots** — Fixed an issue where dates before 1582 entered in the UI were misconstrued as Julian instead of proleptic Gregorian when plotting the sky map, resolving a ~12-day shift discrepancy.
 
-## Version 0.4.0 (major)
+## Version 0.4.x (major)
 
 - **Astronomical conjunctions module** - A new module used to search for conjunctions of two or more celestial bodies (planets, stars, Moon, Sun) at one epoch.
 - **Interactive Conjunction lapse chart** — clicking on any point in the Conjunction lapse Plotly chart now opens a new dialog showing detailed conjunction metrics (`Conjunction.show_details()` output) for that specific date and location.
 - **Unified Observer layout** — added the "Observer" coordinates summary to the Planetary Ephemerides module and improved its placement in the Orientation Disk module for better consistency.
 - **Predefined sites standardization** — the "Predefined site" dropdown list is now consistently ordered alphabetically across all modules (Observer Location, Solar Eclipses, Astronomical Conjunctions), including the region and era details.
 
-## Version 0.3.0 (breakthrough)
+## Version 0.3.x (breakthrough)
 
 - **Interactive Sothic year calendar** — full-screen diagram of one Horus year (365 civil days) with mixed-calendar overlays, lunar-quarter emojis (🌑🌓🌕🌗), Horus-year navigation, and day selection; opened from the Calendar Calculator or Solar Eclipses table.
 - **Calendar Calculator — conversion results** — card layout grouped as *Calendar dates*, *Ephemeris scales*, and *Other representations* (replacing the old two-column table); contextual help on every field in English and Spanish.

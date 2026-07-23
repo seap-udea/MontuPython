@@ -251,7 +251,7 @@ class Horizon:
                     max_dist:    float = 30.0,
                     az_step:     float = 1.0,
                     coarse_step: float = 3.0,
-                    tmpdir:      str   = "./montu_dem",
+                    tmpdir:      "str | None" = None,
                     verbose:     bool  = False) -> "Horizon":
         """Compute the visible horizon profile.
 
@@ -267,9 +267,10 @@ class Horizon:
             Azimuth resolution [degrees]. Default: 1.
         coarse_step : float
             Spacing of the coarse radial scan [km]. Default: 3.
-        tmpdir : str
+        tmpdir : str or None
             Directory for caching DEM tiles and the merged mosaic.
-            Default: ``'./montu_dem'``.
+            If None, uses a 'montu_dem' folder inside the system's temporary directory.
+            Default: None.
         verbose : bool
             If True, prints detailed progress. If False (default), 
             prints a single message "Obteniendo el perfil del horizonte...".
@@ -279,6 +280,11 @@ class Horizon:
         self : Horizon
             Returns itself so calls can be chained.
         """
+        if tmpdir is None:
+            import tempfile
+            import os
+            tmpdir = os.path.join(tempfile.gettempdir(), "montu_dem")
+
         self.params = {
             'max_dist': max_dist,
             'az_step': az_step,
@@ -289,6 +295,8 @@ class Horizon:
         if not verbose:
             print("Obtaining horizon profile...")
         tile_dir = Path(tmpdir)
+        if verbose:
+            print(f"DEM tiles directory: {tile_dir.absolute()}")
         ns = "N" if self.lat >= 0 else "S"
         ew = "E" if self.lon >= 0 else "W"
         dem_path = tile_dir / f"dem_{ns}{abs(self.lat):.3f}_{ew}{abs(self.lon):.3f}.tif"
@@ -860,5 +868,41 @@ class Horizon:
         else:
             lines.append("  Status: not computed — call get_profile()")
         return "\n".join(lines)
+
+    @staticmethod
+    def clean_cache(tmpdir: "str | None" = None, verbose: bool = False):
+        """Delete all cached DEM tiles in the temporary directory.
+
+        Parameters
+        ----------
+        tmpdir : str or None
+            The directory to clean. If None, cleans the default system 
+            temporary directory (e.g. 'montu_dem' in /tmp).
+        verbose : bool
+            If True, prints the number of files deleted.
+        """
+        import os
+        import tempfile
+        
+        if tmpdir is None:
+            tmpdir = os.path.join(tempfile.gettempdir(), "montu_dem")
+            
+        p = Path(tmpdir)
+        if not p.exists() or not p.is_dir():
+            if verbose:
+                print(f"Directory {tmpdir} does not exist. Nothing to clean.")
+            return
+            
+        count = 0
+        for f in p.glob("*.tif"):
+            try:
+                f.unlink()
+                count += 1
+            except Exception as e:
+                if verbose:
+                    print(f"Error deleting {f.name}: {e}")
+                    
+        if verbose:
+            print(f"Successfully cleaned {count} DEM cache file(s) from {tmpdir}.")
 
 
