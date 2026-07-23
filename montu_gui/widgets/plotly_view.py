@@ -9,9 +9,11 @@ from PySide6.QtCore import QUrl, Qt
 from PySide6.QtWidgets import QLabel, QSizePolicy, QVBoxLayout, QWidget
 
 try:
+    from PySide6.QtWebChannel import QWebChannel
     from PySide6.QtWebEngineWidgets import QWebEngineView
     _HAS_WEBENGINE = True
 except ImportError:
+    QWebChannel = None  # type: ignore[misc, assignment]
     QWebEngineView = None  # type: ignore[misc, assignment]
     _HAS_WEBENGINE = False
 
@@ -24,8 +26,22 @@ _PLACEHOLDER_HTML = (
 )
 
 
+from PySide6.QtCore import QObject, Signal, Slot
+
+class _PlotlyBridge(QObject):
+    """JS → Python bridge for Plotly events."""
+    
+    clicked = Signal(int)
+
+    @Slot(int)
+    def onPlotlyClick(self, point_index: int):
+        self.clicked.emit(point_index)
+
+
 class PlotlyView(QWidget):
     """Display Plotly HTML output inside the desktop GUI."""
+
+    point_clicked = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -39,12 +55,20 @@ class PlotlyView(QWidget):
         self.setMinimumHeight(320)
 
         if _HAS_WEBENGINE:
+            self._bridge = _PlotlyBridge()
+            self._bridge.clicked.connect(self.point_clicked.emit)
+
             self._view = QWebEngineView()
             self._view.setSizePolicy(
                 QSizePolicy.Policy.Expanding,
                 QSizePolicy.Policy.Expanding,
             )
             self._view.loadFinished.connect(self._on_load_finished)
+
+            channel = QWebChannel(self._view.page())
+            channel.registerObject("bridge", self._bridge)
+            self._view.page().setWebChannel(channel)
+
             layout.addWidget(self._view)
             self._fallback: QLabel | None = None
         else:

@@ -9,11 +9,16 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMessageBox,
+    QPlainTextEdit,
     QVBoxLayout,
     QWidget,
 )
 
+import io
+import contextlib
+
 from montu_gui.modules.conjunctions import (
+    ConjunctionPlotResult,
     build_conjunction_lapse_plot,
     build_conjunction_map_plot,
 )
@@ -53,16 +58,49 @@ class _ActionLinkLabel(QLabel):
 class ConjunctionPlotDialog(QDialog):
     """Show a Plotly conjunction chart in a standalone window."""
 
-    def __init__(self, title: str, html: str, parent=None):
+    def __init__(self, title: str, result: ConjunctionPlotResult, parent=None):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.resize(980, 720)
+        self._result = result
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         self._view = PlotlyView()
-        self._view.set_html(html)
+        self._view.set_html(result.html)
+        self._view.point_clicked.connect(self._on_point_clicked)
         layout.addWidget(self._view)
+
+    def _on_point_clicked(self, point_index: int):
+        if not self._result.conj or self._result.start_jed is None or self._result.step_hours is None:
+            return
+
+        import montu
+        jed = self._result.start_jed + point_index * (self._result.step_hours / 24.0)
+        mtime = montu.Time(float(jed), format='jd', scale='utc')
+        
+        # Reconstruct the conjunction condition at this time
+        conj = montu.Conjunction(
+            bodies=self._result.conj.bodies,
+            maxseparation=self._result.conj.maxseparation,
+            mtime=mtime,
+            observer=self._result.conj.observer,
+        )
+
+        f = io.StringIO()
+        with contextlib.redirect_stdout(f):
+            conj.show_details()
+        details_text = f.getvalue()
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle(tr("Conjunction Details"))
+        dlg.resize(600, 400)
+        dlg_layout = QVBoxLayout(dlg)
+        text_edit = QPlainTextEdit()
+        text_edit.setReadOnly(True)
+        text_edit.setPlainText(details_text)
+        dlg_layout.addWidget(text_edit)
+        dlg.exec()
 
 
 class ConjunctionDetailsCell(QWidget):
@@ -106,8 +144,8 @@ class ConjunctionDetailsCell(QWidget):
         layout.addStretch()
 
 
-def _show_plot_dialog(title: str, html: str, parent) -> None:
-    dialog = ConjunctionPlotDialog(title, html, parent)
+def _show_plot_dialog(title: str, result: ConjunctionPlotResult, parent) -> None:
+    dialog = ConjunctionPlotDialog(title, result, parent)
     dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
     dialog.show()
     dialog.raise_()
@@ -125,7 +163,7 @@ def show_conjunction_map(conj, label: str, parent=None) -> None:
         return
     _show_plot_dialog(
         trf("Conjunction map — {label}", label=label),
-        result.html,
+        result,
         parent,
     )
 
@@ -141,6 +179,6 @@ def show_conjunction_lapse(conj, label: str, parent=None) -> None:
         return
     _show_plot_dialog(
         trf("Conjunction lapse — {label}", label=label),
-        result.html,
+        result,
         parent,
     )

@@ -24,6 +24,21 @@ def gui_assets_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "assets"
 
 
+def install_dir() -> Path:
+    """Directory where the application is installed."""
+    if is_frozen():
+        p = Path(sys.executable).parent
+        if p.name == "MacOS" and p.parent.name == "Contents":
+            return p.parent.parent.parent
+        return p
+    return Path(__file__).resolve().parent.parent.parent
+
+
+def dem_cache_dir() -> Path:
+    """Directory for DEM cache."""
+    return install_dir() / "montu_dem"
+
+
 def gui_asset(name: str) -> Path:
     """Resolve a file under ``montu_gui/assets/``."""
     return gui_assets_dir() / name

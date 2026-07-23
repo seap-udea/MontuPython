@@ -14,6 +14,7 @@ def plotly_js_path() -> Path:
 
 
 _PLOTLY_RESIZE_SCRIPT = """
+<script type="text/javascript" src="qrc:///qtwebchannel/qwebchannel.js"></script>
 <script>
 function montuResizePlotly() {
   if (!window.Plotly) return;
@@ -28,8 +29,29 @@ function montuResizePlotly() {
     Plotly.Plots.resize(el);
   });
 }
+
+function montuInitWebChannel() {
+  if (typeof qt !== 'undefined' && qt.webChannelTransport) {
+    new QWebChannel(qt.webChannelTransport, function (channel) {
+      window.bridge = channel.objects.bridge;
+    });
+  }
+}
+
+function montuInitPlotlyEvents() {
+  document.querySelectorAll('.plotly-graph-div').forEach(function(el) {
+    el.on('plotly_click', function(data) {
+      if (window.bridge && data.points && data.points.length > 0) {
+        window.bridge.onPlotlyClick(data.points[0].pointIndex);
+      }
+    });
+  });
+}
+
 window.addEventListener('load', function() {
+  montuInitWebChannel();
   montuResizePlotly();
+  montuInitPlotlyEvents();
   setTimeout(montuResizePlotly, 100);
   setTimeout(montuResizePlotly, 400);
 });

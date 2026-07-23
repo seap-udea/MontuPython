@@ -6,6 +6,7 @@ dash-core-components
 gdown
 pandas
 scipy
+rasterio
 gunicorn
 Montu
 

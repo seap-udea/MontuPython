@@ -2,11 +2,26 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.42.0 (major)
+
+- **Cached stellar catalogue** — when loading the stellar catalogue in a session, the package check if the catalogue was already loaded. If so, it will return the cached catalogue instead of loading it again.
+- **Senenmut's "Montunction"** — added the BCE 1466-12-06 Mars–Aldebaran historical conjunction to `montu/data/historical-conjunctions.json`, featuring its occurrence near a marsticio and winter solstice according to Francisco Vivas' research.
+- **`montu.Horizon` & `Observer.horizon_profile()`** — computes the real topographic horizon profile (elevation vs. azimuth) for any observer by automatically downloading, mosaicking, and caching Copernicus GLO-30 DEM tiles.
+- **Smooth horizon profiles** — implemented bilinear interpolation (`scipy.ndimage.map_coordinates`) when sampling elevations from the DEM, eliminating stair-step artifacts at high resolutions.
+- **`Horizon.plot_horizon()`** — interactive Plotly chart of the local topography. Constrain the view using `az_center`, `az_delta`, and `elev_view`.
+- **`Horizon.plot_horizon(at=...)`** — new functionality that superimposes the computed terrain profile with the visible sky (stars scaled by magnitude and colored by B-V index, asterism lines, and names) at a specific `montu.Time` when `at` is provided. Correctly occludes stars behind local mountains.
+- **Horizon plot UI** — dynamic chart titles showing the observer's local time and the UTC date in SPICE format, with automatically adjusted top margins to prevent layout overlaps.
+- **Horizon class representation** — clean `__repr__` and detailed `__str__` showing calculation status, elevation range, and the parameters used during the grid scan (`max_dist`, `az_step`, `coarse_step`).
+- **`Horizon.plot_map()`** — interactive 2D map method that plots the topographical contour of the observer's horizon on top of geographic map tiles, prominently featuring the observer's location marker.
+- **Detailed celestial overlay in `plot_horizon`** — extended the sky plot to dynamically include the Sun (represented with ☀️), IAU constellation boundaries, asterism connections, and star/constellation name labels. Added dedicated toggles (`show_boundaries`, `show_asterism`, `show_starnames`, `show_constname`) to selectively filter elements.
+- **Enhanced horizon visual realism** — updated the horizon profile in `plot_horizon` to use an earth ochre color and a highly opaque fill (`alpha=0.85`), effectively and realistically occluding celestial bodies that are positioned behind the mountains.
+- **Observer Location Bugfixes** — resolved an issue where manually calculated horizons in Montu Desktop omitted the `site_name` and produced generic titles. Additionally, updated the observer horizon example notebook with map plotting demonstrations and precise sunrise calculation routines.
+- **MontuPython Desktop UI Improvements** — adjusted the compact sidebar layout and scaled the logo to prevent clipping on small screens. The sidebar now correctly accommodates longer translated strings (like Spanish) without overflowing, and the configuration buttons' labels were shortened. The home page modules list was updated to a space-efficient 2-column layout, and the module order was reorganized.
+- **DEM Cache Management** — centralized the DEM cache folder to always reside next to the installation directory (`dem_cache_dir()`). Added a dedicated "Clear cache" button to the home page's Configuration section to allow users to easily delete downloaded topographic tiles and free up disk space.
+
 ## Version 0.41.0 (major)
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
 - **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
-
-
 - **`Conjunction`** — new class in `montu/phenomena.py` to evaluate angular conjunctions of two or more sky bodies (planets, stars, Moon, Sun) at one epoch; reports maximum pairwise separation, per-pair geometry, rise/set, phase, and angular size (planets).
 - **`ConjunctionExplorer`** — scan a date interval for local separation minima below a threshold; returns fully computed `Conjunction` objects sorted by epoch.
 - **`Conjuntion`** — backward-compatible alias for the common misspelling of `Conjunction`.

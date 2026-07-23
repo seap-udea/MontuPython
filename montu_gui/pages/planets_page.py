@@ -253,9 +253,21 @@ class PlanetsPage(LazyPageMixin, QWidget):
         self._plot_timer.setInterval(_PLOT_DEBOUNCE_MS)
         self._plot_timer.timeout.connect(self._plot)
         self._build_ui()
-        self._location_state.changed.connect(self._schedule_plot)
+        self._location_state.changed.connect(self._on_location_changed)
+
+    def _on_location_changed(self, _coords=None):
+        self._refresh_location_label()
+        self._schedule_plot()
+
+    def _refresh_location_label(self):
+        obs = self._location_state.coords
+        self._loc_label.setText(
+            f"<b>{obs.name}</b>  "
+            f"(lat {obs.lat:.4f}°, lon {obs.lon:.4f}°)"
+        )
 
     def _activate_page(self) -> None:
+        self._refresh_location_label()
         self._schedule_plot()
 
     def _build_ui(self):
@@ -278,6 +290,23 @@ class PlanetsPage(LazyPageMixin, QWidget):
         left_lay.setSpacing(10)
 
         left_lay.addWidget(module_brand("planets"))
+
+        loc_box = QGroupBox(tr("Observer"))
+        loc_lay = QVBoxLayout(loc_box)
+        loc_lay.setSpacing(6)
+        self._loc_label = QLabel()
+        self._loc_label.setWordWrap(True)
+        self._loc_label.setTextFormat(Qt.TextFormat.RichText)
+        loc_lay.addWidget(
+            HelpLink("Location:", "common", "input", "observer_location", bold=True),
+        )
+        loc_lay.addWidget(self._loc_label)
+        loc_note = QLabel(tr("<i>Set location in the 🧭 Observer module.</i>"))
+        loc_note.setWordWrap(True)
+        loc_note.setTextFormat(Qt.TextFormat.RichText)
+        loc_note.setStyleSheet("color:#888; font-size:11px;")
+        loc_lay.addWidget(loc_note)
+        left_lay.addWidget(loc_box)
 
         params_box = QGroupBox(tr("Parameters"))
         params_lay = QVBoxLayout(params_box)

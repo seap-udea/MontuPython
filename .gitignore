@@ -173,3 +173,7 @@ contrib/*
 
 # MontuPython Desktop — per-user settings (not committed)
 montu_gui/user/config.json
+
+# Digital Elevation Models
+montu_dem/
+*.tif

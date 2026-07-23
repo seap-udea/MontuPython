@@ -146,6 +146,42 @@ def location_to_coords(entry: LocationEntry) -> ObserverCoords:
         location_id=entry.id,
     )
 
+def populate_predefined_sites_combo(combo, locations: list[LocationEntry], default_option: str | None = None, default_option_data: str = "", editable: bool = False) -> None:
+    """Populate a QComboBox with predefined sites in alphabetical order."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QCompleter, QSizePolicy, QComboBox
+    from montu_gui.utils.i18n import tr
+    
+    combo.clear()
+    
+    combo.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
+    combo.setMinimumContentsLength(12)
+    combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+    popup = combo.view()
+    popup.setMinimumWidth(340)
+    popup.setTextElideMode(Qt.TextElideMode.ElideNone)
+    popup.setWordWrap(True)
+
+    combo.setEditable(editable)
+    
+    names = []
+    if default_option is not None:
+        label = tr(default_option) if default_option else ""
+        combo.addItem(label, default_option_data)
+        names.append(label)
+        
+    for entry in sorted(locations, key=lambda loc: loc.name.casefold()):
+        label = format_location_label(entry)
+        combo.addItem(label, entry.id)
+        if editable:
+            names.append(label)
+        
+    if editable:
+        completer = QCompleter(names, combo)
+        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        combo.setCompleter(completer)
+
 
 def _fallback_tebas() -> LocationEntry:
     return LocationEntry(

@@ -86,6 +86,7 @@ cleancrap:
 	@-find . -name ".#*#" -delete
 	@-find . -name ".DS_Store" -delete
 	@-find . -name "Icon*" -delete
+	@-find . -name "montu_dem*" -type d | xargs rm -fr
 	@-find . -name "*.egg-info*" -type d | xargs rm -fr
 
 cleanout:

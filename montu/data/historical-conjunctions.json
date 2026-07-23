@@ -1,4 +1,33 @@
 {
+  "bce 1466-12-06": {
+    "label": "BCE 1466-12-06 — Mars–Aldebaran (Senenmut's Montunction)",
+    "date_precision": "approximate",
+    "catalogue_year": -1465,
+    "catalogue_month": 12,
+    "catalogue_day": 6,
+    "bodies": [
+      {
+        "name": "Mars",
+        "body_type": "planet"
+      },
+      {
+        "name": "Aldebaran",
+        "body_type": "star"
+      }
+    ],
+    "max_separation_deg": 10.0,
+    "search_margin_days": 60,
+    "observer_site": "Geocentric",
+    "description": "A 'Montunction' combining a Mars-Aldebaran conjunction at ~10°, a marsticio, and proximity to the winter solstice.",
+    "details": "This event took place during the time of Senenmut, the architect and administrator of Hatshepsut. In Francisco Vivas' work, this convergence of a conjunction, a marsticio, and its proximity to the winter solstice is referred to as a 'Montunction'.",
+    "source": "Francisco Vivas, 'ESTUDIO DE LAS ORIENTACIONES ASTRONÓMICAS Y PAISAJÍSTICAS DE LOS MONUMENTOS DE SENENMUT EN LA NECRÓPOLIS TEBANA', doctoral thesis (2024)",
+    "label_es": "AEC 1466-12-06 — Marte–Aldebarán (Montunción de Senenmut)",
+    "observer_site_es": "Geocéntrico",
+    "description_es": "Una 'Montunción' que combina una conjunción Marte-Aldebarán a unos 10°, un marsticio y cercanía al solsticio de invierno.",
+    "details_es": "Este evento ocurrió en tiempos de Senenmut, arquitecto y administrador de Hatshepsut. En el trabajo de Francisco Vivas, esta convergencia de una conjunción, un marsticio y su cercanía al solsticio de invierno recibe el nombre de 'Montunción'.",
+    "source_es": "Francisco Vivas, 'ESTUDIO DE LAS ORIENTACIONES ASTRONÓMICAS Y PAISAJÍSTICAS DE LOS MONUMENTOS DE SENENMUT EN LA NECRÓPOLIS TEBANA', tesis doctoral (2024)",
+    "conjunction_id": "mars_aldebaran-1466bce"
+  },
   "bce 7-05-27": {
     "label": "BCE 7-05-27 — Jupiter–Saturn (Great Conjunction, 1st of 3)",
     "date_precision": "exact",
@@ -6,8 +35,14 @@
     "catalogue_month": 5,
     "catalogue_day": 27,
     "bodies": [
-      {"name": "Jupiter", "body_type": "planet"},
-      {"name": "Saturn", "body_type": "planet"}
+      {
+        "name": "Jupiter",
+        "body_type": "planet"
+      },
+      {
+        "name": "Saturn",
+        "body_type": "planet"
+      }
     ],
     "max_separation_deg": 2.0,
     "search_margin_days": 400,
@@ -29,9 +64,18 @@
     "catalogue_month": 2,
     "catalogue_day": 20,
     "bodies": [
-      {"name": "Mars", "body_type": "planet"},
-      {"name": "Jupiter", "body_type": "planet"},
-      {"name": "Saturn", "body_type": "planet"}
+      {
+        "name": "Mars",
+        "body_type": "planet"
+      },
+      {
+        "name": "Jupiter",
+        "body_type": "planet"
+      },
+      {
+        "name": "Saturn",
+        "body_type": "planet"
+      }
     ],
     "max_separation_deg": 10.0,
     "search_margin_days": 60,
@@ -53,8 +97,14 @@
     "catalogue_month": 9,
     "catalogue_day": 12,
     "bodies": [
-      {"name": "Jupiter", "body_type": "planet"},
-      {"name": "Regulus", "body_type": "star"}
+      {
+        "name": "Jupiter",
+        "body_type": "planet"
+      },
+      {
+        "name": "Regulus",
+        "body_type": "star"
+      }
     ],
     "max_separation_deg": 5.0,
     "search_margin_days": 400,
@@ -76,9 +126,18 @@
     "catalogue_month": 9,
     "catalogue_day": 26,
     "bodies": [
-      {"name": "Mars", "body_type": "planet"},
-      {"name": "Jupiter", "body_type": "planet"},
-      {"name": "Saturn", "body_type": "planet"}
+      {
+        "name": "Mars",
+        "body_type": "planet"
+      },
+      {
+        "name": "Jupiter",
+        "body_type": "planet"
+      },
+      {
+        "name": "Saturn",
+        "body_type": "planet"
+      }
     ],
     "max_separation_deg": 10.0,
     "search_margin_days": 90,
@@ -100,9 +159,18 @@
     "catalogue_month": 7,
     "catalogue_day": 22,
     "bodies": [
-      {"name": "Venus", "body_type": "planet"},
-      {"name": "Mars", "body_type": "planet"},
-      {"name": "Regulus", "body_type": "star"}
+      {
+        "name": "Venus",
+        "body_type": "planet"
+      },
+      {
+        "name": "Mars",
+        "body_type": "planet"
+      },
+      {
+        "name": "Regulus",
+        "body_type": "star"
+      }
     ],
     "max_separation_deg": 5.5,
     "search_margin_days": 45,

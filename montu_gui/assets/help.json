@@ -518,6 +518,24 @@
         "title_en": "Predefined site",
         "title_es": "Sitio predefinido"
       },
+      "horizon_max_distance": {
+        "body_en": "<p>Maximum distance in kilometres to scan for the horizon elevation profile. A larger distance may take longer to compute and download topography data.</p>",
+        "body_es": "<p>Distancia máxima en kilómetros para buscar el perfil de elevación del horizonte. Una mayor distancia puede tardar más en calcularse y descargar los datos topográficos.</p>",
+        "title_en": "Maximum distance",
+        "title_es": "Distancia máxima"
+      },
+      "horizon_az_step": {
+        "body_en": "<p>Azimuth step in degrees for the horizon profile. Smaller values give a more detailed profile but increase calculation time.</p>",
+        "body_es": "<p>Paso de azimut en grados para el perfil del horizonte. Valores más pequeños dan un perfil más detallado pero aumentan el tiempo de cálculo.</p>",
+        "title_en": "Azimuth step",
+        "title_es": "Paso de azimut"
+      },
+      "horizon_coarse_step": {
+        "body_en": "<p>Coarse step in kilometres for the initial raycasting along each azimuth. Smaller values improve accuracy for nearby terrain but slow down the calculation.</p>",
+        "body_es": "<p>Paso grueso en kilómetros para el trazado de rayos inicial a lo largo de cada azimut. Valores más pequeños mejoran la precisión para terreno cercano pero ralentizan el cálculo.</p>",
+        "title_en": "Coarse step",
+        "title_es": "Paso grueso"
+      },
       "sexagesimal": {
         "body_en": "<p>Enter coordinates as degrees, arcminutes, and arcseconds with a hemisphere letter (N/S for latitude, E/W for longitude). Altitude remains in metres.</p><p>Example: <code>25°41'48.1\"N</code>, <code>32°38'32.0\"E</code>.</p>",
         "body_es": "<p>Ingresa coordenadas en grados, minutos y segundos con hemisferio (N/S para latitud, E/W para longitud).</p>",

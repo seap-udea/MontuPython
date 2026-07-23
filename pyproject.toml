@@ -2,6 +2,6 @@
 requires = ['setuptools',
 			'scipy','ipython','matplotlib','tqdm','numpy','ephem==4.2.1',
 			'pymeeus==0.5.12','regex','pandas','tabulate','numpy',
-			'pyplanets==0.4.2','requests'
+			'pyplanets==0.4.2','requests','rasterio'
 	    ]
 build-backend = "setuptools.build_meta"

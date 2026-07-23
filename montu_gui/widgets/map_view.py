@@ -125,5 +125,24 @@ class ObserverMapView(QWidget):
             f"window.updateMarker && window.updateMarker({lat:.8f}, {lon:.8f});"
         )
 
+    def draw_horizon(self, lats: list[float], lons: list[float]):
+        """Draw horizon points on the map."""
+        if self._view is None or not self._online_enabled:
+            return
+        import json
+        lats_js = json.dumps(lats)
+        lons_js = json.dumps(lons)
+        self._view.page().runJavaScript(
+            f"window.drawHorizon && window.drawHorizon({lats_js}, {lons_js});"
+        )
+
+    def clear_horizon(self):
+        """Clear the horizon from the map."""
+        if self._view is None or not self._online_enabled:
+            return
+        self._view.page().runJavaScript(
+            "window.drawHorizon && window.drawHorizon(null, null);"
+        )
+
     def _on_map_click(self, lat: float, lon: float):
         self.map_clicked.emit(lat, lon)

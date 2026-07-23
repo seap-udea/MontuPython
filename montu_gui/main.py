@@ -30,7 +30,7 @@ from PySide6.QtGui import QFont, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout,
     QPushButton, QStackedWidget, QFrame, QLabel, QSizePolicy,
-    QStatusBar, QMessageBox,
+    QStatusBar, QMessageBox, QScrollArea,
 )
 
 # ── ensure repo root is on sys.path so 'montu' and 'montu_gui' are importable ─
@@ -77,7 +77,7 @@ from montu_gui.utils.module_icons import module_icon_size, module_nav_icon
 
 from montu.version import version as MONTU_VERSION
 
-SIDEBAR_FULL = 220
+SIDEBAR_FULL = 245
 SIDEBAR_COMPACT = 52
 VERSION_LABEL = f"v{MONTU_VERSION}"
 
@@ -86,14 +86,14 @@ NAV_ITEMS = [
     ("🏠", "Home", "home"),
     ("📅", "Calendar calculator", "calendar"),
     ("🧭", "Observer Location", "location"),
-    ("🌌", "Sky map", "sky_map"),
+    ("🌅", "Heliacal Rises", "heliacal_rise"),
+    ("", "Solar Eclipses Finder", "solar_eclipses"),
+    ("✨", "Astronomical Conjunctions", "conjunctions"),
     ("🎑", "Seasons & Lunar Phases", "seasons"),
     ("🪐", "Planetary Ephemerides", "planets"),
     ("⭕", "Orientation disk", "orient_disk"),
     ("📐", "Star Alignments", "alignments"),
-    ("🌅", "Heliacal Rises", "heliacal_rise"),
-    ("", "Solar Eclipses Finder", "solar_eclipses"),
-    ("✨", "Astronomical Conjunctions", "conjunctions"),
+    ("🌌", "Sky map", "sky_map"),
     # future pages:
     # ("⭐", "Stars", "stars"),
     # ("🌍", "Sky Sphere", "sky"),
@@ -195,9 +195,18 @@ class MainWindow(QMainWindow):
         root.setSpacing(0)
 
         # ── sidebar ──
+        self._sidebar_scroll = QScrollArea()
+        self._sidebar_scroll.setWidgetResizable(True)
+        self._sidebar_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._sidebar_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._sidebar_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._sidebar_scroll.setFixedWidth(SIDEBAR_FULL)
+        self._sidebar_scroll.setObjectName("sidebar_scroll")
+
         self._sidebar = QFrame()
         self._sidebar.setObjectName("sidebar")
-        self._sidebar.setFixedWidth(SIDEBAR_FULL)
+        self._sidebar_scroll.setWidget(self._sidebar)
+
         self._sb_layout = QVBoxLayout(self._sidebar)
         self._sb_layout.setContentsMargins(8, 16, 8, 16)
         self._sb_layout.setSpacing(4)
@@ -242,7 +251,7 @@ class MainWindow(QMainWindow):
         self._config_sep = config_sep
         self._sb_layout.addWidget(config_sep)
 
-        self._btn_save_config = QPushButton(f"💾  {tr('Save configuration')}")
+        self._btn_save_config = QPushButton(f"💾  {tr('Save')}")
         self._btn_save_config.setObjectName("config_btn")
         self._btn_save_config.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_save_config.setToolTip(
@@ -251,7 +260,7 @@ class MainWindow(QMainWindow):
         self._btn_save_config.clicked.connect(self._save_configuration)
         self._sb_layout.addWidget(self._btn_save_config)
 
-        self._btn_reset_config = QPushButton(f"↺  {tr('Reset configuration')}")
+        self._btn_reset_config = QPushButton(f"↺  {tr('Reset')}")
         self._btn_reset_config.setObjectName("config_btn")
         self._btn_reset_config.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_reset_config.setToolTip(
@@ -260,9 +269,17 @@ class MainWindow(QMainWindow):
         self._btn_reset_config.clicked.connect(self._reset_configuration)
         self._sb_layout.addWidget(self._btn_reset_config)
 
-        root.addWidget(self._sidebar)
+        self._btn_clear_cache = QPushButton(f"🗑  {tr('Clear')}")
+        self._btn_clear_cache.setObjectName("config_btn")
+        self._btn_clear_cache.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_clear_cache.setToolTip(tr("Delete downloaded Digital Elevation Models"))
+        self._btn_clear_cache.clicked.connect(self._clear_dem_cache)
+        self._sb_layout.addWidget(self._btn_clear_cache)
 
-        # ── page stack ──
+        self._sb_layout.addStretch()
+        root.addWidget(self._sidebar_scroll)
+
+        # ── stack ──
         self._stack = QStackedWidget()
         root.addWidget(self._stack, stretch=1)
 
@@ -308,11 +325,12 @@ class MainWindow(QMainWindow):
     def _set_logo(self, full: bool):
         if not self._logo_path.exists():
             return
-        width = 180 if full else 36
+        width = 180 if full else 40
         px = QPixmap(str(self._logo_path)).scaledToWidth(
             width, Qt.TransformationMode.SmoothTransformation
         )
         self._logo_lbl.setPixmap(px)
+        self._logo_lbl.setMinimumSize(px.size())
 
     def _update_language_flag(self) -> None:
         lang = get_language()
@@ -407,6 +425,30 @@ class MainWindow(QMainWindow):
                 trf("Could not write configuration file:\n{exc}", exc=exc),
             )
 
+    def _clear_dem_cache(self) -> None:
+        from montu_gui.utils.bundle_paths import dem_cache_dir
+        import shutil
+
+        cache_dir = dem_cache_dir()
+        if not cache_dir.exists() or not any(cache_dir.iterdir()):
+            QMessageBox.information(self, tr("Clear cache"), tr("Cache is already empty."))
+            return
+
+        reply = QMessageBox.question(
+            self,
+            tr("Clear cache"),
+            trf("Are you sure you want to delete all downloaded DEM tiles in {name}?", name=cache_dir.name),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            try:
+                shutil.rmtree(cache_dir)
+                cache_dir.mkdir(parents=True, exist_ok=True)
+                QMessageBox.information(self, tr("Clear cache"), tr("Cache cleared successfully."))
+            except Exception as e:
+                QMessageBox.critical(self, tr("Clear cache"), trf("Failed to clear cache: {error}", error=str(e)))
+
     def _reset_configuration(self) -> None:
         answer = QMessageBox.question(
             self,
@@ -437,7 +479,8 @@ class MainWindow(QMainWindow):
 
     def _update_sidebar(self, key: str):
         on_home = key == "home"
-        self._sidebar.setFixedWidth(SIDEBAR_FULL if on_home else SIDEBAR_COMPACT)
+        self._sidebar_scroll.setFixedWidth(SIDEBAR_FULL if on_home else SIDEBAR_COMPACT)
+        self._sidebar.setMaximumWidth(SIDEBAR_FULL if on_home else SIDEBAR_COMPACT)
         self._sidebar.setProperty("compact", not on_home)
         self._sidebar.style().unpolish(self._sidebar)
         self._sidebar.style().polish(self._sidebar)
@@ -456,6 +499,8 @@ class MainWindow(QMainWindow):
         self._sidebar_sep.setVisible(on_home)
         self._btn_save_config.setVisible(on_home)
         self._btn_reset_config.setVisible(on_home)
+        if hasattr(self, "_btn_clear_cache"):
+            self._btn_clear_cache.setVisible(on_home)
         if hasattr(self, "_config_sep"):
             self._config_sep.setVisible(on_home)
 

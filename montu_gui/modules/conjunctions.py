@@ -82,6 +82,9 @@ class ConjunctionPlotResult:
     ok: bool
     html: str = ""
     error: str = ""
+    conj: Any | None = None
+    start_jed: float | None = None
+    step_hours: float | None = None
 
 
 @dataclass
@@ -247,7 +250,13 @@ def build_conjunction_lapse_plot(conj) -> ConjunctionPlotResult:
                 ok=False,
                 error=tr("Could not build the conjunction lapse chart."),
             )
-        return ConjunctionPlotResult(ok=True, html=figure_to_html(fig))
+        return ConjunctionPlotResult(
+            ok=True,
+            html=figure_to_html(fig),
+            conj=conj,
+            start_jed=start.jed,
+            step_hours=1.0,
+        )
     except Exception as exc:
         return ConjunctionPlotResult(ok=False, error=str(exc))
 

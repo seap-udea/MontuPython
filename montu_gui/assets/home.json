@@ -1,5 +1,7 @@
 {
   "configuration": {
+    "clear_en": "Deletes downloaded Digital Elevation Models to free up disk space.",
+    "clear_es": "Elimina los Modelos de Elevación Digital descargados para liberar espacio en disco.",
     "reset_en": "Restores factory defaults. Use this to start fresh.",
     "reset_es": "Restaura los valores de fabrica. Útil para comenzar de cero.",
     "save_en": "Saves all module parameters and the observer location to your personal settings file. Restored automatically on the next launch.",
@@ -53,11 +55,26 @@
       "title_es": "Ubicación del observador"
     },
     {
-      "description_en": "Azimuthal sky maps with precessed stars, asterisms, ecliptic, horizon, and solar-system bodies.",
-      "description_es": "Mapas azimutales con estrellas precesadas, asterismos, ecliptica, horizonte y cuerpos del sistema solar.",
-      "icon": "🌌",
-      "title_en": "Sky Map",
-      "title_es": "Mapa del cielo"
+      "description_en": "Find first visible morning appearances of named stars and planets using Schaefer or Belokrylov visibility models. For a list of historical Sirius heliacal rises see this link.",
+      "description_es": "Encuentra primeras apariciones matutinas visibles de estrellas y planetas usando modelos de visibilidad de Schaefer o Belokrylov. Para ver una lista de ortos helíacos históricos de Sirio, consulta este enlace.",
+      "icon": "🌅",
+      "title_en": "Heliacal Rises",
+      "title_es": "Ortos helíacos"
+    },
+    {
+      "description_en": "Lists solar eclipses from the NASA Five Millennium Catalog. Computes local circumstances and totality-path maps for an observer site.",
+      "description_es": "Lista eclipses solares del Catálogo NASA de cinco milenios. Calcula circunstancias locales y mapas de trayectoria para el observador.",
+      "module_key": "solar_eclipses",
+      "title_en": "Solar Eclipses Finder",
+      "title_es": "Buscador de eclipses solares"
+    },
+    {
+      "description_en": "Find angular conjunctions among the Sun, Moon, classical planets, and named bright stars over a date interval.",
+      "description_es": "Encuentra conjunciones angulares entre el Sol, la Luna, planetas clásicos y estrellas brillantes en un intervalo histórico.",
+      "icon": "✨",
+      "module_key": "conjunctions",
+      "title_en": "Astronomical Conjunctions",
+      "title_es": "Conjunciones astronómicas"
     },
     {
       "description_en": "Exact dates of the four astronomical seasons and all lunar phases for any historical year.",
@@ -88,26 +105,11 @@
       "title_es": "Alineamientos estelares"
     },
     {
-      "description_en": "Find first visible morning appearances of named stars and planets using Schaefer or Belokrylov visibility models. For a list of historical Sirius heliacal rises see this link.",
-      "description_es": "Encuentra primeras apariciones matutinas visibles de estrellas y planetas usando modelos de visibilidad de Schaefer o Belokrylov. Para ver una lista de ortos helíacos históricos de Sirio, consulta este enlace.",
-      "icon": "🌅",
-      "title_en": "Heliacal Rises",
-      "title_es": "Ortos helíacos"
-    },
-    {
-      "description_en": "Lists solar eclipses from the <a href=\"https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html\">NASA Five Millennium Catalog of Solar Eclipses</a> (−1999 to +3000) by Fred Espenak and Jean Meeus (<a href=\"https://eclipse.gsfc.nasa.gov/\">NASA/GSFC Eclipse Web Site</a>). When you choose an observer site, MontuPython computes local circumstances from the catalogue Besselian elements. Totality-path and local-circumstance maps open the interactive tools of <a href=\"http://xjubier.free.fr/en/site_pages/Solar_Eclipses.html\">Xavier Jubier</a>.",
-      "description_es": "Lista eclipses solares del <a href=\"https://eclipse.gsfc.nasa.gov/SEpubs/5MCSE.html\">Catálogo NASA de eclipses solares de cinco milenios</a> (−1999 a +3000) de Fred Espenak y Jean Meeus (<a href=\"https://eclipse.gsfc.nasa.gov/\">sitio de eclipses NASA/GSFC</a>). Al elegir un sitio de observación, MontuPython calcula las circunstancias locales a partir de los elementos besselianos del catálogo. Los mapas de la zona de totalidad y de circunstancias locales abren las herramientas interactivas de <a href=\"http://xjubier.free.fr/en/site_pages/Solar_Eclipses.html\">Xavier Jubier</a>.",
-      "module_key": "solar_eclipses",
-      "title_en": "Solar Eclipses Finder",
-      "title_es": "Buscador de eclipses solares"
-    },
-    {
-      "description_en": "Find angular conjunctions among the Sun, Moon, classical planets, and named bright stars over a historical date interval. Geocentric search by default; choose a site for local time and visibility at closest approach.",
-      "description_es": "Encuentra conjunciones angulares entre el Sol, la Luna, planetas clásicos y estrellas brillantes con nombre en un intervalo histórico. Búsqueda geocéntrica por defecto; elige un sitio para hora local y visibilidad en la mínima separación.",
-      "icon": "✨",
-      "module_key": "conjunctions",
-      "title_en": "Astronomical Conjunctions",
-      "title_es": "Conjunciones astronómicas"
+      "description_en": "Azimuthal sky maps with precessed stars, asterisms, ecliptic, horizon, and solar-system bodies.",
+      "description_es": "Mapas azimutales con estrellas precesadas, asterismos, ecliptica, horizonte y cuerpos del sistema solar.",
+      "icon": "🌌",
+      "title_en": "Sky Map",
+      "title_es": "Mapa del cielo"
     }
   ],
   "paragraphs_en": [

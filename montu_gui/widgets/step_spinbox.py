@@ -155,6 +155,7 @@ class StepDoubleSpinBox(QWidget):
         self._step = 1.0
         self._decimals = 1
         self._suffix = ""
+        self._special_value_text = ""
         self._syncing = False
         self._value = 0.0
 
@@ -188,6 +189,10 @@ class StepDoubleSpinBox(QWidget):
         self._suffix = suffix
         self._refresh_display(self._value)
 
+    def setSpecialValueText(self, text: str):
+        self._special_value_text = text
+        self._refresh_display(self._value)
+
     def setMinimumWidth(self, width: int):
         self.edit.setMinimumWidth(width)
 
@@ -206,11 +211,15 @@ class StepDoubleSpinBox(QWidget):
             self._syncing = False
 
     def _format(self, value: float) -> str:
+        if self._special_value_text and value <= self._min:
+            return self._special_value_text
         text = f"{value:.{self._decimals}f}"
         return f"{text}{self._suffix}"
 
     def _parse_text(self, text: str) -> float | None:
         raw = text.strip()
+        if self._special_value_text and raw == self._special_value_text:
+            return self._min
         suffix = self._suffix.strip()
         if suffix and raw.endswith(suffix):
             raw = raw[: -len(suffix)].strip()

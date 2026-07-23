@@ -68,6 +68,10 @@ QPushButton:hover {{
 QPushButton:pressed {{
     background-color: {PALETTE['border']};
 }}
+QPushButton#config_btn {{
+    font-size: 11px;
+    padding: 4px 6px;
+}}
 QPushButton#primary {{
     background-color: {PALETTE['accent']};
     color: white;

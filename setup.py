@@ -73,6 +73,7 @@ setuptools.setup(
         'regex', 'pandas', 'tabulate',
         'requests',
         'dash', 'dash_bootstrap_components',
+        'rasterio',
     ],
 
     extras_require={

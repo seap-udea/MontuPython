@@ -13,7 +13,7 @@ from datetime import date
 from PySide6.QtCore import Qt, QUrl, Signal
 from PySide6.QtGui import QDesktopServices, QFont, QPixmap
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QPushButton,
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QSizePolicy, QPushButton,
     QScrollArea, QFrame,
 )
 
@@ -121,7 +121,9 @@ def _module_row(
     lay.setSpacing(10)
 
     icon_width = max(36, title_size + 16)
-    pixmap = module_home_pixmap(module_key, size=icon_width) if module_key else None
+    # Emojis are roughly 24-28px. If we have a pixmap, scale it down slightly so it matches.
+    pixmap_size = int(icon_width * 0.75)
+    pixmap = module_home_pixmap(module_key, size=pixmap_size) if module_key else None
     if pixmap is not None:
         icon_lbl = QLabel()
         icon_lbl.setPixmap(pixmap)
@@ -314,17 +316,23 @@ class HomePage(QWidget):
 
         mod_title_size = self._font_size("module_title", 14)
         mod_body_size = self._font_size("module_body", 13)
-        for mod in self._content.get("modules", []):
-            root.addWidget(
-                _module_row(
-                    mod.get("icon", "•"),
-                    mod.get("title", ""),
-                    mod.get("description", ""),
-                    module_key=str(mod.get("module_key", "")),
-                    title_size=mod_title_size,
-                    body_size=mod_body_size,
-                )
+        
+        modules_grid = QGridLayout()
+        modules_grid.setContentsMargins(0, 0, 0, 0)
+        modules_grid.setSpacing(10)
+        
+        for i, mod in enumerate(self._content.get("modules", [])):
+            widget = _module_row(
+                mod.get("icon", ""),
+                mod.get("title", ""),
+                mod.get("description", ""),
+                title_size=mod_title_size,
+                body_size=mod_body_size,
+                module_key=mod.get("module_key", ""),
             )
+            modules_grid.addWidget(widget, i // 2, i % 2)
+            
+        root.addLayout(modules_grid)
 
         root.addSpacing(6)
 
@@ -343,6 +351,7 @@ class HomePage(QWidget):
 
             save_text = cfg.get("save", "")
             reset_text = cfg.get("reset", "")
+            clear_text = cfg.get("clear", "")
             if save_text:
                 root.addWidget(
                     _rich_label(
@@ -355,6 +364,14 @@ class HomePage(QWidget):
                 root.addWidget(
                     _rich_label(
                         f"↺ <b>Reset configuration</b> — {reset_text}",
+                        object_name="home_body",
+                        point_size=mod_body_size,
+                    )
+                )
+            if clear_text:
+                root.addWidget(
+                    _rich_label(
+                        f"🗑 <b>Clear cache</b> — {clear_text}",
                         object_name="home_body",
                         point_size=mod_body_size,
                     )

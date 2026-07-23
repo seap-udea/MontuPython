@@ -342,20 +342,6 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
 
         left_lay.addWidget(module_brand("orient_disk"))
 
-        # ── reference year ────────────────────────────────────────────────────
-        year_box = QGroupBox(tr("Reference year"))
-        year_lay = QVBoxLayout(year_box)
-        year_lay.setSpacing(6)
-        self._year_input = _YearEraInput(DEFAULT_YEAR, DEFAULT_ERA)
-        year_lay.addLayout(
-            _field_col(
-                "Reference year",
-                "reference_year",
-                self._year_input,
-            ),
-        )
-        left_lay.addWidget(year_box)
-
         # ── observer ──────────────────────────────────────────────────────────
         loc_box = QGroupBox(tr("Observer"))
         loc_lay = QVBoxLayout(loc_box)
@@ -373,6 +359,20 @@ class OrientationDiskPage(LazyPageMixin, QWidget):
         note.setStyleSheet("color:#888; font-size:11px;")
         loc_lay.addWidget(note)
         left_lay.addWidget(loc_box)
+
+        # ── reference year ────────────────────────────────────────────────────
+        year_box = QGroupBox(tr("Reference year"))
+        year_lay = QVBoxLayout(year_box)
+        year_lay.setSpacing(6)
+        self._year_input = _YearEraInput(DEFAULT_YEAR, DEFAULT_ERA)
+        year_lay.addLayout(
+            _field_col(
+                "Reference year",
+                "reference_year",
+                self._year_input,
+            ),
+        )
+        left_lay.addWidget(year_box)
 
         # ── bodies ────────────────────────────────────────────────────────────
         bodies_box = QGroupBox(tr("Celestial bodies"))

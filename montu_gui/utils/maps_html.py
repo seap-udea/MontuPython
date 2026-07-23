@@ -74,6 +74,7 @@ def build_map_html(
   crossorigin=""></script>
 <script>
 let map, marker, bridge;
+let horizonLayer = null;
 
 function setMarker(lat, lng) {{
   const pos = [lat, lng];
@@ -111,6 +112,21 @@ function initMap() {{
 
 window.updateMarker = function(lat, lng) {{
   if (map) setMarker(lat, lng);
+}};
+
+window.drawHorizon = function(lats, lngs) {{
+  if (!map) return;
+  if (horizonLayer) {{
+    map.removeLayer(horizonLayer);
+    horizonLayer = null;
+  }}
+  if (!lats || !lngs || lats.length === 0) return;
+
+  const latlngs = [];
+  for (let i = 0; i < lats.length; i++) {{
+    latlngs.push([lats[i], lngs[i]]);
+  }}
+  horizonLayer = L.polyline(latlngs, {{color: 'red', weight: 2}}).addTo(map);
 }};
 
 initMap();

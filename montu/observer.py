@@ -199,6 +199,9 @@ class Observer(object):
         self.site.temp = self.temperature
         self.site.elevation = self.height
 
+        # Horizon profile (populated by horizon_profile())
+        self.horizon = None
+
     def __repr__(self):
         alt_m = self.height * 1000.0
         coords = f"{self.lat:.6f}°, {self.lon:.6f}°, {alt_m:.0f} m"
@@ -298,7 +301,8 @@ class Observer(object):
         # representation and can shift the clock hour by many hours.
         utc_hour = ((mtime.jed + 0.5) % 1.0) * 24.0
         hour = (utc_hour + self.lon / 15.0) % 24.0
-        return montu.D2S(hour) if hms else hour
+        from montu.util import Util
+        return Util.dec2sex(hour) if hms else hour
 
     def sidereal_time(self, mtime, hms=True):
         """Compute local apparent sidereal time at the observing site.
@@ -386,3 +390,70 @@ class Observer(object):
         raise ValueError(
             f"Unknown units {units!r}; use 'km', 'm', 'rad', or 'deg'."
         )
+
+    def horizon_profile(self,
+                        max_dist:    float = 30.0,
+                        az_step:     float = 1.0,
+                        coarse_step: float = 3.0,
+                        tmpdir:      str   = "./montu_dem",
+                        site_name:   str   = None,
+                        verbose:     bool  = False) -> "montu.Horizon":
+        """Compute the real visible horizon profile for this observing site.
+
+        Downloads the Copernicus GLO-30 DEM (30 m/pixel) automatically and
+        runs a two-phase radial scan (coarse + fine refinement) to find the
+        maximum elevation angle at each azimuth direction.
+
+        The result is stored in ``self.horizon`` as a :class:`~montu.Horizon`
+        object and is also returned.
+
+        Parameters
+        ----------
+        max_dist : float
+            Maximum search radius [km]. Default: 30.
+        az_step : float
+            Azimuth resolution [degrees]. Default: 1.
+        coarse_step : float
+            Spacing of the coarse radial scan [km]. Default: 3.
+        tmpdir : str
+            Directory for caching DEM tiles and the merged mosaic.
+            Created automatically if it does not exist.
+            Default: ``'./montu_dem'``.
+        site_name : str, optional
+            Name for the site to display in the plot title. If not provided,
+            uses the observer's site name or defaults to 
+            ``"MontuSite (lat. <lat>, lon. <lon>, alt. <alt.>)"``.
+        verbose : bool
+            If True, prints detailed progress. If False (default), 
+            prints a single message "Obteniendo el perfil del horizonte...".
+
+        Returns
+        -------
+        Horizon
+            The computed :class:`~montu.Horizon` object (also stored as
+            ``self.horizon``).
+
+        Examples
+        --------
+        >>> import montu
+        >>> udea = montu.Observer(lat=6.266152, lon=-75.569335, height=1.468)
+        >>> udea.horizon_profile()                 # download DEM & compute
+        >>> udea.horizon.get_elevation(90)         # elevation looking East
+        >>> udea.horizon.plot_horizon()            # interactive Plotly chart
+
+        >>> # Higher resolution, larger area
+        >>> udea.horizon_profile(max_dist=40, az_step=0.5, coarse_step=2)
+        """
+        alt_m = self.height * 1000.0
+        
+        if site_name is None:
+            site_name = self.site_name or self.site_id
+            if not site_name:
+                site_name = f"MontuSite (lat. {self.lat}, lon. {self.lon}, alt. {alt_m})"
+                
+        h = montu.Horizon(lat=self.lat, lon=self.lon, alt_m=alt_m,
+                          site_name=site_name, observer=self)
+        h.get_profile(max_dist=max_dist, az_step=az_step,
+                      coarse_step=coarse_step, tmpdir=tmpdir, verbose=verbose)
+        self.horizon = h
+        return h

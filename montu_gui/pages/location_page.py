@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QComboBox, QSizePolicy, QFrame, QSplitter,
     QGroupBox, QScrollArea, QRadioButton, QButtonGroup, QCompleter,
-    QStackedWidget, QGridLayout,
+    QStackedWidget, QGridLayout, QCheckBox, QApplication
 )
 
 _HERE = Path(__file__).parent.parent
@@ -29,6 +29,8 @@ from montu_gui.modules.location import (
     format_dms,
     fetch_elevation_m,
     ObserverCoords,
+    populate_predefined_sites_combo,
+    format_location_label,
 )
 from montu_gui.utils.debug import log_ui_event
 from montu_gui.utils.i18n import tr, trf
@@ -43,6 +45,8 @@ from montu_gui.widgets.lets_python_dialog import (
     LetsPythonDialog, LetsPythonExample, make_lets_python_button_row,
 )
 from montu_gui.widgets.module_brand import module_brand
+from montu_gui.widgets.horizon_plot_dialog import HorizonPlotDialog
+import montu
 
 HELP_MODULE = "location"
 _COORDS_PANEL_RATIO = 0.30
@@ -157,6 +161,7 @@ class LocationPage(LazyPageMixin, QWidget):
         self._apply_timer.setInterval(_APPLY_DEBOUNCE_MS)
         self._apply_timer.timeout.connect(self._apply_location)
         self._map_online = False
+        self._cached_horizon = None
         self._build_ui()
         self._map.set_label_lang(get_map_label_lang())
         self._load_from_state(self._state.coords)
@@ -221,13 +226,7 @@ class LocationPage(LazyPageMixin, QWidget):
         params_lay.setSpacing(12)
 
         self._loc_combo = QComboBox()
-        self._loc_combo.setEditable(True)
-        names = [loc.name for loc in self._locations]
-        self._loc_combo.addItems(names)
-        completer = QCompleter(names, self)
-        completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
-        completer.setFilterMode(Qt.MatchFlag.MatchContains)
-        self._loc_combo.setCompleter(completer)
+        populate_predefined_sites_combo(self._loc_combo, self._locations, editable=True)
         params_lay.addLayout(_field_stack(
             "Predefined site:", "predefined", self._loc_combo,
         ))
@@ -284,6 +283,42 @@ class LocationPage(LazyPageMixin, QWidget):
         params_lay.addWidget(self._summary)
 
         left_lay.addWidget(params_box)
+        
+        # Horizon calculation section
+        horizon_box = QGroupBox(tr("Horizon calculation"))
+        horizon_lay = QVBoxLayout(horizon_box)
+        horizon_lay.setSpacing(12)
+
+        warning_lbl = QLabel(tr("Warning: The horizon calculation requires an internet connection and downloads files that remain on the hard drive (max. 100 MB per site)."))
+        warning_lbl.setWordWrap(True)
+        warning_lbl.setStyleSheet("color: #d97706; font-weight: bold;")
+        horizon_lay.addWidget(warning_lbl)
+
+        self._hor_max_dist = QLineEdit("50")
+        horizon_lay.addLayout(_field_stack("Max distance (km):", "horizon_max_distance", self._hor_max_dist))
+
+        self._hor_az_step = QLineEdit("1.0")
+        horizon_lay.addLayout(_field_stack("Azimuth step (°):", "horizon_az_step", self._hor_az_step))
+
+        self._hor_coarse = QLineEdit("3.0")
+        horizon_lay.addLayout(_field_stack("Coarse step (km):", "horizon_coarse_step", self._hor_coarse))
+
+        self._btn_calc_horizon = QPushButton(tr("Calculate horizon"))
+        self._btn_calc_horizon.clicked.connect(self._on_calculate_horizon)
+        horizon_lay.addWidget(self._btn_calc_horizon)
+
+        self._chk_show_map = QCheckBox(tr("Show on map"))
+        self._chk_show_map.setVisible(False)
+        self._chk_show_map.toggled.connect(self._on_show_map_toggled)
+        horizon_lay.addWidget(self._chk_show_map)
+
+        self._btn_show_plot = QPushButton(tr("Show horizon plot"))
+        self._btn_show_plot.setVisible(False)
+        self._btn_show_plot.clicked.connect(self._on_show_plot_clicked)
+        horizon_lay.addWidget(self._btn_show_plot)
+
+        left_lay.addWidget(horizon_box)
+
         left_lay.addLayout(make_lets_python_button_row(self._show_lets_python))
         left_lay.addStretch()
         left_scroll.setWidget(left_inner)
@@ -322,14 +357,14 @@ class LocationPage(LazyPageMixin, QWidget):
 
         self._loc_combo.currentTextChanged.connect(self._on_preset_selected)
         self._fmt_group.idClicked.connect(self._on_format_changed)
-        self._lat_dec.textChanged.connect(self._schedule_apply)
-        self._lon_dec.textChanged.connect(self._schedule_apply)
-        self._alt.textChanged.connect(self._schedule_apply)
+        self._lat_dec.editingFinished.connect(self._schedule_apply)
+        self._lon_dec.editingFinished.connect(self._schedule_apply)
+        self._alt.editingFinished.connect(self._schedule_apply)
         for w in (self._lat_dms._deg, self._lat_dms._min, self._lat_dms._sec):
-            w.textChanged.connect(self._schedule_apply)
+            w.editingFinished.connect(self._schedule_apply)
         self._lat_dms._hemi.currentIndexChanged.connect(self._schedule_apply)
         for w in (self._lon_dms._deg, self._lon_dms._min, self._lon_dms._sec):
-            w.textChanged.connect(self._schedule_apply)
+            w.editingFinished.connect(self._schedule_apply)
         self._lon_dms._hemi.currentIndexChanged.connect(self._schedule_apply)
         self._map.map_clicked.connect(self._on_map_click)
         self._map_lang.currentIndexChanged.connect(self._on_map_lang_changed)
@@ -375,7 +410,7 @@ class LocationPage(LazyPageMixin, QWidget):
 
     def _find_by_name(self, name: str):
         for loc in self._locations:
-            if loc.name == name:
+            if loc.name == name or format_location_label(loc) == name:
                 return loc
         return None
 
@@ -438,6 +473,13 @@ class LocationPage(LazyPageMixin, QWidget):
             self._syncing = False
             self.status_message.emit(f"Error: {err}")
             return
+            
+        self._cached_horizon = None
+        if hasattr(self, '_chk_show_map'):
+            self._chk_show_map.setChecked(False)
+            self._chk_show_map.setVisible(False)
+            self._btn_show_plot.setVisible(False)
+            self._map.clear_horizon()
 
         self._fill_fields(lat, lon, alt_m, name, loc_id)
         self._syncing = False
@@ -481,12 +523,57 @@ class LocationPage(LazyPageMixin, QWidget):
                 tr("Map click: coordinates set (Open-Elevation unavailable - altitude kept).")
             )
 
+    def _on_calculate_horizon(self):
+        self.status_message.emit(tr("Calculating horizon (this may take a few seconds)..."))
+        QApplication.processEvents()
+        try:
+            max_d = float(self._hor_max_dist.text() or "30")
+            az_step = float(self._hor_az_step.text() or "1")
+            coarse = float(self._hor_coarse.text() or "3")
+            
+            coords = self._state.coords
+            horizon = montu.Horizon(lat=coords.lat, lon=coords.lon, alt_m=coords.alt_m, site_name=coords.name)
+            
+            import sys
+            from montu_gui.utils.bundle_paths import dem_cache_dir
+            cache_dir = str(dem_cache_dir())
+            
+            horizon.get_profile(max_dist=max_d, az_step=az_step, coarse_step=coarse, tmpdir=cache_dir, verbose=True)
+            self._cached_horizon = horizon
+            
+            self._chk_show_map.setVisible(True)
+            self._chk_show_map.setEnabled(True)
+            self._btn_show_plot.setVisible(True)
+            self._btn_show_plot.setEnabled(True)
+            
+            if self._chk_show_map.isChecked():
+                self._map.draw_horizon(self._cached_horizon.lathorizon.tolist(), self._cached_horizon.longhorizon.tolist())
+                
+            self.status_message.emit(tr("Horizon calculation complete."))
+        except Exception as e:
+            self.status_message.emit(f"Error calculating horizon: {e}")
+        log_ui_event("calculate_horizon_clicked")
+
+    def _on_show_map_toggled(self, checked: bool):
+        if self._cached_horizon is None:
+            return
+        if checked:
+            self._map.draw_horizon(self._cached_horizon.lathorizon.tolist(), self._cached_horizon.longhorizon.tolist())
+        else:
+            self._map.clear_horizon()
+
+    def _on_show_plot_clicked(self):
+        if self._cached_horizon is None:
+            return
+        dlg = HorizonPlotDialog(self._cached_horizon, self.window())
+        dlg.exec()
+
     def _load_from_state(self, coords: ObserverCoords):
         self._syncing = True
         if coords.location_id:
             entry = find_location(coords.location_id)
             if entry:
-                idx = self._loc_combo.findText(entry.name)
+                idx = self._loc_combo.findData(entry.id)
                 if idx >= 0:
                     self._loc_combo.setCurrentIndex(idx)
         self._fill_fields(coords.lat, coords.lon, coords.alt_m, coords.name, coords.location_id)

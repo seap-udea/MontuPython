@@ -50,7 +50,12 @@ from montu_gui.modules.conjunctions import (
     load_localized_historical_conjunctions,
 )
 from montu_gui.utils.date_interval import display_date_field
-from montu_gui.modules.location import find_location, format_location_label, load_locations
+from montu_gui.modules.location import (
+    find_location,
+    format_location_label,
+    load_locations,
+    populate_predefined_sites_combo
+)
 from montu_gui.modules.orientation_disk import (
     BODY_EMOJIS,
     DEFAULT_MAG_LIMIT,
@@ -357,10 +362,7 @@ class ConjunctionsPage(LazyPageMixin, QWidget):
         )
 
         self._site_combo = QComboBox()
-        self._site_combo.addItem(tr("Geocenter"), GEOCENTER_ID)
-        for entry in sorted(self._locations, key=lambda loc: loc.name.casefold()):
-            self._site_combo.addItem(format_location_label(entry), entry.id)
-        _configure_location_combo(self._site_combo)
+        populate_predefined_sites_combo(self._site_combo, self._locations, default_option="Geocenter", default_option_data=GEOCENTER_ID)
         self._site_combo.currentIndexChanged.connect(self._on_site_changed)
         self._site_combo.currentIndexChanged.connect(self._update_site_tooltip)
         self._update_site_tooltip()

@@ -32,7 +32,12 @@ from PySide6.QtWidgets import (
 _HERE = Path(__file__).parent.parent
 sys.path.insert(0, str(_HERE.parent))
 
-from montu_gui.modules.location import find_location, format_location_label, load_locations
+from montu_gui.modules.location import (
+    find_location,
+    format_location_label,
+    load_locations,
+    populate_predefined_sites_combo,
+)
 from montu_gui.modules.solar_eclipses import (
     DEFAULT_ERA_END,
     DEFAULT_ERA_START,
@@ -380,10 +385,7 @@ class SolarEclipsesPage(LazyPageMixin, QWidget):
         )
 
         self._site_combo = QComboBox()
-        self._site_combo.addItem(tr(_OPTIONAL_SITE_LABEL), "")
-        for entry in sorted(self._locations, key=lambda loc: loc.name.casefold()):
-            self._site_combo.addItem(format_location_label(entry), entry.id)
-        _configure_location_combo(self._site_combo)
+        populate_predefined_sites_combo(self._site_combo, self._locations, default_option=_OPTIONAL_SITE_LABEL)
         self._site_combo.currentIndexChanged.connect(self._on_site_changed)
         self._site_combo.currentIndexChanged.connect(self._update_site_tooltip)
         self._update_site_tooltip()
