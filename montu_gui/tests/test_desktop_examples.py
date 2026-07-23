@@ -76,6 +76,7 @@ def test_all_module_examples_are_present():
         "heliacal_rise.py",
         "solar_eclipses.py",
         "conjunctions.py",
+        "horizon_astronomy.py",
     }
     found = {path.name for path in ENGLISH_EXAMPLE_SCRIPTS}
     assert found == expected
