@@ -73,6 +73,13 @@ def _download_tile(lat: int, lon: int, tile_dir: Path, verbose: bool = False) ->
     url = _tile_url(lat, lon)
     if verbose: print(f"  ↓  {name}")
     try:
+        import ssl
+        if hasattr(ssl, '_create_unverified_context'):
+            ssl._create_default_https_context = ssl._create_unverified_context
+    except Exception:
+        pass
+
+    try:
         urllib.request.urlretrieve(url, dest, reporthook=_progress_bar)
         if verbose: print()
         return dest
