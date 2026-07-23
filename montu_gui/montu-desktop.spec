@@ -53,6 +53,8 @@ for example_py in sorted(examples_dir.glob("*.py")):
 
 hiddenimports = collect_submodules("montu")
 hiddenimports += collect_submodules("montu_gui")
+hiddenimports += collect_submodules("rasterio")
+hiddenimports += collect_submodules("scipy")
 hiddenimports += [
     "PySide6.QtWebEngineWidgets",
     "PySide6.QtWebChannel",
@@ -66,8 +68,6 @@ hiddenimports += [
     "pygments",
     "pygments.lexers",
     "pygments.formatters",
-    "rasterio",
-    "scipy.ndimage",
 ]
 
 excludes = [

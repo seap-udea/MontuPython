@@ -101,8 +101,8 @@ def _merge_tiles(tile_paths: list, output: Path, verbose: bool = False) -> None:
     try:
         import rasterio
         from rasterio.merge import merge
-    except ImportError:
-        raise ImportError("Install rasterio: pip install rasterio")
+    except ImportError as e:
+        raise ImportError(f"Install rasterio (ImportError: {e}): pip install rasterio")
     if len(tile_paths) == 1:
         import shutil
         shutil.copy2(tile_paths[0], output)
@@ -146,8 +146,8 @@ def _fetch_elevations_tiff(coords: list, tiff_path: Path) -> list:
         import rasterio
         import numpy as np
         from scipy.ndimage import map_coordinates
-    except ImportError:
-        raise ImportError("Install rasterio and scipy")
+    except ImportError as e:
+        raise ImportError(f"Install rasterio and scipy (ImportError: {e})")
     
     import warnings
     with warnings.catch_warnings():
