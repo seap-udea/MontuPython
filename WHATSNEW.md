@@ -3,10 +3,9 @@
 This file collects the release notes and the main changes in MontuPython.
 
 ## Version 0.42.0 (major)
+
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
 - **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
-
-
 - **Cached stellar catalogue** — when loading the stellar catalogue in a session, the package check if the catalogue was already loaded. If so, it will return the cached catalogue instead of loading it again.
 - **Senenmut's "Montunction"** — added the BCE 1466-12-06 Mars–Aldebaran historical conjunction to `montu/data/historical-conjunctions.json`, featuring its occurrence near a marsticio and winter solstice according to Francisco Vivas' research.
 - **`montu.Horizon` & `Observer.horizon_profile()`** — computes the real topographic horizon profile (elevation vs. azimuth) for any observer by automatically downloading, mosaicking, and caching Copernicus GLO-30 DEM tiles.

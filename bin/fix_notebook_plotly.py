@@ -14,6 +14,15 @@ def fix_plotly_notebook(path):
             for out in cell.outputs:
                 if 'data' in out and 'application/vnd.plotly.v1+json' in out['data']:
                     plotly_data = out['data']['application/vnd.plotly.v1+json']
+                    
+                    # Upgrade scattermapbox to scattermap (MapLibre) to avoid blank maps in Sphinx
+                    import json
+                    json_str = json.dumps(plotly_data)
+                    json_str = json_str.replace('"scattermapbox"', '"scattermap"')
+                    json_str = json_str.replace('"mapbox"', '"map"')
+                    json_str = json_str.replace('"mapbox_style"', '"map_style"')
+                    plotly_data = json.loads(json_str)
+
                     fig = go.Figure(plotly_data)
                     # Force overwrite with 'cdn' version to ensure it works on ReadTheDocs without require.js dependencies
                     html = pio.to_html(fig, include_plotlyjs='cdn', full_html=False)
