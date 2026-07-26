@@ -88,6 +88,9 @@ class Observer(object):
         Relative humidity of the air (0–1). Default is 0.
     obswl : float, optional
         Observing wavelength [microns]. Default is 0.6.
+    horizon_profile : dict, optional
+        Dictionary of arguments to pass to :meth:`horizon_profile` to automatically
+        compute the topographical horizon upon instantiation. Default is ``None``.
 
     Attributes
     ----------
@@ -141,6 +144,17 @@ class Observer(object):
     "Observer('memphis'/'Memphis'/29.845800°, 31.250800°, 25 m/P=1010.25 mbar, T=21.6 °C)"
     >>> montu.Observer.list()[:3]
     ['thebes', 'memphis', 'giza']
+
+    Create an observer and compute its horizon profile automatically:
+
+    >>> amarna = montu.Observer(
+    ...     site='amarna',
+    ...     horizon_profile=dict(
+    ...         max_dist=50,
+    ...         az_step=0.5,
+    ...         coarse_step=0.1,
+    ...     )
+    ... )
     """
     def __init__(self,
                  lon=None, lat=None, height=None,
