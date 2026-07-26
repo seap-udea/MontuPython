@@ -4,3 +4,7 @@ nbformat
 ipykernel
 build
 twine
+sphinx
+sphinx-rtd-theme
+myst-parser
+nbsphinx

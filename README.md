@@ -170,7 +170,7 @@ import matplotlib.pyplot as plt
 import montu
 ```
 
-    MontuPython version 0.43.3. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.43.4. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -1119,7 +1119,7 @@ print(f"Done in {time.perf_counter() - t0:.1f} s.")
     Precessing 6 stars over 1,000 epochs …
 
 
-    Done in 1.5 s.
+    Done in 1.3 s.
 
 
 Now plot declinations as a function of time:
@@ -1158,12 +1158,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-14 03:12:22.305610 (declination 89:31:55.825)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-16 20:03:50.106176 (declination 86:22:03.656)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-19 03:23:38.299200 (declination 89:56:05.009)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-05 15:32:41.798400 (declination 86:57:15.601)
-    Star Alderamin will be the closest to the pole at 7532-03-04 21:01:57.002880 (declination 87:58:43.013)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-23 11:30:39.902400 (declination 83:29:32.450)
+    Star Polaris will be the closest to the pole at 2086-08-17 12:02:44.298244 (declination 89:31:55.860)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-20 04:54:12.107456 (declination 86:22:03.665)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-22 12:14:00.300512 (declination 89:56:05.102)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-09 00:23:03.799680 (declination 86:57:15.599)
+    Star Alderamin will be the closest to the pole at 7532-03-08 05:52:19.004160 (declination 87:58:43.018)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-26 20:21:01.903680 (declination 83:29:32.452)
 
 
 ### Working with Observer Horizons
@@ -1182,6 +1182,7 @@ print(site.horizon)
 ```
 
     Obtaining horizon profile...
+    Downloading DEMs (digital elevation maps) for this site. This can take a few seconds. Please be patient.
 
 
     Horizon for 'Amarna (Akhetaten)'
