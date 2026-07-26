@@ -239,9 +239,42 @@ def _sothic_civil_days_to_parts(total_days):
 class CalendarDelta:
     """Calendar difference between two :class:`Time` instants.
 
-    Returned by :meth:`Time.diff`.  Supports unpacking as
-    ``years, days, hours, minutes, seconds`` and conversion helpers
-    ``to_days()`` / ``to_years()``.
+    Returned by :meth:`Time.diff`.  This class is **not** intended to
+    be instantiated directly by users; use ``t2 - t1`` or
+    ``t1.diff(t2)`` instead.
+
+    Supports tuple unpacking as
+    ``years, days, hours, minutes, seconds`` and provides conversion
+    helpers :meth:`to_days` and :meth:`to_years`.
+
+    Attributes
+    ----------
+    years : int
+        Whole years in the delta.
+    months : int
+        Remaining whole months after full years.
+    days : int
+        Remaining whole days after full months.
+    hours : int
+        Remaining whole hours after full days.
+    minutes : int
+        Remaining whole minutes after full hours.
+    seconds : int
+        Remaining whole seconds after full minutes.
+
+    Examples
+    --------
+    >>> import montu
+    >>> t1 = montu.Time('-2782-07-20')
+    >>> t2 = montu.Time('-2781-07-20')
+    >>> delta = t1.diff(t2)
+    >>> delta.years, delta.days
+    (1, 0)
+    >>> delta.to_days()   # approximate Julian days
+    365.0...
+    >>> delta.to_years()  # approximate calendar years
+    1.0...
+    >>> years, days, hours, minutes, seconds = delta  # unpack
     """
 
     __slots__ = ('years', 'months', 'days', 'hours', 'minutes', 'seconds', '_jed_days')
@@ -256,9 +289,16 @@ class CalendarDelta:
         self._jed_days = _jed_days
 
     def __iter__(self):
+        """Iterate as ``(years, days, hours, minutes, seconds)``.
+
+        Enables tuple unpacking::
+
+            years, days, hours, minutes, seconds = delta
+        """
         return iter((self.years, self.days, self.hours, self.minutes, self.seconds))
 
     def __neg__(self):
+        """Return a new :class:`CalendarDelta` with all components negated."""
         return CalendarDelta(
             -self.years, -self.months, -self.days,
             -self.hours, -self.minutes, -self.seconds,
@@ -266,10 +306,17 @@ class CalendarDelta:
         )
 
     def __float__(self):
+        """Cast to ``float`` as total elapsed seconds."""
         return self.to_days() * DAY
 
     def to_days(self):
-        """Elapsed Julian days (UTC) between the two instants."""
+        """Elapsed Julian days (UTC) between the two instants.
+
+        Returns
+        -------
+        float
+            Total elapsed time expressed in days.
+        """
         if self._jed_days is not None:
             return self._jed_days
         return (
@@ -278,12 +325,19 @@ class CalendarDelta:
         ) / DAY
 
     def to_years(self):
-        """Approximate difference in calendar years (365-day civil years)."""
+        """Approximate difference in calendar years (365-day civil years).
+
+        Returns
+        -------
+        float
+            Total elapsed time expressed in 365-day calendar years.
+        """
         if self._jed_days is not None:
             return self._jed_days * DAY / CALYEAR
         return self.to_days() * DAY / CALYEAR
 
     def __repr__(self):
+        """Human-readable summary, e.g. ``CalendarDelta(years=1, days=0, ...)``."""
         return (
             f"CalendarDelta(years={self.years}, days={self.days}, "
             f"hours={self.hours}, minutes={self.minutes}, seconds={self.seconds})"
@@ -291,8 +345,44 @@ class CalendarDelta:
 
 
 class ReadableTime(montu.Dictobj):
-    """Represent all human-readable string representations of a Time object,
-    populating them on demand when accessed.
+    """Human-readable string representations of a :class:`Time` instant.
+
+    This object is created automatically as the ``readable`` attribute of
+    every :class:`Time` instance.  Attributes are populated lazily — they
+    are computed only the first time any readable field is accessed.
+
+    This class is **not** intended to be instantiated directly.  Access it
+    via ``mtime.readable``.
+
+    Attributes (available after first access)
+    ------------------------------------------
+    datepro : str
+        Proleptic Gregorian date string, e.g. ``'-1000-03-21 06:00:00'``.
+    datemix : str
+        Mixed Julian/Gregorian date string.
+    datespice : str
+        SPICE-format date string.
+    datesot : str
+        Egyptian civil (sothic) date string.
+    comps : tuple
+        Date components ``(sign, year, month, day, h, m, s, us)``.
+    year, month, day, hour, minute, second : int or float
+        Individual date/time components.
+    weekday : int
+        Day of the week (1 = Sunday … 7 = Saturday).
+    weekday_name : str
+        Name of the day, e.g. ``'monday'``.
+
+    Examples
+    --------
+    >>> import montu
+    >>> mtime = montu.Time('2024-05-01 19:00:00')
+    >>> mtime.readable.datepro
+    '2024-05-01 19:00:00'
+    >>> mtime.readable.weekday_name
+    'wednesday'
+    >>> print(mtime.readable)   # shows all fields as a dict
+    {...}
     """
     def __init__(self, time_obj, **kwargs):
         object.__setattr__(self, '_time_obj', time_obj)
@@ -305,6 +395,7 @@ class ReadableTime(montu.Dictobj):
             object.__getattribute__(self, '_time_obj').get_readable()
 
     def __getattr__(self, name):
+        """Lazy attribute access — triggers population on first use."""
         self._ensure_populated()
         try:
             return object.__getattribute__(self, name)
@@ -313,11 +404,13 @@ class ReadableTime(montu.Dictobj):
         raise AttributeError(f"Object of class 'ReadableTime' has no attribute '{name}'")
 
     def __str__(self):
+        """Return a dictionary-like string of all readable fields."""
         self._ensure_populated()
         clean_dict = {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
         return str(clean_dict)
 
     def __repr__(self):
+        """Same as :meth:`__str__`."""
         return self.__str__()
 
 

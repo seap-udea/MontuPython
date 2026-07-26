@@ -49,6 +49,41 @@ myst_enable_extensions = [
 napoleon_numpy_docstring = True
 napoleon_google_docstring = False
 
+# Autodoc configuration
+autodoc_member_order = 'bysource'
+autodoc_default_options = {
+    'show-inheritance': True,
+}
+
+# Mock external dependencies that may not be available during doc builds.
+# On ReadTheDocs the real packages are installed via `pip install .` and
+# take precedence over these mocks.
+autodoc_mock_imports = [
+    'ephem',
+    'pymeeus',
+    'pymeeus.Epoch',
+    'pymeeus.Angle',
+    'pymeeus.Coordinates',
+    'pyplanets',
+    'pyplanets.core',
+    'pyplanets.core.epoch',
+    'pyplanets.core.angle',
+    'pyplanets.core.coordinates',
+    'pyplanets.sun',
+    'scipy',
+    'scipy.interpolate',
+    'scipy.ndimage',
+    'astroquery',
+    'rasterio',
+    'rasterio.merge',
+    'plotly',
+    'plotly.graph_objects',
+    'matplotlib',
+    'matplotlib.pyplot',
+    'tqdm',
+    'tabulate',
+]
+
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 pygment_style = "sphinx"
