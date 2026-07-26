@@ -917,6 +917,8 @@ calculator.print_rises(
 ```
 
     Heliacal rises of Sirius (139 CE apokatastasis) — 1 date(s)
+
+    
       [1] 139-07-20 00:00:00  04:07:44.893  0139-07-19 00:00:00.000000  [hrw 2922] I akhet 1  Sirius -0.57°  Sun -14.18°
       source: Toomer, G. J. (1998). Ptolemy's Almagest. Princeton University Press. Book XIII, Chapter 7: "On the heliacal risings and settings of the planets".
 
@@ -1158,12 +1160,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-17 12:02:44.298244 (declination 89:31:55.860)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-20 04:54:12.107456 (declination 86:22:03.665)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-22 12:14:00.300512 (declination 89:56:05.102)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-09 00:23:03.799680 (declination 86:57:15.599)
-    Star Alderamin will be the closest to the pole at 7532-03-08 05:52:19.004160 (declination 87:58:43.018)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-26 20:21:01.903680 (declination 83:29:32.452)
+    Star Polaris will be the closest to the pole at 2086-08-17 12:47:36.098892 (declination 89:31:55.860)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-20 05:39:03.908160 (declination 86:22:03.665)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-22 12:58:52.101120 (declination 89:56:05.102)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-09 01:07:55.591680 (declination 86:57:15.599)
+    Star Alderamin will be the closest to the pole at 7532-03-08 06:37:10.804800 (declination 87:58:43.018)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-26 21:05:53.704320 (declination 83:29:32.452)
 
 
 ### Working with Observer Horizons
