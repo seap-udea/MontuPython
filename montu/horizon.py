@@ -128,7 +128,10 @@ def _ensure_dem(lat_c: float, lon_c: float, radius_km: float,
 
     tile_dir.mkdir(parents=True, exist_ok=True)
     tiles = _tiles_for_area(lat_c, lon_c, radius_km)
-    if verbose: print(f"\n── DEM ({len(tiles)} tile(s)) ──")
+    if verbose:
+        print(f"\n── DEM ({len(tiles)} tile(s)) ──")
+    else:
+        print("Downloading DEMs (digital elevation maps) for this site. This can take a few seconds. Please be patient.")
     downloaded = []
     for lat, lon in tiles:
         path = _download_tile(lat, lon, tile_dir, verbose=verbose)

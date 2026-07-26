@@ -146,7 +146,8 @@ class Observer(object):
                  lon=None, lat=None, height=None,
                  site=None,
                  pressure=None, temperature=None,
-                 relative_humidity=0, obswl=0.6):
+                 relative_humidity=0, obswl=0.6,
+                 horizon_profile=None):
         """Initialise the Observer; see class docstring for parameter details."""
 
         self.site_id = None
@@ -201,6 +202,9 @@ class Observer(object):
 
         # Horizon profile (populated by horizon_profile())
         self.horizon = None
+        
+        if horizon_profile is not None:
+            self.horizon_profile(**horizon_profile)
 
     def __repr__(self):
         alt_m = self.height * 1000.0

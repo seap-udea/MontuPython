@@ -2,21 +2,6 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.43.3
-
-- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
-- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
-
-## Version 0.43.2
-
-- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
-- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
-
-## Version 0.43.1
-
-- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
-- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
-
 ## Version 0.43.x (major)
 
 - **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
@@ -26,6 +11,7 @@ This file collects the release notes and the main changes in MontuPython.
 - **Celestial poles in horizon plots** — `plot_horizon()` now overlays the North and South Celestial Poles by default (`show_poles=True`) using geometric coordinates. The NCP is styled as a subtle, semi-transparent blue cross.
 - **Custom asterism catalogues** — Added `source_asterism` to `plot_horizon()` to support drawing alternative constellation figures (e.g., `'egyptian_ancient'`, `'egyptian_dendera'`). Constellation labels now automatically load from the corresponding `.fab` catalogue.
 - **Preconfigured horizons dataset** — added `horizon-preconfiguration.json` providing historical horizon setups (e.g. sunrise at Amarna, Thuban culmination at Giza) with associated observer location, date, time, and horizon plot settings.
+- **Observer horizon option** — Added `horizon_profile` argument to `Observer.__init__` to optionally compute the horizon profile directly upon observer instantiation.
 
 ## Version 0.42.x (major)
 
