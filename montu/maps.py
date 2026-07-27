@@ -1187,12 +1187,12 @@ def _stars_trace(
         )
         customdata = np.stack(
             [
-                subset["display_name"],
-                subset["Vmag"],
-                subset["RAEpoch"],
-                subset["DecEpoch"],
-                subset["el"],
-                subset["az"],
+                subset["display_name"].to_numpy(),
+                subset["Vmag"].to_numpy(),
+                subset["RAEpoch"].to_numpy(),
+                subset["DecEpoch"].to_numpy(),
+                subset["el"].to_numpy(),
+                subset["az"].to_numpy(),
             ],
             axis=1,
         )
@@ -1210,10 +1210,10 @@ def _stars_trace(
         subset["label_color"] = STAR_LABEL_COLOR_ABOVE
         customdata = np.stack(
             [
-                subset["display_name"],
-                subset["Vmag"],
-                subset["RAEpoch"],
-                subset["DecEpoch"],
+                subset["display_name"].to_numpy(),
+                subset["Vmag"].to_numpy(),
+                subset["RAEpoch"].to_numpy(),
+                subset["DecEpoch"].to_numpy(),
             ],
             axis=1,
         )
