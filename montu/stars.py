@@ -167,7 +167,7 @@ SET_PLT_DEFAULT_STYLE = lambda:plt.style.use(PLT_DEFAULT_STYLE)
 # Constellation data (asterism .fab files)
 ###############################################################
 
-def parse_constellation_boundaries(path=None):
+def parse_constellation_boundaries(path=None, at=None):
     """Parse IAU constellation boundary polygons from ``constellation_boundaries.dat``.
 
     Returns a list of dicts with keys ``points`` (list of ``(ra_deg, dec_deg)``)
@@ -209,6 +209,27 @@ def parse_constellation_boundaries(path=None):
             i += 1
         if points:
             polygons.append({"points": points, "codes": codes})
+
+    if at is not None:
+        from pymeeus.Epoch import Epoch as pymeeus_Epoch
+        from pymeeus.Angle import Angle as pymeeus_Angle
+        import pymeeus.Coordinates as pymeeus_Coordinates
+        epoch = pymeeus_Epoch(at.jed)
+        
+        for poly in polygons:
+            new_points = []
+            for ra_deg, dec_deg in poly["points"]:
+                ra_h = ra_deg / 15.0
+                ra_epoch, dec_epoch = pymeeus_Coordinates.precession_equatorial(
+                    montu.PYMEEUS_JED_2000, epoch,
+                    pymeeus_Angle(ra_h, ra=True),
+                    pymeeus_Angle(dec_deg),
+                    pymeeus_Angle(0.0),
+                    pymeeus_Angle(0.0)
+                )
+                new_points.append((float(ra_epoch) % 360.0, float(dec_epoch)))
+            poly["points"] = new_points
+
     return polygons
 
 

@@ -634,10 +634,10 @@ class Horizon:
             # 1. Constellation boundaries
             if show_boundaries:
                 bx, by = [], []
-                for poly in parse_constellation_boundaries():
+                for poly in parse_constellation_boundaries(at=at):
                     ra_pts = [p[0] for p in poly["points"]]
                     dec_pts = [p[1] for p in poly["points"]]
-                    az_pts, el_pts = _equatorial_to_horizontal(np.array(ra_pts), np.array(dec_pts), lat=obs.lat, lst_hours=lst_hours)
+                    az_pts, el_pts = _equatorial_to_horizontal(np.array(ra_pts) / 15.0, np.array(dec_pts), lat=obs.lat, lst_hours=lst_hours)
                     for i in range(len(az_pts)):
                         b_az = wrap_az(az_pts[i])
                         if az_min <= b_az <= az_max and el_pts[i] > -5:

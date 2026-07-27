@@ -245,7 +245,7 @@ def mercator_sky_map(
 
     if show_constellation_boundaries:
         bx, by = [], []
-        for poly in parse_constellation_boundaries():
+        for poly in parse_constellation_boundaries(at=at):
             px, py = _polyline_ra_dec(poly["points"])
             if px:
                 bx.extend(px + [None])
