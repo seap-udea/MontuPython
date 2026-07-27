@@ -1,5 +1,5 @@
-# generated=2026-07-26
-# montu_version=0.44.0
+# generated=2026-07-27
+# montu_version=0.50.0
 # pyephem_version=4.2.1
 # description=Thebes-like observer positions for Sirius and Canopus every 100 years from 3000 BCE to 1600 CE (92 rows).
 Name,Historical_Year,Era,Calendar_Date,Sample_Time,RAJ2000,DecJ2000,RAJ2000t,DecJ2000t,RAEpoch,DecEpoch,az,el,Rise,Transit,Set,Transit_el_deg,Lon_deg,Lat_deg,Height_m

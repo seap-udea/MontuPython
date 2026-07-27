@@ -1,5 +1,5 @@
-# generated=2026-07-26
-# montu_version=0.44.0
+# generated=2026-07-27
+# montu_version=0.50.0
 # pyephem_version=4.2.1
 # description=Geocentric MontuPython ephemerides for Sun, Moon, and planets (7196 rows; quarterly samples in one Saros year each cycle from 3000 BCE to 1599 CE).
 # row_count=7196

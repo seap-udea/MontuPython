@@ -3,6 +3,9 @@
 This file collects the release notes and the main changes in MontuPython.
 
 ## Version 0.50.0 (major)
+- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
+- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+
 
 - **Milky Way (Galaxy) integration across all maps** — The Milky Way is now fully integrated into the package and can be rendered across all sky visualizations, including `mercator_sky_map`, `polar_sky_map`, and `Horizon.plot_horizon`. Users can effortlessly display the Galactic Equator (`show_galaxy_equator`) and galactic density contours (`show_galaxy_contours`) to visualize the galaxy's path across the sky.
 - **Standardized sky map API** — Completely unified the API for rendering sky maps across `mercator_sky_map`, `polar_sky_map`, `polar_sky_map_figure`, `Horizon.plot_horizon`, `Conjunction.plot_map`, and the `Stars` class wrappers. Map rendering functions now share a consistent set of parameters grouped into core visibility (`show_stars`, `show_star_names`, `mag_limit`), constellation features (`constellation_set`, `show_constellation_lines`, `show_constellation_labels`, `show_constellation_boundaries`), and Milky Way features.

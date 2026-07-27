@@ -170,7 +170,7 @@ import matplotlib.pyplot as plt
 import montu
 ```
 
-    MontuPython version 0.44.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
+    MontuPython version 0.50.0. 𓇍𓇋𓇋𓏏𓅓𓊵 𓎛𓎡𓄿𓀭𓎛𓈖𓂝𓎡 (ii-ti m Htp, HkAx Hn'-k)
 
 
 It is important that before using the most interesting commands of the package, load relevant data:
@@ -1158,12 +1158,12 @@ for star in star_names:
     print(f"Star {star} will be the closest to the pole at {mtime.readable.datespice} (declination {montu.D2S(df.iloc[imax][star])})")
 ```
 
-    Star Polaris will be the closest to the pole at 2086-08-17 19:29:50.599689 (declination 89:31:55.863)
-    Star Vega will be the closest to the pole at 11609 B.C. 08-20 12:21:18.400320 (declination 86:22:03.666)
-    Star Thuban will be the closest to the pole at 2800 B.C. 08-22 19:41:06.601920 (declination 89:56:05.110)
-    Star Deneb will be the closest to the pole at 14732 B.C. 06-09 07:50:10.101056 (declination 86:57:15.599)
-    Star Alderamin will be the closest to the pole at 7532-03-08 13:19:25.296928 (declination 87:58:43.019)
-    Star Kochab will be the closest to the pole at 1078 B.C. 05-27 03:48:08.205104 (declination 83:29:32.452)
+    Star Polaris will be the closest to the pole at 2086-08-18 14:51:58.406394 (declination 89:31:55.872)
+    Star Vega will be the closest to the pole at 11609 B.C. 08-21 07:43:26.302144 (declination 86:22:03.668)
+    Star Thuban will be the closest to the pole at 2800 B.C. 08-23 15:03:14.495072 (declination 89:56:05.132)
+    Star Deneb will be the closest to the pole at 14732 B.C. 06-10 03:12:17.994176 (declination 86:57:15.599)
+    Star Alderamin will be the closest to the pole at 7532-03-09 08:41:33.198656 (declination 87:58:43.020)
+    Star Kochab will be the closest to the pole at 1078 B.C. 05-27 23:10:16.98240 (declination 83:29:32.452)
 
 
 ### Working with Observer Horizons
@@ -1225,8 +1225,8 @@ fig = site.horizon.plot_horizon(
     az_delta=40,
     elev_view=4,
     mag_limit=-1,
-    show_asterism=False,
-    show_starnames=False,
+    show_constellation_lines=False,
+    show_star_names=False,
     show_planets=['Sun'],
 )
 ```
@@ -1236,11 +1236,6 @@ fig = site.horizon.plot_horizon(
 See [`MontuPython-ObserverHorizon.ipynb`](examples/MontuPython-ObserverHorizon.ipynb) for a full walkthrough including multi-site comparisons, Valley of the Kings, the Senenmut temple, and the north shaft of the Khufu pyramid.
 
 
-
-
-```python
-montu.Horizon.clean_cache()
-```
 
 ------------
 
