@@ -49,22 +49,43 @@
     {
       "identifier": "https://github.com/seap-udea/MontuPython",
       "relation": "isSupplementTo",
+      "resource_type": "software",
       "scheme": "url"
     },
     {
       "identifier": "https://pypi.org/project/montu/",
       "relation": "isVersionOf",
+      "resource_type": "software",
       "scheme": "url"
     },
     {
       "identifier": "https://montupython.readthedocs.io/",
       "relation": "isDocumentedBy",
+      "resource_type": "publication-softwaredocumentation",
       "scheme": "url"
     },
     {
-      "identifier": "https://montupython-production.up.railway.app/",
-      "relation": "isSupplementedBy",
+      "identifier": "https://github.com/seap-udea/MontuPython/releases",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
       "scheme": "url"
     }
-  ]
+  ],
+  "custom": {
+    "code:codeRepository": "https://github.com/seap-udea/MontuPython",
+    "code:programmingLanguage": [
+      {
+        "id": "python",
+        "title": {
+          "en": "Python"
+        }
+      }
+    ],
+    "code:developmentStatus": {
+      "id": "active",
+      "title": {
+        "en": "Active"
+      }
+    }
+  }
 }
