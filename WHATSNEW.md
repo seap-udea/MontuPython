@@ -2,7 +2,7 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.50.x
+## Version 0.44.x (major)
 
 - **Constellation toggles in polar maps** — Added new boolean options to `polar_sky_map()` (`show_constellation_lines`, `show_constellation_boundaries`, `show_constellation_labels`, and `constellation_full_names`) to allow full customization of constellation plotting, mirroring the functionality already available in `mercator_sky_map()`. Constellation boundaries are now accurately projected and plotted on polar maps.
 - **Robust polar boundary precession** — Fixed a bug where constellation boundaries near the celestial poles exhibited erratic coordinate jumps when precessed to distant epochs. The `parse_constellation_boundaries` function now uses PyEphem (`ephem.Equatorial`) instead of PyMeeus for rigorous and stable coordinate transformations at high declinations.
