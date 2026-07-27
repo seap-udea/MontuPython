@@ -113,6 +113,8 @@ _TRANSLATIONS: dict[str, dict[str, str]] = {
         "Southern Hemisphere": "Hemisferio sur",
         "Ecliptic": "Ecliptica",
         "Horizon": "Horizonte",
+        "Galaxy equator": "Ecuador galáctico",
+        "Galaxy band": "Banda galáctica",
         "Sun": "Sol",
         "Moon": "Luna",
         "Mercury": "Mercurio",

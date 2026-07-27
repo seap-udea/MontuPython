@@ -184,15 +184,18 @@ def build_sky_map_plot(
         precessed = _get_precessed(date_str)
 
         with timed_block("sky_map: build polar figures"):
+            at = montu.Time(obs_utc, calendar="proleptic")
+            show_galaxy_equator = lines is not None and "Galaxy equator" in lines
+            show_galaxy_contours = lines is not None and "Galaxy band" in lines
+            
             fig_north, fig_south = polar_sky_map(
-                date_str,
-                local_hour=local_hour,
-                local_minute=local_minute,
-                local_second=local_second,
+                at=at,
                 observer=observer,
                 mag_limit=float(mag_limit),
                 bodies=bodies,
                 lines=lines,
+                show_galaxy_equator=show_galaxy_equator,
+                show_galaxy_contours=show_galaxy_contours,
                 meridian_view=meridian_view,
                 constellation_set=constellation_set,
                 observer_name=observer_name,

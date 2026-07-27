@@ -1,7 +1,7 @@
 # %pip install montu plotly
 
 import montu
-from montu.maps import LINE_ECLIPTIC, LINE_HORIZON, polar_sky_map
+from montu.maps import LINE_ECLIPTIC, LINE_HORIZON, polar_sky_map, local_solar_to_utc_time
 
 # Observer at Giza; local evening on 1 January 2500 BCE
 DATE = "bce 2500-01-01"
@@ -17,11 +17,9 @@ observer = montu.Observer(lon=31.1342, lat=29.9792, height=0.075)
 mtime = montu.Time(f"{DATE} 12:00:00", calendar="proleptic")
 stars = montu.Stars().where_in_space(at=mtime)
 
+at = local_solar_to_utc_time(DATE, LOCAL_HOUR, LOCAL_MINUTE, LOCAL_SECOND, observer.lon)
 fig_north, fig_south = polar_sky_map(
-    DATE,
-    local_hour=LOCAL_HOUR,
-    local_minute=LOCAL_MINUTE,
-    local_second=LOCAL_SECOND,
+    at=at,
     observer=observer,
     mag_limit=MAG_LIMIT,
     bodies=BODIES,

@@ -358,7 +358,7 @@ class _LinesPicker(QWidget):
         grid.setHorizontalSpacing(14)
         grid.setVerticalSpacing(6)
         cols = 2
-        for i, name in enumerate((LINE_ECLIPTIC, LINE_HORIZON)):
+        for i, name in enumerate((LINE_ECLIPTIC, LINE_HORIZON, "Galaxy equator", "Galaxy band")):
             cb = QCheckBox(tr(name))
             cb.setChecked(name in DEFAULT_LINES)
             cb.toggled.connect(lambda *_: self.changed.emit())

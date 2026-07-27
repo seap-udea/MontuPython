@@ -775,8 +775,8 @@
         "$ref": "_common/day"
       },
       "lines_on_map": {
-        "body_en": "<p>Overlay great circles on the map:</p><ul><li><b>Ecliptic</b> — apparent path of the Sun, precessed to the selected date (dashed orange).</li><li><b>Horizon</b> — elevation 0° at the observer; enables azimuth labels and green below-horizon styling (solid green).</li></ul>",
-        "body_es": "<p>Superpone círculos mayores:</p><ul><li><b>Eclíptica</b>: trayectoria aparente del Sol.</li><li><b>Horizonte</b>: elevación 0° en el sitio del observador.</li></ul>",
+        "body_en": "<p>Overlay great circles on the map:</p><ul><li><b>Ecliptic</b> — apparent path of the Sun, precessed to the selected date (dashed orange).</li><li><b>Horizon</b> — elevation 0° at the observer; enables azimuth labels and green below-horizon styling (solid green).</li><li><b>Galaxy equator</b> — apparent midline of the Milky Way.</li><li><b>Galaxy band</b> — brightness contours of the Milky Way.</li></ul>",
+        "body_es": "<p>Superpone círculos mayores en el mapa:</p><ul><li><b>Eclíptica</b>: trayectoria aparente del Sol.</li><li><b>Horizonte</b>: elevación 0° en el sitio del observador.</li><li><b>Ecuador galáctico</b>: línea media aparente de la Vía Láctea.</li><li><b>Banda galáctica</b>: contornos de brillo de la Vía Láctea.</li></ul>",
         "title_en": "Lines on map",
         "title_es": "Líneas en el mapa"
       },

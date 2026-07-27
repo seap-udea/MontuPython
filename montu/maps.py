@@ -133,6 +133,139 @@ def _complete_hip_lookup(
         lookup.update(_build_hip_lookup(subset, "RAJ2000", "DecJ2000"))
     return lookup
 
+@lru_cache(maxsize=4)
+def _load_precessed_milkyway(epoch_str: str | None = None) -> dict:
+    """Load Milky Way J2000 data and precess to epoch_str (or current if None)."""
+    import json
+    import os
+    data_path = os.path.join(os.path.dirname(montu.__file__), "data", "milkyway.json")
+    if not os.path.exists(data_path):
+        return {}
+    with open(data_path, "r") as f:
+        mw_data = json.load(f)
+    
+    if epoch_str is None:
+        at = montu.Time()
+    else:
+        at = montu.Time(epoch_str, calendar="proleptic")
+        
+    def _precess_points(points):
+        if not points:
+            return [], []
+        ra_j2000 = [p[0] / 15.0 for p in points]
+        dec_j2000 = [p[1] for p in points]
+        df = pd.DataFrame({
+            "RAJ2000": ra_j2000,
+            "DecJ2000": dec_j2000,
+            "pmRA": 0.0,
+            "pmDec": 0.0
+        })
+        stars = montu.Stars(data=df)
+        precessed = stars.where_in_space(at=at, inplace=False).data
+        return precessed["RAEpoch"].to_numpy() * 15.0, precessed["DecEpoch"].to_numpy()
+        
+    borders_ra, borders_dec = [], []
+    for segment in mw_data.get("border", []):
+        ra, dec = _precess_points(segment)
+        for i in range(len(ra)):
+            if i > 0 and abs(ra[i] - ra[i-1]) > 180:
+                borders_ra.append(np.nan)
+                borders_dec.append(np.nan)
+            borders_ra.append(ra[i])
+            borders_dec.append(dec[i])
+        borders_ra.append(np.nan)
+        borders_dec.append(np.nan)
+        
+    equator_ra, equator_dec = [], []
+    ra_eq, dec_eq = _precess_points(mw_data.get("equator", []))
+    for i in range(len(ra_eq)):
+        if i > 0 and abs(ra_eq[i] - ra_eq[i-1]) > 180:
+            equator_ra.append(np.nan)
+            equator_dec.append(np.nan)
+        equator_ra.append(ra_eq[i])
+        equator_dec.append(dec_eq[i])
+        
+    center_ra, center_dec = _precess_points([mw_data.get("center", [0, 0])])
+    
+    return {
+        "borders_ra": np.array(borders_ra, dtype=float),
+        "borders_dec": np.array(borders_dec, dtype=float),
+        "equator_ra": np.array(equator_ra, dtype=float),
+        "equator_dec": np.array(equator_dec, dtype=float),
+        "center_ra": float(center_ra[0]) if len(center_ra) else 0.0,
+        "center_dec": float(center_dec[0]) if len(center_dec) else 0.0
+    }
+
+@lru_cache(maxsize=4)
+def _load_precessed_milkyway_contours(epoch_str: str | None = None) -> dict:
+    import json
+    import os
+    import pandas as pd
+    
+    data_path = os.path.join(os.path.dirname(montu.__file__), "data", "milkyway_contours.json")
+    if not os.path.exists(data_path):
+        return {}
+        
+    with open(data_path, "r", encoding="utf-8") as f:
+        mw_data = json.load(f)
+        
+    at = None
+    if epoch_str:
+        at = montu.Time(epoch_str, calendar="proleptic")
+        
+    def _precess_points(points):
+        if not points:
+            return [], []
+        ra_j2000 = [p[0] / 15.0 for p in points]
+        dec_j2000 = [p[1] for p in points]
+        df = pd.DataFrame({
+            "RAJ2000": ra_j2000,
+            "DecJ2000": dec_j2000,
+            "pmRA": 0.0,
+            "pmDec": 0.0
+        })
+        stars = montu.Stars(data=df)
+        precessed = stars.where_in_space(at=at, inplace=False).data
+        return precessed["RAEpoch"].to_numpy() * 15.0, precessed["DecEpoch"].to_numpy()
+        
+    result = {}
+    for level, contours in mw_data.items():
+        open_ra, open_dec = [], []
+        closed_ra, closed_dec = [], []
+        
+        for contour_dict in contours:
+            # Handle new dict format or fallback to old list format
+            if isinstance(contour_dict, dict):
+                segment = contour_dict.get("points", [])
+                is_closed = contour_dict.get("closed", False)
+            else:
+                segment = contour_dict
+                is_closed = False
+                
+            ra, dec = _precess_points(segment)
+            
+            target_ra = closed_ra if is_closed else open_ra
+            target_dec = closed_dec if is_closed else open_dec
+            
+            for i in range(len(ra)):
+                if i > 0 and abs(ra[i] - ra[i-1]) > 180:
+                    target_ra.append(np.nan)
+                    target_dec.append(np.nan)
+                target_ra.append(ra[i])
+                target_dec.append(dec[i])
+            target_ra.append(np.nan)
+            target_dec.append(np.nan)
+            
+        result[level] = {
+            "open_ra": np.array(open_ra, dtype=float),
+            "open_dec": np.array(open_dec, dtype=float),
+            "closed_ra": np.array(closed_ra, dtype=float),
+            "closed_dec": np.array(closed_dec, dtype=float)
+        }
+        
+    return result
+
+
 
 def _polyline_ra_dec(points, *, split_wrap=True):
     """Expand polygon vertices into x/y lists with ``None`` breaks at RA wraps."""
@@ -192,6 +325,8 @@ def mercator_sky_map(
     label_center: tuple | None = None,
     label_radius_deg: float | None = None,
     constellation_label_font: dict | None = None,
+    show_galaxy_equator: bool = False,
+    show_galaxy_contours: bool | list[float] = False,
     at=None,
     layout=None,
 ):
@@ -318,6 +453,56 @@ def mercator_sky_map(
                 x=label_x, y=label_y, mode='text', text=label_text,
                 textfont=default_label_font,
                 hoverinfo='skip', showlegend=False, name='constellation labels',
+            ))
+
+    if show_galaxy_contours:
+        if isinstance(show_galaxy_contours, bool) and show_galaxy_contours is True:
+            levels = [0.15, 0.4, 0.5]
+        else:
+            levels = sorted(show_galaxy_contours)
+            
+        epoch_str = str(at.get_readable().readable.datepro) if at else None
+        mw_contours = _load_precessed_milkyway_contours(epoch_str)
+        if mw_contours:
+            import plotly.colors as pc
+            
+            # Use a fixed opacity for all contours
+            alpha = 0.6
+            
+            for lvl in levels:
+                lvl_str = str(lvl)
+                if lvl_str in mw_contours:
+                    cdata = mw_contours[lvl_str]
+                    
+                    # Plot open contours (no fill)
+                    if len(cdata["open_ra"]) > 0:
+                        fig.add_trace(go.Scatter(
+                            x=cdata["open_ra"], y=cdata["open_dec"], mode="lines",
+                            line=dict(color=f"rgba(130, 180, 255, {alpha:.2f})", width=1.0),
+                            hoverinfo="skip", showlegend=False, name=f"Galaxy Contour {lvl} (open)",
+                        ))
+                        
+                    # Plot closed contours (islands) without fill
+                    if len(cdata["closed_ra"]) > 0:
+                        fig.add_trace(go.Scatter(
+                            x=cdata["closed_ra"], y=cdata["closed_dec"], mode="lines",
+                            line=dict(color=f"rgba(130, 180, 255, {alpha:.2f})", width=1.0),
+                            hoverinfo="skip", showlegend=False, name=f"Galaxy Contour {lvl} (closed)",
+                        ))
+                    
+    if show_galaxy_equator:
+        epoch_str = str(at.get_readable().readable.datepro) if at else None
+        mw = _load_precessed_milkyway(epoch_str)
+        if mw and show_galaxy_equator:
+            fig.add_trace(go.Scatter(
+                x=mw["equator_ra"], y=mw["equator_dec"], mode="lines",
+                line=dict(color="rgba(130, 180, 255, 0.5)", width=1.5, dash="dot"),
+                hoverinfo="skip", showlegend=False, name="Galactic equator",
+            ))
+            fig.add_trace(go.Scatter(
+                x=[mw["center_ra"]], y=[mw["center_dec"]], mode="text",
+                text=["⊙"], textfont=dict(size=14, color="rgba(130, 180, 255, 0.9)"),
+                hovertext="Galactic Center", showlegend=False, name="Galactic Center",
             ))
 
     if show_stars and not star_data.empty:
@@ -616,10 +801,10 @@ def _calendar_date_only(date_str: str) -> str:
     """
     tokens = date_str.strip().split()
     if tokens and tokens[0].lower() == "bce":
-        year_s, month_s, day_s = tokens[1][:10].split("-")
+        year_s, month_s, day_s = tokens[1].split("-")
         astro_year = 1 - int(year_s)
-        return f"{astro_year:04d}-{month_s}-{day_s}"
-    return tokens[0][:10]
+        return f"{astro_year:04d}-{month_s.zfill(2)}-{day_s.zfill(2)}"
+    return tokens[0]
 
 
 def local_solar_to_utc_time(
@@ -1156,6 +1341,103 @@ def _constellation_labels_trace(
     )
 
 
+def _galaxy_band_trace(
+    mw: dict,
+    hemisphere: str,
+    *,
+    lst_deg: float = 0.0,
+    meridian_view: bool = False,
+) -> go.Scatterpolar:
+    theta: list[float | None] = []
+    radius: list[float | None] = []
+    
+    for ra_deg, dec_deg in zip(mw["borders_ra"], mw["borders_dec"]):
+        if np.isnan(ra_deg) or np.isnan(dec_deg):
+            theta.append(None)
+            radius.append(None)
+            continue
+            
+        if hemisphere == "north":
+            if dec_deg < -5.0:
+                theta.append(None)
+                radius.append(None)
+                continue
+            r_a = _north_radius(dec_deg)
+        else:
+            if dec_deg > 5.0:
+                theta.append(None)
+                radius.append(None)
+                continue
+            r_a = _south_radius(dec_deg)
+            
+        theta.append(_map_theta(ra_deg, lst_deg=lst_deg, meridian_view=meridian_view))
+        radius.append(r_a)
+        
+    return go.Scatterpolar(
+        theta=theta,
+        r=radius,
+        mode="lines",
+        line=dict(color="rgba(255, 250, 150, 0.8)", width=3),
+        hoverinfo="skip",
+        name="Galaxy band",
+        showlegend=False,
+    )
+
+
+def _galaxy_equator_trace(
+    mw: dict,
+    hemisphere: str,
+    *,
+    lst_deg: float = 0.0,
+    meridian_view: bool = False,
+) -> go.Scatterpolar:
+    ra_deg = mw["equator_ra"]
+    dec_deg = mw["equator_dec"]
+    valid = ~np.isnan(ra_deg) & ~np.isnan(dec_deg)
+    return _sky_curve_trace(
+        ra_deg[valid],
+        dec_deg[valid],
+        hemisphere,
+        name="Galactic equator",
+        color="rgba(255, 250, 150, 0.5)",
+        width=1.5,
+        dash="dot",
+        showlegend=False,
+        lst_deg=lst_deg,
+        meridian_view=meridian_view,
+    )
+
+
+def _galaxy_center_trace(
+    mw: dict,
+    hemisphere: str,
+    *,
+    lst_deg: float = 0.0,
+    meridian_view: bool = False,
+) -> go.Scatterpolar:
+    ra = mw["center_ra"]
+    dec = mw["center_dec"]
+    if hemisphere == "north":
+        if dec < 0.0:
+            return go.Scatterpolar(theta=[], r=[])
+        r_a = _north_radius(dec)
+    else:
+        if dec > 0.0:
+            return go.Scatterpolar(theta=[], r=[])
+        r_a = _south_radius(dec)
+        
+    return go.Scatterpolar(
+        theta=[_map_theta(ra, lst_deg=lst_deg, meridian_view=meridian_view)],
+        r=[r_a],
+        mode="text",
+        text=["⊙"],
+        textfont=dict(size=14, color="rgba(255, 250, 150, 0.9)"),
+        hovertext="Galactic Center",
+        showlegend=False,
+        name="Galactic Center",
+    )
+
+
 def _stars_trace(
     data: pd.DataFrame,
     hemisphere: str,
@@ -1313,6 +1595,8 @@ def polar_sky_map_figure(
     show_constellation_boundaries: bool = False,
     show_constellation_labels: bool = True,
     constellation_full_names: bool = False,
+    show_galaxy_equator: bool = False,
+    show_galaxy_contours: bool | list[float] = False,
     at=None,
 ) -> go.Figure:
     """Build one polar sky map for *hemisphere* (``north`` or ``south``)."""
@@ -1372,6 +1656,64 @@ def polar_sky_map_figure(
                 meridian_view=meridian_view,
             )
         )
+
+    # 8. Galaxy Contours
+    if show_galaxy_contours:
+        if isinstance(show_galaxy_contours, bool) and show_galaxy_contours is True:
+            levels = [0.15, 0.4, 0.5]
+        else:
+            levels = sorted(show_galaxy_contours)
+            
+        epoch_str = str(at.get_readable().readable.datepro) if at else None
+        mw_contours = _load_precessed_milkyway_contours(epoch_str)
+        if mw_contours:
+            alpha = 0.6
+            for lvl in levels:
+                lvl_str = str(lvl)
+                if lvl_str in mw_contours:
+                    cdata = mw_contours[lvl_str]
+                    
+                    if len(cdata["open_ra"]) > 0:
+                        r_open = 90.0 - cdata["open_dec"] if hemisphere == "north" else 90.0 + cdata["open_dec"]
+                        theta_open = _map_theta_array(cdata["open_ra"], lst_deg=lst_deg, meridian_view=meridian_view)
+                        r_open_clip = np.where(r_open > 90, np.nan, r_open)
+                        fig.add_trace(go.Scatterpolar(
+                            r=r_open_clip, theta=theta_open, mode="lines",
+                            line=dict(color=f"rgba(130, 180, 255, {alpha:.2f})", width=1.0),
+                            hoverinfo="skip", showlegend=False, name=f"Galaxy Contour {lvl} (open)",
+                        ))
+                    if len(cdata["closed_ra"]) > 0:
+                        r_closed = 90.0 - cdata["closed_dec"] if hemisphere == "north" else 90.0 + cdata["closed_dec"]
+                        theta_closed = _map_theta_array(cdata["closed_ra"], lst_deg=lst_deg, meridian_view=meridian_view)
+                        r_closed_clip = np.where(r_closed > 90, np.nan, r_closed)
+                        fig.add_trace(go.Scatterpolar(
+                            r=r_closed_clip, theta=theta_closed, mode="lines",
+                            line=dict(color=f"rgba(130, 180, 255, {alpha:.2f})", width=1.0),
+                            hoverinfo="skip", showlegend=False, name=f"Galaxy Contour {lvl} (closed)",
+                        ))
+                        
+    if show_galaxy_equator:
+        epoch_str = str(at.get_readable().readable.datepro) if at else None
+        mw = _load_precessed_milkyway(epoch_str)
+        if mw:
+            r_eq = 90.0 - mw["equator_dec"] if hemisphere == "north" else 90.0 + mw["equator_dec"]
+            theta_eq = _map_theta_array(mw["equator_ra"], lst_deg=lst_deg, meridian_view=meridian_view)
+            r_eq_clip = np.where(r_eq > 90, np.nan, r_eq)
+            fig.add_trace(go.Scatterpolar(
+                r=r_eq_clip, theta=theta_eq, mode="lines",
+                line=dict(color="rgba(130, 180, 255, 0.5)", width=1.5, dash="dot"),
+                hoverinfo="skip", showlegend=False, name="Galactic equator",
+            ))
+            
+            cen_dec = np.array([mw["center_dec"]])
+            r_cen = 90.0 - cen_dec if hemisphere == "north" else 90.0 + cen_dec
+            theta_cen = _map_theta_array(np.array([mw["center_ra"]]), lst_deg=lst_deg, meridian_view=meridian_view)
+            if r_cen[0] <= 90:
+                fig.add_trace(go.Scatterpolar(
+                    r=r_cen, theta=theta_cen, mode="text",
+                    text=["⊙"], textfont=dict(size=14, color="rgba(130, 180, 255, 0.9)"),
+                    hovertext="Galactic Center", showlegend=False, name="Galactic Center",
+                ))
 
     map_traces.append(
         _stars_trace(
@@ -1460,11 +1802,8 @@ def polar_sky_map_figure(
 
 
 def polar_sky_map(
-    calendar_date: str,
     *,
-    local_hour: int = DEFAULT_LOCAL_HOUR,
-    local_minute: int = DEFAULT_LOCAL_MINUTE,
-    local_second: int = DEFAULT_LOCAL_SECOND,
+    at: montu.Time,
     observer: montu.Observer,
     mag_limit: float = DEFAULT_MAG_LIMIT,
     bodies: list[str] | None = None,
@@ -1477,6 +1816,8 @@ def polar_sky_map(
     show_constellation_boundaries: bool = False,
     show_constellation_labels: bool = True,
     constellation_full_names: bool = False,
+    show_galaxy_equator: bool = False,
+    show_galaxy_contours: bool | list[float] = False,
     observer_name: str = "",
     precessed_star_data: pd.DataFrame | None = None,
 ) -> tuple[go.Figure, go.Figure]:
@@ -1484,10 +1825,8 @@ def polar_sky_map(
 
     Parameters
     ----------
-    calendar_date : str
-        Proleptic calendar date (``bce YYYY-MM-DD`` or ``YYYY-MM-DD``).
-    local_hour, local_minute, local_second : int
-        Local solar time at the observer longitude.
+    at : montu.Time
+        The UTC time of observation.
     observer : montu.Observer
         Observing site (latitude, longitude, height).
     mag_limit : float
@@ -1519,16 +1858,25 @@ def polar_sky_map(
     show_horizon_flag, show_ecliptic_flag = _resolve_line_flags(
         lines, show_horizon, show_ecliptic,
     )
-    local_time = _local_time_label(local_hour, local_minute, local_second)
-
     lat = float(observer.lat)
     lon = float(observer.lon)
     height_km = float(observer.height)
 
-    obs_time = local_solar_to_utc_time(
-        calendar_date, local_hour, local_minute, local_second, lon,
-    )
-    obs_utc = str(obs_time.get_readable().readable.datepro)
+    obs_time = at
+    obs_utc_str = str(obs_time.readable.datepro)
+    
+    # Calculate local solar time for the title label
+    # UTC hours + lon/15
+    utc_hours = obs_time.readable.hour + obs_time.readable.minute/60 + obs_time.readable.second/3600
+    local_hours_dec = (utc_hours + lon / 15.0) % 24.0
+    lh = int(local_hours_dec)
+    lm = int((local_hours_dec - lh) * 60)
+    ls = int((local_hours_dec - lh - lm / 60) * 3600)
+    local_time = _local_time_label(lh, lm, ls)
+    
+    # Calendar date for precession cache
+    calendar_date = obs_utc_str.split()[0]
+    
     lst_hours = _observer_sidereal_time_hours(
         obs_time, lat=lat, lon=lon, height_km=height_km,
     )
@@ -1600,6 +1948,8 @@ def polar_sky_map(
         show_constellation_boundaries=show_constellation_boundaries,
         show_constellation_labels=show_constellation_labels,
         constellation_full_names=constellation_full_names,
+        show_galaxy_equator=show_galaxy_equator,
+        show_galaxy_contours=show_galaxy_contours,
         at=obs_time,
         lst_deg=lst_deg,
         lst_hours=lst_hours,

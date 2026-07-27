@@ -183,3 +183,9 @@ montu_dem/
 .cursor/
 .cursorignore
 .cursorindexingignore
+
+# Temporary files
+tmp/
+
+# Documentation auto-generated files
+README_files/
