@@ -9,6 +9,8 @@ Release notes for the graphical front-end to MontuPython.
 - **Horizon visualization controls** — Added dynamic UI inputs to control the central azimuth, azimuth span, and maximum elevation of the horizon plot. Toggles are also available for constellation lines, star names, asterisms, and solar-system bodies.
 - **Help and localization** — Added comprehensive, localized (English and Spanish) interactive help links across all inputs in the Horizon Astronomy module, which has been translated to "Astronomía en el Horizonte" in the UI.
 - **Calendar bugfix in plots** — Fixed an issue where dates before 1582 entered in the UI were misconstrued as Julian instead of proleptic Gregorian when plotting the sky map, resolving a ~12-day shift discrepancy.
+- **Milky Way (Galaxy) display in Horizon Astronomy** — Bringing the new flagship feature of MontuPython 0.50.0 to the interface! Added a new "Mostrar galaxia" checkbox in the Horizon Astronomy module's Configuration section to toggle the rendering of the Milky Way equator and its density contours on the topographical horizon plot.
+- **Let's Python code update** — Updated the `horizon_astronomy` Let's Python example scripts (both English and Spanish) to use the new standardized sky map API parameters, including the new constellation and galaxy options.
 
 ## Version 0.4.x (major)
 
