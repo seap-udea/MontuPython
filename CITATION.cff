@@ -28,10 +28,26 @@ url: "https://github.com/seap-udea/MontuPython"
 repository-code: "https://github.com/seap-udea/MontuPython"
 license: MIT
 abstract: >
-  MontuPython (mnṯw ꜥꜣpp(y)) is a Python package to compute astronomical
-  ephemerides in the ancient world — thousands of years before the present.
-  It was developed for ancient Egypt and applies equally to other sites of
-  cultural and archaeoastronomical interest.
+  MontuPython is a Python package intended to compute astronomical ephemerides
+  in the ancient world, thousands of years before present. It was initially
+  designed to compute ephemerides for ancient Egypt, but it can also be used
+  to study astronomical phenomena in other sites of interest for cultural
+  astronomy (archaeoastronomy).
+
+  The package was originally developed to streamline calculations on
+  archaeoastronomy that were previously performed manually using astronomical
+  software such as Stellarium. While there are already outstanding libraries
+  for positional astronomy—such as PyEphem, pyplanets, and PyMeeus (many of
+  which make MontuPython possible)—our goal here is different. We aim to
+  provide a tool that not only simplifies interaction with these libraries,
+  but, more importantly, is specialized for the study of astronomical phenomena
+  that occurred thousands of years ago.
+
+  While MontuPython places a special emphasis on ancient Egypt, the tool is
+  broadly applicable to many other contexts. Its features are designed to
+  support research across a diverse range of civilizations, making it a
+  versatile resource for all archaeologists, historians, and cultural
+  astronomers interested in humanity's relationship with the sky.
 keywords:
   - astronomy
   - archaeoastronomy
