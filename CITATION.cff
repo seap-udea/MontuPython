@@ -12,6 +12,10 @@ contributors:
   - family-names: Vivas
     given-names: Francisco Fernández
     affiliation: Universitat Autònoma de Barcelona, Spain
+  - family-names: Lull
+    given-names: Jose
+    affiliation: Universitat Autònoma de Barcelona, Spain
+    orcid: https://orcid.org/0000-0003-1417-8603
   - family-names: Agudelo
     given-names: Juanita
     affiliation: Universidad de Antioquia, Colombia
@@ -41,8 +45,8 @@ identifiers:
   - type: url
     value: "https://montupython.readthedocs.io/"
   - type: doi
-    value: 10.5281/zenodo.21298063
-doi: 10.5281/zenodo.21298063
+    value: 10.5281/zenodo.21613729
+doi: 10.5281/zenodo.21613729
 preferred-citation:
   type: software
   authors:
@@ -50,6 +54,6 @@ preferred-citation:
       given-names: "Jorge I."
   title: "MontuPython: astronomical ephemerides for the ancient world"
   version: 0.43.4
-  doi: 10.5281/zenodo.21298063
-  url: "https://doi.org/10.5281/zenodo.21298063"
+  doi: 10.5281/zenodo.21613729
+  url: "https://doi.org/10.5281/zenodo.21613729"
   year: 2026
