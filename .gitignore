@@ -177,3 +177,9 @@ montu_gui/user/config.json
 # Digital Elevation Models
 montu_dem/
 *.tif
+
+# AI agent and IDE files
+.agents/
+.cursor/
+.cursorignore
+.cursorindexingignore
