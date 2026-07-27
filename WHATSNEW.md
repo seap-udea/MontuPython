@@ -2,6 +2,11 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
+## Version 0.44.0
+
+- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
+- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+
 ## Version 0.44.x (major)
 
 - **Constellation toggles in polar maps** — Added new boolean options to `polar_sky_map()` (`show_constellation_lines`, `show_constellation_boundaries`, `show_constellation_labels`, and `constellation_full_names`) to allow full customization of constellation plotting, mirroring the functionality already available in `mercator_sky_map()`. Constellation boundaries are now accurately projected and plotted on polar maps.
