@@ -1018,6 +1018,48 @@ def _prepare_precessed_data(
     return precessed, hip_lookup, (ecliptic_ra, ecliptic_dec)
 
 
+def _constellation_boundaries_trace(
+    *,
+    hemisphere: str,
+    at=None,
+    lst_deg: float = 0.0,
+    meridian_view: bool = False,
+) -> go.Scatterpolar:
+    """Build constellation boundaries for one hemisphere."""
+    from montu.stars import parse_constellation_boundaries
+    theta: list[float | None] = []
+    radius: list[float | None] = []
+
+    for poly in parse_constellation_boundaries(at=at):
+        poly_theta = []
+        poly_r = []
+        for ra_deg, dec_deg in poly["points"]:
+            if hemisphere == "north":
+                if dec_deg < -5.0:
+                    continue
+                r_a = _north_radius(dec_deg)
+            else:
+                if dec_deg > 5.0:
+                    continue
+                r_a = _south_radius(dec_deg)
+            poly_theta.append(_map_theta(ra_deg, lst_deg=lst_deg, meridian_view=meridian_view))
+            poly_r.append(r_a)
+            
+        if poly_theta:
+            theta.extend(poly_theta + [None])
+            radius.extend(poly_r + [None])
+
+    return go.Scatterpolar(
+        theta=theta,
+        r=radius,
+        mode="lines",
+        line=dict(color="rgba(230, 120, 170, 0.45)", width=0.8),
+        hoverinfo="skip",
+        name="Boundaries",
+        showlegend=False,
+    )
+
+
 def _asterism_trace(
     *,
     hip_lookup: dict[int, tuple[float, float]],
@@ -1077,6 +1119,7 @@ def _constellation_labels_trace(
     label_positions: dict[str, list[tuple[float, float]]],
     hemisphere: str,
     constellation_set: str = DEFAULT_CONSTELLATION_SET,
+    constellation_full_names: bool = False,
     lst_deg: float = 0.0,
     meridian_view: bool = False,
 ) -> go.Scatterpolar:
@@ -1084,7 +1127,7 @@ def _constellation_labels_trace(
     theta: list[float] = []
     radius: list[float] = []
     text: list[str] = []
-    name_labels = _constellation_name_labels(constellation_set)
+    name_labels = _constellation_name_labels(constellation_set) if constellation_full_names else {}
 
     for abbrev, coords in label_positions.items():
         ra_mean = float(np.mean([c[0] for c in coords]))
@@ -1266,6 +1309,11 @@ def polar_sky_map_figure(
     observer_name: str = "",
     lat: float = 0.0,
     lon: float = 0.0,
+    show_constellation_lines: bool = True,
+    show_constellation_boundaries: bool = False,
+    show_constellation_labels: bool = True,
+    constellation_full_names: bool = False,
+    at=None,
 ) -> go.Figure:
     """Build one polar sky map for *hemisphere* (``north`` or ``south``)."""
     fig = go.Figure()
@@ -1292,30 +1340,48 @@ def polar_sky_map_figure(
                 lst_deg=lst_deg, meridian_view=meridian_view,
             ),
         )
-    map_traces.extend([
-        _asterism_trace(
-            hip_lookup=hip_lookup,
-            hemisphere=hemisphere,
-            label_positions=label_positions,
-            constellation_set=constellation_set,
-            lst_deg=lst_deg,
-            meridian_view=meridian_view,
-        ),
-        _constellation_labels_trace(
-            label_positions=label_positions,
-            hemisphere=hemisphere,
-            constellation_set=constellation_set,
-            lst_deg=lst_deg,
-            meridian_view=meridian_view,
-        ),
+    asterism_trace = _asterism_trace(
+        hip_lookup=hip_lookup,
+        hemisphere=hemisphere,
+        label_positions=label_positions,
+        constellation_set=constellation_set,
+        lst_deg=lst_deg,
+        meridian_view=meridian_view,
+    )
+    if show_constellation_lines:
+        map_traces.append(asterism_trace)
+
+    if show_constellation_labels and label_positions:
+        map_traces.append(
+            _constellation_labels_trace(
+                label_positions=label_positions,
+                hemisphere=hemisphere,
+                constellation_set=constellation_set,
+                constellation_full_names=constellation_full_names,
+                lst_deg=lst_deg,
+                meridian_view=meridian_view,
+            )
+        )
+
+    if show_constellation_boundaries:
+        map_traces.append(
+            _constellation_boundaries_trace(
+                hemisphere=hemisphere,
+                at=at,
+                lst_deg=lst_deg,
+                meridian_view=meridian_view,
+            )
+        )
+
+    map_traces.append(
         _stars_trace(
             stars,
             hemisphere=hemisphere,
             shade_below_horizon=shade_below_horizon,
             lst_deg=lst_deg,
             meridian_view=meridian_view,
-        ),
-    ])
+        )
+    )
     for name in selected_bodies:
         if name not in body_positions:
             continue
@@ -1407,6 +1473,10 @@ def polar_sky_map(
     show_ecliptic: bool | None = None,
     meridian_view: bool = False,
     constellation_set: str = DEFAULT_CONSTELLATION_SET,
+    show_constellation_lines: bool = True,
+    show_constellation_boundaries: bool = False,
+    show_constellation_labels: bool = True,
+    constellation_full_names: bool = False,
     observer_name: str = "",
     precessed_star_data: pd.DataFrame | None = None,
 ) -> tuple[go.Figure, go.Figure]:
@@ -1526,6 +1596,11 @@ def polar_sky_map(
         shade_below_horizon=show_horizon_flag,
         meridian_view=meridian_view,
         constellation_set=constellation_set,
+        show_constellation_lines=show_constellation_lines,
+        show_constellation_boundaries=show_constellation_boundaries,
+        show_constellation_labels=show_constellation_labels,
+        constellation_full_names=constellation_full_names,
+        at=obs_time,
         lst_deg=lst_deg,
         lst_hours=lst_hours,
         observer_name=observer_name,

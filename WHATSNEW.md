@@ -2,10 +2,12 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.43.4
+## Version 0.50.x
 
-- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
-- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+- **Robust polar boundary precession** — Fixed a bug where constellation boundaries near the celestial poles exhibited erratic coordinate jumps when precessed to distant epochs. The `parse_constellation_boundaries` function now uses PyEphem (`ephem.Equatorial`) instead of PyMeeus for rigorous and stable coordinate transformations at high declinations.
+- **Removed legacy `montu-app`** — Completely deleted the deprecated and outdated Dash application (`montu-app/`) and its associated `Dockerfile` from the repository to clean up the project structure.
+- **Independent Jupyter snippets** — Refactored map plotting code blocks in `examples/MontuPython-CodeSnippets.ipynb` so that Mercator and Polar sky map examples are fully self-contained and run independently.
+- **Horizon boundary bugfix** — Fixed an internal bug in `montu/horizon.py` where constellation boundary Right Ascension arrays were incorrectly passed in degrees instead of hours to the horizontal coordinate converter.
 
 ## Version 0.43.x (major)
 
