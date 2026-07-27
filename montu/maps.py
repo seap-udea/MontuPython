@@ -22,6 +22,7 @@ from montu.stars import (
     parse_constellation_names,
 )
 
+DEFAULT_CONSTELLATION_SET = "iau"
 
 # ── Mercator (equatorial) sky map ─────────────────────────────────────────
 
@@ -314,21 +315,25 @@ def mercator_sky_map(
     ra_col: str = "RAEpoch",
     dec_col: str = "DecEpoch",
     mag_col: str = "Vmag",
-    mag_limit: float = 6.5,
     label_bright_mag: float = 2.5,
-    show_stars: bool = True,
-    show_constellation_lines: bool = True,
-    show_constellation_boundaries: bool = True,
-    show_constellation_labels: bool = True,
-    constellation_full_names: bool = False,
     label_bounds: tuple | None = None,
     label_center: tuple | None = None,
     label_radius_deg: float | None = None,
     constellation_label_font: dict | None = None,
-    show_galaxy_equator: bool = False,
-    show_galaxy_contours: bool | list[float] = False,
     at=None,
     layout=None,
+    # Standard Sky Options
+    show_stars: bool = True,
+    show_star_names: bool = True,
+    mag_limit: float = 6.5,
+    constellation_set: str = DEFAULT_CONSTELLATION_SET,
+    show_constellation_lines: bool = True,
+    show_constellation_labels: bool = True,
+    show_constellation_full_names: bool = False,
+    show_constellation_boundaries: bool = False,
+    show_galaxy_equator: bool = False,
+    show_galaxy_contours: "bool | list[float]" = False,
+    show_poles: bool = True,
 ):
     """Build a base equatorial Mercator sky map (Plotly).
 
@@ -421,7 +426,7 @@ def mercator_sky_map(
 
     if show_constellation_labels and label_positions:
         name_labels = (
-            parse_constellation_names() if constellation_full_names else {}
+            parse_constellation_names() if show_constellation_full_names else {}
         )
         default_label_font = dict(
             size=9, color='rgba(130, 140, 155, 0.42)',
@@ -582,7 +587,7 @@ DEFAULT_LOCAL_HOUR = 18
 DEFAULT_LOCAL_MINUTE = 0
 DEFAULT_LOCAL_SECOND = 0
 DEFAULT_BODIES = ["Sun"]
-DEFAULT_CONSTELLATION_SET = "iau"
+
 
 LINE_ECLIPTIC = "Ecliptic"
 LINE_HORIZON = "Horizon"
@@ -1304,7 +1309,7 @@ def _constellation_labels_trace(
     label_positions: dict[str, list[tuple[float, float]]],
     hemisphere: str,
     constellation_set: str = DEFAULT_CONSTELLATION_SET,
-    constellation_full_names: bool = False,
+    show_constellation_full_names: bool = False,
     lst_deg: float = 0.0,
     meridian_view: bool = False,
 ) -> go.Scatterpolar:
@@ -1312,7 +1317,7 @@ def _constellation_labels_trace(
     theta: list[float] = []
     radius: list[float] = []
     text: list[str] = []
-    name_labels = _constellation_name_labels(constellation_set) if constellation_full_names else {}
+    name_labels = _constellation_name_labels(constellation_set) if show_constellation_full_names else {}
 
     for abbrev, coords in label_positions.items():
         ra_mean = float(np.mean([c[0] for c in coords]))
@@ -1571,7 +1576,8 @@ def polar_sky_map_figure(
     hemisphere: str,
     calendar_date: str,
     local_time: str,
-    mag_limit: float,
+    body_positions: dict[str, tuple[float, float, float, float, float, float]],
+    selected_bodies: list[str],
     stars: pd.DataFrame,
     hip_lookup: dict[int, tuple[float, float]],
     ecliptic_ra: np.ndarray,
@@ -1579,25 +1585,28 @@ def polar_sky_map_figure(
     horizon_ra: np.ndarray,
     horizon_dec: np.ndarray,
     horizon_az: np.ndarray,
-    body_positions: dict[str, tuple[float, float, float, float, float, float]],
-    selected_bodies: list[str],
     show_ecliptic: bool = True,
     show_horizon: bool = False,
     shade_below_horizon: bool = False,
     meridian_view: bool = False,
-    constellation_set: str = DEFAULT_CONSTELLATION_SET,
     lst_deg: float = 0.0,
     lst_hours: float = 0.0,
     observer_name: str = "",
     lat: float = 0.0,
     lon: float = 0.0,
-    show_constellation_lines: bool = True,
-    show_constellation_boundaries: bool = False,
-    show_constellation_labels: bool = True,
-    constellation_full_names: bool = False,
-    show_galaxy_equator: bool = False,
-    show_galaxy_contours: bool | list[float] = False,
     at=None,
+    # Standard Sky Options
+    show_stars: bool = True,
+    show_star_names: bool = True,
+    mag_limit: float = 6.5,
+    constellation_set: str = DEFAULT_CONSTELLATION_SET,
+    show_constellation_lines: bool = True,
+    show_constellation_labels: bool = True,
+    show_constellation_full_names: bool = False,
+    show_constellation_boundaries: bool = False,
+    show_galaxy_equator: bool = False,
+    show_galaxy_contours: "bool | list[float]" = False,
+    show_poles: bool = True,
 ) -> go.Figure:
     """Build one polar sky map for *hemisphere* (``north`` or ``south``)."""
     fig = go.Figure()
@@ -1641,7 +1650,7 @@ def polar_sky_map_figure(
                 label_positions=label_positions,
                 hemisphere=hemisphere,
                 constellation_set=constellation_set,
-                constellation_full_names=constellation_full_names,
+                show_constellation_full_names=show_constellation_full_names,
                 lst_deg=lst_deg,
                 meridian_view=meridian_view,
             )
@@ -1805,21 +1814,25 @@ def polar_sky_map(
     *,
     at: montu.Time,
     observer: montu.Observer,
-    mag_limit: float = DEFAULT_MAG_LIMIT,
     bodies: list[str] | None = None,
     lines: list[str] | None = None,
     show_horizon: bool | None = None,
     show_ecliptic: bool | None = None,
     meridian_view: bool = False,
-    constellation_set: str = DEFAULT_CONSTELLATION_SET,
-    show_constellation_lines: bool = True,
-    show_constellation_boundaries: bool = False,
-    show_constellation_labels: bool = True,
-    constellation_full_names: bool = False,
-    show_galaxy_equator: bool = False,
-    show_galaxy_contours: bool | list[float] = False,
     observer_name: str = "",
     precessed_star_data: pd.DataFrame | None = None,
+    # Standard Sky Options
+    show_stars: bool = True,
+    show_star_names: bool = True,
+    mag_limit: float = 6.5,
+    constellation_set: str = DEFAULT_CONSTELLATION_SET,
+    show_constellation_lines: bool = True,
+    show_constellation_labels: bool = True,
+    show_constellation_full_names: bool = False,
+    show_constellation_boundaries: bool = False,
+    show_galaxy_equator: bool = False,
+    show_galaxy_contours: "bool | list[float]" = False,
+    show_poles: bool = True,
 ) -> tuple[go.Figure, go.Figure]:
     """Build north and south polar sky map figures.
 
@@ -1929,7 +1942,8 @@ def polar_sky_map(
     fig_kwargs = dict(
         calendar_date=calendar_date,
         local_time=local_time,
-        mag_limit=float(mag_limit),
+        body_positions=body_positions,
+        selected_bodies=selected,
         stars=stars,
         hip_lookup=hip_lookup,
         ecliptic_ra=ecliptic_ra,
@@ -1937,25 +1951,28 @@ def polar_sky_map(
         horizon_ra=horizon_ra,
         horizon_dec=horizon_dec,
         horizon_az=horizon_az,
-        body_positions=body_positions,
-        selected_bodies=selected,
         show_ecliptic=show_ecliptic_flag,
         show_horizon=show_horizon_flag,
         shade_below_horizon=show_horizon_flag,
         meridian_view=meridian_view,
-        constellation_set=constellation_set,
-        show_constellation_lines=show_constellation_lines,
-        show_constellation_boundaries=show_constellation_boundaries,
-        show_constellation_labels=show_constellation_labels,
-        constellation_full_names=constellation_full_names,
-        show_galaxy_equator=show_galaxy_equator,
-        show_galaxy_contours=show_galaxy_contours,
-        at=obs_time,
         lst_deg=lst_deg,
         lst_hours=lst_hours,
         observer_name=observer_name,
         lat=lat,
         lon=lon,
+        at=obs_time,
+        # Standard Sky Options
+        show_stars=show_stars,
+        show_star_names=show_star_names,
+        mag_limit=float(mag_limit),
+        constellation_set=constellation_set,
+        show_constellation_lines=show_constellation_lines,
+        show_constellation_labels=show_constellation_labels,
+        show_constellation_full_names=show_constellation_full_names,
+        show_constellation_boundaries=show_constellation_boundaries,
+        show_galaxy_equator=show_galaxy_equator,
+        show_galaxy_contours=show_galaxy_contours,
+        show_poles=show_poles,
     )
 
     fig_north = polar_sky_map_figure(hemisphere="north", **fig_kwargs)

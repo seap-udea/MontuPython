@@ -1158,18 +1158,24 @@ class Stars(object):
         if not inplace:
             return data
     
-    def mercator_sky_map(self, show_galaxy_equator=False, show_galaxy_contours=False, **kwargs):
+    def mercator_sky_map(
+        self,
+        **kwargs
+    ):
         """Build a base Mercator sky map for this catalogue (see :func:`montu.maps.mercator_sky_map`)."""
         from montu.maps import mercator_sky_map as _mercator_sky_map
 
         return _mercator_sky_map(
             self.data,
-            show_galaxy_equator=show_galaxy_equator,
-            show_galaxy_contours=show_galaxy_contours,
             **kwargs
         )
 
-    def polar_sky_map(self, observer, at, show_galaxy_equator=False, show_galaxy_contours=False, **kwargs):
+    def polar_sky_map(
+        self,
+        observer,
+        at,
+        **kwargs
+    ):
         """Build north and south polar sky maps (see :func:`montu.maps.polar_sky_map`)."""
         from montu.maps import polar_sky_map as _polar_sky_map
 
@@ -1177,8 +1183,6 @@ class Stars(object):
             at=at,
             observer=observer,
             precessed_star_data=self.data,
-            show_galaxy_equator=show_galaxy_equator,
-            show_galaxy_contours=show_galaxy_contours,
             **kwargs,
         )
     

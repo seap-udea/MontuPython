@@ -431,14 +431,28 @@ class Horizon:
         az = float(azimuth) % 360.0
         return float(self._interp(az))
 
-    def plot_horizon(self, at=None, az_center: float = 180.0, az_delta: float = 180.0,
-            elev_view: float | None = None, show: bool = True, mag_limit: float = 5.0,
-            show_boundaries: bool = False, show_asterism: bool = False,
-            show_starnames: bool = True, show_constname: bool = True,
-            show_planets: "list | str | None" = '_default',
-            show_poles: bool = True,
-            show_title: bool = True,
-            source_asterism: str = 'iau'):
+    def plot_horizon(
+        self,
+        at=None,
+        az_center: float = 180.0,
+        az_delta: float = 180.0,
+        elev_view: float | None = None,
+        show: bool = True,
+        show_planets: "list | str | None" = '_default',
+        show_title: bool = True,
+        # Standard Sky Options
+        show_stars: bool = True,
+        show_star_names: bool = True,
+        mag_limit: float = 6.5,
+        constellation_set: str = 'iau',
+        show_constellation_lines: bool = True,
+        show_constellation_labels: bool = True,
+        show_constellation_full_names: bool = False,
+        show_constellation_boundaries: bool = False,
+        show_galaxy_equator: bool = False,
+        show_galaxy_contours: "bool | list[float]" = False,
+        show_poles: bool = True,
+    ):
         """Interactive Plotly chart of the horizon elevation profile, optionally with stars.
 
         Parameters
@@ -607,7 +621,7 @@ class Horizon:
 
         if at is not None:
             from montu.stars import Stars, parse_constellation_boundaries
-            from montu.maps import _constellation_entries, _star_name, parse_constellation_names, _equatorial_to_horizontal, _observer_sidereal_time_hours
+            from montu.maps import _constellation_entries, _star_name, parse_constellation_names, _equatorial_to_horizontal, _observer_sidereal_time_hours, _load_precessed_milkyway, _load_precessed_milkyway_contours
             
             stars = Stars(subset='visible', Vmag=[-2, mag_limit])
             sky = stars.where_in_sky(at=at, observer=obs)
@@ -631,8 +645,77 @@ class Horizon:
             
             lst_hours = _observer_sidereal_time_hours(at, lat=obs.lat, lon=obs.lon, height_km=self.alt_m/1000.0)
 
+            # Milky Way Contours
+            galaxy_legend_added = False
+            if show_galaxy_contours:
+                epoch_str = str(at.readable.datepro)
+                mw_contours = _load_precessed_milkyway_contours(epoch_str)
+                if mw_contours:
+                    if isinstance(show_galaxy_contours, list):
+                        levels = show_galaxy_contours
+                    else:
+                        levels = [0.15, 0.4, 0.5]
+                    for lvl in sorted(levels):
+                        lvl_str = str(lvl)
+                        if lvl_str in mw_contours:
+                            cdata = mw_contours[lvl_str]
+                            alpha = 0.6
+                            for contour_type in ["open", "closed"]:
+                                ra_arr = cdata[f"{contour_type}_ra"]
+                                dec_arr = cdata[f"{contour_type}_dec"]
+                                if len(ra_arr) > 0:
+                                    az_arr, el_arr = _equatorial_to_horizontal(ra_arr / 15.0, dec_arr, lat=obs.lat, lst_hours=lst_hours)
+                                    az_plot = [wrap_az(az) if not np.isnan(az) else None for az in az_arr]
+                                    az_plot_split, el_plot_split = [], []
+                                    for i in range(len(az_plot)):
+                                        if i > 0 and az_plot[i] is not None and az_plot[i-1] is not None:
+                                            if abs(az_plot[i] - az_plot[i-1]) > 180:
+                                                az_plot_split.append(None)
+                                                el_plot_split.append(None)
+                                        az_plot_split.append(az_plot[i])
+                                        el_plot_split.append(el_arr[i])
+                                    fig.add_trace(go.Scatter(
+                                        x=az_plot_split, y=el_plot_split, mode="lines",
+                                        line=dict(color=f"rgba(130, 180, 255, {alpha:.2f})", width=1.0),
+                                        hoverinfo="skip", 
+                                        showlegend=not galaxy_legend_added, 
+                                        name="Galaxy" if not galaxy_legend_added else f"Galaxy Contour {lvl} ({contour_type})",
+                                    ))
+                                    galaxy_legend_added = True
+
+            # Milky Way Equator
+            if show_galaxy_equator:
+                epoch_str = str(at.readable.datepro)
+                mw = _load_precessed_milkyway(epoch_str)
+                if mw:
+                    eq_az, eq_el = _equatorial_to_horizontal(mw["equator_ra"] / 15.0, mw["equator_dec"], lat=obs.lat, lst_hours=lst_hours)
+                    eq_az_plot = [wrap_az(az) if not np.isnan(az) else None for az in eq_az]
+                    eq_az_split, eq_el_split = [], []
+                    for i in range(len(eq_az_plot)):
+                        if i > 0 and eq_az_plot[i] is not None and eq_az_plot[i-1] is not None:
+                            if abs(eq_az_plot[i] - eq_az_plot[i-1]) > 180:
+                                eq_az_split.append(None)
+                                eq_el_split.append(None)
+                        eq_az_split.append(eq_az_plot[i])
+                        eq_el_split.append(eq_el[i])
+                    fig.add_trace(go.Scatter(
+                        x=eq_az_split, y=eq_el_split, mode="lines",
+                        line=dict(color="rgba(130, 180, 255, 0.5)", width=2, dash="dash"),
+                        hoverinfo="skip", 
+                        showlegend=not galaxy_legend_added, 
+                        name="Galaxy" if not galaxy_legend_added else "Galactic equator",
+                    ))
+                    galaxy_legend_added = True
+                    cen_az, cen_el = _equatorial_to_horizontal(np.array([mw["center_ra"]]) / 15.0, np.array([mw["center_dec"]]), lat=obs.lat, lst_hours=lst_hours)
+                    if not np.isnan(cen_az[0]):
+                        fig.add_trace(go.Scatter(
+                            x=[wrap_az(cen_az[0])], y=[cen_el[0]], mode="text",
+                            text=["⊙"], textfont=dict(size=14, color="rgba(130, 180, 255, 0.9)"),
+                            hovertext="Galactic Center", showlegend=False, name="Galactic Center",
+                        ))
+
             # 1. Constellation boundaries
-            if show_boundaries:
+            if show_constellation_boundaries:
                 bx, by = [], []
                 for poly in parse_constellation_boundaries(at=at):
                     ra_pts = [p[0] for p in poly["points"]]
@@ -659,7 +742,7 @@ class Horizon:
                     ))
 
             # 2. Asterisms
-            entries = _constellation_entries(source_asterism)
+            entries = _constellation_entries(set_id=constellation_set)
             sky_unique = sky[sky['HIP'] != 0].drop_duplicates(subset=['HIP'])
             hip_lookup = sky_unique.set_index('HIP')[['az_plot', 'el']].to_dict('index')
             label_positions = {}
@@ -678,7 +761,7 @@ class Horizon:
                                     label_positions.setdefault(abbrev, []).append((pa['az_plot'], pa['el']))
                                     label_positions.setdefault(abbrev, []).append((pb['az_plot'], pb['el']))
 
-            if show_asterism and ast_x:
+            if show_constellation_lines and ast_x:
                 fig.add_trace(go.Scatter(
                     x=ast_x, y=ast_y,
                     mode='lines',
@@ -689,37 +772,38 @@ class Horizon:
                 ))
 
             # 3 & 4. Stars and Star names
-            sizes = np.clip(6 - visible['Vmag'], 1, 15)
-            names = visible.apply(_star_name, axis=1)
-            
-            if show_starnames:
-                text_labels = [n if v <= 3.0 else "" for n, v in zip(names, visible['Vmag'])]
-                mode = 'markers+text'
-            else:
-                text_labels = [""] * len(visible)
-                mode = 'markers'
+            if show_stars:
+                sizes = np.clip(6 - visible['Vmag'], 1, 15)
+                names = visible.apply(_star_name, axis=1)
                 
-            hover_text = [
-                f"{n}<br>Mag: {v:.1f}<br>Az: {az:.1f}°<br>Alt: {el:.1f}°"
-                for n, v, az, el in zip(names, visible['Vmag'], visible['az'], visible['el'])
-            ]
-
-            fig.add_trace(go.Scatter(
-                x=visible['az_plot'], y=visible['el'],
-                mode=mode,
-                marker=dict(
-                    size=sizes, color=visible['B-V'], colorscale='RdBu',
-                    cmin=-0.4, cmax=1.2, reversescale=True, line=dict(width=0)
-                ),
-                text=text_labels, textposition='top center',
-                textfont=dict(color='rgba(255,255,255,0.7)', size=10),
-                hovertext=hover_text, hoverinfo='text', name='Stars',
-                showlegend=False
-            ))
+                if show_star_names:
+                    text_labels = [n if v <= 3.0 else "" for n, v in zip(names, visible['Vmag'])]
+                    mode = 'markers+text'
+                else:
+                    text_labels = [""] * len(visible)
+                    mode = 'markers'
+                    
+                hover_text = [
+                    f"{n}<br>Mag: {v:.1f}<br>Az: {az:.1f}°<br>Alt: {el:.1f}°"
+                    for n, v, az, el in zip(names, visible['Vmag'], visible['az'], visible['el'])
+                ]
+    
+                fig.add_trace(go.Scatter(
+                    x=visible['az_plot'], y=visible['el'],
+                    mode=mode,
+                    marker=dict(
+                        size=sizes, color=visible['B-V'], colorscale='RdBu',
+                        cmin=-0.4, cmax=1.2, reversescale=True, line=dict(width=0)
+                    ),
+                    text=text_labels, textposition='top center',
+                    textfont=dict(color='rgba(255,255,255,0.7)', size=10),
+                    hovertext=hover_text, hoverinfo='text', name='Stars',
+                    showlegend=False
+                ))
             
             # 5. Constellation names
-            if show_constname and label_positions:
-                cnames = parse_constellation_names(set_id=source_asterism)
+            if show_constellation_labels and label_positions:
+                cnames = parse_constellation_names(set_id=constellation_set) if show_constellation_full_names else {}
                 lx, ly, ltext = [], [], []
                 for abbrev, coords in label_positions.items():
                     az_mean = float(np.mean([c[0] for c in coords]))

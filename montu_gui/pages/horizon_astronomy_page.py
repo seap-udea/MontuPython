@@ -167,6 +167,7 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
         self._chk_constellations.setChecked(cfg["show_constellations"])
         self._chk_starnames.setChecked(cfg["show_star_names"])
         self._chk_asterisms.setChecked(cfg["show_asterisms"])
+        self._chk_galaxy.setChecked(cfg.get("show_galaxy", False))
         idx = self._constellation_combo.findData(cfg["constellation_set"])
         if idx >= 0:
             self._constellation_combo.setCurrentIndex(idx)
@@ -374,6 +375,10 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
         self._chk_asterisms.setChecked(True)
         cfg_row.addWidget(self._chk_asterisms)
         
+        self._chk_galaxy = QCheckBox(tr("Mostrar galaxia"))
+        self._chk_galaxy.setChecked(False)
+        cfg_row.addWidget(self._chk_galaxy)
+        
         cfg_row.addWidget(QLabel(tr("Constellation set:")))
         self._constellation_combo = QComboBox()
         for set_id, label in CONSTELLATION_SETS:
@@ -432,6 +437,7 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
         self._chk_constellations.toggled.connect(self._schedule_plot)
         self._chk_starnames.toggled.connect(self._schedule_plot)
         self._chk_asterisms.toggled.connect(self._schedule_plot)
+        self._chk_galaxy.toggled.connect(self._schedule_plot)
         self._constellation_combo.currentIndexChanged.connect(self._schedule_plot)
 
         self._refresh_location_label()
@@ -490,6 +496,7 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
             show_constellations=self._chk_constellations.isChecked(),
             show_starnames=self._chk_starnames.isChecked(),
             show_asterisms=self._chk_asterisms.isChecked(),
+            show_galaxy=self._chk_galaxy.isChecked(),
             constellation_set=self._constellation_combo.currentData(),
             bodies=selected_bodies,
             lat=obs.lat,
@@ -536,6 +543,7 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
                 "show_constellations": self._chk_constellations.isChecked(),
                 "show_starnames": self._chk_starnames.isChecked(),
                 "show_asterisms": self._chk_asterisms.isChecked(),
+                "show_galaxy": self._chk_galaxy.isChecked(),
                 "constellation_set": self._constellation_combo.currentData(),
             },
             "bodies": [name for name, cb in self._body_boxes.items() if cb.isChecked()],
@@ -588,11 +596,13 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
         self._chk_constellations.blockSignals(True)
         self._chk_starnames.blockSignals(True)
         self._chk_asterisms.blockSignals(True)
+        self._chk_galaxy.blockSignals(True)
         self._constellation_combo.blockSignals(True)
         
         self._chk_constellations.setChecked(bool(config.get("show_constellations", True)))
         self._chk_starnames.setChecked(bool(config.get("show_starnames", True)))
         self._chk_asterisms.setChecked(bool(config.get("show_asterisms", False)))
+        self._chk_galaxy.setChecked(bool(config.get("show_galaxy", False)))
         
         set_id = config.get("constellation_set", DEFAULT_CONSTELLATION_SET)
         set_idx = next((i for i, (sid, _) in enumerate(CONSTELLATION_SETS) if sid == set_id), 0)
@@ -601,6 +611,7 @@ class HorizonAstronomyPage(LazyPageMixin, QWidget):
         self._chk_constellations.blockSignals(False)
         self._chk_starnames.blockSignals(False)
         self._chk_asterisms.blockSignals(False)
+        self._chk_galaxy.blockSignals(False)
         self._constellation_combo.blockSignals(False)
 
         bodies = set(cfg.get("bodies", []))

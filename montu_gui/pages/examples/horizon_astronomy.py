@@ -35,9 +35,9 @@ fig2 = giza.horizon.plot_horizon(
     az_center=110,   # Sunrise azimuth in winter
     az_delta=60,
     elev_view=30,
-    show_boundaries=False,
-    show_asterism=True,
-    show_starnames=True,
+    show_constellation_boundaries=False,
+    show_constellation_lines=True,
+    show_star_names=True,
     show_planets=["Sun", "Moon"]
 )
 

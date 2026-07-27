@@ -2,10 +2,9 @@
 
 This file collects the release notes and the main changes in MontuPython.
 
-## Version 0.44.0
+## Version 0.50.0
 
-- **Pinned astronomy stack** — `ephem==4.2.1`, `pymeeus==0.5.12`, `pyplanets==0.4.2` (reproducible ephemerides; stored in `requirements-astronomy.txt`).
-- **Organic regression snapshots** — `montu/tests/test-planetary-ephemeris-organic.csv` and `montu/tests/test-stellar-positions-organic.csv` regenerated with this stack (`make organic-snapshots`).
+
 
 ## Version 0.44.x (major)
 

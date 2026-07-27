@@ -2639,11 +2639,21 @@ class Conjunction(object):
 
     def plot_map(
         self,
-        mag_plotlimit=5.0,
-        mag_namelimit=3.5,
-        const_border=False,
-        show=True,
-        return_fig=False,
+        mag_namelimit: float = 3.5,
+        show: bool = True,
+        return_fig: bool = False,
+        # Standard Sky Options
+        show_stars: bool = True,
+        show_star_names: bool = True,
+        mag_limit: float = 6.5,
+        constellation_set: str = 'iau',
+        show_constellation_lines: bool = True,
+        show_constellation_labels: bool = True,
+        show_constellation_full_names: bool = False,
+        show_constellation_boundaries: bool = False,
+        show_galaxy_equator: bool = False,
+        show_galaxy_contours: "bool | list[float]" = False,
+        show_poles: bool = True,
     ):
         """Plot the conjunction on an equatorial sky map with stellar context.
 
@@ -2657,11 +2667,11 @@ class Conjunction(object):
 
         Parameters
         ----------
-        mag_plotlimit : float, optional
-            Faintest ``Vmag`` for background stars. Default 5.0.
+        mag_limit : float, optional
+            Faintest ``Vmag`` for background stars. Default 6.5.
         mag_namelimit : float, optional
             Annotate stars brighter than this magnitude. Default 3.5.
-        const_border : bool, optional
+        show_constellation_boundaries : bool, optional
             Draw IAU constellation boundary lines when ``True``. Default
             ``False``.
         show : bool, optional
@@ -2688,7 +2698,7 @@ class Conjunction(object):
         if not self.in_conjunction:
             return None
 
-        mag_plotlimit = float(mag_plotlimit)
+        mag_namelimit = float(mag_namelimit)
         mag_namelimit = float(mag_namelimit)
 
         ra_hours = [bc['ra_epoch'] for bc in self.body_conditions]
@@ -2703,7 +2713,7 @@ class Conjunction(object):
             field_radius = max(field_radius, dist * 1.35)
         field_radius = min(field_radius, 25.0)
 
-        stars = Stars(subset='visible').get_stars(Vmag=[-2, mag_plotlimit])
+        stars = Stars(subset='visible').get_stars(Vmag=[-2, float(mag_limit)])
         stars.where_in_space(at=self.mtime, inplace=True)
         star_data = stars.data.copy()
         if not star_data.empty:
@@ -2730,17 +2740,24 @@ class Conjunction(object):
             ra_col='RAEpoch',
             dec_col='DecEpoch',
             mag_col='Vmag',
-            mag_limit=mag_plotlimit,
+            mag_limit=float(mag_limit),
             label_bright_mag=mag_namelimit,
-            show_stars=not star_data.empty,
-            show_constellation_boundaries=const_border,
-            constellation_full_names=True,
             label_center=(center_ra_deg, center_dec_deg),
             label_radius_deg=field_radius * 1.05,
             constellation_label_font=dict(
                 size=11, color='rgba(180, 195, 215, 0.82)',
             ),
             at=self.mtime,
+            show_stars=show_stars and not star_data.empty,
+            show_star_names=show_star_names,
+            constellation_set=constellation_set,
+            show_constellation_lines=show_constellation_lines,
+            show_constellation_labels=show_constellation_labels,
+            show_constellation_full_names=show_constellation_full_names,
+            show_constellation_boundaries=show_constellation_boundaries,
+            show_galaxy_equator=show_galaxy_equator,
+            show_galaxy_contours=show_galaxy_contours,
+            show_poles=show_poles,
         )
         unwrap_figure_ra_deg(fig, center_ra_deg)
 
