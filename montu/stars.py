@@ -211,23 +211,24 @@ def parse_constellation_boundaries(path=None, at=None):
             polygons.append({"points": points, "codes": codes})
 
     if at is not None:
-        from pymeeus.Epoch import Epoch as pymeeus_Epoch
-        from pymeeus.Angle import Angle as pymeeus_Angle
-        import pymeeus.Coordinates as pymeeus_Coordinates
-        epoch = pymeeus_Epoch(at.jed)
+        import ephem
+        from math import pi
+        
+        target_epoch = at.obj_pyephem
         
         for poly in polygons:
             new_points = []
             for ra_deg, dec_deg in poly["points"]:
-                ra_h = ra_deg / 15.0
-                ra_epoch, dec_epoch = pymeeus_Coordinates.precession_equatorial(
-                    montu.PYMEEUS_JED_2000, epoch,
-                    pymeeus_Angle(ra_h, ra=True),
-                    pymeeus_Angle(dec_deg),
-                    pymeeus_Angle(0.0),
-                    pymeeus_Angle(0.0)
-                )
-                new_points.append((float(ra_epoch) % 360.0, float(dec_epoch)))
+                ra_rad = ra_deg * pi / 180.0
+                dec_rad = dec_deg * pi / 180.0
+                
+                eq2000 = ephem.Equatorial(ra_rad, dec_rad, epoch=ephem.J2000)
+                eq_target = ephem.Equatorial(eq2000, epoch=target_epoch)
+                
+                ra_final = (eq_target.ra * 180.0 / pi) % 360.0
+                dec_final = eq_target.dec * 180.0 / pi
+                
+                new_points.append((ra_final, dec_final))
             poly["points"] = new_points
 
     return polygons
