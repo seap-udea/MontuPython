@@ -61,8 +61,8 @@ identifiers:
   - type: url
     value: "https://montupython.readthedocs.io/"
   - type: doi
-    value: 10.5281/zenodo.21613729
-doi: 10.5281/zenodo.21613729
+    value: 10.5281/zenodo.21753938
+doi: 10.5281/zenodo.21753938
 preferred-citation:
   type: software
   authors:
@@ -70,6 +70,6 @@ preferred-citation:
       given-names: "Jorge I."
   title: "MontuPython: astronomical ephemerides for the ancient world"
   version: 0.50.0
-  doi: 10.5281/zenodo.21613729
-  url: "https://doi.org/10.5281/zenodo.21613729"
+  doi: 10.5281/zenodo.21753938
+  url: "https://doi.org/10.5281/zenodo.21753938"
   year: 2026
