@@ -22,8 +22,8 @@ contributors:
   - family-names: Arroyo
     given-names: Luis
     affiliation: Universidad de Antioquia, Colombia
-version: 0.44.0
-date-released: "2026-07-26"
+version: 0.50.0
+date-released: "2026-08-01"
 url: "https://github.com/seap-udea/MontuPython"
 repository-code: "https://github.com/seap-udea/MontuPython"
 license: MIT
@@ -69,7 +69,7 @@ preferred-citation:
     - family-names: Zuluaga
       given-names: "Jorge I."
   title: "MontuPython: astronomical ephemerides for the ancient world"
-  version: 0.44.0
+  version: 0.50.0
   doi: 10.5281/zenodo.21613729
   url: "https://doi.org/10.5281/zenodo.21613729"
   year: 2026
