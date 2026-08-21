@@ -72,7 +72,7 @@ status:
 ##################################################################
 clean: cleancrap
 
-cleanall: cleancrap cleanout cleandist cleanenv cleangit cleandocs
+cleanall: _dev_cleanall cleancrap cleanout cleandist cleanenv cleangit cleandocs
 
 #=========================
 # Clean
@@ -309,3 +309,5 @@ desktop-ci:
 subsets:
 	@echo "Generating stellar subsets..."
 	$(PYTHON) bin/cat_subsets.py
+# --- dev/cleanall (auto) ---
+include .dev_common.mk
